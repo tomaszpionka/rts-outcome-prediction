@@ -4,23 +4,25 @@ logger = logging.getLogger(__name__)
 
 
 def create_ml_views(con):
-    logger.info("Tworzenie zaktualizowanych widoków ML w DuckDB (nowe cechy: czas, supply, clan, mapa)...")
-    
-    # 1. Rozszerzony widok flat_players
+    logger.info(
+        "Tworzenie zaktualizowanych widoków ML w DuckDB (tłumaczenia map i unifikacja nicków)..."
+    )
+
+    # Rozszerzony widok (Teraz z LEFT JOIN do słownika map!)
     query_flat_players = """
     CREATE OR REPLACE VIEW flat_players AS
     SELECT 
         filename AS match_id,
+        split_part(filename, '/', -3) AS tournament_name,
         (details->>'$.timeUTC')::TIMESTAMP AS match_time,
         
-        -- Cechy ogólnogrowe (z header, metadata i initData)
         (header->>'$.elapsedGameLoops')::INTEGER AS game_loops,
         (initData->>'$.gameDescription.mapSizeX')::INTEGER AS map_size_x,
         (initData->>'$.gameDescription.mapSizeY')::INTEGER AS map_size_y,
         metadata->>'$.dataBuild' AS data_build,
+        COALESCE(mt.english_name, metadata->>'$.mapName') AS map_name,
         
-        -- Cechy konkretnego gracza
-        entry.key AS toon_id,
+        LOWER(entry.value->>'$.nickname') AS player_name,
         entry.value->>'$.race' AS race,
         (entry.value->>'$.startLocX')::INTEGER AS startLocX,
         (entry.value->>'$.startLocY')::INTEGER AS startLocY,
@@ -30,27 +32,29 @@ def create_ml_views(con):
         (entry.value->>'$.isInClan')::BOOLEAN AS is_in_clan,
         
         entry.value->>'$.result' AS result
-    FROM raw, 
+    FROM raw
+    LEFT JOIN map_translation mt ON mt.foreign_name = (metadata->>'$.mapName'),
          LATERAL json_each(ToonPlayerDescMap) AS entry
+    WHERE player_name IS NOT NULL AND player_name != ''
+      AND (entry.value->>'$.result') IN ('Win', 'Loss') -- <--- KLUCZOWA POPRAWKA: Tnie casterów!
     """
     con.execute(query_flat_players)
 
-    # 2. Łączenie w pary z uwzględnieniem nowych cech
+    # 2. Łączenie w pary
     query_matches = """
     CREATE OR REPLACE VIEW matches_flat AS
     SELECT 
         p1.match_id,
         p1.match_time,
-        
-        -- Wspólne dla meczu (bierzemy z p1, bo dla p2 są identyczne)
+        p1.tournament_name,
         p1.game_loops,
         p1.map_size_x,
         p1.map_size_y,
         p1.data_build,
+        p1.map_name,
         
-        -- Informacje o graczach
-        p1.toon_id AS p1_id,
-        p2.toon_id AS p2_id,
+        p1.player_name AS p1_name,
+        p2.player_name AS p2_name,
         
         p1.race AS p1_race,
         p2.race AS p2_race,
@@ -73,7 +77,7 @@ def create_ml_views(con):
         
         p1.result AS p1_result
     FROM flat_players p1
-    JOIN flat_players p2 ON p1.match_id = p2.match_id AND p1.toon_id != p2.toon_id
+    JOIN flat_players p2 ON p1.match_id = p2.match_id AND p1.player_name != p2.player_name
     """
     con.execute(query_matches)
     logger.info("Widok 'matches_flat' gotowy.")
