@@ -7,6 +7,20 @@ and this project adheres to [Conventional Commits](https://www.conventionalcommi
 
 ## [Unreleased]
 
+### Added
+- **Path B in-game event extraction pipeline** in `ingestion.py`: `audit_raw_data_availability()`, `extract_raw_events_from_file()`, `save_raw_events_to_parquet()`, `run_in_game_extraction()`, DuckDB loaders with `player_stats` view and `match_player_map` table
+- `PLAYER_STATS_FIELD_MAP` — 39 `scoreValue*` → snake_case field mappings for tracker events
+- Temporal split management in `processing.py`: `assign_series_ids()`, `create_temporal_split()`, `validate_temporal_split()`
+- `player_id` column added to `flat_players` and `matches_flat` SQL views
+- `get_matches_dataframe()` now accepts optional `split` parameter for filtered queries
+- Config constants: `IN_GAME_DB_PATH`, `IN_GAME_PARQUET_DIR`, `IN_GAME_MANIFEST_PATH`, `IN_GAME_WORKERS`, `IN_GAME_BATCH_SIZE`, `TRAIN_RATIO`, `VAL_RATIO`, `TEST_RATIO`, `SERIES_GAP_SECONDS`
+- `pyarrow` dependency for Parquet-based event storage
+- 42 new tests in `src/sc2ml/data/tests/` covering ingestion and processing pipelines
+- Data pipeline documentation: `src/sc2ml/data/README.md`, methodology notes
+
+### Changed
+- `slim_down_sc2_with_manifest()` now defaults to `dry_run=True` for safety
+
 ### Changed
 - **Reorganized into `src/sc2ml/` package** with four subpackages: `data/`, `features/`,
   `models/`, `gnn/` — proper Python src layout replacing flat root-level modules
