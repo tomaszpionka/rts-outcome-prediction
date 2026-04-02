@@ -12,6 +12,19 @@ DUCKDB_TEMP_DIR: Path = Path("~/duckdb_work/tmp").expanduser().resolve()
 # Raw replay files location
 REPLAYS_SOURCE_DIR: Path = Path("~/Downloads/SC2_Replays").expanduser().resolve()
 
+# ── In-game data (Path B) ─────────────────────────────────────────────────────
+IN_GAME_DB_PATH: Path = Path("~/duckdb_work/sc2_in_game.duckdb").expanduser().resolve()
+IN_GAME_PARQUET_DIR: Path = Path("~/duckdb_work/in_game_parquet").expanduser().resolve()
+IN_GAME_MANIFEST_PATH: Path = ROOT_PROJECTS_DIR / "in_game_processing_manifest.json"
+IN_GAME_WORKERS: int = 8
+IN_GAME_BATCH_SIZE: int = 50  # Files accumulated before Parquet flush
+
+# ── Data splitting ────────────────────────────────────────────────────────────
+TRAIN_RATIO: float = 0.80
+VAL_RATIO: float = 0.15
+TEST_RATIO: float = 0.05
+SERIES_GAP_SECONDS: int = 7200  # 2h max gap between games in same best-of series
+
 # ── Model artifact paths ───────────────────────────────────────────────────────
 MODELS_DIR: Path = ROOT_PROJECTS_DIR / "models"
 GNN_CHECKPOINT_PATH: Path = MODELS_DIR / "best_gnn_checkpoint.pt"
