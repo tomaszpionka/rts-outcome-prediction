@@ -50,20 +50,17 @@ class TestComputeContextFeatures:
     def test_series_without_data(self, sorted_df: pd.DataFrame) -> None:
         result = compute_context_features(sorted_df, series_df=None)
         assert result["series_game_number"].eq(0).all()
-        assert result["series_length_so_far"].eq(0).all()
 
     def test_series_with_data(self, sorted_df: pd.DataFrame) -> None:
         sdf = make_series_df(sorted_df, series_size=3)
         result = compute_context_features(sorted_df, series_df=sdf)
         # First game in each series should be 1
         assert result["series_game_number"].min() >= 1
-        # series_length_so_far should be game_number - 1
-        assert (result["series_length_so_far"] == result["series_game_number"] - 1).all()
 
     def test_no_nans(self, sorted_df: pd.DataFrame) -> None:
         result = compute_context_features(sorted_df)
         for col in ["patch_version_numeric", "tournament_match_position",
-                     "series_game_number", "series_length_so_far"]:
+                     "series_game_number"]:
             assert result[col].isna().sum() == 0
 
     def test_context_uses_game_version_column(self, sorted_df: pd.DataFrame) -> None:

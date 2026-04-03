@@ -2,9 +2,10 @@
 
 > **Thesis:** "A comparative analysis of methods for predicting game results in real-time strategy games, based on the examples of StarCraft II and Age of Empires II."
 >
-> This document tracks progress from code infrastructure through to thesis-ready results. Each item is checkable — mark `[x]` when complete. Cross-reference with `CHANGELOG.md` for code-level detail and `methodology.md` for the full experimental specification.
+> This document tracks progress from code infrastructure through to thesis-ready results. Each item is checkable — mark `[x]` when complete. Cross-reference with `CHANGELOG.md` for code-level detail and `reports/methodology.md` for the full experimental specification.
 >
-> **Last updated:** 2026-04-02
+> <!-- Claude: update checkboxes and "Last updated" date as work completes -->
+> **Last updated:** 2026-04-03
 
 ---
 
@@ -49,6 +50,15 @@
 
 > **Purpose:** Before running expensive experiments, validate that the processed data, feature engineering, and temporal splits produce sensible results. A single red flag here (e.g., suspiciously high accuracy, degenerate features, target leakage) invalidates all downstream results.
 
+### Execution Checklist (Phase 0 → Phase 1)
+
+- [ ] Run `poetry run sc2ml sanity` → `reports/sanity_validation.md`
+- [ ] All 25+ sanity checks PASS
+- [ ] Fix any failures (known issues: bool race dummies, expanding-window leakage, feature count mismatch)
+- [ ] Run `poetry run sc2ml ablation` → `reports/ablation_results.md`
+- [ ] Run `poetry run sc2ml tune --trials 200`
+- [ ] Run `poetry run sc2ml evaluate` → `reports/full_evaluation.md`
+
 ### 3.1 DuckDB View Sanity
 
 - [ ] Row counts: `flat_players` ≈ 2 × unique matches, `matches_flat` ≈ 2 × unique matches
@@ -90,6 +100,15 @@
 - [ ] Confirm expanding-window aggregates exclude current match (no self-leakage)
 - [ ] Confirm Elo computation deduplicates via `processed_matches` set on real data
 - [ ] Verify Group D rolling windows handle players with sparse match histories gracefully
+
+### 3.6 Test Coverage (see `reports/test_plan.md` for details)
+
+- [x] Phase 1 — Trivial gaps in existing test files (~10 tests)
+- [x] Phase 2 — New test files for 0%-coverage modules (~25 tests)
+- [x] Phase 3 — Augmenting partially-covered modules (~25 tests)
+- [x] Phase 4 — Subprocess-isolated LightGBM tests (~15 tests)
+- [x] Phase 5 — CLI and ingestion orchestration (~25 tests)
+- [ ] Target: 100% coverage (currently 83%)
 
 ---
 

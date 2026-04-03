@@ -83,7 +83,8 @@ def synthetic_pipeline_con() -> duckdb.DuckDBPyConnection:
 
     players = [f"player_{i}" for i in range(10)]
     races = ["Terr", "Prot", "Zerg"]  # Abbreviated — SQL view normalizes
-    tournaments = ["2023_GSL_S1", "2024_IEM_Katowice"]
+    # 20 tournaments (3 matches each) for clean 80/15/5 tournament-level splitting
+    tournaments = [f"2023_T{i:02d}" for i in range(20)]
     maps = ["Altitude LE", "Berlingrad LE"]
 
     rows = []
@@ -95,7 +96,8 @@ def synthetic_pipeline_con() -> duckdb.DuckDBPyConnection:
         r1, r2 = rng.choice(races), rng.choice(races)
         result = rng.choice(["Win", "Loss"])
         ts = base_time + pd.Timedelta(hours=int(i * 12))
-        tourn = rng.choice(tournaments)
+        # Assign tournaments chronologically (3 matches per tournament)
+        tourn = tournaments[i // 3]
         map_name = rng.choice(maps)
 
         tpdm = {

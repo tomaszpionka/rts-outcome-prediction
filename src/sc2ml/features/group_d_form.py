@@ -167,21 +167,43 @@ def _compute_h2h(df: pd.DataFrame) -> pd.DataFrame:
 
     Uses a canonical pair key ``(min(p1, p2), max(p1, p2))`` so that both
     perspectives of the same matchup share the same running counter.
+
+    To avoid self-leakage in the dual-perspective layout (where two rows per
+    match share the same pair key), we compute H2H on deduplicated matches
+    first, then map back to both rows.
     """
     df["_h2h_pair"] = df.apply(
         lambda r: (min(r["p1_name"], r["p2_name"]), max(r["p1_name"], r["p2_name"])),
         axis=1,
     )
 
-    h2h_total = expanding_count(df, "_h2h_pair")
-    h2h_p1_wins = expanding_sum(df, "_h2h_pair", "target")
+    # Deduplicate: keep the first row per match_id (p1_name < p2_name perspective)
+    dedup_mask = ~df.duplicated(subset="match_id", keep="first")
+    dedup = df.loc[dedup_mask].copy()
 
-    df["h2h_p1_wins"] = h2h_p1_wins
-    df["h2h_p2_wins"] = h2h_total - h2h_p1_wins
+    # H2H target from canonical perspective: did the alphabetically-first player win?
+    dedup["_h2h_target"] = (dedup["p1_name"] < dedup["p2_name"]).astype(int) * dedup["target"] + \
+                           (dedup["p1_name"] >= dedup["p2_name"]).astype(int) * (1 - dedup["target"])
+
+    h2h_total = expanding_count(dedup, "_h2h_pair")
+    h2h_first_wins = expanding_sum(dedup, "_h2h_pair", "_h2h_target")
+
+    # Map results back to all rows via match_id
+    dedup["_h2h_total"] = h2h_total
+    dedup["_h2h_first_wins"] = h2h_first_wins
+    h2h_map = dedup.set_index("match_id")[["_h2h_total", "_h2h_first_wins"]]
+    df = df.join(h2h_map, on="match_id")
+
+    # Convert canonical H2H to per-perspective: if p1 is the alphabetically-first
+    # player, their wins are _h2h_first_wins; otherwise, it's total - first_wins.
+    is_first = df["p1_name"] < df["p2_name"]
+    df["h2h_p1_wins"] = df["_h2h_first_wins"].where(is_first, df["_h2h_total"] - df["_h2h_first_wins"])
+    df["h2h_p2_wins"] = df["_h2h_total"] - df["h2h_p1_wins"]
     df["h2h_p1_winrate_smooth"] = bayesian_smooth(
-        h2h_p1_wins, h2h_total, H2H_BAYESIAN_C, BAYESIAN_PRIOR_WR
+        df["h2h_p1_wins"], df["_h2h_total"], H2H_BAYESIAN_C, BAYESIAN_PRIOR_WR
     )
 
+    df = df.drop(columns=["_h2h_total", "_h2h_first_wins", "_h2h_target"], errors="ignore")
     return df
 
 

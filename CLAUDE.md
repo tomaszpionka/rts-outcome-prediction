@@ -54,14 +54,26 @@ Python 3.12 | Poetry | PyTorch + PyG | DuckDB | scikit-learn, XGBoost, LightGBM 
 | `.claude/ml-protocol.md` | Experiment methodology, leakage rules, documentation artifacts |
 | `.claude/project-architecture.md` | Package layout, data pipeline, design decisions |
 | `.claude/aoe2-plan.md` | AoE2 integration notes (upcoming) |
+| `reports/methodology.md` | Full thesis specification (RQs, features, models, evaluation) |
+| `reports/ROADMAP.md` | Progress tracking — check before starting work |
+| `reports/test_plan.md` | Test coverage plan (detailed per-module specs) |
 
 ---
 
+## Progress Tracking (MANDATORY)
+
+- **Before starting work:** Read `reports/ROADMAP.md` to understand current project state and what's done vs. pending.
+- **After completing a task:** Update the relevant checkboxes in `reports/ROADMAP.md` (mark `[x]`) and update the `Last updated` date.
+- **After code changes:** Follow `.claude/git-workflow.md` — conventional branch names, atomic commits, conventional commit messages. Every session must end with the checklist below.
+
 ## End-of-Session Checklist
+
+> See `.claude/git-workflow.md` for full details on branches, commits, and conventions.
 
 1. All tests pass with coverage report
 2. Ruff and mypy clean
 3. `CHANGELOG.md` updated — work in progress under `[Unreleased]`; on merge, promote to versioned section
-4. `reports/research_log.md` updated if session involved experimentation, methodology decisions, issues, or breakthroughs
-5. Proposed commit messages for all uncommitted work
-6. Summary of what's ready to merge and what's still in progress
+4. `reports/ROADMAP.md` checkboxes updated to reflect completed work
+5. `reports/research_log.md` updated if session involved experimentation, methodology decisions, issues, or breakthroughs
+6. Proposed commit messages for all uncommitted work
+7. Summary of what's ready to merge and what's still in progress
