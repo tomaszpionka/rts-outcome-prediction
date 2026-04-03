@@ -55,6 +55,16 @@ def create_ml_views(con: duckdb.DuckDBPyConnection) -> None:
          LATERAL json_each(ToonPlayerDescMap) AS entry
     WHERE player_name IS NOT NULL AND player_name != ''
       AND (entry.value->>'$.result') IN ('Win', 'Loss')  -- excludes casters and observers
+      AND (entry.value->>'$.race') NOT LIKE 'BW%'        -- excludes Brood War exhibition replays
+      AND filename IN (                                   -- 1v1 matches only (exactly 2 Win/Loss players)
+          SELECT filename FROM raw,
+                 LATERAL json_each(ToonPlayerDescMap) AS e2
+          WHERE (e2.value->>'$.result') IN ('Win', 'Loss')
+            AND (e2.value->>'$.nickname') IS NOT NULL
+            AND (e2.value->>'$.nickname') != ''
+          GROUP BY filename
+          HAVING COUNT(*) = 2
+      )
     """
     con.execute(query_flat_players)
 
@@ -309,10 +319,11 @@ def create_temporal_split(
 ) -> None:
     """Create a ``match_split`` table assigning each match to train/val/test.
 
-    The split is temporal (by ``match_time``) with series-aware boundary
-    snapping: all games within the same series are guaranteed to be in the
-    same split.  Requires ``match_series`` table (run ``assign_series_ids``
-    first).
+    The split is temporal (by ``match_time``) with **tournament-level boundary
+    snapping**: all matches from the same tournament are guaranteed to be in
+    the same split.  This also preserves series containment (all series are
+    within a single tournament).  Tournament identity is derived from the
+    source directory name captured during ingestion.
 
     Args:
         con: DuckDB connection.
@@ -329,30 +340,29 @@ def create_temporal_split(
         f"Creating temporal split: train={train_ratio}, val={val_ratio}, test={test_ratio}"
     )
 
-    # Get series sorted by earliest match time, with match counts
-    series_df = con.execute("""
+    # Get tournaments sorted by earliest match time, with match counts
+    tourney_df = con.execute("""
         SELECT
-            ms.series_id,
-            MIN(m.match_time) AS first_match_time,
-            COUNT(DISTINCT ms.match_id) AS match_count
-        FROM match_series ms
-        JOIN matches_flat m ON ms.match_id = m.match_id
-        WHERE m.match_time IS NOT NULL
-          AND m.p1_name < m.p2_name  -- deduplicate perspectives
-        GROUP BY ms.series_id
+            tournament_name,
+            MIN(match_time) AS first_match_time,
+            COUNT(DISTINCT match_id) AS match_count
+        FROM flat_players
+        WHERE match_time IS NOT NULL
+          AND result IN ('Win', 'Loss')
+        GROUP BY tournament_name
         ORDER BY first_match_time ASC
     """).df()
 
-    total_matches = series_df["match_count"].sum()
+    total_matches = int(tourney_df["match_count"].sum())
     train_target = int(total_matches * train_ratio)
     val_target = int(total_matches * (train_ratio + val_ratio))
 
-    # Assign splits at series boundaries
+    # Assign splits at tournament boundaries
     cumulative = 0
     split_assignments: list[tuple[str, str]] = []
-    for _, row in series_df.iterrows():
-        series_id = row["series_id"]
-        count = row["match_count"]
+    for _, row in tourney_df.iterrows():
+        tournament = row["tournament_name"]
+        count = int(row["match_count"])
 
         if cumulative < train_target:
             assigned_split = "train"
@@ -361,18 +371,19 @@ def create_temporal_split(
         else:
             assigned_split = "test"
 
-        split_assignments.append((series_id, assigned_split))
+        split_assignments.append((tournament, assigned_split))
         cumulative += count
 
-    # Build the match_split table
-    split_df = pd.DataFrame(split_assignments, columns=["series_id", "split"])
+    # Build the match_split table via tournament → match_id mapping
+    split_df = pd.DataFrame(split_assignments, columns=["tournament_name", "split"])
 
     con.execute("DROP TABLE IF EXISTS match_split")
     con.execute("""
         CREATE TABLE match_split AS
-        SELECT ms.match_id, s.split
-        FROM match_series ms
-        JOIN split_df s ON ms.series_id = s.series_id
+        SELECT DISTINCT fp.match_id, s.split
+        FROM flat_players fp
+        JOIN split_df s ON fp.tournament_name = s.tournament_name
+        WHERE fp.result IN ('Win', 'Loss')
     """)
 
     # Log split statistics
@@ -396,9 +407,10 @@ def validate_temporal_split(con: duckdb.DuckDBPyConnection) -> None:
 
     Checks:
     1. No ``match_time`` overlap between train/val/test.
-    2. All games from the same ``series_id`` are in the same split.
-    3. Year distribution per split.
-    4. Split size percentages.
+    2. Tournament containment — no tournament spans multiple splits.
+    3. Series containment — no series spans multiple splits.
+    4. Year distribution per split.
+    5. Split size percentages.
     """
     logger.info("====== TEMPORAL SPLIT VALIDATION ======")
 
@@ -436,7 +448,28 @@ def validate_temporal_split(con: duckdb.DuckDBPyConnection) -> None:
             f"→ {'PASSED' if val_test_ok else 'FAILED!'}"
         )
 
-    # 2. Series integrity — no series spans multiple splits
+    # 2. Tournament containment — no tournament spans multiple splits
+    split_tourney_check = con.execute("""
+        SELECT fp.tournament_name, COUNT(DISTINCT ms.split) AS split_count
+        FROM match_split ms
+        JOIN flat_players fp ON ms.match_id = fp.match_id
+        WHERE fp.result IN ('Win', 'Loss')
+        GROUP BY fp.tournament_name
+        HAVING split_count > 1
+    """).df()
+
+    if len(split_tourney_check) == 0:
+        logger.info(
+            "Tournament containment: PASSED (no tournament spans multiple splits)"
+        )
+    else:
+        logger.warning(
+            f"Tournament containment: FAILED! {len(split_tourney_check)} tournaments "
+            f"span multiple splits:\n"
+            f"{split_tourney_check.to_string(index=False)}"
+        )
+
+    # 3. Series integrity — no series spans multiple splits
     split_series_check = con.execute("""
         SELECT ms2.series_id, COUNT(DISTINCT ms1.split) AS split_count
         FROM match_split ms1
@@ -453,7 +486,7 @@ def validate_temporal_split(con: duckdb.DuckDBPyConnection) -> None:
             f"multiple splits:\n{split_series_check.head(10).to_string(index=False)}"
         )
 
-    # 3. Year distribution per split
+    # 4. Year distribution per split
     year_dist = con.execute("""
         SELECT
             ms.split,
@@ -467,7 +500,7 @@ def validate_temporal_split(con: duckdb.DuckDBPyConnection) -> None:
     """).df()
     logger.info(f"Year distribution per split:\n{year_dist.to_string(index=False)}")
 
-    # 4. Split size percentages
+    # 5. Split size percentages
     total = boundaries["match_count"].sum()
     for _, row in boundaries.iterrows():
         pct = row["match_count"] / total * 100

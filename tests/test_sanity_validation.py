@@ -73,7 +73,10 @@ def synthetic_con() -> duckdb.DuckDBPyConnection:
 
     players = [f"player_{i}" for i in range(10)]
     races = ["Terr", "Prot", "Zerg"]  # Abbreviated — SQL view normalizes
-    tournaments = ["2023_GSL_S1", "2024_IEM_Katowice"]
+    # 20 tournaments with varying sizes to allow clean 80/15/5 splitting.
+    # Each tournament is assigned chronologically with 5 matches each (100 total).
+    # 16 tournaments × 5 = 80 train, 3 × 5 = 15 val, 1 × 5 = 5 test.
+    tournaments = [f"2023_T{i:02d}" for i in range(20)]
     maps = ["Altitude LE", "Berlingrad LE", "Equilibrium LE"]
 
     rows = []
@@ -85,7 +88,8 @@ def synthetic_con() -> duckdb.DuckDBPyConnection:
         r1, r2 = rng.choice(races), rng.choice(races)
         result = rng.choice(["Win", "Loss"])
         ts = base_time + pd.Timedelta(hours=int(i * 12))
-        tourn = rng.choice(tournaments)
+        # Assign tournaments chronologically (5 matches per tournament)
+        tourn = tournaments[i // 5]
         map_name = rng.choice(maps)
 
         tpdm = {
@@ -285,12 +289,10 @@ class TestFeatureDistribution:
             # Some perfect correlations are expected by design or on synthetic data:
             # - elo_diff / expected_win_prob (monotonic transform)
             # - p1_matches_last_7d / p2_matches_last_7d (synthetic: same schedule)
-            # - series_game_number / series_length_so_far (small synthetic series)
             expected_pairs = {
                 ("elo_diff", "expected_win_prob"),
                 ("p1_matches_last_7d", "p2_matches_last_7d"),
                 ("p1_matches_last_30d", "p2_matches_last_30d"),
-                ("series_game_number", "series_length_so_far"),
             }
             unexpected = [
                 (a, b) for a, b, _ in result.value

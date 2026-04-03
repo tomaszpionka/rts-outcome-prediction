@@ -74,16 +74,13 @@ def compute_context_features(
         df["series_game_number"] = (
             df.groupby("series_id").cumcount() + 1
         )
-        df["series_length_so_far"] = df["series_game_number"] - 1
 
         # Clean up the join column
         df.drop(columns=["series_id"], inplace=True)
 
         # Fill NaN for matches that didn't join (shouldn't happen, but safety)
         df["series_game_number"] = df["series_game_number"].fillna(0).astype(int)
-        df["series_length_so_far"] = df["series_length_so_far"].fillna(0).astype(int)
     else:
         df["series_game_number"] = 0
-        df["series_length_so_far"] = 0
 
     return df
