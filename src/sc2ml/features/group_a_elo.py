@@ -38,33 +38,33 @@ def compute_elo_features(df: pd.DataFrame) -> pd.DataFrame:
     games_played: dict[str, int] = {}
     pre_match_elos: dict[str, dict[str, float]] = {}
 
-    # Phase 1: record each player's Elo at the time of every match
+    # Single pass: snapshot pre-match Elo, then update (once per unique match)
+    processed: set[str] = set()
     for row in df.itertuples():
         match_id: str = row.match_id
         p1: str = row.p1_name
         p2: str = row.p2_name
 
-        if match_id not in pre_match_elos:
-            pre_match_elos[match_id] = {}
-
+        # Initialize new players
         for p in (p1, p2):
             if p not in elo_dict:
                 elo_dict[p] = 1500.0
                 games_played[p] = 0
-            if p not in pre_match_elos[match_id]:
-                pre_match_elos[match_id][p] = elo_dict[p]
 
-    # Phase 2: update Elo once per unique match
-    processed: set[str] = set()
-    for row in df.itertuples():
-        match_id = row.match_id
+        # Snapshot pre-match Elo for this match (both perspectives share it)
+        if match_id not in pre_match_elos:
+            pre_match_elos[match_id] = {p1: elo_dict[p1], p2: elo_dict[p2]}
+        elif p1 not in pre_match_elos[match_id]:
+            # Second perspective row — record the same Elo for the swapped player
+            pre_match_elos[match_id][p1] = elo_dict[p1]
+        if p2 not in pre_match_elos[match_id]:
+            pre_match_elos[match_id][p2] = elo_dict[p2]
+
+        # Update Elo once per unique match
         if match_id in processed:
             continue
 
-        p1 = row.p1_name
-        p2 = row.p2_name
         target = 1 if row.p1_result == "Win" else 0
-
         e1 = 1 / (1 + 10 ** ((elo_dict[p2] - elo_dict[p1]) / 400))
 
         k1 = ELO_K_NEW if games_played[p1] < ELO_K_THRESHOLD else ELO_K_VETERAN
