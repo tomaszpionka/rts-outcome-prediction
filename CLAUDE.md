@@ -184,7 +184,7 @@ activity — draft each section while context from its feeding phase is fresh.
 ## Permissions & Safety Boundaries
 
 ### Autonomous (no confirmation needed)
-- Read and write any files within `/Users/tomaszpionka/Projects/sc2-ml/`
+- Read and write any files within `/Users/tomaszpionka/Projects/rts-outcome-prediction/`
 - Run Python scripts, pytest, and poetry commands within the project
 - Read-only git operations: `git status`, `git log`, `git diff`, `git branch`, `git show`
 
@@ -193,7 +193,7 @@ activity — draft each section while context from its feeding phase is fresh.
 
 ### User review required (pass the command, wait for explicit confirmation)
 - All git write operations: `git add`, `git commit`, `git push`, `git rebase`, etc. — Claude proposes exact commands; user reviews and executes
-- Writing files outside `/Users/tomaszpionka/Projects/sc2-ml/`
+- Writing files outside `/Users/tomaszpionka/Projects/rts-outcome-prediction/`
 - System-level installs (`brew install`, global pip installs)
 - Any operation that modifies the DuckDB database at `~/duckdb_work/test_sc2.duckdb`
 

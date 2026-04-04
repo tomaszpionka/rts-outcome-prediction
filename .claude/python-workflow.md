@@ -4,7 +4,7 @@
 
 - **ALWAYS** use `poetry run <command>` or activate `.venv/` first
 - **NEVER** use bare `python3`, `python3 -c`, or `pip install`
-- Activate venv: `source /Users/tomaszpionka/Projects/sc2-ml/.venv/bin/activate`
+- Activate venv: `source /Users/tomaszpionka/Projects/rts-outcome-prediction/.venv/bin/activate`
 
 ## Common Commands
 
