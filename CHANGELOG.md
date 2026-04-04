@@ -19,6 +19,12 @@ merged to `master`.
 
 ### Removed
 
+## [0.14.3] — 2026-04-04 (PR: pending, chore/slim-pr-template)
+
+### Changed
+- `.github/pull_request_template.md` — stripped to three sections (Summary, optional Motivation, Test plan) and Claude Code footer; removed type/scope checkboxes, changes table, ML experiment, data integrity and documentation checklists, and commit messages block
+- `.claude/git-workflow.md` Step 7 — PR body guidance now explicitly references the template structure and provides a `gh pr create` heredoc example
+
 ## [0.14.2] — 2026-04-04 (PR: pending, chore/sc2-data-compression-scripts)
 
 ### Added
