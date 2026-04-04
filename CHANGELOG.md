@@ -19,6 +19,32 @@ merged to `master`.
 
 ### Removed
 
+## [0.15.0] — 2026-04-04 (PR: pending, docs/claude-config-restructure)
+
+### Changed
+- `CLAUDE.md` rewritten to 80 lines (from 277) — project identity, critical rules, and session workflow only; all detailed guidance moved to path-scoped rules
+- `.claude/project-architecture.md` → `.claude/dev-constraints.md` — stripped ARCHITECTURE.md duplication, kept only non-obvious constraints (module ordering, legacy warnings, platform notes, external data paths)
+- `.claude/ml-protocol.md` — added phase-activation guard (Phase 9+)
+- `ARCHITECTURE.md` — updated 3 references from deleted files to new `.claude/rules/thesis-writing.md`
+
+### Added
+- `.claude/rules/python-code.md` — merged coding-standards + testing-standards + python-workflow (loads on `**/*.py` touch)
+- `.claude/rules/thesis-writing.md` — merged thesis-writing + chat-handoff (loads on `thesis/**/*` touch)
+- `.claude/rules/sql-data.md` — extracted SQL/data constraints from project-architecture (loads on `*/data/**/*.py` touch)
+- `.claude/rules/git-workflow.md` — moved from `.claude/git-workflow.md` with PR template instructions preserved (loads on CHANGELOG/pyproject touch)
+
+### Removed
+- `.claude/coding-standards.md` — absorbed into `rules/python-code.md`
+- `.claude/testing-standards.md` — absorbed into `rules/python-code.md`
+- `.claude/python-workflow.md` — absorbed into `rules/python-code.md`
+- `.claude/thesis-writing.md` — absorbed into `rules/thesis-writing.md`
+- `.claude/chat-handoff.md` — absorbed into `rules/thesis-writing.md`
+- `.claude/git-workflow.md` — absorbed into `rules/git-workflow.md`
+- `.claude/aoe2-plan.md` — placeholder content, no longer needed
+- `.claude/project-architecture.md` — replaced by `dev-constraints.md`
+
+**Impact:** Always-loaded context reduced from 1,416 → 287 lines (−80%), 63,658 → 14,364 chars (−77%), 11 → 4 files (−64%). All content preserved in on-demand path-scoped rules.
+
 ## [0.14.3] — 2026-04-04 (PR: pending, chore/slim-pr-template)
 
 ### Changed
