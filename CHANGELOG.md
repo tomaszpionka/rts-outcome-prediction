@@ -9,7 +9,17 @@ Each feature branch merges as a semver bump. The `[Unreleased]` section
 tracks only changes on the current working branch that have not yet been
 merged to `master`.
 
-## [Unreleased] — v0.14.0
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.14.1] — 2026-04-04 (PR: pending, chore/repo-reorganization)
 
 > Note: Entries before v0.14.0 reference the old `sc2ml` package name and
 > root-level `reports/` paths. See the repo reorganization in v0.14.0.
@@ -44,6 +54,7 @@ merged to `master`.
 - **Step 14**: Removed empty legacy root directories `src/sc2ml/` and `src/aoe2/` (emptied by `git mv` in Step 1)
 - **Step 15**: `poetry.lock` regenerated after package rename; `poetry install` verified clean install
 - **Step 16**: `ARCHITECTURE.md` — new repo-root document describing package layout, game contract, version management, and thesis writing workflow
+- **Step 17**: `test_ingestion.py` — replaced backslash line continuation in `with` statements with parenthesized form
 
 ## [0.13.3] — 2026-04-04 (PR: pending, chore/rename-repo-rts-outcome-prediction)
 
