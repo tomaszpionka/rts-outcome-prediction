@@ -103,9 +103,27 @@ confirmation per the permissions in `CLAUDE.md`):
 git push origin <branch-name>
 ```
 
-Then the GitHub CLI command to open the PR:
+Then the GitHub CLI command to open the PR. The PR body **must follow the template**
+in `.github/pull_request_template.md`:
+
+- `## Summary` — 1–5 bullets describing what changed and why
+- `## Motivation` — include only when the reason is non-obvious from the summary; omit otherwise
+- `## Test plan` — concrete, checkable steps: commands run, artifacts verified, regressions checked
+- Footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+
 ```bash
-gh pr create --title "<type>(scope): description" --body "<summary of changes>"
+gh pr create --title "<type(scope): description>" --body "$(cat <<'EOF'
+## Summary
+
+- <bullet>
+
+## Test plan
+
+- [x] <step>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
 ```
 
 Or, if `gh` is not available, provide the GitHub URL to open the PR manually.
