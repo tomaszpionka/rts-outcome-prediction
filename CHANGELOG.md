@@ -13,6 +13,16 @@ merged to `master`.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.16.3] — 2026-04-05 (PR #34: chore/agent-infrastructure)
+
+### Added
+
 - 5-agent Claude Code architecture: `planner-science` (Opus), `planner` (Sonnet), `executor` (Sonnet), `reviewer` (Sonnet), `lookup` (Haiku) in `.claude/agents/`
 - Project settings (`.claude/settings.json`) with permission allow/deny rules and hook configuration
 - PostToolUse hook (`scripts/hooks/lint-on-edit.sh`) — auto-runs ruff on edited `.py` files
