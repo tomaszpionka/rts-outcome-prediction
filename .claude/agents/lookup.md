@@ -6,6 +6,7 @@ description: >
   "which file contains X", "how to do Y in git/DuckDB". Any question
   answerable in under 30 seconds.
 model: haiku
+color: cyan
 tools:
   - Read
   - Grep

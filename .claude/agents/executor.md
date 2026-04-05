@@ -8,6 +8,7 @@ description: >
   writing steps, the user may switch to Opus via /model opus mid-session.
 model: sonnet
 effort: high
+color: green
 tools:
   - Read
   - Write
