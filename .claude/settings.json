@@ -14,6 +14,13 @@
       "Bash(cat *)",
       "Bash(find *)",
       "Bash(wc *)",
+      "Bash(python3 -c *)",
+      "Bash(python3 -m pytest*)",
+      "Bash(echo *)",
+      "Bash(date *)",
+      "Bash(jq *)",
+      "Bash(du *)",
+      "Bash(sort *)",
       "Bash(head *)",
       "Bash(tail *)",
       "Bash(ls *)",
@@ -62,6 +69,26 @@
     ]
   },
   "hooks": {
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/log-subagent.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/log-subagent.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",

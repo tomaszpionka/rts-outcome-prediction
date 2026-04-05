@@ -6,9 +6,12 @@ description: >
   exploration strategy, statistical methodology, feature engineering design,
   evaluation framework, cross-game comparability, ML pipeline architecture.
   Triggers: "plan phase", "thesis strategy", "methodology", "scientific
-  review", or any planning task involving thesis science.
+  review", or any planning task involving thesis science. MUST be used
+  proactively for any data science planning.
 model: opus
 effort: max
+color: purple
+permissionMode: plan
 tools:
   - Read
   - Grep

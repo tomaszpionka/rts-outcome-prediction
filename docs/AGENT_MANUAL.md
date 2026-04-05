@@ -289,21 +289,57 @@ isolation — no architectural changes.
 
 ## Troubleshooting
 
-**Agent not being invoked:** Claude sometimes handles tasks in the main session
-instead of delegating. Use explicit `@agent-name` syntax to force delegation.
+**Agent not being invoked:** Claude sometimes handles tasks in the main
+session instead of delegating. Three fixes, in order of reliability:
 
-**Permission prompt on a repo file:** Check if the path matches an `allow`
-pattern in `.claude/settings.json`. New top-level directories need a
-`Write(newdir/**)` entry.
+1. Use the `@` typeahead picker (type `@`, select from dropdown) — this
+   *guarantees* invocation, unlike typing `@agent-name` as plain text.
+2. Use explicit phrasing: "Use the planner-science agent to plan..."
+3. Nuclear option: `claude --agent planner-science` from the integrated
+   terminal to run the entire session as that agent.
 
-**Reviewer says APPROVE but you're uncertain:** The reviewer catches
-mechanical errors. For scientific reasoning, bring the code to Claude Chat
-(this Project) for Pass 2 methodology review with Opus.
+**How to verify an agent actually ran:**
 
-**Lint hook seems slow:** Ruff should run in <200ms. If Poetry resolution
-overhead is noticeable, consider using `ruff check` directly in the hook
-script (without `poetry run`).
+1. Check `/tmp/rts-agent-log.txt` — our SubagentStart/Stop hooks log
+   every invocation with timestamps and transcript paths.
+2. Run `./scripts/debug/find-session.sh` to find subagent transcripts (stored under
+   `<session_id>/subagents/agent-<agent_id>.jsonl`). The `transcript=` value in
+   `/tmp/rts-agent-log.txt` gives the exact path.
+3. Look for the agent's color badge in the UI (purple = planner-science,
+   blue = planner, green = executor, orange = reviewer, cyan = lookup).
+4. Press Ctrl+O to toggle verbose mode — subagent spawning shows in the
+   tool call stream.
 
-**Want Opus for the whole session:** Run `claude --model opus` when starting
-Claude Code, or `/model opus` inside the session. Agents still use their
-frontmatter model — only the main session changes.
+**Permission prompt appearing for read-only agents:** If planner-science
+shows "Allow this bash command?", the agent wasn't invoked as a subagent
+(planners use `permissionMode: plan` which is read-only). You're seeing
+the main session's permission mode. Fix: use `@` typeahead or `--agent`.
+
+**Agent loaded but using wrong model:** Run `claude agents` from the
+terminal. The model should show next to each agent name. If it shows
+`inherit`, the frontmatter `model:` field isn't being picked up —
+check YAML syntax. For definitive testing, set
+`export CLAUDE_CODE_SUBAGENT_MODEL=opus` before launching.
+
+**VSCode extension vs integrated terminal:** The extension panel and the
+integrated terminal (`Ctrl+\``) share the same engine but the extension
+has limited TTY support. For agent-heavy work, prefer the integrated
+terminal. Run `claude` directly to get full subagent support.
+
+**Agent colors:**
+| Agent | Color | Model |
+|-------|-------|-------|
+| planner-science | purple | Opus |
+| planner | blue | Sonnet |
+| executor | green | Sonnet |
+| reviewer | orange | Sonnet |
+| lookup | cyan | Haiku |
+
+**Performance notes:**
+
+**PostToolUse lint latency:** `lint-on-edit.sh` adds ~300–800 ms per `.py` write
+due to Poetry venv startup. During executor sessions writing many files, this is
+expected — not a hang.
+
+**Write guard and relative paths:** `guard-write-path.sh` resolves relative paths
+from CWD. All agents use absolute paths by default, so this is transparent.

@@ -7,6 +7,7 @@ description: >
   work", "review PR", or invoke after significant implementation work.
 model: sonnet
 effort: high
+color: orange
 tools:
   - Read
   - Grep

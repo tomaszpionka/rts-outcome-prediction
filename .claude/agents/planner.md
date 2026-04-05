@@ -7,6 +7,8 @@ description: >
   "plan tests", "plan cleanup", or any code-structural planning.
 model: sonnet
 effort: high
+color: blue
+permissionMode: plan
 tools:
   - Read
   - Grep
