@@ -12,6 +12,8 @@ if [[ "$FILE_PATH" == /* ]]; then
 elif [[ "$FILE_PATH" == ~* ]]; then
   ABS_PATH="${FILE_PATH/#\~/$HOME}"
 else
+  # Relative paths are resolved from CWD, which Claude Code sets to the repo root.
+  # Agents always use absolute paths, so this is safe in practice.
   ABS_PATH="$(pwd)/$FILE_PATH"
 fi
 
