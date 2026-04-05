@@ -12,6 +12,18 @@ Classical ML on pre-game features, with optional in-game and GNN comparisons.
 - **NEVER** begin a new phase until all prior phase artifacts exist on disk
 - **NEVER** skip the plan/execute two-session workflow for non-trivial work
 
+## Planning Protocol
+
+When asked to create a plan or run a read-only/planning session:
+1. NEVER use Write, Edit, or any file-modifying tool until the user explicitly
+   approves the plan
+2. Present the plan in chat first and wait for confirmation
+3. If user says "read-only", "plan only", or "planning session", do NOT modify
+   any files — only use Read, Grep, Bash (read-only commands), and TodoWrite
+4. When executing steps from `_current_plan.md`, execute ONLY the steps the user
+   specifies (e.g., "steps 3-5") — do not skip ahead or do extra work
+5. When wrapping up a PR, move quickly — do not re-explore the repo
+
 ## Commands
 
 | Task | Command |
@@ -57,6 +69,18 @@ draft vs revision, figures/tables, WRITING_STATUS.md update.
 | Review queue | `thesis/chapters/REVIEW_QUEUE.md` |
 | Dev constraints | `.claude/dev-constraints.md` (legacy warnings, ordering, platform) |
 | ML experiment protocol | `.claude/ml-protocol.md` (active Phase 9+) |
+
+## Agent Architecture
+
+5 sub-agents in `.claude/agents/` — see `docs/AGENT_MANUAL.md` for usage.
+
+| Agent | Model | Effort | Role |
+|-------|-------|--------|------|
+| `planner-science` | opus | max | Thesis methodology, Phase architecture, data science |
+| `planner` | sonnet | high | Code refactoring, chores, test planning |
+| `executor` | sonnet | high | All implementation (use `/model opus` for hard steps) |
+| `reviewer` | sonnet | high | Post-change validation, catches regressions |
+| `lookup` | haiku | low | Quick git/shell/file questions |
 
 ## Permissions
 
