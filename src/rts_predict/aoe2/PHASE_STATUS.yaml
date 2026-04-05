@@ -2,7 +2,7 @@
 # Will be populated when AoE2 roadmap is created after SC2 pipeline is complete.
 
 game: aoe2
-roadmap: null  # Not yet created
+roadmap: src/rts_predict/aoe2/reports/AOE2_THESIS_ROADMAP.md
 current_phase: null
 
 phases: {}

@@ -1,534 +1,371 @@
-# Plan: Fix agent invocation, observability, and permission infrastructure
+# Initialize AoE2 Package Structure & Document Data Acquisition Plan
 
-**Branch:** `chore/agent-observability`
-**Category:** B (Infrastructure chore)
-**Estimated steps:** 7
-
----
-
-## Problem statement
-
-Custom subagents (planner-science, executor, etc.) are NOT being invoked as
-actual subagents. Evidence: "Allow this bash command?" prompts appear for
-planner tasks, the UI shows Sonnet (main session model), and the planner
-executes Python analysis scripts instead of producing read-only plans.
-
-Root causes (from Claude Code docs + GitHub issues research):
-1. No `permissionMode` set on agents → they inherit "Ask before edits"
-2. No `color` field → no visual feedback when agent IS running
-3. No SubagentStart/Stop hooks → no logging to confirm invocation
-4. No debugging tooling → can't find current session transcripts
-5. Missing Bash allow patterns → even if agent runs, Bash calls get blocked
-6. The `@planner-science` text might be typed as plain text rather than
-   picked from the typeahead → Claude treats it as natural language hint
+**Category:** C (Chore)
+**Branch:** `chore/init-aoe2-structure` (current branch)
+**Invariants in scope:** #9 (reproducibility), #10 (cross-game comparability)
 
 ---
 
-## Step 1 — Add colors and permissionMode to all agent frontmatter
+## Objective
 
-**Files:** All 5 files in `.claude/agents/`
+Two deliverables:
 
-### `.claude/agents/planner-science.md`
+1. Create the AoE2 subdirectory structure mirroring the SC2 layout, per
+   ARCHITECTURE.md "Adding a new game" checklist.
+2. Write a data acquisition README documenting what to download from each API
+   (aoestats, aoe2companion), from where, and into which directories — serving
+   as the specification for a future download script.
 
-Replace the YAML frontmatter with:
+No sample downloads. No schema profiling. No thesis paragraphs.
+
+---
+
+## Key Facts from Manifests (reference only)
+
+These facts come from the two JSON manifests already on disk. They inform the
+acquisition README but are not the deliverable themselves.
+
+- **aoe2companion** (`data/aoe2companion/api/api_dump_list.json`): 2,073 daily
+  match parquet files (2020-08-01 to 2026-04-04), 6.94 GB total. Also provides
+  leaderboard.parquet (87 MB), profile.parquet (170 MB), rating CSVs (2,072
+  files, 2.64 GB total — 1,791 files before 2025-06-27 are sparse at 63-972
+  bytes each, 0.20 MB combined; 281 files from 2025-06-27 onward are
+  substantive at 2.64 GB combined), and CSV duplicates of match data (43 GB,
+  skip). Zero date gaps. URLs are direct CDN links in the `url` field.
+- **aoestats** (`data/aoestats/api/db_dump_list.json`): 188 weekly entries
+  (2022-08-28 to 2026-04-04), 172 non-zero. 30.7M matches, 108.3M player
+  records. 16 zero-count entries across 4 gap ranges. URLs are relative paths
+  under `https://aoestats.io`. No file sizes in manifest.
+- **Primary source recommendation:** aoe2companion (longer coverage, daily
+  granularity, zero gaps, known file sizes, direct URLs).
+
+---
+
+## Step 1 — Create directory tree
+
+Mirror the SC2 layout. The SC2 tree (excluding data contents) is:
+
+```
+src/rts_predict/sc2/
+├── __init__.py
+├── cli.py
+├── config.py
+├── PHASE_STATUS.yaml
+├── data/
+│   ├── __init__.py
+│   ├── README.md
+│   ├── sc2egset/
+│   │   ├── raw/         (gitignored contents, README tracked)
+│   │   ├── staging/     (gitignored, README tracked)
+│   │   │   └── in_game_events/  (.gitkeep)
+│   │   ├── db/          (.gitkeep)
+│   │   └── tmp/         (.gitkeep)
+│   └── tests/
+│       ├── __init__.py
+│       └── conftest.py  (empty or minimal — no tests yet)
+├── reports/
+│   └── SC2_THESIS_ROADMAP.md
+├── models/              (gitignored contents)
+├── logs/                (gitignored)
+└── tests/
+    ├── __init__.py
+    └── test_cli.py
+```
+
+For AoE2, create this (items marked [EXISTS] are already on disk):
+
+```
+src/rts_predict/aoe2/
+├── __init__.py                          [EXISTS]
+├── PHASE_STATUS.yaml                    [EXISTS]
+├── config.py                            [NEW]
+├── data/
+│   ├── __init__.py                      [NEW]
+│   ├── README.md                        [NEW — acquisition plan goes here]
+│   ├── aoe2companion/
+│   │   ├── api/
+│   │   │   ├── api_dump_list.json       [EXISTS]
+│   │   │   └── README.md               [EXISTS]
+│   │   ├── raw/
+│   │   │   ├── matches/                 [NEW — .gitkeep]
+│   │   │   ├── leaderboards/            [NEW — .gitkeep]
+│   │   │   ├── profiles/                [NEW — .gitkeep]
+│   │   │   ├── ratings/                 [NEW — .gitkeep]
+│   │   │   └── README.md               [NEW]
+│   │   ├── db/                          [NEW — .gitkeep]
+│   │   └── tmp/                         [NEW — .gitkeep]
+│   ├── aoestats/
+│   │   ├── api/
+│   │   │   ├── db_dump_list.json        [EXISTS]
+│   │   │   └── api_description_view.json [EXISTS]
+│   │   ├── raw/
+│   │   │   ├── matches/                 [NEW — .gitkeep]
+│   │   │   ├── players/                 [NEW — .gitkeep]
+│   │   │   └── README.md               [NEW]
+│   │   ├── db/                          [NEW — .gitkeep]
+│   │   └── tmp/                         [NEW — .gitkeep]
+│   └── tests/
+│       └── __init__.py                  [NEW]
+├── reports/                             [NEW]
+│   └── AOE2_THESIS_ROADMAP.md           [NEW — placeholder]
+└── tests/
+    └── __init__.py                      [NEW]
+```
+
+Note: `staging/` directories are omitted intentionally — per ARCHITECTURE.md
+they are created "when extraction exists," and no extraction pipeline exists
+yet. Similarly, `models/` and `logs/` are omitted until needed.
+
+Note: aoestats provides only `matches.parquet` and `players.parquet` per weekly
+dump, so its `raw/` has `matches/` and `players/` subdirs only.
+aoe2companion provides matches, leaderboards, profiles, and ratings, so its
+`raw/` has four subdirs.
+
+### 1.1 — Directories to create (mkdir -p)
+
+```bash
+AOE2=src/rts_predict/aoe2
+
+mkdir -p $AOE2/data/aoe2companion/raw/matches
+mkdir -p $AOE2/data/aoe2companion/raw/leaderboards
+mkdir -p $AOE2/data/aoe2companion/raw/profiles
+mkdir -p $AOE2/data/aoe2companion/raw/ratings
+mkdir -p $AOE2/data/aoe2companion/db
+mkdir -p $AOE2/data/aoe2companion/tmp
+mkdir -p $AOE2/data/aoestats/raw/matches
+mkdir -p $AOE2/data/aoestats/raw/players
+mkdir -p $AOE2/data/aoestats/db
+mkdir -p $AOE2/data/aoestats/tmp
+mkdir -p $AOE2/data/tests
+mkdir -p $AOE2/reports
+mkdir -p $AOE2/tests
+```
+
+### 1.2 — .gitkeep files
+
+```bash
+touch $AOE2/data/aoe2companion/raw/matches/.gitkeep
+touch $AOE2/data/aoe2companion/raw/leaderboards/.gitkeep
+touch $AOE2/data/aoe2companion/raw/profiles/.gitkeep
+touch $AOE2/data/aoe2companion/raw/ratings/.gitkeep
+touch $AOE2/data/aoe2companion/db/.gitkeep
+touch $AOE2/data/aoe2companion/tmp/.gitkeep
+touch $AOE2/data/aoestats/raw/matches/.gitkeep
+touch $AOE2/data/aoestats/raw/players/.gitkeep
+touch $AOE2/data/aoestats/db/.gitkeep
+touch $AOE2/data/aoestats/tmp/.gitkeep
+```
+
+### 1.3 — __init__.py files
+
+```bash
+# data package
+echo '"""AoE2 data ingestion, processing, and exploration modules."""' \
+  > $AOE2/data/__init__.py
+
+# data/tests package
+touch $AOE2/data/tests/__init__.py
+
+# tests package
+touch $AOE2/tests/__init__.py
+```
+
+### 1.4 — config.py
+
+Minimal config mirroring `sc2/config.py` structure. Only path constants and
+DuckDB settings — no feature engineering constants until those exist.
+
+```python
+"""AoE2 game package configuration — paths and constants."""
+from pathlib import Path
+
+# -- Project paths --
+GAME_DIR: Path = Path(__file__).resolve().parent
+ROOT_DIR: Path = GAME_DIR.parent.parent.parent
+DATA_DIR: Path = GAME_DIR / "data"
+REPORTS_DIR: Path = GAME_DIR / "reports"
+
+# -- Dataset paths (two sources) --
+AOE2COMPANION_DIR: Path = DATA_DIR / "aoe2companion"
+AOE2COMPANION_RAW_DIR: Path = AOE2COMPANION_DIR / "raw"
+AOE2COMPANION_RAW_MATCHES_DIR: Path = AOE2COMPANION_RAW_DIR / "matches"
+AOE2COMPANION_RAW_LEADERBOARDS_DIR: Path = AOE2COMPANION_RAW_DIR / "leaderboards"
+AOE2COMPANION_RAW_PROFILES_DIR: Path = AOE2COMPANION_RAW_DIR / "profiles"
+AOE2COMPANION_RAW_RATINGS_DIR: Path = AOE2COMPANION_RAW_DIR / "ratings"
+AOE2COMPANION_DB_FILE: Path = AOE2COMPANION_DIR / "db" / "db.duckdb"
+AOE2COMPANION_TEMP_DIR: Path = AOE2COMPANION_DIR / "tmp"
+AOE2COMPANION_MANIFEST: Path = AOE2COMPANION_DIR / "api" / "api_dump_list.json"
+
+AOESTATS_DIR: Path = DATA_DIR / "aoestats"
+AOESTATS_RAW_DIR: Path = AOESTATS_DIR / "raw"
+AOESTATS_RAW_MATCHES_DIR: Path = AOESTATS_RAW_DIR / "matches"
+AOESTATS_RAW_PLAYERS_DIR: Path = AOESTATS_RAW_DIR / "players"
+AOESTATS_DB_FILE: Path = AOESTATS_DIR / "db" / "db.duckdb"
+AOESTATS_TEMP_DIR: Path = AOESTATS_DIR / "tmp"
+AOESTATS_MANIFEST: Path = AOESTATS_DIR / "api" / "db_dump_list.json"
+
+# -- Reproducibility --
+RANDOM_SEED: int = 42
+```
+
+### 1.5 — PHASE_STATUS.yaml
+
+Already exists with `current_phase: null`. Update `roadmap` field only:
 
 ```yaml
----
-name: planner-science
-description: >
-  Thesis methodology planner with deep scientific reasoning. Use for: Phase
-  work architecture (Phases 0-10), scientific invariant evaluation, data
-  exploration strategy, statistical methodology, feature engineering design,
-  evaluation framework, cross-game comparability, ML pipeline architecture.
-  Triggers: "plan phase", "thesis strategy", "methodology", "scientific
-  review", or any planning task involving thesis science. MUST be used
-  proactively for any data science planning.
-model: opus
-effort: max
-color: purple
-permissionMode: plan
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
----
+roadmap: src/rts_predict/aoe2/reports/AOE2_THESIS_ROADMAP.md
 ```
 
-Changes: added `color: purple`, added `permissionMode: plan`, added
-"MUST be used proactively" to description (improves auto-delegation per docs).
-The markdown body (system prompt) stays unchanged.
+### 1.6 — AOE2_THESIS_ROADMAP.md (placeholder)
 
-### `.claude/agents/planner.md`
+Short file stating the roadmap will be created after the SC2 pipeline reaches
+a sufficient phase. Reference ARCHITECTURE.md "Adding a new game" step 3.
 
-Add to frontmatter:
+### 1.7 — Remove the top-level .gitkeep
 
-```yaml
-color: blue
-permissionMode: plan
-```
+`src/rts_predict/aoe2/.gitkeep` was a placeholder for the empty package. Now
+that real content exists, delete it.
 
-### `.claude/agents/executor.md`
+### 1.8 — pyproject.toml entry point (DO NOT add yet)
 
-Add to frontmatter:
-
-```yaml
-color: green
-```
-
-Do NOT add permissionMode — executor needs write access.
-
-### `.claude/agents/reviewer.md`
-
-Add to frontmatter:
-
-```yaml
-color: orange
-```
-
-Do NOT add permissionMode — reviewer needs read + bash for tests/lint.
-
-### `.claude/agents/lookup.md`
-
-Add to frontmatter:
-
-```yaml
-color: cyan
-```
-
-### Gate: Run `claude agents` from terminal. All 5 agents should appear with their colors listed.
+Per ARCHITECTURE.md, a CLI entry point is required. However, there is no
+`cli.py` to register. Document this as a future action item in the roadmap
+placeholder. Do not add a broken entry point.
 
 ---
 
-## Step 2 — Add SubagentStart/Stop logging hooks
+## Step 2 — Data acquisition README
 
-**File:** `.claude/settings.json`
+Write `src/rts_predict/aoe2/data/README.md` documenting the acquisition plan.
 
-Add these hook entries alongside the existing PostToolUse and PreToolUse hooks:
+Content to include:
 
-```json
-{
-  "hooks": {
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo \"[$(date '+%H:%M:%S')] SUBAGENT START: type=$(echo $AGENT_INPUT | jq -r '.agent_type // \"unknown\"')\" >> /tmp/rts-agent-log.txt"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo \"[$(date '+%H:%M:%S')] SUBAGENT STOP: type=$(echo $AGENT_INPUT | jq -r '.agent_type // \"unknown\"') transcript=$(echo $AGENT_INPUT | jq -r '.agent_transcript_path // \"none\"')\" >> /tmp/rts-agent-log.txt"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+### 2.1 — Source overview table
 
-Keep all existing hooks (PostToolUse for lint-on-edit, PreToolUse for
-guard-write-path). Just add the two new event types.
+| Source | Manifest on disk | Granularity | Date range | Formats | Role |
+|--------|-----------------|-------------|------------|---------|------|
+| aoe2companion | `aoe2companion/api/api_dump_list.json` | Daily | 2020-08-01 to 2026-04-04 | Parquet, CSV | Primary |
+| aoestats | `aoestats/api/db_dump_list.json` | Weekly | 2022-08-28 to 2026-04-04 | Parquet | Validation |
 
-### Gate: After saving, start a new session, invoke any agent. Check `cat /tmp/rts-agent-log.txt` for entries.
+### 2.2 — aoe2companion: what to download
+
+List the file types from the manifest and which ones to download vs. skip:
+
+| File pattern | Count | Total size | Download? | Target directory |
+|-------------|-------|-----------|-----------|-----------------|
+| `match-{date}.parquet` | 2,073 | 6.94 GB | Yes | `aoe2companion/raw/matches/` |
+| `leaderboard.parquet` | 1 | 87 MB | Yes | `aoe2companion/raw/leaderboards/` |
+| `profile.parquet` | 1 | 170 MB | Yes | `aoe2companion/raw/profiles/` |
+| `rating-{date}.csv` | 2,072 | 2.64 GB | Yes | `aoe2companion/raw/ratings/` |
+| `match-{date}.csv` | 2,072 | 43.14 GB | No (parquet preferred) | -- |
+| `leaderboard.csv` | 1 | 749 MB | No (parquet preferred) | -- |
+| `profile.csv` | 1 | 663 MB | No (parquet preferred) | -- |
+| test files | 3 | ~5 MB | No | -- |
+
+URL pattern: each manifest entry has a `url` field with the full CDN URL
+(e.g., `https://dump.cdn.aoe2companion.com/match-2020-08-01.parquet`).
+
+Estimated download: ~9.8 GB for the "Yes" items (6.94 GB matches + 0.26 GB
+leaderboard+profile + 2.64 GB ratings).
+
+Format rationale: Parquet is preferred over CSV everywhere a parquet version
+exists (smaller, typed columns, faster to query). Rating CSVs are acquired
+because no parquet equivalent exists for this data.
+
+Note on rating CSVs: 1,791 files before 2025-06-27 are sparse (63-972 bytes
+each, 0.20 MB combined — likely header-only or near-empty). 281 files from
+2025-06-27 onward are substantive (2.64 GB combined). All files are acquired
+for completeness; the pre-2025 sparse files cost negligible storage and their
+presence/absence itself is a useful data point during profiling.
+
+### 2.3 — aoestats: what to download
+
+| File pattern | Count | Total size | Download? | Target directory |
+|-------------|-------|-----------|-----------|-----------------|
+| `matches.parquet` (weekly) | 172 (non-zero) | Unknown (no sizes in manifest) | Deferred | `aoestats/raw/matches/` |
+| `players.parquet` (weekly) | 172 (non-zero) | Unknown | Deferred | `aoestats/raw/players/` |
+
+URL pattern: manifest provides relative paths (e.g.,
+`/media/db_dumps/date_range%3D2022-08-28_2022-09-03/matches.parquet`).
+Base URL: `https://aoestats.io`.
+
+16 zero-count entries (4 gap ranges) to skip. The manifest `num_matches` field
+identifies these.
+
+Deferred because: aoe2companion is the primary source with known sizes and
+longer coverage. aoestats download will be planned after aoe2companion data
+is profiled in Phase 0.
+
+### 2.4 — Download script requirements (specification, not implementation)
+
+The future download script should:
+- Read the manifest JSON to enumerate files
+- Route each file to the correct `raw/` subdir based on filename pattern:
+  `match-*.parquet` to `raw/matches/`, `leaderboard.parquet` to
+  `raw/leaderboards/`, `profile.parquet` to `raw/profiles/`,
+  `rating-*.csv` to `raw/ratings/`
+- Skip entries with `num_matches == 0` (aoestats) or non-target files
+  (aoe2companion CSV duplicates, test files)
+- Verify checksums where available (aoestats provides `match_checksum` and
+  `player_checksum`; aoe2companion provides `eTag`)
+- Be idempotent: skip files already present with matching size/checksum
+- Log progress and write a download manifest for reproducibility
+
+### 2.5 — Per-source raw/ README.md
+
+Each `raw/` directory gets a short README stating what files will land there,
+the subdir layout, and where they came from:
+
+- `aoe2companion/raw/README.md`: Documents four subdirs (`matches/` for daily
+  match parquets, `leaderboards/` for leaderboard.parquet, `profiles/` for
+  profile.parquet, `ratings/` for daily rating CSVs). Source: aoe2companion
+  CDN. Manifest: `../api/api_dump_list.json`.
+- `aoestats/raw/README.md`: Documents two subdirs (`matches/` for weekly
+  matches.parquet, `players/` for weekly players.parquet). Source:
+  aoestats.io. Manifest: `../api/db_dump_list.json`.
 
 ---
 
-## Step 3 — Add a session-finder debug script
+## Step 3 — Verification
 
-**File:** `scripts/debug/find-session.sh`
+After execution, verify:
 
 ```bash
-#!/usr/bin/env bash
-# Find the most recent Claude Code session and its subagent transcripts.
-# Usage: ./scripts/debug/find-session.sh [project-path]
+# Directory structure exists
+find src/rts_predict/aoe2 -type d | sort
 
-set -euo pipefail
+# .gitkeep files in place
+find src/rts_predict/aoe2 -name '.gitkeep' | sort
 
-PROJECT_DIR="${1:-$(pwd)}"
-CLAUDE_DIR="$HOME/.claude/projects"
+# __init__.py files
+find src/rts_predict/aoe2 -name '__init__.py' | sort
 
-# Encode the project path the way Claude Code does (/ → -)
-ENCODED=$(echo "$PROJECT_DIR" | sed 's|^/||' | tr '/' '-')
+# config.py imports cleanly
+poetry run python -c "from rts_predict.aoe2.config import GAME_DIR; print(GAME_DIR)"
 
-SESSION_DIR="$CLAUDE_DIR/$ENCODED"
-
-if [ ! -d "$SESSION_DIR" ]; then
-  echo "No session directory found at: $SESSION_DIR"
-  echo "Try listing: ls $CLAUDE_DIR/"
-  exit 1
-fi
-
-echo "=== Session directory ==="
-echo "$SESSION_DIR"
-echo ""
-
-echo "=== Most recent session files (last 5) ==="
-ls -lt "$SESSION_DIR"/*.jsonl 2>/dev/null | head -5 || echo "  (none)"
-echo ""
-
-echo "=== Subagent transcripts (last 10) ==="
-ls -lt "$SESSION_DIR"/agent-*.jsonl 2>/dev/null | head -10 || echo "  (none)"
-echo ""
-
-echo "=== Agent log (if exists) ==="
-if [ -f /tmp/rts-agent-log.txt ]; then
-  tail -20 /tmp/rts-agent-log.txt
-else
-  echo "  No agent log at /tmp/rts-agent-log.txt"
-  echo "  (Will be created after SubagentStart/Stop hooks fire)"
-fi
+# No test regressions
+poetry run pytest tests/ src/ -v --tb=short
 ```
 
-Then: `chmod +x scripts/debug/find-session.sh`
-
-Also create the parent directory: `mkdir -p scripts/debug`
-
-### Gate: Script runs without errors and shows session directory.
+**Executor note:** Exploratory, non-destructive commands during verification
+(e.g., `python3 -c '...'` for quick import checks, `find`, `ls`) may be run
+without explicit user approval. These are read-only sanity checks, not paid
+API calls or data mutations.
 
 ---
 
-## Step 4 — Add missing Bash allow patterns to settings.json
-
-**File:** `.claude/settings.json`
-
-The current allow list is missing patterns that agents need. Add these to
-the `permissions.allow` array:
-
-```json
-"Bash(python3 -c *)",
-"Bash(python3 -m pytest*)",
-"Bash(echo *)",
-"Bash(wc -l *)",
-"Bash(sort *)",
-"Bash(date *)",
-"Bash(jq *)",
-"Bash(du *)"
-```
-
-This prevents "Allow this bash command?" prompts for common read-only
-operations that planners and executors run constantly.
-
-**Important:** Do NOT add `Bash(python3 *)` as a broad pattern — that would
-allow arbitrary script execution. The `-c` flag pattern covers inline
-analysis snippets; `pytest` covers test runs.
-
-### Gate: Run a session, try `python3 -c "print('hello')"` — should execute without permission prompt.
-
----
-
-## Step 5 — Add TodoWrite to planner agents' tools
-
-**Files:** `.claude/agents/planner-science.md`, `.claude/agents/planner.md`
-
-Both planners currently have `tools: Read, Grep, Glob, Bash`. They also
-need `TodoWrite` so they can create structured task lists (the TodoWrite
-tool is how agents output structured plans without needing file Write
-access).
-
-Update both agents' tools lists:
-
-```yaml
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - TodoWrite
-```
-
-### Gate: The planner can create todo items without needing Write permission.
-
----
-
-## Step 6 — Update AGENT_MANUAL.md with debugging section
-
-**File:** `docs/AGENT_MANUAL.md`
-
-Replace the existing `## Troubleshooting` section with an expanded version:
-
-```markdown
-## Troubleshooting
-
-**Agent not being invoked:** Claude sometimes handles tasks in the main
-session instead of delegating. Three fixes, in order of reliability:
-
-1. Use the `@` typeahead picker (type `@`, select from dropdown) — this
-   *guarantees* invocation, unlike typing `@agent-name` as plain text.
-2. Use explicit phrasing: "Use the planner-science agent to plan..."
-3. Nuclear option: `claude --agent planner-science` from the integrated
-   terminal to run the entire session as that agent.
-
-**How to verify an agent actually ran:**
-
-1. Check `/tmp/rts-agent-log.txt` — our SubagentStart/Stop hooks log
-   every invocation with timestamps and transcript paths.
-2. Run `./scripts/debug/find-session.sh` to find subagent transcripts.
-3. Look for the agent's color badge in the UI (purple = planner-science,
-   blue = planner, green = executor, orange = reviewer, cyan = lookup).
-4. Press Ctrl+O to toggle verbose mode — subagent spawning shows in the
-   tool call stream.
-
-**Permission prompt appearing for read-only agents:** If planner-science
-shows "Allow this bash command?", the agent wasn't invoked as a subagent
-(planners use `permissionMode: plan` which is read-only). You're seeing
-the main session's permission mode. Fix: use `@` typeahead or `--agent`.
-
-**Agent loaded but using wrong model:** Run `claude agents` from the
-terminal. The model should show next to each agent name. If it shows
-`inherit`, the frontmatter `model:` field isn't being picked up —
-check YAML syntax. For definitive testing, set
-`export CLAUDE_CODE_SUBAGENT_MODEL=opus` before launching.
-
-**VSCode extension vs integrated terminal:** The extension panel and the
-integrated terminal (`Ctrl+\``) share the same engine but the extension
-has limited TTY support. For agent-heavy work, prefer the integrated
-terminal. Run `claude` directly to get full subagent support.
-
-**Agent colors:**
-| Agent | Color | Model |
-|-------|-------|-------|
-| planner-science | purple | Opus |
-| planner | blue | Sonnet |
-| executor | green | Sonnet |
-| reviewer | orange | Sonnet |
-| lookup | cyan | Haiku |
-```
-
-### Gate: The new troubleshooting section is accurate and references all new debugging tools.
-
----
-
-## Step 7 — Verification checklist
-
-Run these checks after all changes are saved:
-
-1. `claude agents` — all 5 agents listed with correct models and colors
-2. Start new session in integrated terminal (not extension panel)
-3. Type `@` and verify `planner-science` appears in typeahead
-4. Select it, paste a short test prompt: "Read PHASE_STATUS.yaml and
-   summarize current phase"
-5. Verify: purple color badge visible, no permission prompts, output is
-   read-only (no file writes attempted)
-6. After completion: `cat /tmp/rts-agent-log.txt` shows START and STOP
-   entries with agent type = "planner-science"
-7. `./scripts/debug/find-session.sh` shows a new `agent-*.jsonl` file
-
-If step 5 still shows permission prompts or no color badge:
-- The subagent may not have loaded. Restart the session.
-- Try `claude --agent planner-science` as a fallback.
-- Check `claude agents` output for YAML parse errors.
-
-### Gate: All 7 checks pass. Agent invocation is observable and verifiable.
-
----
-
-## Files changed summary (steps 1–6)
-
-| File | Action |
-|------|--------|
-| `.claude/agents/planner-science.md` | Edit frontmatter (color, permissionMode, description) |
-| `.claude/agents/planner.md` | Edit frontmatter (color, permissionMode, tools) |
-| `.claude/agents/executor.md` | Edit frontmatter (color) |
-| `.claude/agents/reviewer.md` | Edit frontmatter (color) |
-| `.claude/agents/lookup.md` | Edit frontmatter (color) |
-| `.claude/settings.json` | Add SubagentStart/Stop hooks, add Bash allow patterns |
-| `scripts/debug/find-session.sh` | New file |
-| `scripts/hooks/log-subagent.sh` | New file (hook script for SubagentStart/Stop) |
-| `docs/AGENT_MANUAL.md` | Replace Troubleshooting section |
-
----
-
-## Safety and Performance Analysis (pre-steps 7–13)
-
-| Hook | Latency | Failure mode | Verdict |
-|------|---------|--------------|---------|
-| `lint-on-edit.sh` (PostToolUse) | ~300–800 ms per .py edit (Poetry venv startup) | Non-blocking (`\|\| true`) | Acceptable |
-| `guard-write-path.sh` (PreToolUse) | Sub-ms | Blocking (exit 2 blocks write) — relative path resolution assumes CWD = repo root | Acceptable; caveat documented in Step 9 |
-| `log-subagent.sh` (SubagentStart/Stop) | <100 ms (4 jq calls + /tmp append) | **Medium risk**: `set -euo pipefail` exits non-zero on missing field — could block subagent spawn | Fixed in Step 8 |
-
----
-
-## Step 8 — Harden `scripts/hooks/log-subagent.sh`
-
-**File:** `scripts/hooks/log-subagent.sh`
-
-Replace the four separate `echo "$INPUT" | jq -r '.<field>'` calls with a single
-`jq` invocation using TSV output, and add `// "unknown"` fallbacks to every field.
-
-New content:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-INPUT=$(cat)
-read -r EVENT SESSION AGENT TYPE TRANSCRIPT <<< "$(echo "$INPUT" | jq -r '[
-  .hook_event_name // "unknown",
-  .session_id // "unknown",
-  .agent_id // "unknown",
-  .agent_type // "unknown",
-  (.agent_transcript_path // "none")
-] | @tsv')"
-
-TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-echo "[$TIMESTAMP] $EVENT session=$SESSION agent=$AGENT type=$TYPE transcript=$TRANSCRIPT" >> /tmp/rts-agent-log.txt
-```
-
-Verification:
-```bash
-echo '{"hook_event_name":"SubagentStart","session_id":"s1","agent_id":"a1","agent_type":"task"}' | ./scripts/hooks/log-subagent.sh && tail -1 /tmp/rts-agent-log.txt
-echo '{"hook_event_name":"SubagentStart"}' | ./scripts/hooks/log-subagent.sh && tail -1 /tmp/rts-agent-log.txt
-```
-
-Both must exit 0. Second invocation must log "unknown" values, not crash.
-
-### Gate: Both test invocations exit 0; log shows "unknown" for missing fields.
-
----
-
-## Step 9 — Add CWD caveat comment to `scripts/hooks/guard-write-path.sh`
-
-**File:** `scripts/hooks/guard-write-path.sh`
-
-Find the block that resolves relative paths (the line using `$(pwd)/$FILE_PATH`)
-and add a comment immediately above it:
-
-```bash
-# Relative paths are resolved from CWD, which Claude Code sets to the repo root.
-# Agents always use absolute paths, so this is safe in practice.
-```
-
-No logic change — comment only.
-
-Verification: `bash -n scripts/hooks/guard-write-path.sh` exits 0.
-
-### Gate: `bash -n` exits 0.
-
----
-
-## Step 10 — Fix `scripts/debug/find-session.sh` subagent transcript lookup
-
-**File:** `scripts/debug/find-session.sh`
-
-Subagent transcripts live at `<session_dir>/<session_id>/subagents/agent-<agent_id>.jsonl`,
-not at `<session_dir>/agent-*.jsonl`. Update accordingly:
-
-```bash
-echo "=== Most recent session directories (last 5) ==="
-ls -lt "$SESSION_DIR" | grep '^d' | head -5 || echo "  (none)"
-echo ""
-
-echo "=== Subagent transcripts (last 10) ==="
-find "$SESSION_DIR" -path "*/subagents/agent-*.jsonl" 2>/dev/null \
-  | xargs ls -lt 2>/dev/null | head -10 || echo "  (none)"
-echo ""
-```
-
-Also remove the old glob: `ls -lt "$SESSION_DIR"/*.jsonl`.
-
-Verification: `./scripts/debug/find-session.sh` — output shows `subagents/` paths; no "none" when agents have run.
-
-### Gate: Script exits 0 and shows correct subagent paths.
-
----
-
-## Step 11 — Check for debug artifact references
-
-Grep for `rts-agent-input-debug` across the repo:
-
-```bash
-grep -r "rts-agent-input-debug" .
-```
-
-If any references found in repo files (AGENT_MANUAL.md, find-session.sh, hooks): remove them.
-If zero matches: no action needed. The `/tmp` file is an orphan that will disappear on next reboot.
-
-### Gate: `grep -r "rts-agent-input-debug" .` returns zero matches.
-
----
-
-## Step 12 — Update `docs/AGENT_MANUAL.md`
-
-**File:** `docs/AGENT_MANUAL.md`
-
-In the Troubleshooting section, update item 2 of "How to verify an agent actually ran":
-
-> "Run `./scripts/debug/find-session.sh` to find subagent transcripts (stored under
-> `<session_id>/subagents/agent-<agent_id>.jsonl`). The `transcript=` value in
-> `/tmp/rts-agent-log.txt` gives the exact path."
-
-Add a **Performance notes** subsection at the end of Troubleshooting:
-
-```markdown
-**PostToolUse lint latency:** `lint-on-edit.sh` adds ~300–800 ms per `.py` write
-due to Poetry venv startup. During executor sessions writing many files, this is
-expected — not a hang.
-
-**Write guard and relative paths:** `guard-write-path.sh` resolves relative paths
-from CWD. All agents use absolute paths by default, so this is transparent.
-```
-
-### Gate: Section accurately describes `subagents/` structure and latency expectations.
-
----
-
-## Step 13 — CHANGELOG, version bump, and PR wrap-up
-
-**Files:** `CHANGELOG.md`, `pyproject.toml`
-
-Current version: `0.16.3`. Branch: `chore/` → patch bump. New version: `0.16.4`.
-
-Move `[Unreleased]` → `[0.16.4] — 2026-04-05 (PR #35: chore/agent-observability)`.
-
-CHANGELOG entries:
-
-```
-### Added
-- SubagentStart/Stop hooks (`scripts/hooks/log-subagent.sh`) logging agent events
-  to `/tmp/rts-agent-log.txt` with session ID, agent ID, type, and transcript path
-- `scripts/debug/find-session.sh` — finds session directories and correlates
-  subagent transcript paths
-- `color` and `permissionMode` fields in all 5 agent frontmatter files
-- New Bash allow patterns in `settings.json`: `python3 -c *`, `echo *`, `date *`,
-  `jq *`, `du *`, `sort *`, `python3 -m pytest*`
-
-### Changed
-- `scripts/debug/find-session.sh` updated to search `<session_id>/subagents/`
-  for agent transcripts (correct Claude Code layout)
-- `scripts/hooks/log-subagent.sh` hardened: single jq call, `// "unknown"`
-  fallbacks on all fields
-- `docs/AGENT_MANUAL.md` Troubleshooting section expanded with transcript paths,
-  lint latency note, and write-guard CWD caveat
-```
-
-Run final checks (no .py touched, so no pytest/mypy needed):
-
-```bash
-bash -n scripts/hooks/log-subagent.sh
-bash -n scripts/hooks/lint-on-edit.sh
-bash -n scripts/hooks/guard-write-path.sh
-bash -n scripts/debug/find-session.sh
-grep '^version' pyproject.toml   # must show 0.16.4
-```
-
-Then commit and propose PR (user executes git push and gh pr create):
-
-```bash
-git add .claude/agents/ .claude/settings.json \
-        scripts/hooks/log-subagent.sh \
-        scripts/debug/find-session.sh \
-        scripts/hooks/guard-write-path.sh \
-        docs/AGENT_MANUAL.md \
-        CHANGELOG.md pyproject.toml
-git commit -m "chore(agent-observability): add subagent observability hooks and debug tooling"
-git commit -m "chore(release): bump version to 0.16.4"
-```
-
-### Gate: All `bash -n` checks pass; version = 0.16.4; user has push + PR commands ready.
+## Gate Condition
+
+All of the following are true:
+
+1. AoE2 directory tree matches the layout in Step 1 (all [NEW] items exist),
+   including object-type subdirs under each `raw/` directory.
+2. `config.py` imports without error and path constants resolve correctly,
+   including the new `*_RAW_MATCHES_DIR`, `*_RAW_RATINGS_DIR`, etc.
+3. `data/README.md` documents what to download, from where, and into which
+   subdirectory for both sources, with numbers sourced from the manifest JSONs.
+   Rating CSVs are listed as "Yes" (not deferred).
+4. Each `raw/` subdirectory has a `.gitkeep`.
+5. Each `raw/` directory has a `README.md` describing its subdir layout.
+6. `PHASE_STATUS.yaml` references the roadmap path.
+7. Existing tests still pass.
