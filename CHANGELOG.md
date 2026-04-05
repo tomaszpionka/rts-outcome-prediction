@@ -13,6 +13,14 @@ merged to `master`.
 
 ### Added
 
+- 5-agent Claude Code architecture: `planner-science` (Opus), `planner` (Sonnet), `executor` (Sonnet), `reviewer` (Sonnet), `lookup` (Haiku) in `.claude/agents/`
+- Project settings (`.claude/settings.json`) with permission allow/deny rules and hook configuration
+- PostToolUse hook (`scripts/hooks/lint-on-edit.sh`) — auto-runs ruff on edited `.py` files
+- PreToolUse hook (`scripts/hooks/guard-write-path.sh`) — write-path guardrail (repo=allow, home=ask, outside=block)
+- Agent manual (`docs/AGENT_MANUAL.md`) with decision flowchart, workflows, and permission model docs
+- Planning Protocol section in CLAUDE.md (read-only session enforcement, step-scoped execution)
+- Agent Architecture reference table in CLAUDE.md
+
 ### Changed
 
 ### Fixed

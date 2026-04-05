@@ -1,0 +1,88 @@
+{
+  "model": "opusplan",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(poetry *)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(ls *)",
+      "Bash(grep *)",
+      "Bash(ruff *)",
+      "Bash(mypy *)",
+      "Bash(python3 -m json.tool*)",
+      "Bash(chmod *)",
+      "Bash(mkdir *)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(thesis/**)",
+      "Write(reports/**)",
+      "Write(docs/**)",
+      "Write(.claude/**)",
+      "Write(scripts/**)",
+      "Write(_current_plan.md)",
+      "Write(CHANGELOG.md)",
+      "Write(CLAUDE.md)",
+      "Write(ARCHITECTURE.md)",
+      "Write(README.md)",
+      "Write(pyproject.toml)",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(thesis/**)",
+      "Edit(reports/**)",
+      "Edit(docs/**)",
+      "Edit(.claude/**)",
+      "Edit(scripts/**)",
+      "Edit(_current_plan.md)",
+      "Edit(CHANGELOG.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(ARCHITECTURE.md)",
+      "Edit(README.md)",
+      "Edit(pyproject.toml)"
+    ],
+    "deny": [
+      "Write(src/**/data/*/raw/**)",
+      "Edit(src/**/data/*/raw/**)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(git push*)",
+      "Bash(git checkout -- *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/lint-on-edit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/guard-write-path.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
