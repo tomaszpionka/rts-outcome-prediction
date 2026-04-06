@@ -103,7 +103,9 @@ Violating them produces results that cannot be defended at examination.
     Both games use the same ML methods (logistic regression, random forest,
     gradient boosted trees), the same evaluation metrics (accuracy, log-loss,
     ROC-AUC, calibration), and the same statistical comparison methodology
-    (Friedman test with Nemenyi post-hoc, per Demšar 2006). Feature sets
+    (Friedman omnibus test, then pairwise Wilcoxon signed-rank with Holm
+    correction, complemented by Bayesian signed-rank with ROPE via baycomp;
+    per Benavoli et al. 2017, Garcia & Herrera 2008). Feature sets
     differ by necessity (SC2 has in-game state, AoE2 does not), but the
     common pre-game feature categories (skill rating, win rate, activity,
     faction matchup, map, head-to-head) must be defined at a level of

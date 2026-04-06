@@ -55,7 +55,8 @@ BLOCKED — AoE2 phases.
 ### 5.3.1 Method ranking comparison
 
 <!--
-Friedman test + Nemenyi, critical difference diagram.
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank, critical difference diagram.
+See THESIS_WRITING_MANUAL.md §3.2.
 BLOCKED — both games complete.
 -->
 
