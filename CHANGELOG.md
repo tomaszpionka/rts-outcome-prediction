@@ -11,9 +11,21 @@ merged to `master`.
 
 ## [Unreleased]
 
+### Added
+
 ### Changed
 
-- `scripts/hooks/log-subagent.sh` — robust per-field jq parsing (fixes field-shift anomaly), model name lookup from agent_type, token aggregation from transcript JSONL on SubagentStop, SessionOpen/SessionClose wrapper lines per session
+### Fixed
+
+### Removed
+
+## [0.18.1] — 2026-04-06 (PR #42: chore/changelog-audit)
+
+### Changed
+- `CHANGELOG.md` — retroactive audit: 14 stale pending-PR headers replaced with actual PR numbers (#16–#29), `[0.18.0]` cut from `[Unreleased]` for PRs #39/#40/#41, PR #32 retroactive entry added inside `[0.16.2]`, `[0.7.0]` branch prefix corrected (`docs/` → `fix/`)
+- `.claude/rules/git-workflow.md` — PR creation flow updated to write body to `.github/tmp/pr.txt` and use `gh pr create --body-file` instead of inline heredoc
+
+## [0.18.0] — 2026-04-06 (PR #39: docs/thesis-formatting-rules, PR #40: docs/pjait-references, PR #41: chore/hook-logging)
 
 ### Added
 - `.claude/thesis-formatting-rules.yaml` — machine-readable PJAIT formatting thresholds and rules extracted from `PJAIT_THESIS_REQUIREMENTS.md` §1
@@ -23,6 +35,7 @@ merged to `master`.
 - `thesis/THESIS_STRUCTURE.md` PJAIT institution line
 
 ### Changed
+- `scripts/hooks/log-subagent.sh` — robust per-field jq parsing (fixes field-shift anomaly), model name lookup from agent_type, token aggregation from transcript JSONL on SubagentStop, SessionOpen/SessionClose wrapper lines per session
 - `.claude/rules/thesis-writing.md` — added cross-reference to formatting rules YAML
 - `.claude/scientific-invariants.md` invariant #10: Nemenyi → Wilcoxon/Holm + Bayesian signed-rank
 - `thesis/THESIS_STRUCTURE.md` §2.6 and §5.3.1: same Nemenyi → Wilcoxon/Holm + Bayesian update
@@ -137,6 +150,12 @@ merged to `master`.
 - Renamed all Phase 0 and Phase 1 report files to include step numbers: `{PHASE:02d}_{STEP:02d}_{name}.{ext}` (e.g. `00_source_audit.json` → `00_01_source_audit.json`, `01_apm_mmr_audit.md` → `01_04_apm_mmr_audit.md`)
 - Updated `audit.py`, `exploration.py`, `test_exploration.py`, `SC2_THESIS_ROADMAP.md`, `research_log.md` to reference the new filenames
 
+> **Note (retroactive — PR #32: chore/sc2egset-scripts, merged between #31 and #33):**
+> This PR had no CHANGELOG entry at merge time. Changes: moved SC2EGSet data
+> scripts from `src/rts_predict/sc2/data/` into `scripts/sc2egset/`; added
+> `scripts/sc2egset/README.md`; enhanced `validate_map_names.sh` (66-line
+> rewrite); renamed all scripts to drop the `sc2_` prefix.
+
 ## [0.16.1] — 2026-04-05 (PR #31: chore/consolidate-data-dirs)
 
 ### Added
@@ -167,12 +186,12 @@ merged to `master`.
 ### Removed
 - `tests/helpers.py` — unused `make_matches_df()` / `make_series_df()` (never imported)
 
-## [0.15.1] — 2026-04-04 (PR: pending, chore/archive-cleanup)
+## [0.15.1] — 2026-04-04 (PR #29: chore/archive-cleanup)
 
 ### Removed
 - 16 archive files (run logs 01-09, ROADMAP_v1, methodology_v1, data_analysis_notes, gnn_collapse_log, sanity_validation, research_log, gnn_space_map) replaced by single `ARCHIVE_SUMMARY.md`
 
-## [0.15.0] — 2026-04-04 (PR: pending, docs/claude-config-restructure)
+## [0.15.0] — 2026-04-04 (PR #28: docs/claude-config-restructure)
 
 ### Changed
 - `CLAUDE.md` rewritten to 80 lines (from 277) — project identity, critical rules, and session workflow only; all detailed guidance moved to path-scoped rules
@@ -198,13 +217,13 @@ merged to `master`.
 
 **Impact:** Always-loaded context reduced from 1,416 → 287 lines (−80%), 63,658 → 14,364 chars (−77%), 11 → 4 files (−64%). All content preserved in on-demand path-scoped rules.
 
-## [0.14.3] — 2026-04-04 (PR: pending, chore/slim-pr-template)
+## [0.14.3] — 2026-04-04 (PR #27: chore/slim-pr-template)
 
 ### Changed
 - `.github/pull_request_template.md` — stripped to three sections (Summary, optional Motivation, Test plan) and Claude Code footer; removed type/scope checkboxes, changes table, ML experiment, data integrity and documentation checklists, and commit messages block
 - `.claude/git-workflow.md` Step 7 — PR body guidance now explicitly references the template structure and provides a `gh pr create` heredoc example
 
-## [0.14.2] — 2026-04-04 (PR: pending, chore/sc2-data-compression-scripts)
+## [0.14.2] — 2026-04-04 (PR #26: chore/sc2-data-compression-scripts)
 
 ### Added
 - `src/rts_predict/sc2/data/sc2_rezip_data.sh` — re-zips each `*_data/` tournament
@@ -223,7 +242,7 @@ merged to `master`.
   `map_foreign_to_english_mapping.json` is byte-identical across all tournament
   directories.
 
-## [0.14.1] — 2026-04-04 (PR: pending, chore/repo-reorganization)
+## [0.14.1] — 2026-04-04 (PR #25: chore/repo-reorganization)
 
 > Note: Entries before v0.14.0 reference the old `sc2ml` package name and
 > root-level `reports/` paths. See the repo reorganization in v0.14.0.
@@ -260,12 +279,12 @@ merged to `master`.
 - **Step 16**: `ARCHITECTURE.md` — new repo-root document describing package layout, game contract, version management, and thesis writing workflow
 - **Step 17**: `test_ingestion.py` — replaced backslash line continuation in `with` statements with parenthesized form
 
-## [0.13.3] — 2026-04-04 (PR: pending, chore/rename-repo-rts-outcome-prediction)
+## [0.13.3] — 2026-04-04 (PR #24: chore/rename-repo-rts-outcome-prediction)
 
 ### Changed
 - Renamed repository from `sc2-ml` to `rts-outcome-prediction` for game-agnostic naming
 
-## [0.13.2] — 2026-04-04 (PR: pending, chore/remove-pre-roadmap-legacy-code)
+## [0.13.2] — 2026-04-04 (PR #23: chore/remove-pre-roadmap-legacy-code)
 
 ### Removed
 - Deleted `src/sc2ml/features/`, `src/sc2ml/gnn/`, `src/sc2ml/models/`, `src/sc2ml/analysis/` — pre-roadmap feature engineering, GNN, classical ML, and analysis modules (recoverable via git history; tagged `pre-roadmap-cleanup`)
@@ -279,7 +298,7 @@ merged to `master`.
 - `src/sc2ml/data/ingestion.py`: removed deprecated `slim_down_sc2_with_manifest`
 - `src/sc2ml/config.py`: removed orphaned constants (`MANIFEST_PATH`, `TRAIN_RATIO`, `VAL_RATIO`, `TEST_RATIO`, `VETERAN_MIN_GAMES`, `PATCH_MIN_MATCHES`, `EXPANDING_CV_N_SPLITS`, `EXPANDING_CV_MIN_TRAIN_FRAC`)
 
-## [0.13.1] — 2026-04-04 (PR: pending, chore/housekeeping-workflow-and-roadmap)
+## [0.13.1] — 2026-04-04 (PR #22: chore/housekeeping-workflow-and-roadmap)
 
 ### Changed
 - **Workflow guard**: skip pytest/ruff/mypy on commits with no `.py` files staged
@@ -290,7 +309,7 @@ merged to `master`.
 ### Added
 - `src/aoe2/.gitkeep` — placeholder directory reserves the package slot for future AoE2 integration
 
-## [0.13.0] — 2026-04-04 (PR: pending, feature/phase-1-corpus-inventory)
+## [0.13.0] — 2026-04-04 (PR #21: feature/phase-1-corpus-inventory)
 
 ### Added
 - **Phase 1 corpus exploration** (`src/sc2ml/data/exploration.py`): 7-step exploration
@@ -308,7 +327,7 @@ merged to `master`.
 
 ### Removed
 
-## [0.12.0] — 2026-04-03 (PR: pending, docs/thesis-infrastructure-invariants-v2)
+## [0.12.0] — 2026-04-03 (PR #20: docs/thesis-infrastructure-invariants-v2)
 
 ### Added
 - **Thesis directory structure** (`thesis/`): chapter skeletons (01–07), `THESIS_STRUCTURE.md` (section-to-phase mapping, ~300 lines), `WRITING_STATUS.md` (per-section status tracker), `references.bib` (~20 BibTeX entries), `figures/` and `tables/` directories
@@ -324,7 +343,7 @@ merged to `master`.
 - **Roadmap v2** (`reports/SC2ML_THESIS_ROADMAP.md`): Phase 0 marked complete with empirical gate results (22,390 replays, 62M tracker rows, 609M game event rows, 188 maps); Phase 1 expanded with empirical duration distribution emphasis and new steps (1.5 version landscape, 1.6 tracker event inventory); all phases now include explicit thesis section mapping
 - **CLAUDE.md**: added Category F workflow, thesis writing trigger words, post-phase-gate thesis check in progress tracking, thesis writing references in project status
 
-## [0.11.0] — 2026-04-03 (PR: pending, docs/invariant-6-research-log)
+## [0.11.0] — 2026-04-03 (PR #19: docs/invariant-6-research-log)
 
 ### Added
 - **Scientific invariant #6** (`.claude/scientific-invariants.md`): all analytical results must be reported alongside the literal SQL/Python code that produced them
@@ -334,7 +353,7 @@ merged to `master`.
 - **Research log Phase 0 entry rewritten** (`reports/research_log.md`): every finding now includes the exact SQL query or Python code per invariant #6; APM/MMR analysis expanded with per-year and per-league breakdown tables; map count corrected from 189 → 188
 - `ingestion.py` glob patterns unified to `*.SC2Replay.json` (was `*/data/*.SC2Replay.json` in `audit_raw_data_availability`, `slim_down_sc2_with_manifest`, `_collect_pending_files`)
 
-## [0.10.0] — 2026-04-03 (PR: pending, feat/phase-0-ingestion-audit)
+## [0.10.0] — 2026-04-03 (PR #18: feat/phase-0-ingestion-audit)
 
 ### Added
 - **Phase 0 ingestion audit module** (`src/sc2ml/data/audit.py`): 9 audit functions mapping to roadmap steps 0.1–0.9 — source file audit, tournament name validation, replay_id spec, Path A smoke test (in-memory DuckDB), full Path A ingestion, Path B extraction, Path A↔B join validation, map translation coverage
@@ -350,7 +369,7 @@ merged to `master`.
 - `conftest.py` synthetic filenames updated to use 32-char hex prefixes (`SYNTHETIC_REPLAY_IDS`) matching real replay naming; APM/MMR set to 0 (dead fields)
 - Integration test fixtures and sanity validation fixtures updated to call `create_raw_enriched_view` before `create_ml_views`
 
-## [0.9.0] — 2026-04-03 (PR: pending, refactor/data-schemas-sql-extraction)
+## [0.9.0] — 2026-04-03 (PR #17: refactor/data-schemas-sql-extraction)
 
 ### Changed
 - **`schemas.py` extracted** (`src/sc2ml/data/schemas.py`): `PLAYER_STATS_FIELD_MAP`, `TRACKER_SCHEMA`, `GAME_EVENT_SCHEMA`, `METADATA_SCHEMA` moved out of `ingestion.py`; re-exported from `ingestion` for backward compatibility
@@ -360,7 +379,7 @@ merged to `master`.
 - **`cv.py` docstrings** converted from NumPy style to Google style per coding standards
 - **`data/__init__.py`**: `schemas` added to submodules docstring
 
-## [0.8.0] — 2026-04-03 (PR: pending, chore/consolidate-base)
+## [0.8.0] — 2026-04-03 (PR #16: chore/consolidate-base)
 
 ### Added
 - **Evaluation infrastructure** (`models/evaluation.py`): `compute_metrics` (accuracy, AUC-ROC, Brier, log loss), `bootstrap_ci` (95% CI via 1000 bootstrap iterations), `calibration_curve_data`, `mcnemar_test` (exact binomial + chi-squared), `delong_test` (fast DeLong AUC comparison), `evaluate_model` (full eval with CIs + per-matchup + veterans), `compare_models` (pairwise statistical tests), `run_permutation_importance`
@@ -408,7 +427,7 @@ merged to `master`.
 - 1 GNN prediction quality test failure — expected, GNN is deprioritized
 - 41 mypy errors — pre-existing `fetchone()` return type issues in DuckDB code
 
-## [0.7.0] — 2026-04-03 (docs/data-pipeline-integrity)
+## [0.7.0] — 2026-04-03 (PR #15: fix/data-pipeline-integrity)
 
 ### Documentation Refactoring
 - **Unified documentation structure**: eliminated redundancy across 12+ markdown files. One authoritative source per topic.
