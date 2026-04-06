@@ -3,6 +3,7 @@
 **Title:** "A comparative analysis of methods for predicting game results in real-time strategy games, based on the examples of StarCraft II and Age of Empires II."
 
 **Degree:** Master of Science in Computer Science (Data Science specialisation)
+**Institution:** Polish-Japanese Academy of Information Technology (PJAIT), Warsaw
 
 **Estimated length:** 60–90 pages (excluding appendices)
 
@@ -111,9 +112,12 @@ weaknesses, hyperparameters, and interpretability.
 
 ### 2.6 Evaluation metrics and statistical comparison
 - Accuracy, log-loss, ROC-AUC, calibration (Brier score)
-- Friedman test with Nemenyi post-hoc for comparing classifiers across
-  multiple datasets [cite: Demšar 2006, JMLR]
-- Critical difference diagrams
+- Friedman omnibus test for comparing classifiers across multiple datasets
+  [cite: Demšar 2006, JMLR]
+- Pairwise Wilcoxon signed-rank with Holm correction [cite: Garcia & Herrera
+  2008; Garcia et al. 2010]
+- Bayesian signed-rank test with ROPE [cite: Benavoli et al. 2017]
+- Critical difference diagrams (Wilcoxon-based, not Nemenyi-based)
 
 **Fed by:** Literature review. Some domain knowledge validated during
 SC2 Phase 0–1 (game loop timing, APM/MMR findings).
@@ -310,7 +314,7 @@ engineering, and the unified experimental protocol.
 
 #### 5.3.1 Method ranking comparison
 - Do the same methods rank in the same order for both games?
-- Friedman test with Nemenyi post-hoc on matched method × game matrix
+- Friedman omnibus + Wilcoxon/Holm pairwise tests + Bayesian signed-rank on matched method × game matrix
 - Critical difference diagram
 
 #### 5.3.2 Feature category importance comparison

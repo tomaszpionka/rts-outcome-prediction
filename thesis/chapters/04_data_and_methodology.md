@@ -105,6 +105,7 @@ BLOCKED — Phase 10.
 
 <!--
 Accuracy, log-loss, ROC-AUC, calibration, per-matchup, cold-start strata.
-Friedman + Nemenyi for cross-game comparison.
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank for cross-game comparison.
+See THESIS_WRITING_MANUAL.md §3.2.
 SKELETON — can draft from literature.
 -->

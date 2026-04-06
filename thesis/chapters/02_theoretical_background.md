@@ -47,5 +47,7 @@ How derived ratings serve as ML features.
 
 <!--
 Accuracy, log-loss, ROC-AUC, Brier score, calibration.
-Friedman test + Nemenyi post-hoc (Demšar 2006), critical difference diagrams.
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank (ROPE).
+Nemenyi deprecated due to pool-dependence (Benavoli et al. 2016).
+Critical difference diagrams (Wilcoxon-based). See THESIS_WRITING_MANUAL.md §3.2.
 -->

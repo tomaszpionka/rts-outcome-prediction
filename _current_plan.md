@@ -1,171 +1,202 @@
-# Plan: Extract PJAIT Formatting Rules (Category E — Docs only)
+# Plan: PJAIT References and Nemenyi Cleanup (Category E — Docs only)
 
-**Branch:** `docs/thesis-formatting-rules`
-**Version bump:** patch
-**Files touched:** `.claude/thesis-formatting-rules.yaml` (new), `.claude/rules/thesis-writing.md` (edit), `docs/THESIS_REQUIREMENTS.md` (delete — empty placeholder), `CHANGELOG.md`, `pyproject.toml`
+**Branch:** `docs/pjait-references`
+**Branch base:** `master` (after `docs/thesis-formatting-rules` is merged)
+**Version bump:** minor
+**Files touched:** 8 files modified, 1 file tracked
+
+## Dependency
+
+`docs/thesis-formatting-rules` branch must be merged to master first (Steps 4b and 5 reference `.claude/thesis-formatting-rules.yaml`). If blocked, those two sub-steps can be deferred.
 
 ---
 
-## Step 1 — Create `.claude/thesis-formatting-rules.yaml`
+## Critical Finding: 7 Stale Nemenyi References
 
-The file is split into two top-level sections:
-- **`content_thresholds`** — actionable NOW for Markdown chapter validation (character counts, section structure)
-- **`word_formatting_spec`** — deferred until Word/PDF conversion; agents should ignore this section during Markdown work
+| # | File | Context |
+|---|------|---------|
+| 1 | `.claude/scientific-invariants.md` line 106 | Invariant #10 — **most critical** (read every session) |
+| 2 | `thesis/THESIS_STRUCTURE.md` line 114 | §2.6 description |
+| 3 | `thesis/THESIS_STRUCTURE.md` line 313 | §5.3.1 description |
+| 4 | `thesis/chapters/02_theoretical_background.md` line 50 | Skeleton comment |
+| 5 | `thesis/chapters/04_data_and_methodology.md` line 108 | Skeleton comment |
+| 6 | `thesis/chapters/05_experiments_and_results.md` line 58 | Skeleton comment |
+| 7 | `docs/THESIS_WRITING_MANUAL.md` | Already correct — describes deprecation |
 
-Create the file with this exact content:
+Authoritative replacement (from `docs/THESIS_WRITING_MANUAL.md` §3.2, PR #38):
+**Friedman omnibus + pairwise Wilcoxon/Holm + Bayesian signed-rank with ROPE (baycomp)**
 
-```yaml
-# PJAIT Master's Thesis Formatting Rules
-# Source: PJAIT_THESIS_REQUIREMENTS.md, Section 1 & 2
-# Purpose: Machine-readable thresholds and rules for thesis validation agents
-# Last updated: 2026-04-06
-#
-# IMPORTANT — two sections, two lifecycles:
-#   content_thresholds: active NOW — used to validate Markdown chapter drafts
-#   word_formatting_spec: DEFERRED — only relevant when producing the final Word/PDF document
+`SC2_THESIS_ROADMAP.md` — zero Nemenyi references (clean).
 
-source_document: PJAIT_THESIS_REQUIREMENTS.md
+---
 
-# =============================================================================
-# SECTION A: content_thresholds
-# Actionable during Markdown authoring. All rules here can be checked with
-# standard text tools (wc -m, grep for headings, etc.) on .md files.
-# =============================================================================
-content_thresholds:
+## Step 1 — `.claude/scientific-invariants.md` — fix invariant #10
 
-  body:
-    min_chars_with_spaces: 72000          # hard floor (~40 normalized pages)
-    min_pages_normalized: 40              # 1 normalized page = 1800 chars w/ spaces
-    typical_pages_min: 60                 # CS thesis typical range — aim here
-    typical_pages_max: 80
-    chars_per_normalized_page: 1800       # 72000 / 40
-
-  abstract:
-    chars_with_spaces_min: 400
-    chars_with_spaces_max: 1500
-
-  keywords:
-    count_min: 3
-    count_max: 5
-
-  required_sections:                      # grep for these headings in Markdown
-    - "title_page"
-    - "abstract"
-    - "keywords"
-    - "table_of_contents"
-    - "list_of_abbreviations"             # conditional — include if abbreviations used
-    - "introduction"
-    - "numbered_chapters"                 # format: 1., 1.1., 1.1.1.
-    - "conclusion"
-    - "list_of_tables"
-    - "list_of_figures"
-    - "bibliography"
-
-  chapter_numbering_format: "1., 1.1., 1.1.1."
-
-  english_thesis_extras:                  # only if writing in English
-    requires_approval_from:
-      - "supervisor"
-      - "Dean"
-    additional_required:
-      - "Polish title page"
-      - "Polish-language abstract"
-      - "Polish keywords"
-
-# =============================================================================
-# SECTION B: word_formatting_spec
-# DEFERRED — do not apply during Markdown authoring.
-# Activate when converting chapters to the final Word/PDF submission document.
-# =============================================================================
-word_formatting_spec:
-  _status: "deferred — not applicable until Word/PDF conversion"
-
-  typography:
-    font_family: "Times New Roman"
-    body_pt: 12
-    chapter_heading_pt: 14               # bold
-    subheading_pt: 12                    # bold
-    footnote_pt: 10
-    line_spacing: 1.5
-    text_alignment: "justified"
-    pages_numbered: true
-
-  margins_cm:
-    top: 2.5
-    bottom: 2.5
-    left: 2.5
-    right: 2.5
-
-  citation_style:
-    default: "Polish footnote system"
-    alternatives_with_supervisor_approval:
-      - "IEEE"
-      - "APA"
-
-  binding:
-    type: "hard-bound"
-    allowed_colors:
-      - "navy blue"
-      - "black"
-      - "burgundy"
-      - "dark green"
-    cover_text: "praca magisterska"
-
-  template:
-    official_format: "Microsoft Word"
-    latex_note: "No official LaTeX template; unofficial exists at https://gitlab.com/linoskoczek/szablon-pracy-dyplomowej-pjatk"
-    final_submission_format: "PDF"
-    pdf_max_size_mb: 45
+**old_string:**
+```
+(Friedman test with Nemenyi post-hoc, per Demšar 2006)
 ```
 
-**Verify:** `poetry run python3 -c "import yaml; yaml.safe_load(open('.claude/thesis-formatting-rules.yaml'))"` — must parse without error.
-
----
-
-## Step 2 — Add cross-reference to `.claude/rules/thesis-writing.md`
-
-Append at the bottom of the file:
-
-```markdown
-## Formatting Reference
-
-For content validation thresholds (minimum character count, abstract bounds, keyword count,
-required sections) applicable during Markdown authoring, see
-`.claude/thesis-formatting-rules.yaml` → `content_thresholds`.
-
-The `word_formatting_spec` section of the same file (font, margins, binding) is deferred
-and only relevant when producing the final Word/PDF submission.
+**new_string:**
+```
+(Friedman omnibus test, then pairwise Wilcoxon signed-rank with Holm
+    correction, complemented by Bayesian signed-rank with ROPE via baycomp;
+    per Benavoli et al. 2017, Garcia & Herrera 2008)
 ```
 
-**Verify:** `grep "thesis-formatting-rules" .claude/rules/thesis-writing.md` returns a match.
+Verify: `grep -c "Nemenyi" .claude/scientific-invariants.md` → 0
 
 ---
 
-## Step 3 — Remove empty `docs/THESIS_REQUIREMENTS.md`
+## Step 2 — `thesis/THESIS_STRUCTURE.md` — 3 edits
 
-First grep for any references: `grep -r "THESIS_REQUIREMENTS" . --include="*.md" --include="*.yaml"` — confirm nothing references it, then delete the file.
+**2a.** §2.6 (line 113–116):
 
-**Verify:** `ls docs/THESIS_REQUIREMENTS.md` returns not found.
+old:
+```
+- Friedman test with Nemenyi post-hoc for comparing classifiers across
+  multiple datasets [cite: Demšar 2006, JMLR]
+- Critical difference diagrams
+```
+
+new:
+```
+- Friedman omnibus test for comparing classifiers across multiple datasets
+  [cite: Demšar 2006, JMLR]
+- Pairwise Wilcoxon signed-rank with Holm correction [cite: Garcia & Herrera
+  2008; Garcia et al. 2010]
+- Bayesian signed-rank test with ROPE [cite: Benavoli et al. 2017]
+- Critical difference diagrams (Wilcoxon-based, not Nemenyi-based)
+```
+
+**2b.** §5.3.1 (line 313):
+
+old: `- Friedman test with Nemenyi post-hoc on matched method × game matrix`
+new: `- Friedman omnibus + Wilcoxon/Holm pairwise tests + Bayesian signed-rank on matched method × game matrix`
+
+**2c.** Add institution line below the Degree line (line 5):
+
+```
+**Institution:** Polish-Japanese Academy of Information Technology (PJAIT), Warsaw
+```
+
+Verify: `grep -c "Nemenyi" thesis/THESIS_STRUCTURE.md` → 0; `grep "PJAIT" thesis/THESIS_STRUCTURE.md` → match
 
 ---
 
-## Step 4 — CHANGELOG + version bump
+## Step 3 — Thesis chapter skeletons — 3 files
 
-Bump patch version in `pyproject.toml`. Add to `CHANGELOG.md` under `[Unreleased]`:
+**3a.** `thesis/chapters/02_theoretical_background.md` line 50:
+
+old: `Friedman test + Nemenyi post-hoc (Demšar 2006), critical difference diagrams.`
+new:
+```
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank (ROPE).
+Nemenyi deprecated due to pool-dependence (Benavoli et al. 2016).
+Critical difference diagrams (Wilcoxon-based). See THESIS_WRITING_MANUAL.md §3.2.
+```
+
+**3b.** `thesis/chapters/04_data_and_methodology.md` line 108:
+
+old: `Friedman + Nemenyi for cross-game comparison.`
+new:
+```
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank for cross-game comparison.
+See THESIS_WRITING_MANUAL.md §3.2.
+```
+
+**3c.** `thesis/chapters/05_experiments_and_results.md` line 58:
+
+old: `Friedman test + Nemenyi, critical difference diagram.`
+new:
+```
+Friedman omnibus + Wilcoxon/Holm pairwise + Bayesian signed-rank, critical difference diagram.
+See THESIS_WRITING_MANUAL.md §3.2.
+```
+
+Verify: `grep -rc "Nemenyi" thesis/chapters/` → all 0
+
+---
+
+## Step 4 — `README.md` — PJAIT context + Key Documents
+
+**4a.** Add after thesis title line:
 
 ```markdown
+**Institution:** Polish-Japanese Academy of Information Technology (PJAIT), Warsaw
+**Degree:** Master of Science in Computer Science, Data Science specialisation
+```
+
+**4b.** Add to Key Documents table (after `.claude/` row):
+
+```markdown
+| `docs/PJAIT_THESIS_REQUIREMENTS.md` | Institutional requirements — formatting, defense, grading |
+| `.claude/thesis-formatting-rules.yaml` | Machine-readable PJAIT formatting thresholds |
+```
+
+Verify: `grep "PJAIT" README.md` → match; `grep "thesis-formatting-rules" README.md` → match
+
+---
+
+## Step 5 — `thesis/WRITING_STATUS.md` — add formatting targets box
+
+Insert after the Status key table (before first chapter section):
+
+```markdown
+---
+
+## Formatting targets
+
+Minimum length: **72,000 characters with spaces** (~40 normalized pages, typical 60–80).
+Abstract: 400–1500 characters. Keywords: 3–5.
+Full validation rules: `.claude/thesis-formatting-rules.yaml` → `content_thresholds`.
+Source: `docs/PJAIT_THESIS_REQUIREMENTS.md`.
+
+---
+```
+
+Verify: `grep "thesis-formatting-rules" thesis/WRITING_STATUS.md` → match
+
+---
+
+## Step 6 — Track `docs/PJAIT_THESIS_REQUIREMENTS.md` in git
+
+File exists but is untracked (`??`). Stage with `git add docs/PJAIT_THESIS_REQUIREMENTS.md`.
+
+---
+
+## Step 7 — CHANGELOG + version bump
+
+Bump minor in `pyproject.toml`. Add to `CHANGELOG.md` under `[Unreleased]`:
+
+```
 ### Added
-- `.claude/thesis-formatting-rules.yaml` — machine-readable PJAIT formatting thresholds and rules extracted from `PJAIT_THESIS_REQUIREMENTS.md` §1
+- `docs/PJAIT_THESIS_REQUIREMENTS.md` tracked in git; authoritative source for formatting and defense requirements
+- `README.md` PJAIT institution name, degree, and key document references
+- `thesis/WRITING_STATUS.md` formatting targets reference box
+- `thesis/THESIS_STRUCTURE.md` PJAIT institution line
 
 ### Changed
-- `.claude/rules/thesis-writing.md` — added cross-reference to formatting rules YAML
-
-### Removed
-- `docs/THESIS_REQUIREMENTS.md` — empty placeholder, superseded by `PJAIT_THESIS_REQUIREMENTS.md` at repo root
+- `.claude/scientific-invariants.md` invariant #10: Nemenyi → Wilcoxon/Holm + Bayesian signed-rank
+- `thesis/THESIS_STRUCTURE.md` §2.6 and §5.3.1: same Nemenyi → Wilcoxon/Holm + Bayesian update
+- `thesis/chapters/02_theoretical_background.md`, `04_data_and_methodology.md`, `05_experiments_and_results.md`: skeleton comments updated
 ```
+
+---
+
+## Commits
+
+1. `docs(thesis): replace stale Nemenyi references with Wilcoxon/Holm + Bayesian signed-rank`
+   Files: `.claude/scientific-invariants.md`, `thesis/THESIS_STRUCTURE.md`, all 3 chapter skeletons
+
+2. `docs(thesis): add PJAIT institutional context and formatting references`
+   Files: `README.md`, `thesis/THESIS_STRUCTURE.md` (institution line), `thesis/WRITING_STATUS.md`, `docs/PJAIT_THESIS_REQUIREMENTS.md`, `CHANGELOG.md`, `pyproject.toml`
 
 ---
 
 ## Gate Condition
 
-`poetry run python3 -c "import yaml; yaml.safe_load(open('.claude/thesis-formatting-rules.yaml'))"` exits 0.
+- `grep -rc "Nemenyi" .claude/scientific-invariants.md thesis/THESIS_STRUCTURE.md thesis/chapters/` → all 0
+- `grep -c "PJAIT" README.md thesis/THESIS_STRUCTURE.md` → non-zero for both
+- `grep -c "thesis-formatting-rules" README.md thesis/WRITING_STATUS.md` → non-zero for both
+- `git status docs/PJAIT_THESIS_REQUIREMENTS.md` → tracked
