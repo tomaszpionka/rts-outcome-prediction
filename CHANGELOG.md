@@ -32,7 +32,7 @@ merged to `master`.
 - `CLAUDE.md` — added `Methodology manuals index` row to Key File Locations table
 - `ARCHITECTURE.md` — added `Methodology manuals` row to Cross-cutting files table
 
-## [0.19.0] — 2026-04-06 (PR #N: feat/aoe2-phase0-acquisition)
+## [0.20.1] — 2026-04-06 (PR #N: fix/aoe2-acquisition-fixes)
 
 ### Added
 - `src/rts_predict/aoe2/data/aoe2companion/acquisition.py` — download module for aoe2companion CDN: parses `api_dump_list.json`, filters to 4,147 targets (match parquets, leaderboard, profile, rating CSVs), size-based idempotency, atomic temp-file-then-rename downloads, JSON download log
