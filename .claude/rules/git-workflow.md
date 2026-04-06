@@ -31,7 +31,8 @@ The PR body **must follow the template** in `.github/pull_request_template.md`:
 - Footer line: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
 
 ```bash
-gh pr create --title "<type(scope): description>" --body "$(cat <<'EOF'
+# 1. Write PR body to file (never inline heredoc — avoids shell quoting issues)
+cat > .github/tmp/pr.txt << 'EOF'
 ## Summary
 
 - <bullet>
@@ -42,7 +43,12 @@ gh pr create --title "<type(scope): description>" --body "$(cat <<'EOF'
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
-)"
+
+# 2. Create PR using the file
+gh pr create --title "<type(scope): description>" --body-file .github/tmp/pr.txt
+
+# 3. Clean up after PR is created
+rm .github/tmp/pr.txt
 ```
 
 ## End-of-Session Checklist (non-PR)
