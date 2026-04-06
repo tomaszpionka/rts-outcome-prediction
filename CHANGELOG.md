@@ -19,20 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [0.20.0] — 2026-04-06 (PR #48: docs/manual-index-and-path-fixes)
-
-### Added
-
-- `docs/INDEX.md` — authoritative entry point for all project documentation, maps ML experiment lifecycle phases (0–11) to methodology manuals 01–06
-
-### Changed
-
-- `docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md` — replaced stale 12-point lifecycle listing with concise paragraph pointing to `docs/INDEX.md`
-- `.claude/thesis-formatting-rules.yaml`, `thesis/WRITING_STATUS.md`, `README.md` — fixed stale `docs/PJAIT_THESIS_REQUIREMENTS.md` → `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`
-- `CLAUDE.md` — added `Methodology manuals index` row to Key File Locations table
-- `ARCHITECTURE.md` — added `Methodology manuals` row to Cross-cutting files table
-
-## [0.20.1] — 2026-04-06 (PR #N: fix/aoe2-acquisition-fixes)
+## [0.20.1] — 2026-04-06 (PR #49: fix/aoe2-acquisition-fixes)
 
 ### Added
 - `src/rts_predict/aoe2/data/aoe2companion/acquisition.py` — download module for aoe2companion CDN: parses `api_dump_list.json`, filters to 4,147 targets (match parquets, leaderboard, profile, rating CSVs), size-based idempotency, atomic temp-file-then-rename downloads, JSON download log
@@ -50,6 +37,19 @@ merged to `master`.
 - `aoestats/acquisition.py` — `_write_download_log` writes to `AOESTATS_RAW_DIR` (was `AOESTATS_DIR`)
 - `aoe2companion/acquisition.py` — `_write_download_log` writes to `AOE2COMPANION_RAW_DIR` (was `AOE2COMPANION_DIR`)
 - `.gitignore` — `raw/` subdirs: subdirectories un-ignored so `.gitkeep` negation works; `api/` dirs: all contents ignored except `.gitkeep`
+
+## [0.20.0] — 2026-04-06 (PR #48: docs/manual-index-and-path-fixes)
+
+### Added
+
+- `docs/INDEX.md` — authoritative entry point for all project documentation, maps ML experiment lifecycle phases (0–11) to methodology manuals 01–06
+
+### Changed
+
+- `docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md` — replaced stale 12-point lifecycle listing with concise paragraph pointing to `docs/INDEX.md`
+- `.claude/thesis-formatting-rules.yaml`, `thesis/WRITING_STATUS.md`, `README.md` — fixed stale `docs/PJAIT_THESIS_REQUIREMENTS.md` → `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`
+- `CLAUDE.md` — added `Methodology manuals index` row to Key File Locations table
+- `ARCHITECTURE.md` — added `Methodology manuals` row to Cross-cutting files table
 
 ## [0.18.4] — 2026-04-06 (PR #N: chore/per-dataset-reports)
 
