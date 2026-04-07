@@ -492,6 +492,43 @@ JOIN corpus_stats cs ON pt.event_type = cs.event_type
 ORDER BY pt.event_type, pt.tournament_dir
 """
 
+# Step 1.9
+_TPDM_FIELD_INVENTORY_QUERY = """\
+SELECT DISTINCT json_key
+FROM (
+    SELECT unnest(json_keys(entry.value)) AS json_key
+    FROM raw, LATERAL json_each("ToonPlayerDescMap") AS entry
+)
+ORDER BY json_key
+"""
+
+_TPDM_KEY_SET_CONSTANCY_QUERY = """\
+WITH key_sets AS (
+    SELECT
+        filename,
+        entry.key AS toon,
+        LIST(k ORDER BY k) AS key_list
+    FROM raw, LATERAL json_each("ToonPlayerDescMap") AS entry,
+         LATERAL unnest(json_keys(entry.value)) AS t(k)
+    GROUP BY filename, entry.key
+)
+SELECT key_list, COUNT(*) AS n_slots
+FROM key_sets
+GROUP BY key_list
+ORDER BY n_slots DESC
+"""
+
+# Top-level column list for Step 1.9C
+_TOPLEVEL_COLUMNS = ("header", "initData", "details", "metadata")
+
+_TOPLEVEL_FIELD_INVENTORY_QUERY = """\
+SELECT DISTINCT json_key
+FROM (
+    SELECT unnest(json_keys({col})) AS json_key FROM raw
+)
+ORDER BY json_key
+"""
+
 # Step 1.7
 _RANKED_GAMES_PER_YEAR_QUERY = """\
 SELECT replay_id, year, rn
@@ -1067,6 +1104,161 @@ def run_playerstats_sampling_check(
     }
 
 
+# ── Step 1.9 ────────────────────────────────────────────────────────────────
+
+
+def run_tpdm_field_inventory(
+    con: duckdb.DuckDBPyConnection,
+    output_dir: Path | None = None,
+) -> dict[str, object]:
+    """Step 1.9A — Enumerate all distinct keys in ToonPlayerDescMap player objects.
+
+    Args:
+        con: Open DuckDB connection with a ``raw`` table present.
+        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+
+    Returns:
+        Dict with keys ``artifact_path``, ``row_count``, and ``fields``.
+    """
+    out = output_dir or DATASET_REPORTS_DIR
+    out.mkdir(parents=True, exist_ok=True)
+
+    df = con.execute(_TPDM_FIELD_INVENTORY_QUERY).df()
+    artifact = out / "01_09_tpdm_field_inventory.csv"
+    df.to_csv(artifact, index=False)
+
+    logger.info("Step 1.9A complete — %d distinct TPDM keys found", len(df))
+    return {
+        "artifact_path": str(artifact),
+        "row_count": len(df),
+        "fields": df["json_key"].tolist(),
+    }
+
+
+def run_tpdm_key_set_constancy(
+    con: duckdb.DuckDBPyConnection,
+    output_dir: Path | None = None,
+) -> dict[str, object]:
+    """Step 1.9B — Verify key-set constancy across all player slots.
+
+    Args:
+        con: Open DuckDB connection with a ``raw`` table present.
+        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+
+    Returns:
+        Dict with keys ``artifact_path``, ``row_count``, ``total_slots``,
+        ``dominant_variant_slots``, ``dominant_coverage_pct``, and
+        ``gate_pass`` (True when dominant variant covers >99% of slots).
+    """
+    out = output_dir or DATASET_REPORTS_DIR
+    out.mkdir(parents=True, exist_ok=True)
+
+    df = con.execute(_TPDM_KEY_SET_CONSTANCY_QUERY).df()
+    artifact = out / "01_09_tpdm_key_set_constancy.csv"
+    df.to_csv(artifact, index=False)
+
+    total_slots: int = int(df["n_slots"].sum()) if len(df) > 0 else 0
+    dominant_slots: int = int(df["n_slots"].iloc[0]) if len(df) > 0 else 0
+    dominant_pct: float = (
+        round(100.0 * dominant_slots / total_slots, 2) if total_slots > 0 else 0.0
+    )
+    gate_pass: bool = dominant_pct > 99.0
+
+    n_variants = len(df)
+    large_variants = int((df["n_slots"] / total_slots * 100 > 5).sum()) if total_slots > 0 else 0
+    halt_predicate: bool = large_variants > 5
+
+    logger.info(
+        "Step 1.9B complete — %d key-set variants; dominant covers %.1f%% of slots; "
+        "gate_pass=%s halt=%s",
+        n_variants, dominant_pct, gate_pass, halt_predicate,
+    )
+    return {
+        "artifact_path": str(artifact),
+        "row_count": len(df),
+        "total_slots": total_slots,
+        "dominant_variant_slots": dominant_slots,
+        "dominant_coverage_pct": dominant_pct,
+        "n_variants": n_variants,
+        "halt_predicate": halt_predicate,
+        "gate_pass": gate_pass,
+    }
+
+
+def run_toplevel_field_inventory(
+    con: duckdb.DuckDBPyConnection,
+    output_dir: Path | None = None,
+) -> dict[str, object]:
+    """Step 1.9C — Enumerate all distinct keys in top-level JSON columns.
+
+    Covers ``header``, ``initData``, ``details``, and ``metadata``.  For each
+    column the top-level keys are enumerated; for nested object-valued keys one
+    additional level of keys is also captured.
+
+    Args:
+        con: Open DuckDB connection with a ``raw`` table present.
+        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+
+    Returns:
+        Dict with keys ``artifact_path``, ``row_count``, and ``by_column``
+        mapping each source column to its list of keys.
+    """
+    out = output_dir or DATASET_REPORTS_DIR
+    out.mkdir(parents=True, exist_ok=True)
+
+    rows: list[dict[str, str]] = []
+    by_column: dict[str, list[str]] = {}
+
+    for col in _TOPLEVEL_COLUMNS:
+        sql = _TOPLEVEL_FIELD_INVENTORY_QUERY.format(col=f'"{col}"')
+        df = con.execute(sql).df()
+        keys: list[str] = df["json_key"].tolist()
+        by_column[col] = keys
+        for k in keys:
+            rows.append({"source_column": col, "json_key": k})
+
+        # One level deeper: try each key that looks like a nested object
+        for k in keys:
+            nested_sql = f"""\
+SELECT DISTINCT json_key
+FROM (
+    SELECT unnest(json_keys("{col}"->>'$.{k}')) AS json_key
+    FROM raw
+    WHERE "{col}"->>'$.{k}' IS NOT NULL
+      AND json_type("{col}"->>'$.{k}') = 'OBJECT'
+)
+ORDER BY json_key
+"""
+            try:
+                nested_df = con.execute(nested_sql).df()
+            except Exception:  # noqa: BLE001
+                continue
+            for nk in nested_df["json_key"].tolist():
+                rows.append({"source_column": f"{col}.{k}", "json_key": nk})
+
+    result_df = pd.DataFrame(rows, columns=["source_column", "json_key"])
+    artifact = out / "01_09_toplevel_field_inventory.csv"
+    result_df.to_csv(artifact, index=False)
+
+    logger.info("Step 1.9C complete — %d total (column, key) pairs", len(result_df))
+    return {
+        "artifact_path": str(artifact),
+        "row_count": len(result_df),
+        "by_column": by_column,
+    }
+
+
+def _run_step_1_9(
+    con: duckdb.DuckDBPyConnection,
+    output_dir: Path | None = None,
+) -> dict[str, object]:
+    """Run all sub-steps for Step 1.9 (1.9A, 1.9B, 1.9C)."""
+    a = run_tpdm_field_inventory(con, output_dir)
+    b = run_tpdm_key_set_constancy(con, output_dir)
+    c = run_toplevel_field_inventory(con, output_dir)
+    return {"1.9A": a, "1.9B": b, "1.9C": c}
+
+
 # ── Orchestrator ────────────────────────────────────────────────────────────
 
 
@@ -1074,12 +1266,19 @@ def run_phase_1_exploration(
     con: duckdb.DuckDBPyConnection,
     steps: list[str] | None = None,
 ) -> dict[str, dict]:
-    """Run Phase 1 exploration steps in order."""
-    all_steps = ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"]
-    run_steps = steps if steps else all_steps
-    results: dict[str, dict] = {}
+    """Run Phase 1 exploration steps in order.
 
-    step_map = {
+    Args:
+        con: Open DuckDB connection with ``raw`` and related tables present.
+        steps: Subset of step IDs to run (e.g. ``["1.1", "1.9"]``).  Supports
+            canonical IDs (``"1.9"`` runs all three sub-steps via the combined
+            wrapper) as well as individual sub-step IDs (``"1.9A"`` etc.).
+            When ``None``, all canonical steps are run.
+
+    Returns:
+        Mapping of step ID to the result dict returned by each function.
+    """
+    step_map: dict[str, tuple[str, object]] = {
         "1.1": ("Corpus summary", run_corpus_summary),
         "1.2": ("Parse quality by tournament", run_parse_quality_by_tournament),
         "1.3": ("Duration distribution", run_duration_distribution),
@@ -1087,13 +1286,23 @@ def run_phase_1_exploration(
         "1.5": ("Patch landscape", run_patch_landscape),
         "1.6": ("Event type inventory", run_event_type_inventory),
         "1.7": ("PlayerStats sampling check", run_playerstats_sampling_check),
+        "1.9A": ("TPDM field inventory", run_tpdm_field_inventory),
+        "1.9B": ("TPDM key-set constancy", run_tpdm_key_set_constancy),
+        "1.9C": ("Top-level JSON field inventory", run_toplevel_field_inventory),
+        "1.9": ("TPDM and top-level JSON field inventory", _run_step_1_9),
     }
 
-    for step_id in all_steps:
-        if step_id in run_steps:
-            label, func = step_map[step_id]
-            logger.info(f"=== Step {step_id}: {label} ===")
-            results[step_id] = func(con)
+    canonical_order = ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.9"]
+    run_steps: list[str] = steps if steps is not None else canonical_order
 
-    logger.info(f"Phase 1 exploration complete. Steps run: {list(results.keys())}")
+    results: dict[str, dict] = {}
+    for step_id in run_steps:
+        if step_id not in step_map:
+            logger.warning("Unknown step '%s' — skipping", step_id)
+            continue
+        label, func = step_map[step_id]
+        logger.info("=== Step %s: %s ===", step_id, label)
+        results[step_id] = func(con)  # type: ignore[operator]
+
+    logger.info("Phase 1 exploration complete. Steps run: %s", list(results.keys()))
     return results

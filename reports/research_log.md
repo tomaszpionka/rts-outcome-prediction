@@ -9,6 +9,90 @@ Reverse chronological entries. Each entry documents the reasoning and learning b
 
 ---
 
+## 2026-04-07 — [FEAT] SC2 Phase 1 Step 1.9 — ToonPlayerDescMap field inventory and JSON structure verification
+
+**Objective:** Enumerate all distinct field names present in ToonPlayerDescMap player objects
+(1.9A), verify that the key-set is constant across all 44,817 player slots (1.9B), and
+catalogue all top-level JSON column keys plus one deeper nesting level for the four
+metadata columns: `header`, `initData`, `details`, `metadata` (1.9C).
+
+**Method:** Three DuckDB SQL queries run via `poetry run sc2 explore --steps 1.9`.
+
+**SQL — 1.9A (TPDM field inventory):**
+```sql
+SELECT DISTINCT json_key
+FROM (
+    SELECT unnest(json_keys(entry.value)) AS json_key
+    FROM raw, LATERAL json_each("ToonPlayerDescMap") AS entry
+)
+ORDER BY json_key;
+```
+
+**SQL — 1.9B (key-set constancy):**
+```sql
+WITH key_sets AS (
+    SELECT
+        filename,
+        entry.key AS toon,
+        LIST(k ORDER BY k) AS key_list
+    FROM raw, LATERAL json_each("ToonPlayerDescMap") AS entry,
+         LATERAL unnest(json_keys(entry.value)) AS t(k)
+    GROUP BY filename, entry.key
+)
+SELECT key_list, COUNT(*) AS n_slots
+FROM key_sets
+GROUP BY key_list
+ORDER BY n_slots DESC;
+```
+
+**SQL — 1.9C (top-level column keys, template per column):**
+```sql
+SELECT DISTINCT json_key
+FROM (
+    SELECT unnest(json_keys("{col}")) AS json_key FROM raw
+)
+ORDER BY json_key;
+```
+Plus one level deeper for nested object-valued keys (e.g. `initData.gameDescription`).
+
+**Key findings (real SC2EGSet data, 22,390 replays):**
+
+*Sub-step 1.9A — TPDM field inventory:*
+- 20 distinct keys in all ToonPlayerDescMap player objects:
+  `APM`, `MMR`, `SQ`, `clanTag`, `color`, `handicap`, `highestLeague`, `isInClan`,
+  `nickname`, `playerID`, `race`, `realm`, `region`, `result`, `selectedRace`,
+  `startDir`, `startLocX`, `startLocY`, `supplyCappedPercent`, `userID`
+
+*Sub-step 1.9B — Key-set constancy:*
+- 1 distinct key-set variant across all 44,817 player slots (100% coverage)
+- Gate condition: PASS (dominant variant > 99%)
+- Halt predicate: False (no fragmentation)
+- All player objects are structurally uniform — no schema drift across tournaments or years
+
+*Sub-step 1.9C — Top-level JSON field inventory:*
+- `header`: `elapsedGameLoops`, `version`
+- `initData`: `gameDescription` (nested object)
+  - `initData.gameDescription`: `gameOptions`, `gameSpeed`, `isBlizzardMap`,
+    `mapAuthorName`, `mapFileSyncChecksum`, `mapSizeX`, `mapSizeY`, `maxPlayers`
+- `details`: `gameSpeed`, `isBlizzardMap`, `timeUTC`
+- `metadata`: `baseBuild`, `dataBuild`, `gameVersion`, `mapName`
+
+**Implications for Phase 2+:**
+- The `color`, `realm`, `region` fields are newly visible; `realm`/`region` are relevant
+  for player identity resolution (Phase 2), as they distinguish server-scope of account IDs
+- `selectedRace` vs `race` disambiguation can be handled deterministically (Step 1.8 finding)
+- All 20 TPDM fields are consistently present: no conditional handling needed during
+  feature extraction (Phase 7)
+
+**Artifacts:**
+- `src/rts_predict/sc2/reports/sc2egset/01_09_tpdm_field_inventory.csv` (20 rows)
+- `src/rts_predict/sc2/reports/sc2egset/01_09_tpdm_key_set_constancy.csv` (1 row)
+- `src/rts_predict/sc2/reports/sc2egset/01_09_toplevel_field_inventory.csv` (18 rows)
+
+**Gate condition:** PASS — key-set is perfectly constant (100% of slots).
+
+---
+
 ## 2026-04-07 — [FEAT] SC2 Phase 1 Step 1.8 — Game settings and replay field completeness audit
 
 **Objective:** Verify that all 22,390 SC2EGSet replays conform to competitive

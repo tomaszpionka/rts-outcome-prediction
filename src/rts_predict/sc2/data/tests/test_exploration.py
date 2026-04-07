@@ -443,7 +443,9 @@ class TestOrchestrator:
         mod.DATASET_REPORTS_DIR = tmp_path
         try:
             results = run_phase_1_exploration(exploration_con)
-            assert set(results.keys()) == {"1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"}
+            assert set(results.keys()) == {
+                "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.9"
+            }
         finally:
             mod.DATASET_REPORTS_DIR = original
 
@@ -583,3 +585,185 @@ class TestPlayerStatsSamplingEmpty:
         con.close()
 
         assert result == {"per_game": [], "by_year": [], "flagged_years": []}
+
+
+# ── Step 1.9 tests ──────────────────────────────────────────────────────────
+
+
+class TestTpdmFieldInventory:
+    def test_artifact_created(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_field_inventory
+
+        result = run_tpdm_field_inventory(exploration_con, output_dir=tmp_path)
+        assert (tmp_path / "01_09_tpdm_field_inventory.csv").exists()
+        assert result["row_count"] > 0
+
+    def test_expected_keys_present(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_field_inventory
+
+        result = run_tpdm_field_inventory(exploration_con, output_dir=tmp_path)
+        fields = result["fields"]
+        for key in ("APM", "MMR", "nickname", "race", "result"):
+            assert key in fields, f"Expected TPDM key '{key}' not found"
+
+    def test_csv_non_empty(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_field_inventory
+
+        run_tpdm_field_inventory(exploration_con, output_dir=tmp_path)
+        df = pd.read_csv(tmp_path / "01_09_tpdm_field_inventory.csv")
+        assert len(df) > 0
+        assert "json_key" in df.columns
+
+    def test_artifact_path_returned(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_field_inventory
+
+        result = run_tpdm_field_inventory(exploration_con, output_dir=tmp_path)
+        assert result["artifact_path"].endswith("01_09_tpdm_field_inventory.csv")
+
+
+class TestTpdmKeySetConstancy:
+    def test_artifact_created(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        result = run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        assert (tmp_path / "01_09_tpdm_key_set_constancy.csv").exists()
+        assert result["row_count"] > 0
+
+    def test_csv_has_expected_columns(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        df = pd.read_csv(tmp_path / "01_09_tpdm_key_set_constancy.csv")
+        assert "key_list" in df.columns
+        assert "n_slots" in df.columns
+
+    def test_gate_pass_flag_present(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        result = run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        assert "gate_pass" in result
+        assert isinstance(result["gate_pass"], bool)
+
+    def test_dominant_coverage_reasonable(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        result = run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        # Synthetic data uses a consistent key set, so dominant variant should be 100%
+        assert result["dominant_coverage_pct"] == 100.0
+        assert result["gate_pass"] is True
+
+    def test_total_slots_matches_player_slots(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        result = run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        # 6 rows * 2 players each = 12 player slots
+        assert result["total_slots"] == 12
+
+    def test_halt_predicate_false_for_constant_keyset(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_tpdm_key_set_constancy
+
+        result = run_tpdm_key_set_constancy(exploration_con, output_dir=tmp_path)
+        assert result["halt_predicate"] is False
+
+
+class TestTopLevelFieldInventory:
+    def test_artifact_created(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        result = run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        assert (tmp_path / "01_09_toplevel_field_inventory.csv").exists()
+        assert result["row_count"] > 0
+
+    def test_csv_has_expected_columns(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        df = pd.read_csv(tmp_path / "01_09_toplevel_field_inventory.csv")
+        assert "source_column" in df.columns
+        assert "json_key" in df.columns
+
+    def test_all_toplevel_columns_covered(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        result = run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        by_col = result["by_column"]
+        for col in ("header", "initData", "details", "metadata"):
+            assert col in by_col, f"Expected column '{col}' in by_column"
+            assert len(by_col[col]) > 0, f"Column '{col}' has no keys"
+
+    def test_known_keys_present(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        result = run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        by_col = result["by_column"]
+        assert "elapsedGameLoops" in by_col["header"]
+        assert "timeUTC" in by_col["details"]
+        assert "mapName" in by_col["metadata"]
+
+    def test_nested_keys_captured(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        df = pd.read_csv(tmp_path / "01_09_toplevel_field_inventory.csv")
+        # initData.gameDescription nested keys should appear
+        nested_sources = df[df["source_column"].str.contains("\\.", na=False)]["source_column"]
+        assert len(nested_sources) > 0
+
+    def test_artifact_path_returned(self, exploration_con, tmp_path):
+        from rts_predict.sc2.data.exploration import run_toplevel_field_inventory
+
+        result = run_toplevel_field_inventory(exploration_con, output_dir=tmp_path)
+        assert result["artifact_path"].endswith("01_09_toplevel_field_inventory.csv")
+
+
+class TestStep19Orchestration:
+    def test_orchestrator_runs_step_1_9(self, exploration_con, tmp_path):
+        import rts_predict.sc2.data.exploration as mod
+        from rts_predict.sc2.data.exploration import run_phase_1_exploration
+
+        original = mod.DATASET_REPORTS_DIR
+        mod.DATASET_REPORTS_DIR = tmp_path
+        try:
+            results = run_phase_1_exploration(exploration_con, steps=["1.9"])
+            assert "1.9" in results
+            assert "1.9A" in results["1.9"]
+            assert "1.9B" in results["1.9"]
+            assert "1.9C" in results["1.9"]
+        finally:
+            mod.DATASET_REPORTS_DIR = original
+
+    def test_orchestrator_runs_substep_1_9a(self, exploration_con, tmp_path):
+        import rts_predict.sc2.data.exploration as mod
+        from rts_predict.sc2.data.exploration import run_phase_1_exploration
+
+        original = mod.DATASET_REPORTS_DIR
+        mod.DATASET_REPORTS_DIR = tmp_path
+        try:
+            results = run_phase_1_exploration(exploration_con, steps=["1.9A"])
+            assert set(results.keys()) == {"1.9A"}
+            assert results["1.9A"]["row_count"] > 0
+        finally:
+            mod.DATASET_REPORTS_DIR = original
+
+    def test_three_csvs_created_by_step_1_9(self, exploration_con, tmp_path):
+        import rts_predict.sc2.data.exploration as mod
+        from rts_predict.sc2.data.exploration import run_phase_1_exploration
+
+        original = mod.DATASET_REPORTS_DIR
+        mod.DATASET_REPORTS_DIR = tmp_path
+        try:
+            run_phase_1_exploration(exploration_con, steps=["1.9"])
+        finally:
+            mod.DATASET_REPORTS_DIR = original
+
+        assert (tmp_path / "01_09_tpdm_field_inventory.csv").exists()
+        assert (tmp_path / "01_09_tpdm_key_set_constancy.csv").exists()
+        assert (tmp_path / "01_09_toplevel_field_inventory.csv").exists()
+        # All must be non-empty
+        for fname in [
+            "01_09_tpdm_field_inventory.csv",
+            "01_09_tpdm_key_set_constancy.csv",
+            "01_09_toplevel_field_inventory.csv",
+        ]:
+            df = pd.read_csv(tmp_path / fname)
+            assert len(df) > 0, f"{fname} must be non-empty"
