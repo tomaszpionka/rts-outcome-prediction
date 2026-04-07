@@ -19,6 +19,11 @@ merged to `master`.
 
 ### Removed
 
+## [0.20.3] — 2026-04-07 (PR #51: chore/sc2-reports-roadmap-placeholder)
+
+### Changed
+- `src/rts_predict/sc2/reports/ROADMAP.md` — replaced speculative Phase 3–10 content with a short placeholder; Phase ≥2 content is not authored until all SC2 datasets complete their Phase 1 epistemic-readiness gate; planned phase shells (names only) and authoring trigger documented
+
 ## [0.20.2] — 2026-04-07 (PR #50: chore/dataset-agnostic-invariants)
 
 ### Changed
