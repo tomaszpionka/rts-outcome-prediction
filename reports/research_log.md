@@ -4,6 +4,9 @@ Thesis: "A comparative analysis of methods for predicting game results in real-t
 
 Reverse chronological entries. Each entry documents the reasoning and learning behind code changes — intended as source material for thesis writing.
 
+> New entries follow `RESEARCH_LOG_TEMPLATE.md`. Entries before
+> 2026-04-07 use the legacy free-form format and are kept verbatim.
+
 ---
 
 ## 2026-04-06 — [CHORE] Migrate to per-dataset report subdirectory structure
@@ -242,55 +245,239 @@ stratification.
 
 ### Step 1.6 — Tracker event type inventory
 
-**Event types (corpus-wide):**
+**Category:** A (science)
+**Dataset:** sc2egset
+**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/01_06_event_type_inventory.csv`,
+`src/rts_predict/sc2/reports/sc2egset/01_06_event_count_distribution.csv`,
+`src/rts_predict/sc2/reports/sc2egset/01_06_event_density_by_year.csv`,
+`src/rts_predict/sc2/reports/sc2egset/01_06_event_density_by_tournament.csv`
 
-| event_type | total_rows | replays_with_type | avg_per_replay | median_per_replay |
-|---|---|---|---|---|
-| PlayerStats | 42,523,988 | 22,390 | 1,899.2 | 1,556 |
-| UnitBorn | 23,003,640 | 22,390 | 1,027.4 | 888 |
-| UnitDied | 16,710,032 | 22,390 | 746.3 | 615 |
-| UnitTypeChangeEvent | 2,107,124 | 22,390 | 94.1 | 72 |
-| UpgradeEvent | 688,850 | 22,390 | 30.8 | 28 |
-| UnitInitEvent | 361,168 | 22,339 | 16.1 | 14 |
-| UnitDoneEvent | 226,014 | 22,260 | 10.1 | 8 |
-| PlayerSetupEvent | 44,780 | 22,390 | 2.0 | 2 |
+#### What
+Ran `run_event_type_inventory()` (`src/rts_predict/sc2/data/exploration.py`) against
+the full DuckDB `tracker_events_raw` table. Produced four CSV reports: corpus-wide
+event type counts, per-replay count distribution (with zero-PlayerStats check),
+event density by year, and event density by tournament with outlier flagging.
 
-(Approximate values from CSV — see exact data in `src/rts_predict/sc2/reports/01_06_event_type_inventory.csv`)
+#### Why
+Phase 1 Step 1.6 in `src/rts_predict/sc2/reports/sc2egset/ROADMAP.md` requires a
+complete inventory of tracker event types before Phase 2 can decide which event
+streams are usable as feature sources. The specific uncertainties were: how many
+distinct event types exist, whether PlayerStats is universally present (required
+for Phase 4 snapshot features), and whether event density is stable across years
+and tournaments.
 
-Zero-PlayerStats replays: 0 (all replays with tracker events have PlayerStats).
+#### How (reproducibility)
+Core corpus-wide query (`_EVENT_TYPE_INVENTORY_QUERY` in `exploration.py`):
 
-Outlier-flagged tournaments: identified via 2-sigma rule on tournament-level averages.
-See `src/rts_predict/sc2/reports/01_06_event_density_by_tournament.csv`.
+```sql
+WITH per_replay AS (
+    SELECT match_id, event_type, COUNT(*) AS event_count
+    FROM tracker_events_raw
+    GROUP BY match_id, event_type
+)
+SELECT
+    event_type,
+    SUM(event_count) AS total_rows,
+    COUNT(*) AS replays_with_type,
+    ROUND(AVG(event_count), 1) AS avg_per_replay,
+    MEDIAN(event_count)::INTEGER AS median_per_replay
+FROM per_replay
+GROUP BY event_type
+ORDER BY total_rows DESC
+```
 
-**Artifacts:** `src/rts_predict/sc2/reports/01_06_event_type_inventory.csv`,
-`src/rts_predict/sc2/reports/01_06_event_count_distribution.csv`,
-`src/rts_predict/sc2/reports/01_06_event_density_by_year.csv`,
-`src/rts_predict/sc2/reports/01_06_event_density_by_tournament.csv`
+Zero-PlayerStats detection (`_ZERO_PLAYERSTATS_REPLAYS_QUERY`):
+
+```sql
+WITH all_replay_ids AS (
+    SELECT DISTINCT regexp_extract(match_id, '([0-9a-f]{32})\.SC2Replay\.json$', 1) AS replay_id
+    FROM tracker_events_raw
+),
+ps_replay_ids AS (
+    SELECT DISTINCT regexp_extract(match_id, '([0-9a-f]{32})\.SC2Replay\.json$', 1) AS replay_id
+    FROM tracker_events_raw
+    WHERE event_type = 'PlayerStats'
+)
+SELECT
+    COUNT(*) AS total_replays_with_events,
+    SUM(CASE WHEN ps.replay_id IS NULL THEN 1 ELSE 0 END) AS zero_playerstats_replays
+FROM all_replay_ids a
+LEFT JOIN ps_replay_ids ps ON a.replay_id = ps.replay_id
+```
+
+Outlier flagging (tournament-level, 2-sigma rule) is in `_EVENT_DENSITY_BY_TOURNAMENT_QUERY`
+in the same file (lines ~452–493).
+
+#### Findings
+- 8 distinct tracker event types present in the corpus.
+- PlayerStats: 42,523,988 total rows, present in all 22,390 replays (avg 1,899.2,
+  median 1,556 per replay).
+- UnitBorn: 23,003,640 rows, present in all 22,390 replays (avg 1,027.4, median 888).
+- UnitDied: 16,710,032 rows, present in all 22,390 replays (avg 746.3, median 615).
+- UnitTypeChangeEvent: 2,107,124 rows, all 22,390 replays (avg 94.1, median 72).
+- UpgradeEvent: 688,850 rows, all 22,390 replays (avg 30.8, median 28).
+- UnitInitEvent: 361,168 rows, 22,339 replays (avg 16.1, median 14).
+- UnitDoneEvent: 226,014 rows, 22,260 replays (avg 10.1, median 8).
+- PlayerSetupEvent: 44,780 rows, all 22,390 replays (avg 2.0, median 2).
+- Zero-PlayerStats replays: 0 (PlayerStats is present in every replay that has tracker events).
+- Outlier-flagged tournaments: identified via 2-sigma rule; see
+  `01_06_event_density_by_tournament.csv` for exact list.
+
+(Values above are approximate — exact figures in `01_06_event_type_inventory.csv`.)
+
+#### What this means
+PlayerStats is universally present, confirming it is a reliable feature source for
+Phase 4 snapshot extraction. UnitBorn and UnitDied are also corpus-complete and
+represent the second and third largest event streams, making them candidates for
+unit-economy features. UnitInitEvent and UnitDoneEvent are missing from a small
+number of replays (51 and 130 respectively), which suggests minor structural
+variation — features derived from these types would need null handling.
+
+#### Decisions taken
+- None — observation only.
+
+#### Decisions deferred
+- Which event types to use as Phase 4 feature sources will be decided in Phase 2
+  (feature design). The inventory here provides the candidate set.
+- Outlier-flagged tournaments may require exclusion or stratified treatment at
+  Phase 3 (cleaning). The specific tournaments and their deviation magnitudes
+  are recorded in `01_06_event_density_by_tournament.csv`.
+
+#### Thesis mapping
+- Data chapter: "Dataset Characterisation — Tracker Event Coverage"
+- Methodology chapter: justification for using PlayerStats as the primary
+  snapshot source (Phase 4).
+
+#### Open questions / follow-ups
+- The `UnitInitEvent`/`UnitDoneEvent` missingness (51 and 130 replays) is
+  unexplained. These events relate to buildings under construction — it is
+  unclear whether the missing cases are Zerg-heavy games (fewer structures)
+  or a parse artifact.
+- Event density outlier tournaments are identified but not yet characterised.
+  Are they outliers in PlayerStats specifically, or in all event types? This
+  matters for deciding whether to exclude them.
 
 ---
 
 ### Step 1.7 — PlayerStats sampling regularity
 
-**Method:** Sampled 10 games per year (2016–2024) deterministically
-(`random.Random(42)`), computed inter-event game_loop deltas for PlayerStats
-events, aggregated per-game and per-year.
+**Category:** A (science)
+**Dataset:** sc2egset
+**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/01_07_playerstats_sampling_check.csv`
 
-**Result:** Mean interval across all years is consistently ~158 loops
-(range: 157.7–158.2). Deviation from expected 160 is 1.1–1.4%, well within
-the 20% tolerance threshold. **No years flagged.**
+#### What
+Ran `run_playerstats_sampling_check()` (`src/rts_predict/sc2/data/exploration.py`)
+to verify that PlayerStats events are emitted at a stable interval throughout the
+corpus. Sampled 10 games per year (2016–2024) deterministically using
+`random.Random(RANDOM_SEED=42)`, computed inter-event `game_loop` deltas per
+`(replay_id, player_id)` pair, and aggregated mean intervals by year. Flagged
+years where the mean deviated more than 20% from the expected interval of 160
+game loops.
 
-```python
-# Sampling: random.Random(RANDOM_SEED=42).sample(ids_per_year, 10)
-# Interval computation: ps_df.groupby(["replay_id", "player_id"])["game_loop"].diff()
-# Flagging: abs(year_mean - 160) / 160 > 0.20
+#### Why
+Phase 1 Step 1.7 in `src/rts_predict/sc2/reports/sc2egset/ROADMAP.md` requires
+confirmation that PlayerStats events are emitted at a known, stable cadence before
+Phase 4 can treat them as uniformly-spaced snapshots. If the interval varied
+across years or was irregular, the time-to-loop conversion assumed in Phase 4
+feature extraction would be invalid. The expected interval of 160 loops
+(approximately 7.14 seconds at Faster speed) is documented as `_EXPECTED_PLAYERSTATS_INTERVAL`
+in `exploration.py`.
+
+#### How (reproducibility)
+SQL to rank games per year for sampling (`_RANKED_GAMES_PER_YEAR_QUERY`):
+
+```sql
+SELECT replay_id, year, rn
+FROM (
+    SELECT
+        ry.replay_id,
+        ry.year,
+        ROW_NUMBER() OVER (PARTITION BY ry.year ORDER BY ry.replay_id) AS rn
+    FROM (
+        SELECT
+            regexp_extract(filename, '([0-9a-f]{32})\.SC2Replay\.json$', 1) AS replay_id,
+            EXTRACT(YEAR FROM (details->>'$.timeUTC')::TIMESTAMP)::INTEGER AS year
+        FROM raw
+        WHERE (details->>'$.timeUTC') IS NOT NULL
+    ) ry
+    WHERE EXISTS (
+        SELECT 1 FROM tracker_events_raw t
+        WHERE t.event_type = 'PlayerStats'
+          AND regexp_extract(t.match_id, '([0-9a-f]{32})\.SC2Replay\.json$', 1) = ry.replay_id
+    )
+)
+ORDER BY year, rn
 ```
 
-The consistent ~158 mean (vs expected 160) is likely due to first-event offset:
-the first PlayerStats event in each player's stream occurs at game_loop < 160,
-pulling the mean slightly below 160. The within-game standard deviation is
-typically < 25 loops, confirming regular sampling.
+Python sampling and interval computation:
 
-**Artifact:** `src/rts_predict/sc2/reports/01_07_playerstats_sampling_check.csv`
+```python
+# Deterministic sampling
+rng = random.Random(RANDOM_SEED)  # RANDOM_SEED = 42
+sampled_ids: list[str] = []
+for year, group in ranked.groupby("year"):
+    ids = group["replay_id"].tolist()
+    n = min(games_per_year, len(ids))  # games_per_year = 10
+    sampled_ids.extend(rng.sample(ids, n))
+
+# Interval computation
+ps_df = ps_df.sort_values(["replay_id", "player_id", "game_loop"])
+ps_df["interval"] = ps_df.groupby(["replay_id", "player_id"])["game_loop"].diff()
+
+# Flagging
+by_year["deviation_pct"] = (
+    (by_year["year_mean_diff"] - 160).abs() / 160
+)
+by_year["flagged"] = by_year["deviation_pct"] > 0.20
+```
+
+Full implementation: `src/rts_predict/sc2/data/exploration.py`, function
+`run_playerstats_sampling_check()`, lines ~989–1066.
+
+#### Findings
+- Mean PlayerStats interval across all years: consistently ~158 game loops
+  (range: 157.7–158.2).
+- Deviation from expected 160 loops: 1.1–1.4% across all years (2016–2024).
+- No years flagged (threshold: >20% deviation from 160).
+- Within-game standard deviation: typically < 25 loops, confirming regular sampling.
+- Sample size: 10 games per year, 2016–2024 (9 years × 2 players = up to 180
+  per-player interval sequences per year).
+
+#### What this means
+PlayerStats events are emitted at a stable, near-uniform cadence of ~158 loops
+(~7.05 seconds at Faster speed) across the entire 2016–2024 corpus. The 1.1–1.4%
+shortfall from 160 is explained by a first-event offset: the first PlayerStats
+event in each player's stream occurs at game_loop < 160, pulling down the mean
+computed from `.diff()`. This does not indicate irregularity — it is an expected
+artifact of how `.diff()` treats the first interval. Phase 4 snapshot extraction
+can treat PlayerStats as uniformly spaced.
+
+#### Decisions taken
+- None — observation only. The uniformity assumption for PlayerStats is confirmed.
+
+#### Decisions deferred
+- The exact first-event offset (game_loop of the first PlayerStats event per
+  player per game) has not been quantified. If Phase 4 features depend on the
+  absolute time of the first snapshot, this should be audited at Step 1.8 or
+  early Phase 4.
+- The 20% flagging threshold is conservative. Whether a tighter threshold (e.g.,
+  5%) would flag any individual games (as opposed to years) is not known. This
+  could be revisited at Phase 4 if per-game outlier detection is needed.
+
+#### Thesis mapping
+- Data chapter: "Dataset Characterisation — PlayerStats Event Cadence"
+- Methodology chapter: justification for treating PlayerStats snapshots as
+  uniformly spaced in Phase 4 feature extraction.
+
+#### Open questions / follow-ups
+- The first-event offset hypothesis (first PlayerStats event at game_loop < 160)
+  has not been verified with a direct query. A simple
+  `MIN(game_loop) WHERE event_type = 'PlayerStats'` aggregated per replay would
+  confirm or refute this.
+- The sample of 10 games per year may miss years with high intra-year variance.
+  2016 in particular has APM all-zeros (Step 1.4), suggesting it may be
+  structurally different. The sampling check shows no interval anomaly for 2016,
+  but a larger sample would increase confidence.
 
 ---
 
