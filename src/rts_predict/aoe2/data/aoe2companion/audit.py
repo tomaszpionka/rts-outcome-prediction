@@ -206,8 +206,8 @@ def run_source_audit(raw_dir: Path, manifest_path: Path, reports_dir: Path) -> d
     }
 
     # Write JSON artifact
-    reports_dir.mkdir(parents=True, exist_ok=True)
-    json_path = reports_dir / "00_01_source_audit.json"
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    json_path = reports_dir / "artifacts" / "00_01_source_audit.json"
     json_path.write_text(json.dumps(result, indent=2))
 
     # Write Markdown artifact
@@ -296,7 +296,7 @@ def run_source_audit(raw_dir: Path, manifest_path: Path, reports_dir: Path) -> d
         f"- T_acquisition recorded: {'OK' if t_acquisition else 'FAIL'}",
     ]
 
-    (reports_dir / "00_01_source_audit.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_01_source_audit.md").write_text("\n".join(md_lines))
     logger.info("Step 0.1 complete: %s (failures=%d)", gate_status, len(failures))
     return result
 
@@ -371,7 +371,7 @@ def profile_match_schema(raw_dir: Path, reports_dir: Path) -> dict:
     }
 
     # Write Markdown artifact
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     md_lines = [
         "# Step 0.2 — Match Parquet Schema Profile (sample-based)",
         "",
@@ -439,7 +439,7 @@ def profile_match_schema(raw_dir: Path, reports_dir: Path) -> dict:
                     f" {len(present_in)}/{n_total} samples"
                 )
 
-    (reports_dir / "00_02_match_schema_profile.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_02_match_schema_profile.md").write_text("\n".join(md_lines))
     logger.info("Step 0.2 complete: stability=%s, samples=%d", stability, len(samples))
     return result
 
@@ -625,8 +625,8 @@ def profile_rating_schema(raw_dir: Path, reports_dir: Path) -> tuple[dict, Dtype
     }
 
     # Write artifacts
-    reports_dir.mkdir(parents=True, exist_ok=True)
-    decision_path = reports_dir / "00_03_dtype_decision.json"
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    decision_path = reports_dir / "artifacts" / "00_03_dtype_decision.json"
     decision.to_json(decision_path)
 
     md_lines = [
@@ -699,7 +699,7 @@ def profile_rating_schema(raw_dir: Path, reports_dir: Path) -> tuple[dict, Dtype
         "Artifact: `00_03_dtype_decision.json`",
     ]
 
-    (reports_dir / "00_03_rating_schema_profile.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_03_rating_schema_profile.md").write_text("\n".join(md_lines))
     logger.info(
         "Step 0.3 complete: boundary_date=%s, sparse=%d, dense=%d, strategy=%s",
         boundary_date,
@@ -766,7 +766,7 @@ def profile_singleton_schemas(raw_dir: Path, reports_dir: Path) -> dict:
         "T_snapshot_profiles": pf_mtime,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     md_lines = [
         "# Step 0.4 — Singleton Schema Profile (Leaderboard and Profiles)",
         "",
@@ -807,7 +807,8 @@ def profile_singleton_schemas(raw_dir: Path, reports_dir: Path) -> dict:
     for col in pf_schema:
         md_lines.append(f"| {col['column_name']} | {col['column_type']} |")
 
-    (reports_dir / "00_04_singleton_schema_profile.md").write_text("\n".join(md_lines))
+    out_path = reports_dir / "artifacts" / "00_04_singleton_schema_profile.md"
+    out_path.write_text("\n".join(md_lines))
     logger.info(
         "Step 0.4 complete: leaderboard=%d rows, profiles=%d rows", lb_rows, pf_rows
     )
@@ -964,7 +965,7 @@ def run_smoke_test(raw_dir: Path, decision: DtypeDecision, reports_dir: Path) ->
         "smoke_dense_file": smoke_dense.name,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     gate_status = "PASS" if passed else "FAIL"
 
     md_lines = [
@@ -1018,7 +1019,7 @@ def run_smoke_test(raw_dir: Path, decision: DtypeDecision, reports_dir: Path) ->
         for err in errors:
             md_lines.append(f"- {err}")
 
-    (reports_dir / "00_05_smoke_test.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_05_smoke_test.md").write_text("\n".join(md_lines))
     logger.info("Step 0.5 complete: passed=%s, ratings_files=%d", passed, ratings_files)
     return result
 
@@ -1056,7 +1057,7 @@ def run_full_ingestion(
         "dtype_strategy_applied": decision.strategy,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     glob_matches = str(raw_dir / "matches" / "match-*.parquet")
     glob_ratings = str(raw_dir / "ratings" / "rating-*.csv")
     path_lb = str(raw_dir / "leaderboards" / "leaderboard.parquet")
@@ -1117,7 +1118,7 @@ def run_full_ingestion(
     for table, cnt in counts.items():
         md_lines.append(f"| {table} | {cnt:,} |")
 
-    (reports_dir / "00_06_ingestion_log.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_06_ingestion_log.md").write_text("\n".join(md_lines))
     logger.info("Step 0.6 complete: counts=%s, T_ingestion=%s", counts, t_ingestion_end)
     return result
 
@@ -1220,7 +1221,7 @@ def run_rowcount_reconciliation(
         "passed": passed,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     gate_status = "PASS" if passed else "FAIL"
 
     md_lines = [
@@ -1312,7 +1313,7 @@ def run_rowcount_reconciliation(
                 f"Max rows: {max(non_zero)}",
             ]
 
-    (reports_dir / "00_07_rowcount_reconciliation.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_07_rowcount_reconciliation.md").write_text("\n".join(md_lines))
     logger.info(
         "Step 0.7 complete: file_count_ok=%s, strength=%s, zero_row_ratings=%d",
         file_count_ok,
@@ -1336,7 +1337,7 @@ def write_phase0_summary(reports_dir: Path, ingestion_result: dict, audit_result
         ingestion_result: Result dict from run_full_ingestion() (step 0.6).
         audit_results: Combined results dict keyed by step name.
     """
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
 
     source_audit = audit_results.get("0.1", {})
     match_profile = audit_results.get("0.2", {})
@@ -1489,7 +1490,7 @@ def write_phase0_summary(reports_dir: Path, ingestion_result: dict, audit_result
         "recorded in INVARIANTS.md §I3.",
     ]
 
-    (reports_dir / "00_08_phase0_summary.md").write_text("\n".join(summary_lines))
+    (reports_dir / "artifacts" / "00_08_phase0_summary.md").write_text("\n".join(summary_lines))
     logger.info("Step 0.8 complete: INVARIANTS.md and 00_08_phase0_summary.md written")
 
 
@@ -1537,7 +1538,7 @@ def run_phase_0_audit(
         results["0.3"] = profile_result
     else:
         # Load existing decision from disk if available
-        decision_path = reports_dir / "00_03_dtype_decision.json"
+        decision_path = reports_dir / "artifacts" / "00_03_dtype_decision.json"
         if decision_path.exists():
             decision = DtypeDecision.from_json(decision_path)
         else:

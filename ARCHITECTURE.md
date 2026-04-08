@@ -36,7 +36,8 @@ Every game package (`sc2/`, `aoe2/`, ...) must contain:
 | `reports/` | Phase artifacts (tracked in git) | Yes |
 | `reports/ROADMAP.md` | Game-level execution plan (Phases 3+) | Yes |
 | `reports/<dataset>/ROADMAP.md` | Dataset-level execution plan (Phases 0–2) | Per dataset |
-| `reports/<dataset>/` | Dataset-scoped phase artifacts | Per dataset |
+| `reports/<dataset>/` | Named documentation files (`ROADMAP.md`, `INVARIANTS.md`, etc.) | Per dataset |
+| `reports/<dataset>/artifacts/` | Machine-generated step outputs (`XX_XX_*`, any extension) | Per dataset |
 | `models/` | Serialised model artifacts (gitignored) | When modelling begins |
 | `logs/` | Pipeline logs (gitignored) | When pipeline exists |
 | — | CLI tests live in `tests/rts_predict/<game>/test_cli.py` | — |

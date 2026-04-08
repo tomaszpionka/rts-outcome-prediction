@@ -30,8 +30,8 @@ def test_source_audit_passes_with_valid_files(
     result = run_source_audit(raw_dir, manifest_file, reports_dir)
     assert result["passed"] is True
     assert result["T_acquisition"] is not None
-    assert (reports_dir / "00_01_source_audit.json").exists()
-    assert (reports_dir / "00_01_source_audit.md").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.json").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.md").exists()
 
 
 def test_source_audit_detects_missing_files(
@@ -122,7 +122,7 @@ def test_profile_match_schema_produces_report(
 ) -> None:
     reports_dir = tmp_path / "reports"
     result = profile_match_schema(raw_dir, reports_dir)
-    assert (reports_dir / "00_02_match_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_02_match_schema_profile.md").exists()
     assert result["stability"] in ("STABLE", "DRIFTED")
     assert len(result["union_schema"]) > 0
 
@@ -130,7 +130,7 @@ def test_profile_match_schema_produces_report(
 def test_profile_match_schema_includes_sql(raw_dir: Path, tmp_path: Path) -> None:
     reports_dir = tmp_path / "reports"
     profile_match_schema(raw_dir, reports_dir)
-    md = (reports_dir / "00_02_match_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_02_match_schema_profile.md").read_text()
     assert "DESCRIBE" in md
     assert "read_parquet" in md
 
@@ -144,7 +144,7 @@ def test_profile_match_schema_includes_row_counts(raw_dir: Path, tmp_path: Path)
     for count in result["per_sample_row_counts"].values():
         assert isinstance(count, int)
         assert count > 0
-    md = (reports_dir / "00_02_match_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_02_match_schema_profile.md").read_text()
     assert "Row count:" in md
 
 
@@ -154,7 +154,7 @@ def test_profile_player_schema_produces_report(
 ) -> None:
     reports_dir = tmp_path / "reports"
     result = profile_player_schema(raw_dir, reports_dir)
-    assert (reports_dir / "00_03_player_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_03_player_schema_profile.md").exists()
     assert result["stability"] in ("STABLE", "DRIFTED")
     assert len(result["union_schema"]) > 0
 
@@ -168,7 +168,7 @@ def test_profile_player_schema_includes_row_counts(raw_dir: Path, tmp_path: Path
     for count in result["per_sample_row_counts"].values():
         assert isinstance(count, int)
         assert count > 0
-    md = (reports_dir / "00_03_player_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_03_player_schema_profile.md").read_text()
     assert "Row count:" in md
 
 
@@ -186,13 +186,13 @@ def test_smoke_test_passes_with_valid_raw_dir(
     assert result["matches_files"] == 2
     assert result["players_files"] == 2
     assert all(result["filename_cols"].values())
-    assert (reports_dir / "00_04_smoke_test.md").exists()
+    assert (reports_dir / "artifacts" / "00_04_smoke_test.md").exists()
 
 
 def test_smoke_test_report_includes_sql(raw_dir: Path, tmp_path: Path) -> None:
     reports_dir = tmp_path / "reports"
     run_smoke_test(raw_dir, reports_dir)
-    md = (reports_dir / "00_04_smoke_test.md").read_text()
+    md = (reports_dir / "artifacts" / "00_04_smoke_test.md").read_text()
     assert "CREATE TABLE smoke_matches" in md
     assert "union_by_name" in md
 
@@ -209,7 +209,7 @@ def test_run_full_ingestion_creates_all_tables(
     result = run_full_ingestion(db_con, raw_dir, reports_dir)
     assert set(result["table_counts"].keys()) == {"raw_matches", "raw_players"}
     assert result["T_ingestion"] is not None
-    assert (reports_dir / "00_05_ingestion_log.md").exists()
+    assert (reports_dir / "artifacts" / "00_05_ingestion_log.md").exists()
 
 
 # ── Step 0.6: run_rowcount_reconciliation ────────────────────────────────────
@@ -226,7 +226,7 @@ def test_reconciliation_strict_passes(
     reports_dir = tmp_path / "reports"
     result = run_rowcount_reconciliation(db_con, manifest_file, reports_dir)
     assert result["strength"] in ("STRICT", "DEGRADED")
-    assert (reports_dir / "00_06_rowcount_reconciliation.md").exists()
+    assert (reports_dir / "artifacts" / "00_06_rowcount_reconciliation.md").exists()
 
 
 def test_reconciliation_strict_fails_on_mismatch(
@@ -253,7 +253,7 @@ def test_reconciliation_report_includes_sql(
     load_all_raw_tables(db_con, raw_dir)
     reports_dir = tmp_path / "reports"
     run_rowcount_reconciliation(db_con, manifest_file, reports_dir)
-    md = (reports_dir / "00_06_rowcount_reconciliation.md").read_text()
+    md = (reports_dir / "artifacts" / "00_06_rowcount_reconciliation.md").read_text()
     assert "SELECT count(DISTINCT filename)" in md
     assert "GROUP BY filename" in md
 
@@ -281,7 +281,7 @@ def test_write_phase0_summary_produces_both_files(tmp_path: Path) -> None:
         },
     }
     write_phase0_summary(reports_dir, ingestion_result, audit_results)
-    assert (reports_dir / "00_07_phase0_summary.md").exists()
+    assert (reports_dir / "artifacts" / "00_07_phase0_summary.md").exists()
     assert (reports_dir / "INVARIANTS.md").exists()
     invariants = (reports_dir / "INVARIANTS.md").read_text()
     assert "I1." in invariants
@@ -306,8 +306,8 @@ def test_run_phase_0_audit_selective_steps(
     )
     assert "0.1" in results
     assert "0.2" not in results
-    assert (reports_dir / "00_01_source_audit.json").exists()
-    assert not (reports_dir / "00_02_match_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.json").exists()
+    assert not (reports_dir / "artifacts" / "00_02_match_schema_profile.md").exists()
 
 
 def test_run_phase_0_audit_idempotent(
@@ -377,7 +377,7 @@ def test_source_audit_known_failure_listed_in_report(
 
     reports_dir = tmp_path / "reports"
     run_source_audit(raw_dir, manifest_path, reports_dir)
-    md = (reports_dir / "00_01_source_audit.md").read_text()
+    md = (reports_dir / "artifacts" / "00_01_source_audit.md").read_text()
     assert "Known failures" in md
     assert "known_fail_matches.parquet" in md
 
@@ -430,7 +430,7 @@ def test_profile_match_schema_drifted_report_has_drift_section(tmp_path: Path) -
     raw = _make_drifted_raw_dir(tmp_path)
     reports_dir = tmp_path / "reports"
     profile_match_schema(raw, reports_dir)
-    md = (reports_dir / "00_02_match_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_02_match_schema_profile.md").read_text()
     assert "Type drift detected" in md
     assert "col_x" in md
 
@@ -463,7 +463,7 @@ def test_smoke_test_errors_written_to_report(raw_dir: Path, tmp_path: Path) -> N
     result = run_smoke_test(bad_raw, reports_dir)
     assert result["passed"] is False
     assert len(result["errors"]) > 0
-    md = (reports_dir / "00_04_smoke_test.md").read_text()
+    md = (reports_dir / "artifacts" / "00_04_smoke_test.md").read_text()
     assert "## Errors" in md
 
 

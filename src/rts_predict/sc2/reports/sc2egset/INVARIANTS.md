@@ -47,7 +47,7 @@ in 2017–2024.
 For feature engineering: use APM from 2017+ directly; impute or exclude
 2016 rows.
 
-Source: `src/rts_predict/sc2/reports/sc2egset/01_04_apm_mmr_audit.md`
+Source: `src/rts_predict/sc2/reports/sc2egset/artifacts/01_04_apm_mmr_audit.md`
 
 ---
 
@@ -61,4 +61,4 @@ and `highestLeague` field availability.
 Player skill must instead be derived from match history (Elo, Glicko-2, or
 rolling win rate).
 
-Source: `src/rts_predict/sc2/reports/sc2egset/01_04_apm_mmr_audit.md`
+Source: `src/rts_predict/sc2/reports/sc2egset/artifacts/01_04_apm_mmr_audit.md`

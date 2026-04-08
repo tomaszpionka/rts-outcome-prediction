@@ -10,6 +10,8 @@ DATA_DIR: Path = GAME_DIR / "data"
 REPORTS_DIR: Path = GAME_DIR / "reports"
 AOE2COMPANION_REPORTS_DIR: Path = REPORTS_DIR / "aoe2companion"
 AOESTATS_REPORTS_DIR: Path = REPORTS_DIR / "aoestats"
+AOE2COMPANION_ARTIFACTS_DIR: Path = AOE2COMPANION_REPORTS_DIR / "artifacts"
+AOESTATS_ARTIFACTS_DIR: Path = AOESTATS_REPORTS_DIR / "artifacts"
 
 # -- Dataset paths (two sources) --
 AOE2COMPANION_DIR: Path = DATA_DIR / "aoe2companion"

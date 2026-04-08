@@ -93,7 +93,7 @@ Run `audit_raw_data_availability()` from `ingestion.py`. Record:
 
 If `stripped > 0`, stop. Do not proceed until it is confirmed which files were stripped and whether the original data can be recovered from the SC2EGSet ZIPs.
 
-Output: `00_01_source_audit.json`
+Output: `artifacts/00_01_source_audit.json`
 
 **0.2 — Validate the `tournament_name` extraction logic**
 
@@ -105,7 +105,7 @@ Before loading any data, write a standalone Python script that:
 
 If it fails for any path, fix the extraction logic in `processing.py` before proceeding.
 
-Output: `00_02_tournament_name_validation.txt`
+Output: `artifacts/00_02_tournament_name_validation.txt`
 
 **0.3 — Design and document the canonical `replay_id`**
 
@@ -117,7 +117,7 @@ Write a specification (a short markdown file) that defines:
 
 This spec will be referenced by all downstream join logic.
 
-Output: `00_03_replay_id_spec.md`
+Output: `artifacts/00_03_replay_id_spec.md`
 
 **0.4 — Run Path A ingestion on a single tournament**
 
@@ -129,7 +129,7 @@ Run `move_data_to_duck_db` on a single tournament directory (e.g. `2016_IEM_10_T
 - Extract `replay_id` using the spec from 0.3
 - Spot-check 3 rows manually against the source JSON files
 
-Output: `00_04_path_a_smoke_test.md`
+Output: `artifacts/00_04_path_a_smoke_test.md`
 
 **0.5 — Run Path A ingestion on the full corpus**
 
@@ -138,7 +138,7 @@ Run `move_data_to_duck_db` with `should_drop=True` on the full `REPLAYS_SOURCE_D
 - Time taken
 - Any errors logged
 
-Output: `00_05_full_ingestion_log.txt` (the pipeline log)
+Output: `artifacts/00_05_full_ingestion_log.txt` (the pipeline log)
 
 **0.6 — Add `tournament_dir` and `replay_id` as persistent columns**
 
@@ -158,7 +158,7 @@ Run `run_in_game_extraction()` on the full corpus. This is the slow step (multip
 
 Then run `load_in_game_data_to_duckdb()` to load Parquet into DuckDB.
 
-Output: `00_07_path_b_extraction_log.txt`
+Output: `artifacts/00_07_path_b_extraction_log.txt`
 
 **0.8 — Validate the Path A / Path B join**
 
@@ -167,7 +167,7 @@ Write a query that joins `raw` (Path A) to `tracker_events_raw` (Path B) on the 
 - Every `replay_id` in `raw` that has `trackerEvents` (from the audit in 0.1) has a corresponding row in `tracker_events_raw`
 - Report any orphan `replay_id` values in either direction
 
-Output: `00_08_join_validation.md`
+Output: `artifacts/00_08_join_validation.md`
 
 **0.9 — Run `load_map_translations` and verify**
 
@@ -177,18 +177,18 @@ Run `load_map_translations()`. Then:
 - Count how many map names from `raw` have no translation (null join)
 - List the untranslated map names
 
-Output: `00_09_map_translation_coverage.csv`
+Output: `artifacts/00_09_map_translation_coverage.csv`
 
 ### Artifacts
 
-- `00_01_source_audit.json`
-- `00_02_tournament_name_validation.txt`
-- `00_03_replay_id_spec.md`
-- `00_04_path_a_smoke_test.md`
-- `00_05_full_ingestion_log.txt`
-- `00_07_path_b_extraction_log.txt`
-- `00_08_join_validation.md`
-- `00_09_map_translation_coverage.csv`
+- `artifacts/00_01_source_audit.json`
+- `artifacts/00_02_tournament_name_validation.txt`
+- `artifacts/00_03_replay_id_spec.md`
+- `artifacts/00_04_path_a_smoke_test.md`
+- `artifacts/00_05_full_ingestion_log.txt`
+- `artifacts/00_07_path_b_extraction_log.txt`
+- `artifacts/00_08_join_validation.md`
+- `artifacts/00_09_map_translation_coverage.csv`
 
 ### Gate
 
@@ -272,10 +272,10 @@ Step 1.3 will produce the empirical duration distribution, from which a data-dri
 threshold will be derived in Phase 6. Counting games below arbitrary cutoffs is
 premature and introduces unjustified magic numbers.
  
-Output: `01_01_corpus_summary.json`
-Output: `01_01_player_count_anomalies.csv` (if any anomalies found)
-Output: `01_01_result_field_audit.md`
-Output: `01_01_duplicate_detection.md`
+Output: `artifacts/01_01_corpus_summary.json`
+Output: `artifacts/01_01_player_count_anomalies.csv` (if any anomalies found)
+Output: `artifacts/01_01_result_field_audit.md`
+Output: `artifacts/01_01_duplicate_detection.md`
  
 **1.2 — Per-tournament parse quality table**
  
@@ -292,8 +292,8 @@ Cross-reference with `*_processed_failed.log` counts per tournament if accessibl
  
 Sort by `event_coverage_pct` ascending — worst coverage first.
  
-Output: `01_02_parse_quality_by_tournament.csv`
-Output: `01_02_parse_quality_summary.md` (narrative: which tournaments have >20%
+Output: `artifacts/01_02_parse_quality_by_tournament.csv`
+Output: `artifacts/01_02_parse_quality_summary.md` (narrative: which tournaments have >20%
 missing events, which have structural anomalies, which to potentially flag for exclusion)
  
 **1.3 — Game duration distribution**
@@ -326,9 +326,9 @@ threshold. The threshold is NOT chosen here — only the distribution is observe
  
 Save histogram data as CSV and render as matplotlib PNGs (full range + zoomed).
  
-Output: `01_03_duration_distribution.csv`
-Output: `01_03_duration_distribution_full.png`
-Output: `01_03_duration_distribution_short_tail.png`
+Output: `artifacts/01_03_duration_distribution.csv`
+Output: `artifacts/01_03_duration_distribution_full.png`
+Output: `artifacts/01_03_duration_distribution_short_tail.png`
  
 **1.4 — APM and MMR audit (confirmation of Phase 0 findings)**
  
@@ -340,7 +340,7 @@ This step produces the formal report with year-by-year and league-by-league
 breakdowns, suitable for thesis citation. Use the exact queries from
 `research_log.md` Phase 0 entry.
  
-Write `01_04_apm_mmr_audit.md` with:
+Write `artifacts/01_04_apm_mmr_audit.md` with:
 - The full year-by-year APM table
 - The full year-by-year MMR table
 - The MMR-by-highestLeague table
@@ -348,7 +348,7 @@ Write `01_04_apm_mmr_audit.md` with:
   MMR is NOT usable as a direct feature — player skill must be derived
   from match history (Elo, Glicko-2, or rolling win rate)
  
-Output: `01_04_apm_mmr_audit.md`
+Output: `artifacts/01_04_apm_mmr_audit.md`
  
 **1.5 — Game version and patch landscape**
  
@@ -369,7 +369,7 @@ Group versions by year and identify broad patch eras. SC2 timeline reference:
  
 These eras may serve as a control feature (Phase 5 decision).
  
-Output: `01_05_patch_landscape.csv`
+Output: `artifacts/01_05_patch_landscape.csv`
  
 **1.6 — Tracker event type inventory (stratified)**
  
@@ -412,10 +412,10 @@ For each tournament, compute:
   the corpus-wide mean — these may have data quality issues not visible in the
   binary presence/absence check of Step 1.2
  
-Output: `01_06_event_type_inventory.csv` (corpus-wide)
-Output: `01_06_event_count_distribution.csv` (per-replay distribution stats)
-Output: `01_06_event_density_by_year.csv`
-Output: `01_06_event_density_by_tournament.csv`
+Output: `artifacts/01_06_event_type_inventory.csv` (corpus-wide)
+Output: `artifacts/01_06_event_count_distribution.csv` (per-replay distribution stats)
+Output: `artifacts/01_06_event_density_by_year.csv`
+Output: `artifacts/01_06_event_density_by_tournament.csv`
  
 **1.7 — Lightweight PlayerStats sampling regularity check**
  
@@ -434,7 +434,7 @@ For a stratified sample of 10 games per year (2016–2024, ~90 games total):
 If all years are consistent (~160 ± 20%), note this and move on. If any year
 diverges, document which year and by how much — Phase 4 will investigate further.
  
-Output: `01_07_playerstats_sampling_check.csv`
+Output: `artifacts/01_07_playerstats_sampling_check.csv`
  
 **1.8 — Game settings and replay field completeness audit**
  
@@ -675,11 +675,11 @@ usable and which are dead.
 | handicap | 44,817 | ? | ? | ? |
 | ... | | | | |
  
-Output: `01_08_game_settings_audit.md`
-Output: `01_08_field_completeness_summary.csv` *(superseded — not produced; see note below)*
-Output: `01_08_error_flags_audit.csv` (list of replays with any error flag = true)
+Output: `artifacts/01_08_game_settings_audit.md`
+Output: `artifacts/01_08_field_completeness_summary.csv` *(superseded — not produced; see note below)*
+Output: `artifacts/01_08_error_flags_audit.csv` (list of replays with any error flag = true)
 
-**Note on Step 1.8 sub-steps F and I:** Sub-steps F (SQ/supplyCappedPercent profiling) and I (field completeness summary) are superseded by Step 1.10, which applies the §3.1 profiling battery uniformly to ALL ToonPlayerDescMap fields. Running 1.8F before Step 1.10 would profile SQ and supplyCappedPercent twice. Sub-steps A–E, G, H execute as originally defined. `01_08_field_completeness_summary.csv` is superseded by `01_10_tpdm_column_profile.csv` and `01_10_tpdm_field_status.csv`.
+**Note on Step 1.8 sub-steps F and I:** Sub-steps F (SQ/supplyCappedPercent profiling) and I (field completeness summary) are superseded by Step 1.10, which applies the §3.1 profiling battery uniformly to ALL ToonPlayerDescMap fields. Running 1.8F before Step 1.10 would profile SQ and supplyCappedPercent twice. Sub-steps A–E, G, H execute as originally defined. `artifacts/01_08_field_completeness_summary.csv` is superseded by `artifacts/01_10_tpdm_column_profile.csv` and `artifacts/01_10_tpdm_field_status.csv`.
 
 **1.9 — Systematic ToonPlayerDescMap field inventory and JSON structure verification**
 
@@ -749,9 +749,9 @@ poetry run sc2 db --dataset sc2egset query "SELECT DISTINCT json_key FROM (SELEC
 Repeat for initData, details, metadata. For nested objects (e.g., initData->'$.gameDescription'), recursively enumerate one level deeper.
 
 Artifacts:
-- `01_09_tpdm_field_inventory.csv`
-- `01_09_tpdm_key_set_constancy.csv`
-- `01_09_toplevel_field_inventory.csv`
+- `artifacts/01_09_tpdm_field_inventory.csv`
+- `artifacts/01_09_tpdm_key_set_constancy.csv`
+- `artifacts/01_09_toplevel_field_inventory.csv`
 
 Thesis mapping: §4.1.1 — SC2EGSet schema documentation
 
@@ -811,9 +811,9 @@ sql = build_nested_field_inventory_query(
 Returns column: nested_key_name.
 
 Artifacts:
-- `01_09D_tracker_event_data_field_inventory.csv` (columns: event_type, json_key, is_nested)
-- `01_09D_tracker_event_data_key_constancy.csv` (columns: event_type, key_list, n_events, pct)
-- `01_09D_playerstats_stats_field_inventory.csv` (column: nested_key_name)
+- `artifacts/01_09D_tracker_event_data_field_inventory.csv` (columns: event_type, json_key, is_nested)
+- `artifacts/01_09D_tracker_event_data_key_constancy.csv` (columns: event_type, key_list, n_events, pct)
+- `artifacts/01_09D_playerstats_stats_field_inventory.csv` (column: nested_key_name)
 
 Findings (2026-04-07):
 - 10 distinct tracker event types; 80 total (event_type, json_key) pairs.
@@ -864,8 +864,8 @@ for et in ('Cmd', 'SelectionDelta', 'ControlGroupUpdate',
 ```
 
 Artifacts:
-- `01_09E_game_event_data_field_inventory.csv` (columns: event_type, json_key, is_nested)
-- `01_09E_game_event_data_key_constancy.csv` (columns: event_type, key_list, n_events, pct)
+- `artifacts/01_09E_game_event_data_field_inventory.csv` (columns: event_type, json_key, is_nested)
+- `artifacts/01_09E_game_event_data_key_constancy.csv` (columns: event_type, key_list, n_events, pct)
 
 Findings (2026-04-07):
 - All 5 high-value types have dominant key-set variant = 100%. Gate PASS.
@@ -904,8 +904,8 @@ result = run_event_schema_document(output_dir=DATASET_REPORTS_DIR)
 ```
 
 Artifacts:
-- `01_09F_parquet_duckdb_schema_reconciliation.md`
-- `01_09F_event_schema_reference.md`
+- `artifacts/01_09F_parquet_duckdb_schema_reconciliation.md`
+- `artifacts/01_09F_event_schema_reference.md`
 
 Findings (2026-04-07):
 - Tracker Parquet schema: match_id:string, event_type:string, game_loop:int32,
@@ -1043,17 +1043,17 @@ poetry run sc2 db --dataset sc2egset query "<generated UNION ALL SQL per field>"
 ```
 
 Artifacts:
-- `01_10_tpdm_column_profile.csv`
-- `01_10_tpdm_numeric_distributions.csv`
-- `01_10_tpdm_categorical_topk.csv`
-- `01_10_tpdm_field_status.csv`
-- `01_10_tpdm_availability_by_year.csv`
+- `artifacts/01_10_tpdm_column_profile.csv`
+- `artifacts/01_10_tpdm_numeric_distributions.csv`
+- `artifacts/01_10_tpdm_categorical_topk.csv`
+- `artifacts/01_10_tpdm_field_status.csv`
+- `artifacts/01_10_tpdm_availability_by_year.csv`
 
 Thesis mapping: §4.1.1 — field descriptions; §4.1.2 — data quality summary
 
 Gate condition:
 - Artifact check: All five CSV files exist and are non-empty.
-- Continue predicate: If every field from Step 1.9 has a complete profiling row in 01_10_tpdm_column_profile.csv, continue to Step 1.11.
+- Continue predicate: If every field from Step 1.9 has a complete profiling row in artifacts/01_10_tpdm_column_profile.csv, continue to Step 1.11.
 - Halt predicate: Halt and escalate to user if the number of "active" fields (per the classify_field_status classification) is insufficient to construct any reasonable pre-game feature set. Specifically: halt if, after excluding fields classified as "dead" or "constant", fewer than 3 fields remain with classification PRE_GAME (as determined in the subsequent Step 1.11). The premise being tested is that ToonPlayerDescMap contains sufficient per-player metadata for pre-game feature construction. If this premise is violated, no downstream feature engineering is possible from this data source alone.
 
 [CROSS-GAME]
@@ -1134,8 +1134,8 @@ poetry run sc2 db --dataset sc2egset query "SELECT ROUND(CORR((entry.value->>'$.
 AMBIGUOUS fields are written to the output CSV with `safe_for_pre_game_features = False` and rationale marked `"ambiguous — conservatively excluded pending documentation."`.
 
 Artifacts:
-- `01_11_temporal_leakage_classification.csv` (field_name, classification [PRE_GAME/POST_GAME/AMBIGUOUS], rationale, safe_for_pre_game_features [true/false], source)
-- `01_11_leakage_empirical_checks.md` (APM-duration and SQ-duration correlation results with the SQL that produced them)
+- `artifacts/01_11_temporal_leakage_classification.csv` (field_name, classification [PRE_GAME/POST_GAME/AMBIGUOUS], rationale, safe_for_pre_game_features [true/false], source)
+- `artifacts/01_11_leakage_empirical_checks.md` (APM-duration and SQ-duration correlation results with the SQL that produced them)
 
 Thesis mapping: §3.3 — temporal discipline methodology; §4.1.3 — temporal leakage risk audit
 
@@ -1212,7 +1212,7 @@ def plot_field_completeness_heatmap(
 ) -> None:
     """Generate a heatmap of field availability rates across years.
     Args:
-        profile_df: DataFrame from 01_10_tpdm_availability_by_year.csv
+        profile_df: DataFrame from artifacts/01_10_tpdm_availability_by_year.csv
         output_path: Path for the output PNG
     """
     ...
@@ -1221,9 +1221,9 @@ def plot_field_completeness_heatmap(
 Uses the year-stratified availability data from Step 1.10E to create a (field x year) heatmap where cell color represents the percentage of non-null, non-zero values.
 
 Artifacts:
-- `01_12_class_balance.csv`
-- `01_12_class_balance_stratified.csv`
-- `01_12_field_completeness_heatmap.png`
+- `artifacts/01_12_class_balance.csv`
+- `artifacts/01_12_class_balance_stratified.csv`
+- `artifacts/01_12_field_completeness_heatmap.png`
 
 Thesis mapping: §4.1.2 — data quality; §4.1.1 — dataset summary statistics
 
@@ -1330,10 +1330,10 @@ Year-stratified version: add year to the GROUP BY and SELECT.
 Same as 1.13B with tournament_dir added to GROUP BY.
 
 Artifacts:
-- `01_13_race_distribution.csv`
-- `01_13_matchup_win_rates.csv`
-- `01_13_matchup_win_rates_by_year.csv`
-- `01_13_matchup_win_rates_by_tournament.csv`
+- `artifacts/01_13_race_distribution.csv`
+- `artifacts/01_13_matchup_win_rates.csv`
+- `artifacts/01_13_matchup_win_rates_by_year.csv`
+- `artifacts/01_13_matchup_win_rates_by_tournament.csv`
 
 Thesis mapping: §4.2.1 — race and matchup analysis; §4.3 — balance meta-analysis
 
@@ -1410,9 +1410,9 @@ def plot_correlation_heatmap(
 ```
 
 Artifacts:
-- `01_14_spearman_correlations.csv`
-- `01_14_spearman_by_race.csv`
-- `01_14_correlation_heatmap.png`
+- `artifacts/01_14_spearman_correlations.csv`
+- `artifacts/01_14_spearman_by_race.csv`
+- `artifacts/01_14_correlation_heatmap.png`
 
 Thesis mapping: §4.2.2 — bivariate analysis of pre-game metadata fields
 
@@ -1474,7 +1474,7 @@ Produces overlaid KDE plots by race.
 
 Artifacts:
 - One (hist_kde, qq, ecdf) PNG triplet per field that is both "active" (Step 1.10D) and numeric (Step 1.10B). The exact field list is determined at execution time by Step 1.10's findings.
-- `01_15_duration_by_race_kde.png`
+- `artifacts/01_15_duration_by_race_kde.png`
 
 Thesis mapping: §4.2 — main exploratory figures; Appendix B — supplementary distribution plots
 
@@ -1498,7 +1498,7 @@ Sub-steps:
 
 **Deliverable 1 of 4 — Data dictionary**
 
-Filename: `01_16_data_dictionary.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
+Filename: `artifacts/01_16_data_dictionary.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
 
 Required sections:
 1. Overview (one paragraph summarizing the SC2EGSet schema and this dictionary's scope)
@@ -1506,7 +1506,7 @@ Required sections:
 3. ToonPlayerDescMap fields table (one row per field from Step 1.9 inventory, with columns: field name, JSON path, data type, semantic meaning, null/zero rate from Step 1.10, temporal classification from Step 1.11, field status from Step 1.10D)
 4. Top-level JSON sub-keys table (one row per sub-key discovered in Step 1.9C for header, initData, details, metadata)
 
-Feeding artifacts: 01_09_tpdm_field_inventory.csv, 01_09_tpdm_key_set_constancy.csv, 01_09_toplevel_field_inventory.csv, 01_10_tpdm_column_profile.csv, 01_10_tpdm_field_status.csv, 01_11_temporal_leakage_classification.csv
+Feeding artifacts: artifacts/01_09_tpdm_field_inventory.csv, artifacts/01_09_tpdm_key_set_constancy.csv, artifacts/01_09_toplevel_field_inventory.csv, artifacts/01_10_tpdm_column_profile.csv, artifacts/01_10_tpdm_field_status.csv, artifacts/01_11_temporal_leakage_classification.csv
 
 Sign-off criterion: Every field enumerated in Step 1.9 (both ToonPlayerDescMap fields and top-level JSON sub-keys) appears in the dictionary with all required columns populated. No field has a blank data type, temporal classification, or field status cell.
 
@@ -1532,32 +1532,32 @@ def compile_data_dictionary(
 
 **Deliverable 2 of 4 — Data quality report**
 
-Filename: `01_16_data_quality_report.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
+Filename: `artifacts/01_16_data_quality_report.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
 
 Required sections:
 1. Executive summary (one paragraph with key quality metrics)
-2. Missingness summary (per-field null rates, referencing 01_10_tpdm_column_profile.csv)
-3. Duplicate inventory (exact and near-duplicate counts, referencing 01_01_duplicate_detection.md)
+2. Missingness summary (per-field null rates, referencing artifacts/01_10_tpdm_column_profile.csv)
+3. Duplicate inventory (exact and near-duplicate counts, referencing artifacts/01_01_duplicate_detection.md)
 4. Structural anomaly inventory (13 anomalous replays from Step 1.1, error-flagged replays from Step 1.8)
-5. Field status classification counts (dead / constant / near-constant / active breakdown, referencing 01_10_tpdm_field_status.csv)
-6. Year-stratified completeness summary (referencing 01_10_tpdm_availability_by_year.csv and 01_12_field_completeness_heatmap.png)
-7. Class balance confirmation (referencing 01_12_class_balance.csv)
-8. Game settings verification results (referencing 01_08_game_settings_audit.md from Step 1.8)
+5. Field status classification counts (dead / constant / near-constant / active breakdown, referencing artifacts/01_10_tpdm_field_status.csv)
+6. Year-stratified completeness summary (referencing artifacts/01_10_tpdm_availability_by_year.csv and artifacts/01_12_field_completeness_heatmap.png)
+7. Class balance confirmation (referencing artifacts/01_12_class_balance.csv)
+8. Game settings verification results (referencing artifacts/01_08_game_settings_audit.md from Step 1.8)
 
-Feeding artifacts: 01_01_corpus_summary.json, 01_01_duplicate_detection.md, 01_01_player_count_anomalies.csv, 01_04_apm_mmr_audit.md, 01_08_game_settings_audit.md, 01_08_error_flags_audit.csv, 01_10_tpdm_column_profile.csv, 01_10_tpdm_field_status.csv, 01_10_tpdm_availability_by_year.csv, 01_12_class_balance.csv, 01_12_field_completeness_heatmap.png
+Feeding artifacts: artifacts/01_01_corpus_summary.json, artifacts/01_01_duplicate_detection.md, artifacts/01_01_player_count_anomalies.csv, artifacts/01_04_apm_mmr_audit.md, artifacts/01_08_game_settings_audit.md, artifacts/01_08_error_flags_audit.csv, artifacts/01_10_tpdm_column_profile.csv, artifacts/01_10_tpdm_field_status.csv, artifacts/01_10_tpdm_availability_by_year.csv, artifacts/01_12_class_balance.csv, artifacts/01_12_field_completeness_heatmap.png
 
 Sign-off criterion: Every section contains at least one quantified finding traceable to a named source artifact. No section is empty or contains only placeholder text.
 
 **Deliverable 3 of 4 — Risk register**
 
-Filename: `01_16_risk_register.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
+Filename: `artifacts/01_16_risk_register.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
 
 Required sections:
 1. Overview (one paragraph explaining the register's purpose and severity scale)
 2. Risk table (columns: Risk ID, Description, Severity [Critical/High/Medium/Low], Affected Phase, Mitigation, Source Step)
-3. AMBIGUOUS fields appendix (one row per field classified as AMBIGUOUS in Step 1.11, with the conservative exclusion rationale from 01_11_temporal_leakage_classification.csv)
+3. AMBIGUOUS fields appendix (one row per field classified as AMBIGUOUS in Step 1.11, with the conservative exclusion rationale from artifacts/01_11_temporal_leakage_classification.csv)
 
-Feeding artifacts: 01_01_duplicate_detection.md (near-duplicate risk), 01_01_player_count_anomalies.csv (anomalous replay risk), 01_04_apm_mmr_audit.md (MMR missingness, APM 2016 risk), 01_11_temporal_leakage_classification.csv (temporal leakage risk, AMBIGUOUS field risk), 01_12_class_balance.csv (class balance risk if applicable), 01_08_error_flags_audit.csv (error flag risk)
+Feeding artifacts: artifacts/01_01_duplicate_detection.md (near-duplicate risk), artifacts/01_01_player_count_anomalies.csv (anomalous replay risk), artifacts/01_04_apm_mmr_audit.md (MMR missingness, APM 2016 risk), artifacts/01_11_temporal_leakage_classification.csv (temporal leakage risk, AMBIGUOUS field risk), artifacts/01_12_class_balance.csv (class balance risk if applicable), artifacts/01_08_error_flags_audit.csv (error flag risk)
 
 Sign-off criterion: At minimum the following risks are documented: (1) temporal leakage from post-game fields (Source: Step 1.11), (2) MMR systematic missingness (Source: Step 1.4), (3) near-duplicate replay pairs (Source: Step 1.1), (4) every AMBIGUOUS field from Step 1.11. Every risk has all six table columns populated.
 
@@ -1573,7 +1573,7 @@ Seed entries:
 
 **Deliverable 4 of 4 — Modeling readiness decision**
 
-Filename: `01_16_modeling_readiness.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
+Filename: `artifacts/01_16_modeling_readiness.md` (under `src/rts_predict/sc2/reports/sc2egset/`)
 
 Required sections:
 1. Decision header (GO / NO-GO / CONDITIONAL GO)
@@ -1582,22 +1582,22 @@ Required sections:
 4. Conditions for proceeding (if CONDITIONAL GO: list specific conditions that must be met before Phase 2)
 5. Recommended Phase 2 priorities (based on risk register, what should Phase 2 focus on first)
 
-Feeding artifacts: 01_16_data_dictionary.md, 01_16_data_quality_report.md, 01_16_risk_register.md (all three prior deliverables)
+Feeding artifacts: artifacts/01_16_data_dictionary.md, artifacts/01_16_data_quality_report.md, artifacts/01_16_risk_register.md (all three prior deliverables)
 
 Sign-off criterion: The document contains an explicit GO / NO-GO / CONDITIONAL-GO decision. If GO or CONDITIONAL-GO, every original gate condition (a)-(j) is addressed with a pass/fail status and artifact reference. If CONDITIONAL-GO, at least one condition for proceeding is listed with a concrete resolution path. If NO-GO, the specific blocking finding is named.
 
 Artifacts:
-- `01_16_data_dictionary.md`
-- `01_16_data_quality_report.md`
-- `01_16_risk_register.md`
-- `01_16_modeling_readiness.md`
+- `artifacts/01_16_data_dictionary.md`
+- `artifacts/01_16_data_quality_report.md`
+- `artifacts/01_16_risk_register.md`
+- `artifacts/01_16_modeling_readiness.md`
 
 Thesis mapping: §4.1 — dataset description; §4.1.2 — data quality; §3.3 — risk management; §4.1.4 — modeling readiness assessment
 
 Gate condition:
 - Artifact check: All four markdown files exist and are non-empty.
-- Continue predicate: If 01_16_modeling_readiness.md contains a GO or CONDITIONAL GO decision, continue to Phase 2.
-- Halt predicate: If 01_16_modeling_readiness.md contains a NO-GO decision, halt the pipeline and escalate, because the data has been assessed as unfit for the prediction task and no downstream phase can produce valid results.
+- Continue predicate: If artifacts/01_16_modeling_readiness.md contains a GO or CONDITIONAL GO decision, continue to Phase 2.
+- Halt predicate: If artifacts/01_16_modeling_readiness.md contains a NO-GO decision, halt the pipeline and escalate, because the data has been assessed as unfit for the prediction task and no downstream phase can produce valid results.
 
 [CROSS-GAME]
 
@@ -1605,46 +1605,46 @@ Gate condition:
 
 ### Artifacts
  
-- `01_01_corpus_summary.json`
-- `01_01_player_count_anomalies.csv` (if anomalies exist)
-- `01_01_result_field_audit.md`
-- `01_01_duplicate_detection.md`
-- `01_02_parse_quality_by_tournament.csv`
-- `01_02_parse_quality_summary.md`
-- `01_03_duration_distribution.csv`
-- `01_03_duration_distribution_full.png`
-- `01_03_duration_distribution_short_tail.png`
-- `01_04_apm_mmr_audit.md`
-- `01_05_patch_landscape.csv`
-- `01_06_event_type_inventory.csv`
-- `01_06_event_count_distribution.csv`
-- `01_06_event_density_by_year.csv`
-- `01_06_event_density_by_tournament.csv`
-- `01_07_playerstats_sampling_check.csv`
-- `01_08_game_settings_audit.md`
-- `01_08_field_completeness_summary.csv` *(superseded by Step 1.10 — not produced)*
-- `01_08_error_flags_audit.csv`
+- `artifacts/01_01_corpus_summary.json`
+- `artifacts/01_01_player_count_anomalies.csv` (if anomalies exist)
+- `artifacts/01_01_result_field_audit.md`
+- `artifacts/01_01_duplicate_detection.md`
+- `artifacts/01_02_parse_quality_by_tournament.csv`
+- `artifacts/01_02_parse_quality_summary.md`
+- `artifacts/01_03_duration_distribution.csv`
+- `artifacts/01_03_duration_distribution_full.png`
+- `artifacts/01_03_duration_distribution_short_tail.png`
+- `artifacts/01_04_apm_mmr_audit.md`
+- `artifacts/01_05_patch_landscape.csv`
+- `artifacts/01_06_event_type_inventory.csv`
+- `artifacts/01_06_event_count_distribution.csv`
+- `artifacts/01_06_event_density_by_year.csv`
+- `artifacts/01_06_event_density_by_tournament.csv`
+- `artifacts/01_07_playerstats_sampling_check.csv`
+- `artifacts/01_08_game_settings_audit.md`
+- `artifacts/01_08_field_completeness_summary.csv` *(superseded by Step 1.10 — not produced)*
+- `artifacts/01_08_error_flags_audit.csv`
 
 ### Gate
 
 Phase 1 is complete when ALL of the following named artifacts exist under `src/rts_predict/sc2/reports/sc2egset/` and satisfy their stated quality criteria:
 
-1. **Data Dictionary — `01_16_data_dictionary.md`**
+1. **Data Dictionary — `artifacts/01_16_data_dictionary.md`**
    - Produced by: Step 1.16 (Deliverable 1 of 4)
    - Depends on: Steps 1.9, 1.10, 1.11
    - Quality criterion: Every field discovered in Step 1.9 has an entry. Every entry includes: field name, JSON path, data type, semantic meaning, valid range, null/zero rate, temporal classification, field status.
 
-2. **Data Quality Report — `01_16_data_quality_report.md`**
+2. **Data Quality Report — `artifacts/01_16_data_quality_report.md`**
    - Produced by: Step 1.16 (Deliverable 2 of 4)
    - Depends on: Steps 1.1, 1.2, 1.4, 1.8, 1.10, 1.12
    - Quality criterion: Report includes the following quantified sections: missingness summary (per-field null rates), duplicate inventory, structural anomaly inventory, field status classification counts, year-stratified completeness summary, error flag rates, game settings verification results. Every number traceable to a named artifact from an earlier step.
 
-3. **Risk Register — `01_16_risk_register.md`**
+3. **Risk Register — `artifacts/01_16_risk_register.md`**
    - Produced by: Step 1.16 (Deliverable 3 of 4)
    - Depends on: Steps 1.1, 1.4, 1.8, 1.11, 1.12, 1.13
    - Quality criterion: Every risk has an ID, description, severity, affected phase, mitigation strategy, and source step reference. At minimum: temporal leakage risk (Step 1.11), MMR missingness risk (Step 1.4), near-duplicate risk (Step 1.1), and all AMBIGUOUS fields from Step 1.11 must be documented.
 
-4. **Modeling Readiness Decision — `01_16_modeling_readiness.md`**
+4. **Modeling Readiness Decision — `artifacts/01_16_modeling_readiness.md`**
    - Produced by: Step 1.16 (Deliverable 4 of 4)
    - Depends on: Steps 1.16 Deliverables 1–3 (all other deliverables)
    - Quality criterion: Contains an explicit GO / NO-GO / CONDITIONAL-GO decision with narrative justification referencing the risk register and data quality report. If CONDITIONAL-GO, lists the specific conditions.
@@ -1653,23 +1653,23 @@ Phase 1 is complete when ALL of the following named artifacts exist under `src/r
 
 | Step | Artifacts |
 |------|-----------|
-| 1.1 | 01_01_corpus_summary.json, 01_01_player_count_anomalies.csv, 01_01_result_field_audit.md, 01_01_duplicate_detection.md |
-| 1.2 | 01_02_parse_quality_by_tournament.csv, 01_02_parse_quality_summary.md |
-| 1.3 | 01_03_duration_distribution.csv, 01_03_duration_distribution_full.png, 01_03_duration_distribution_short_tail.png |
-| 1.4 | 01_04_apm_mmr_audit.md |
-| 1.5 | 01_05_patch_landscape.csv |
-| 1.6 | 01_06_event_type_inventory.csv, 01_06_event_count_distribution.csv, 01_06_event_density_by_year.csv, 01_06_event_density_by_tournament.csv |
-| 1.7 | 01_07_playerstats_sampling_check.csv |
-| 1.8 | 01_08_game_settings_audit.md, 01_08_error_flags_audit.csv (note: 01_08_field_completeness_summary.csv superseded by Step 1.10 — not produced) |
-| 1.9 | 01_09_tpdm_field_inventory.csv, 01_09_tpdm_key_set_constancy.csv, 01_09_toplevel_field_inventory.csv |
-| 1.9D | 01_09D_tracker_event_data_field_inventory.csv, 01_09D_tracker_event_data_key_constancy.csv, 01_09D_playerstats_stats_field_inventory.csv |
-| 1.9E | 01_09E_game_event_data_field_inventory.csv, 01_09E_game_event_data_key_constancy.csv |
-| 1.9F | 01_09F_parquet_duckdb_schema_reconciliation.md, 01_09F_event_schema_reference.md |
-| 1.10 | 01_10_tpdm_column_profile.csv, 01_10_tpdm_numeric_distributions.csv, 01_10_tpdm_categorical_topk.csv, 01_10_tpdm_field_status.csv, 01_10_tpdm_availability_by_year.csv |
-| 1.11 | 01_11_temporal_leakage_classification.csv, 01_11_leakage_empirical_checks.md |
-| 1.12 | 01_12_class_balance.csv, 01_12_class_balance_stratified.csv, 01_12_field_completeness_heatmap.png |
-| 1.13 | 01_13_race_distribution.csv, 01_13_matchup_win_rates.csv, 01_13_matchup_win_rates_by_year.csv, 01_13_matchup_win_rates_by_tournament.csv |
-| 1.14 | 01_14_spearman_correlations.csv, 01_14_spearman_by_race.csv, 01_14_correlation_heatmap.png |
+| 1.1 | artifacts/01_01_corpus_summary.json, artifacts/01_01_player_count_anomalies.csv, artifacts/01_01_result_field_audit.md, artifacts/01_01_duplicate_detection.md |
+| 1.2 | artifacts/01_02_parse_quality_by_tournament.csv, artifacts/01_02_parse_quality_summary.md |
+| 1.3 | artifacts/01_03_duration_distribution.csv, artifacts/01_03_duration_distribution_full.png, artifacts/01_03_duration_distribution_short_tail.png |
+| 1.4 | artifacts/01_04_apm_mmr_audit.md |
+| 1.5 | artifacts/01_05_patch_landscape.csv |
+| 1.6 | artifacts/01_06_event_type_inventory.csv, artifacts/01_06_event_count_distribution.csv, artifacts/01_06_event_density_by_year.csv, artifacts/01_06_event_density_by_tournament.csv |
+| 1.7 | artifacts/01_07_playerstats_sampling_check.csv |
+| 1.8 | artifacts/01_08_game_settings_audit.md, artifacts/01_08_error_flags_audit.csv (note: artifacts/01_08_field_completeness_summary.csv superseded by Step 1.10 — not produced) |
+| 1.9 | artifacts/01_09_tpdm_field_inventory.csv, artifacts/01_09_tpdm_key_set_constancy.csv, artifacts/01_09_toplevel_field_inventory.csv |
+| 1.9D | artifacts/01_09D_tracker_event_data_field_inventory.csv, artifacts/01_09D_tracker_event_data_key_constancy.csv, artifacts/01_09D_playerstats_stats_field_inventory.csv |
+| 1.9E | artifacts/01_09E_game_event_data_field_inventory.csv, artifacts/01_09E_game_event_data_key_constancy.csv |
+| 1.9F | artifacts/01_09F_parquet_duckdb_schema_reconciliation.md, artifacts/01_09F_event_schema_reference.md |
+| 1.10 | artifacts/01_10_tpdm_column_profile.csv, artifacts/01_10_tpdm_numeric_distributions.csv, artifacts/01_10_tpdm_categorical_topk.csv, artifacts/01_10_tpdm_field_status.csv, artifacts/01_10_tpdm_availability_by_year.csv |
+| 1.11 | artifacts/01_11_temporal_leakage_classification.csv, artifacts/01_11_leakage_empirical_checks.md |
+| 1.12 | artifacts/01_12_class_balance.csv, artifacts/01_12_class_balance_stratified.csv, artifacts/01_12_field_completeness_heatmap.png |
+| 1.13 | artifacts/01_13_race_distribution.csv, artifacts/01_13_matchup_win_rates.csv, artifacts/01_13_matchup_win_rates_by_year.csv, artifacts/01_13_matchup_win_rates_by_tournament.csv |
+| 1.14 | artifacts/01_14_spearman_correlations.csv, artifacts/01_14_spearman_by_race.csv, artifacts/01_14_correlation_heatmap.png |
 | 1.15 | One (hist_kde, qq, ecdf) PNG triplet per field that Step 1.10D classifies as "active" AND Step 1.10B confirms as numeric. Zero exceptions. |
 
 **Relationship to existing gate conditions (a)–(j)**
@@ -1823,33 +1823,33 @@ All Phase 0–2 reports land in this directory (`sc2egset/`). All data files lan
 
 ```
 sc2egset/
-  00_01_source_audit.json
-  00_02_tournament_name_validation.txt
-  00_03_replay_id_spec.md
-  00_04_path_a_smoke_test.md
-  00_05_full_ingestion_log.txt
-  00_07_path_b_extraction_log.txt
-  00_08_join_validation.md
-  00_09_map_translation_coverage.csv
-  01_01_corpus_summary.json
-  01_01_player_count_anomalies.csv
-  01_01_result_field_audit.md
-  01_01_duplicate_detection.md
-  01_02_parse_quality_by_tournament.csv
-  01_02_parse_quality_summary.md
-  01_03_duration_distribution.csv
-  01_03_duration_distribution_full.png
-  01_03_duration_distribution_short_tail.png
-  01_04_apm_mmr_audit.md
-  01_05_patch_landscape.csv
-  01_06_event_type_inventory.csv
-  01_06_event_count_distribution.csv
-  01_06_event_density_by_year.csv
-  01_06_event_density_by_tournament.csv
-  01_07_playerstats_sampling_check.csv
-  01_08_game_settings_audit.md
-  01_08_field_completeness_summary.csv
-  01_08_error_flags_audit.csv
+  artifacts/00_01_source_audit.json
+  artifacts/00_02_tournament_name_validation.txt
+  artifacts/00_03_replay_id_spec.md
+  artifacts/00_04_path_a_smoke_test.md
+  artifacts/00_05_full_ingestion_log.txt
+  artifacts/00_07_path_b_extraction_log.txt
+  artifacts/00_08_join_validation.md
+  artifacts/00_09_map_translation_coverage.csv
+  artifacts/01_01_corpus_summary.json
+  artifacts/01_01_player_count_anomalies.csv
+  artifacts/01_01_result_field_audit.md
+  artifacts/01_01_duplicate_detection.md
+  artifacts/01_02_parse_quality_by_tournament.csv
+  artifacts/01_02_parse_quality_summary.md
+  artifacts/01_03_duration_distribution.csv
+  artifacts/01_03_duration_distribution_full.png
+  artifacts/01_03_duration_distribution_short_tail.png
+  artifacts/01_04_apm_mmr_audit.md
+  artifacts/01_05_patch_landscape.csv
+  artifacts/01_06_event_type_inventory.csv
+  artifacts/01_06_event_count_distribution.csv
+  artifacts/01_06_event_density_by_year.csv
+  artifacts/01_06_event_density_by_tournament.csv
+  artifacts/01_07_playerstats_sampling_check.csv
+  artifacts/01_08_game_settings_audit.md
+  artifacts/01_08_field_completeness_summary.csv
+  artifacts/01_08_error_flags_audit.csv
   02_nickname_toon_mapping.csv
   02_multi_toon_cases.csv
   02_ambiguous_nicknames.md

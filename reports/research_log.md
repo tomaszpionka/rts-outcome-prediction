@@ -17,12 +17,12 @@ Reverse chronological entries.
 
 **Category:** A (science)
 **Dataset:** sc2egset
-**Artifacts produced:** `sandbox/sc2/sc2egset/01_08_game_settings_audit.ipynb`, `sandbox/sc2/sc2egset/01_08_game_settings_audit.py`, `src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv` (read; unchanged), `src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md` (original Pattern B report; superseded by notebook)
+**Artifacts produced:** `sandbox/sc2/sc2egset/01_08_game_settings_audit.ipynb`, `sandbox/sc2/sc2egset/01_08_game_settings_audit.py`, `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv` (read; unchanged), `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md` (original Pattern B report; superseded by notebook)
 
 ### What
 
 Re-ran the Step 1.8 game settings and replay field completeness audit in the new
-notebook sandbox. The original Step 1.8 report (`src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md`,
+notebook sandbox. The original Step 1.8 report (`src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md`,
 2026-04-07) was a Pattern B markdown-only artifact containing embedded SQL but no
 backing function in `exploration.py`. The notebook (`sandbox/sc2/sc2egset/01_08_game_settings_audit.ipynb`)
 ports all SQL from the original report into executable cells, cross-checks the
@@ -74,7 +74,7 @@ FROM raw GROUP BY 1, 2, 3, 4 ORDER BY 5 DESC;
 ```
 
 The error flags sub-step (C) loads the archived CSV
-(`src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv`) rather than
+(`src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv`) rather than
 re-running the original ZIP-archive scan (that scan required direct filesystem
 access to 70 ZIP archives and produced a zero-row CSV; the result is confirmed
 by reading the artifact). All other sub-steps execute SQL directly against the

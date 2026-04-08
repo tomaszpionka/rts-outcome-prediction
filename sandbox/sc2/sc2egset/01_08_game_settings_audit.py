@@ -20,7 +20,7 @@
 # | Dataset | sc2egset |
 # | Game | sc2 |
 # | Date | 2026-04-08 |
-# | Report artifacts | `src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md`, `src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv` |
+# | Report artifacts | `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md`, `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv` |
 # | Scientific question | Are game settings (speed, handicap, mode flags, version) consistent and valid across all 22,390 tournament replays, and do any require cleaning rules in Phase 6? |
 # | ROADMAP reference | `src/rts_predict/sc2/reports/sc2egset/ROADMAP.md` Step 1.8 |
 
@@ -132,7 +132,7 @@ df_b1
 # %%
 # Load and display the archived error flags audit CSV
 reports_dir = get_reports_dir("sc2", "sc2egset")
-error_flags_csv = reports_dir / "01_08_error_flags_audit.csv"
+error_flags_csv = reports_dir / "artifacts" / "01_08_error_flags_audit.csv"
 df_c = pd.read_csv(error_flags_csv)
 print(f"Rows in error flags CSV: {len(df_c)}")
 df_c
@@ -361,8 +361,8 @@ df_h1
 # - The `maxPlayers` field reflects map slot count, not player count.
 #
 # ### Artifacts produced
-# - `src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md` — original Pattern B report (superseded; see SUPERSEDED.md)
-# - `src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv` — error flags scan result (header-only = zero errors)
+# - `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md` — original Pattern B report (superseded; see SUPERSEDED.md)
+# - `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv` — error flags scan result (header-only = zero errors)
 #
 # ### Follow-ups
 # - Phase 2: Player identity resolution will naturally exclude phantom slots (empty nickname filter).

@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pyarrow.parquet as pq
 
-from rts_predict.sc2.config import DATASET_REPORTS_DIR, RANDOM_SEED
+from rts_predict.sc2.config import DATASET_ARTIFACTS_DIR, RANDOM_SEED
 
 matplotlib.use("Agg")
 
@@ -648,7 +648,7 @@ def run_corpus_summary(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.1 — Overall corpus counts and structural validation."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     result: dict = {}
@@ -824,7 +824,7 @@ def run_parse_quality_by_tournament(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.2 — Per-tournament parse quality table."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     df = con.execute(_PARSE_QUALITY_BY_TOURNAMENT_QUERY).df()
@@ -874,7 +874,7 @@ def run_duration_distribution(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.3 — Game duration distribution."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     percentiles = con.execute(_DURATION_PERCENTILES_QUERY).df()
@@ -914,7 +914,7 @@ def run_apm_mmr_audit(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.4 — APM and MMR audit."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     apm_by_year = con.execute(_APM_BY_YEAR_QUERY).df()
@@ -984,7 +984,7 @@ def run_patch_landscape(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.5 — Game version and patch landscape."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     df = con.execute(_PATCH_LANDSCAPE_QUERY).df()
@@ -1001,7 +1001,7 @@ def run_event_type_inventory(
     con: duckdb.DuckDBPyConnection, output_dir: Path | None = None
 ) -> dict:
     """Step 1.6 — Tracker event type inventory (stratified)."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     # 1.6A — Corpus-wide
@@ -1046,7 +1046,7 @@ def run_playerstats_sampling_check(
     games_per_year: int = 10,
 ) -> dict:
     """Step 1.7 — PlayerStats sampling regularity check."""
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     # Get ranked games per year
@@ -1132,12 +1132,12 @@ def run_tpdm_field_inventory(
 
     Args:
         con: Open DuckDB connection with a ``raw`` table present.
-        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+        output_dir: Directory for artifact CSV; defaults to DATASET_ARTIFACTS_DIR.
 
     Returns:
         Dict with keys ``artifact_path``, ``row_count``, and ``fields``.
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     df = con.execute(_TPDM_FIELD_INVENTORY_QUERY).df()
@@ -1160,14 +1160,14 @@ def run_tpdm_key_set_constancy(
 
     Args:
         con: Open DuckDB connection with a ``raw`` table present.
-        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+        output_dir: Directory for artifact CSV; defaults to DATASET_ARTIFACTS_DIR.
 
     Returns:
         Dict with keys ``artifact_path``, ``row_count``, ``total_slots``,
         ``dominant_variant_slots``, ``dominant_coverage_pct``, and
         ``gate_pass`` (True when dominant variant covers >99% of slots).
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     df = con.execute(_TPDM_KEY_SET_CONSTANCY_QUERY).df()
@@ -1214,13 +1214,13 @@ def run_toplevel_field_inventory(
 
     Args:
         con: Open DuckDB connection with a ``raw`` table present.
-        output_dir: Directory for artifact CSV; defaults to DATASET_REPORTS_DIR.
+        output_dir: Directory for artifact CSV; defaults to DATASET_ARTIFACTS_DIR.
 
     Returns:
         Dict with keys ``artifact_path``, ``row_count``, and ``by_column``
         mapping each source column to its list of keys.
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     rows: list[dict[str, str]] = []
@@ -1441,13 +1441,13 @@ def run_tracker_event_data_inventory(
 
     Args:
         con: Open DuckDB connection with tracker_events_raw present.
-        output_dir: Report directory; defaults to DATASET_REPORTS_DIR.
+        output_dir: Report directory; defaults to DATASET_ARTIFACTS_DIR.
         sample_size: Rows to SAMPLE for the key inventory query.
 
     Returns:
         Dict with artifact paths, constancy results, and gate_pass flag.
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     # ── 1.9D-i: per-event-type key inventory ────────────────────────────────
@@ -1543,13 +1543,13 @@ def run_game_event_data_inventory(
 
     Args:
         con: Open DuckDB connection with game_events_raw present.
-        output_dir: Report directory; defaults to DATASET_REPORTS_DIR.
+        output_dir: Report directory; defaults to DATASET_ARTIFACTS_DIR.
         sample_size: Rows to SAMPLE for the key inventory query.
 
     Returns:
         Dict with artifact paths, constancy results, and gate_pass flag.
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     # ── 1.9E-i: per-event-type key inventory ────────────────────────────────
@@ -1847,14 +1847,14 @@ def run_parquet_duckdb_reconciliation(
     the live DuckDB schema.
 
     Args:
-        output_dir: Report directory; defaults to DATASET_REPORTS_DIR.
+        output_dir: Report directory; defaults to DATASET_ARTIFACTS_DIR.
 
     Returns:
         Dict with per-table reconciliation results and overall gate_pass.
     """
     from rts_predict.sc2.config import DB_FILE, IN_GAME_PARQUET_DIR
 
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
     tracker_result = verify_parquet_duckdb_schema_consistency(
@@ -1956,14 +1956,14 @@ def run_event_schema_document(
     document via compile_event_schema_document, and asserts coverage.
 
     Args:
-        output_dir: Report directory; defaults to DATASET_REPORTS_DIR.
+        output_dir: Report directory; defaults to DATASET_ARTIFACTS_DIR.
         tracker_sample_size: Unused; for signature symmetry with run_* callers.
         game_sample_size: Unused; for signature symmetry with run_* callers.
 
     Returns:
         Dict with artifact path and gate_pass bool.
     """
-    out = output_dir or DATASET_REPORTS_DIR
+    out = output_dir or DATASET_ARTIFACTS_DIR
 
     tracker_inventory = pd.read_csv(out / "01_09D_tracker_event_data_field_inventory.csv")
     game_inventory = pd.read_csv(out / "01_09E_game_event_data_field_inventory.csv")
