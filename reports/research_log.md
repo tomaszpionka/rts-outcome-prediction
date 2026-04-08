@@ -13,6 +13,40 @@ Reverse chronological entries.
 
 ---
 
+## 2026-04-09 — [STAGE 3A] Phase 0/1 artifact inventory and archive
+
+**Category:** C (chore)
+**Branch:** `chore/phase1-sc2-archive-pre-reset`
+**Dataset:** sc2egset
+
+### What
+
+Inventoried and archived all 36 numbered Phase 0 and Phase 1 artifacts that
+existed under `src/rts_predict/sc2/reports/sc2egset/artifacts/` before the
+Stage 3b notebook reset. Files were moved via `git mv` to
+`src/rts_predict/sc2/reports/sc2egset/_archive_2026-04_pre_notebook_reset/`.
+
+### Why
+
+The Stage 1 rebuild (Spec 1/2) replaced `map_translation` with
+`raw_map_alias_files` and removed ML view construction from `init_database`.
+Any artifact produced before that rebuild references a schema or assumptions
+that no longer apply. Tomasz's decision: redo all Phase 1 work with notebooks
+rather than attempting per-artifact salvage.
+
+### Artifacts
+
+- Archive directory: `src/rts_predict/sc2/reports/sc2egset/_archive_2026-04_pre_notebook_reset/`
+- Inventory: `_archive_2026-04_pre_notebook_reset/01_00_phase1_audit_inventory.csv` (36 rows)
+- Summary: `_archive_2026-04_pre_notebook_reset/_README.md`
+- 36 artifacts archived; 0 contained references to deleted symbols in their
+  text content (the only file referencing those symbols was
+  `00_99_post_rebuild_verification.md`, which documents the rebuild and is excluded)
+- Not archived: `00_99_post_rebuild_verification.md`, `INVARIANTS.md`,
+  `ROADMAP.md`, `SUPERSEDED.md`, `archive/ARCHIVE_SUMMARY.md`
+
+---
+
 ## 2026-04-08 — [STAGE 2] Schema export utility + raw_map_alias_files PK
 
 **Category:** C (chore) / infrastructure
