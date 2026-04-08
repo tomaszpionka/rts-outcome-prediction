@@ -1,6 +1,6 @@
 table: raw_map_alias_files
-database: /Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/sc2/data/sc2egset/db/db.duckdb
-generated_at: '2026-04-08T21:38:27Z'
+database: src/rts_predict/sc2/data/sc2egset/db/db.duckdb
+generated_at: '2026-04-08T22:47:20Z'
 row_count: 70
 columns:
 - name: tournament_dir
@@ -29,12 +29,12 @@ columns:
   comment: Size of the mapping JSON file in bytes at ingestion time. Advisory — useful
     for spotting truncated or empty files.
 - name: raw_json
-  type: VARCHAR
+  type: JSON
   nullable: false
   primary_key: false
-  comment: Full text of the map_foreign_to_english_mapping.json file, stored verbatim
-    as a VARCHAR. Contains a JSON object mapping Korean/foreign map names to English
-    canonical names. Parse downstream via DuckDB json_extract / ->> operators.
+  comment: Full content of the map_foreign_to_english_mapping.json file, stored verbatim
+    as a JSON object mapping Korean/foreign map names to English
+    canonical names. Used as the source of truth for map name normalization in feature computation.
 - name: ingested_at
   type: TIMESTAMP
   nullable: false

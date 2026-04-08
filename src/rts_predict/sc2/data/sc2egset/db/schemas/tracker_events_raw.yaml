@@ -1,6 +1,6 @@
 table: tracker_events_raw
-database: /Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/sc2/data/sc2egset/db/db.duckdb
-generated_at: '2026-04-08T21:38:27Z'
+database: src/rts_predict/sc2/data/sc2egset/db/db.duckdb
+generated_at: '2026-04-08T22:47:20Z'
 row_count: 62003411
 columns:
 - name: match_id
