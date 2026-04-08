@@ -19,6 +19,19 @@ merged to `master`.
 
 ### Removed
 
+## [0.22.2] — 2026-04-08 (PR #N: chore/test-mirror-migration)
+
+### Added
+- `scripts/check_mirror_drift.py` — guardrail script enforcing `src/` ↔ `tests/` mirror
+- `tests/infrastructure/test_mirror_drift.py` — tests for the drift checker
+- `branch = true` in `[tool.coverage.run]` for branch coverage
+- `diff-cover` dev dependency for PR diff-coverage checks
+
+### Changed
+- Test layout: migrated from co-located `src/rts_predict/**/tests/` to mirrored `tests/rts_predict/` tree
+- `pyproject.toml`: `testpaths` now `["tests"]` only; added `--import-mode=importlib`
+- All agent and documentation references updated to new test layout
+
 ## [0.22.1] — 2026-04-08 (PR #58: chore/notebook-sandbox)
 
 ### Added
