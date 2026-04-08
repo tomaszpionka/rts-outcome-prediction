@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from rts_predict.sc2.config import DATA_DIR
+
 SYNTHETIC_REPLAY_IDS = [
     "aabbccdd11223344556677889900aa00",
     "aabbccdd11223344556677889900aa01",
@@ -19,7 +21,7 @@ SYNTHETIC_REPLAY_IDS = [
 
 # Sample replay file shipped with the repository
 SAMPLE_REPLAY_PATH = (
-    Path(__file__).resolve().parent.parent / "samples" / "raw"
+    DATA_DIR / "samples" / "raw"
     / "0e0b1a550447f0b0a616e48224b31bd9.SC2Replay.json"
 )
 
