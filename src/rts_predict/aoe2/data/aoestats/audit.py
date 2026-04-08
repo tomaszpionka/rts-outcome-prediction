@@ -240,7 +240,7 @@ def _write_schema_report(
     for col in union_schema:
         md_lines.append(f"| {col['column_name']} | {col['column_type']} |")
 
-    (reports_dir / report_name).write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / report_name).write_text("\n".join(md_lines))
 
 
 # ── Step 0.1 ─────────────────────────────────────────────────────────────────
@@ -334,8 +334,8 @@ def run_source_audit(raw_dir: Path, manifest_path: Path, reports_dir: Path) -> d
         "passed": len(unexpected_failures) == 0 and len(size_mismatches) == 0,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
-    json_path = reports_dir / "00_01_source_audit.json"
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    json_path = reports_dir / "artifacts" / "00_01_source_audit.json"
     json_path.write_text(json.dumps(result, indent=2))
 
     n_unexp = len(unexpected_failures)
@@ -400,7 +400,7 @@ def run_source_audit(raw_dir: Path, manifest_path: Path, reports_dir: Path) -> d
         f"- T_acquisition recorded: {'OK' if t_acquisition else 'FAIL'}",
     ]
 
-    (reports_dir / "00_01_source_audit.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_01_source_audit.md").write_text("\n".join(md_lines))
     logger.info(
         "Step 0.1 complete: %s (unexpected=%d, known=%d)",
         gate_status,
@@ -431,7 +431,7 @@ def profile_match_schema(raw_dir: Path, reports_dir: Path) -> dict:
         _profile_parquet_dir(matches_dir, "*_matches.parquet")
     )
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     _write_schema_report(
         reports_dir=reports_dir,
         report_name="00_02_match_schema_profile.md",
@@ -476,7 +476,7 @@ def profile_player_schema(raw_dir: Path, reports_dir: Path) -> dict:
         _profile_parquet_dir(players_dir, "*_players.parquet")
     )
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     _write_schema_report(
         reports_dir=reports_dir,
         report_name="00_03_player_schema_profile.md",
@@ -601,7 +601,7 @@ def run_smoke_test(raw_dir: Path, reports_dir: Path) -> dict:
         "smoke_player_b": player_b.name,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     gate_status = "PASS" if passed else "FAIL"
     sm_fn = filename_cols.get("smoke_matches", False)
     sp_fn = filename_cols.get("smoke_players", False)
@@ -641,7 +641,7 @@ def run_smoke_test(raw_dir: Path, reports_dir: Path) -> dict:
         for err in errors:
             md_lines.append(f"- {err}")
 
-    (reports_dir / "00_04_smoke_test.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_04_smoke_test.md").write_text("\n".join(md_lines))
     logger.info(
         "Step 0.4 complete: passed=%s, matches_files=%d, players_files=%d",
         passed,
@@ -678,7 +678,7 @@ def run_full_ingestion(
         "T_ingestion": t_ingestion_end,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     glob_matches = str(raw_dir / "matches" / "*_matches.parquet")
     glob_players = str(raw_dir / "players" / "*_players.parquet")
 
@@ -716,7 +716,7 @@ def run_full_ingestion(
     for table, cnt in counts.items():
         md_lines.append(f"| {table} | {cnt:,} |")
 
-    (reports_dir / "00_05_ingestion_log.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_05_ingestion_log.md").write_text("\n".join(md_lines))
     logger.info("Step 0.5 complete: counts=%s, T_ingestion=%s", counts, t_ingestion_end)
     return result
 
@@ -807,7 +807,7 @@ def run_rowcount_reconciliation(
         "notes": notes,
     }
 
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
     gate_status = "PASS" if passed else "FAIL"
 
     md_lines = [
@@ -880,7 +880,7 @@ def run_rowcount_reconciliation(
             f"Max rows: {players_dist[-1][1]}",
         ]
 
-    (reports_dir / "00_06_rowcount_reconciliation.md").write_text("\n".join(md_lines))
+    (reports_dir / "artifacts" / "00_06_rowcount_reconciliation.md").write_text("\n".join(md_lines))
     logger.info(
         "Step 0.6 complete: file_count_ok=%s, strength=%s",
         file_count_ok,
@@ -904,7 +904,7 @@ def write_phase0_summary(
         ingestion_result: Result dict from run_full_ingestion() (step 0.5).
         audit_results: Combined results dict keyed by step name.
     """
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
 
     source_audit = audit_results.get("0.1", {})
     match_profile = audit_results.get("0.2", {})
@@ -1043,7 +1043,7 @@ def write_phase0_summary(
         "- `INVARIANTS.md` — binding invariants for downstream phases",
     ]
 
-    (reports_dir / "00_07_phase0_summary.md").write_text("\n".join(summary_lines))
+    (reports_dir / "artifacts" / "00_07_phase0_summary.md").write_text("\n".join(summary_lines))
     logger.info("Step 0.7 complete: INVARIANTS.md and 00_07_phase0_summary.md written")
 
 

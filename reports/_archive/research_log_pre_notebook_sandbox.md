@@ -203,9 +203,9 @@ Plus one level deeper for nested object-valued keys (e.g. `initData.gameDescript
   feature extraction (Phase 7)
 
 **Artifacts:**
-- `src/rts_predict/sc2/reports/sc2egset/01_09_tpdm_field_inventory.csv` (20 rows)
-- `src/rts_predict/sc2/reports/sc2egset/01_09_tpdm_key_set_constancy.csv` (1 row)
-- `src/rts_predict/sc2/reports/sc2egset/01_09_toplevel_field_inventory.csv` (18 rows)
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_09_tpdm_field_inventory.csv` (20 rows)
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_09_tpdm_key_set_constancy.csv` (1 row)
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_09_toplevel_field_inventory.csv` (18 rows)
 
 **Gate condition:** PASS — key-set is perfectly constant (100% of slots).
 
@@ -269,8 +269,8 @@ flags scanned directly from 70 ZIP archives (fields not in DuckDB `raw` table).
 - Zero mismatches between `header.version` and `metadata.gameVersion`
 
 **Artifacts produced:**
-- `src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md`
-- `src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv` (header-only)
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md`
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv` (header-only)
 
 **Verification:** Both artifacts present and non-empty (CSV has header row).
 Gate condition met: `01_08_game_settings_audit.md` and `01_08_error_flags_audit.csv` exist.
@@ -636,10 +636,10 @@ stratification.
 
 **Category:** A (science)
 **Dataset:** sc2egset
-**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/01_06_event_type_inventory.csv`,
-`src/rts_predict/sc2/reports/sc2egset/01_06_event_count_distribution.csv`,
-`src/rts_predict/sc2/reports/sc2egset/01_06_event_density_by_year.csv`,
-`src/rts_predict/sc2/reports/sc2egset/01_06_event_density_by_tournament.csv`
+**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/artifacts/01_06_event_type_inventory.csv`,
+`src/rts_predict/sc2/reports/sc2egset/artifacts/01_06_event_count_distribution.csv`,
+`src/rts_predict/sc2/reports/sc2egset/artifacts/01_06_event_density_by_year.csv`,
+`src/rts_predict/sc2/reports/sc2egset/artifacts/01_06_event_density_by_tournament.csv`
 
 #### What
 Ran `run_event_type_inventory()` (`src/rts_predict/sc2/data/exploration.py`) against
@@ -752,7 +752,7 @@ variation — features derived from these types would need null handling.
 
 **Category:** A (science)
 **Dataset:** sc2egset
-**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/01_07_playerstats_sampling_check.csv`
+**Artifacts produced:** `src/rts_predict/sc2/reports/sc2egset/artifacts/01_07_playerstats_sampling_check.csv`
 
 #### What
 Ran `run_playerstats_sampling_check()` (`src/rts_predict/sc2/data/exploration.py`)

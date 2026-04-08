@@ -439,29 +439,29 @@ class TestPlayerStatsSampling:
 
 class TestOrchestrator:
     def test_orchestrator_all_steps(self, exploration_con, tmp_path):
-        # Patch DATASET_REPORTS_DIR for test isolation
+        # Patch DATASET_ARTIFACTS_DIR for test isolation
         import rts_predict.sc2.data.exploration as mod
         from rts_predict.sc2.data.exploration import run_phase_1_exploration
-        original = mod.DATASET_REPORTS_DIR
-        mod.DATASET_REPORTS_DIR = tmp_path
+        original = mod.DATASET_ARTIFACTS_DIR
+        mod.DATASET_ARTIFACTS_DIR = tmp_path
         try:
             results = run_phase_1_exploration(exploration_con)
             assert set(results.keys()) == {
                 "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.9"
             }
         finally:
-            mod.DATASET_REPORTS_DIR = original
+            mod.DATASET_ARTIFACTS_DIR = original
 
     def test_orchestrator_selective(self, exploration_con, tmp_path):
         import rts_predict.sc2.data.exploration as mod
         from rts_predict.sc2.data.exploration import run_phase_1_exploration
-        original = mod.DATASET_REPORTS_DIR
-        mod.DATASET_REPORTS_DIR = tmp_path
+        original = mod.DATASET_ARTIFACTS_DIR
+        mod.DATASET_ARTIFACTS_DIR = tmp_path
         try:
             results = run_phase_1_exploration(exploration_con, steps=["1.1", "1.3"])
             assert set(results.keys()) == {"1.1", "1.3"}
         finally:
-            mod.DATASET_REPORTS_DIR = original
+            mod.DATASET_ARTIFACTS_DIR = original
 
 
 # ── Edge-case coverage ───────────────────────────────────────────────────────
@@ -724,8 +724,8 @@ class TestStep19Orchestration:
         import rts_predict.sc2.data.exploration as mod
         from rts_predict.sc2.data.exploration import run_phase_1_exploration
 
-        original = mod.DATASET_REPORTS_DIR
-        mod.DATASET_REPORTS_DIR = tmp_path
+        original = mod.DATASET_ARTIFACTS_DIR
+        mod.DATASET_ARTIFACTS_DIR = tmp_path
         try:
             results = run_phase_1_exploration(exploration_con, steps=["1.9"])
             assert "1.9" in results
@@ -733,31 +733,31 @@ class TestStep19Orchestration:
             assert "1.9B" in results["1.9"]
             assert "1.9C" in results["1.9"]
         finally:
-            mod.DATASET_REPORTS_DIR = original
+            mod.DATASET_ARTIFACTS_DIR = original
 
     def test_orchestrator_runs_substep_1_9a(self, exploration_con, tmp_path):
         import rts_predict.sc2.data.exploration as mod
         from rts_predict.sc2.data.exploration import run_phase_1_exploration
 
-        original = mod.DATASET_REPORTS_DIR
-        mod.DATASET_REPORTS_DIR = tmp_path
+        original = mod.DATASET_ARTIFACTS_DIR
+        mod.DATASET_ARTIFACTS_DIR = tmp_path
         try:
             results = run_phase_1_exploration(exploration_con, steps=["1.9A"])
             assert set(results.keys()) == {"1.9A"}
             assert results["1.9A"]["row_count"] > 0
         finally:
-            mod.DATASET_REPORTS_DIR = original
+            mod.DATASET_ARTIFACTS_DIR = original
 
     def test_three_csvs_created_by_step_1_9(self, exploration_con, tmp_path):
         import rts_predict.sc2.data.exploration as mod
         from rts_predict.sc2.data.exploration import run_phase_1_exploration
 
-        original = mod.DATASET_REPORTS_DIR
-        mod.DATASET_REPORTS_DIR = tmp_path
+        original = mod.DATASET_ARTIFACTS_DIR
+        mod.DATASET_ARTIFACTS_DIR = tmp_path
         try:
             run_phase_1_exploration(exploration_con, steps=["1.9"])
         finally:
-            mod.DATASET_REPORTS_DIR = original
+            mod.DATASET_ARTIFACTS_DIR = original
 
         assert (tmp_path / "01_09_tpdm_field_inventory.csv").exists()
         assert (tmp_path / "01_09_tpdm_key_set_constancy.csv").exists()

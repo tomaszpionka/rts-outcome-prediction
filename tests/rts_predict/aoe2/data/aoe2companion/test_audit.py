@@ -32,8 +32,8 @@ def test_source_audit_passes_with_valid_files(
     result = run_source_audit(raw_dir, manifest_file, reports_dir)
     assert result["passed"] is True
     assert result["T_acquisition"] is not None
-    assert (reports_dir / "00_01_source_audit.json").exists()
-    assert (reports_dir / "00_01_source_audit.md").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.json").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.md").exists()
 
 
 def test_source_audit_detects_missing_files(
@@ -142,7 +142,7 @@ def test_profile_match_schema_produces_report(
     """profile_match_schema must write a Markdown report."""
     reports_dir = tmp_path / "reports"
     result = profile_match_schema(raw_dir, reports_dir)
-    assert (reports_dir / "00_02_match_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_02_match_schema_profile.md").exists()
     assert result["stability"] in ("STABLE", "DRIFTED")
     assert len(result["samples"]) >= 1
     assert len(result["union_schema"]) > 0
@@ -152,7 +152,7 @@ def test_profile_match_schema_includes_sql(raw_dir: Path, tmp_path: Path) -> Non
     """The match schema report must contain literal SQL."""
     reports_dir = tmp_path / "reports"
     profile_match_schema(raw_dir, reports_dir)
-    md = (reports_dir / "00_02_match_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_02_match_schema_profile.md").read_text()
     assert "DESCRIBE" in md
     assert "read_parquet" in md
 
@@ -167,7 +167,7 @@ def test_profile_rating_schema_produces_decision_artifact(
     """Step 0.3 must write 00_03_dtype_decision.json and return a DtypeDecision."""
     reports_dir = tmp_path / "reports"
     result, decision = profile_rating_schema(raw_dir, reports_dir)
-    assert (reports_dir / "00_03_dtype_decision.json").exists()
+    assert (reports_dir / "artifacts" / "00_03_dtype_decision.json").exists()
     assert decision.strategy in ("auto_detect", "explicit")
     assert decision.rationale
 
@@ -252,7 +252,7 @@ def test_profile_singleton_schemas_produces_report(
 ) -> None:
     reports_dir = tmp_path / "reports"
     result = profile_singleton_schemas(raw_dir, reports_dir)
-    assert (reports_dir / "00_04_singleton_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_04_singleton_schema_profile.md").exists()
     assert result["leaderboard_rows"] > 0
     assert result["profiles_rows"] > 0
     assert result["T_snapshot_leaderboard"] is not None
@@ -262,7 +262,7 @@ def test_profile_singleton_schemas_produces_report(
 def test_profile_singleton_schemas_includes_sql(raw_dir: Path, tmp_path: Path) -> None:
     reports_dir = tmp_path / "reports"
     profile_singleton_schemas(raw_dir, reports_dir)
-    md = (reports_dir / "00_04_singleton_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_04_singleton_schema_profile.md").read_text()
     assert "DESCRIBE" in md
     assert "read_parquet" in md
 
@@ -281,14 +281,14 @@ def test_smoke_test_passes_with_valid_raw_dir(
     assert result["passed"] is True
     assert result["ratings_files"] == 2
     assert all(result["filename_cols"].values())
-    assert (reports_dir / "00_05_smoke_test.md").exists()
+    assert (reports_dir / "artifacts" / "00_05_smoke_test.md").exists()
 
 
 def test_smoke_test_report_includes_sql(raw_dir: Path, tmp_path: Path) -> None:
     decision = DtypeDecision(strategy="auto_detect", rationale="test")
     reports_dir = tmp_path / "reports"
     run_smoke_test(raw_dir, decision, reports_dir)
-    md = (reports_dir / "00_05_smoke_test.md").read_text()
+    md = (reports_dir / "artifacts" / "00_05_smoke_test.md").read_text()
     assert "CREATE TABLE smoke_ratings" in md
     assert "union_by_name" in md
 
@@ -311,7 +311,7 @@ def test_run_full_ingestion_creates_all_tables(
         "raw_profiles",
     }
     assert result["T_ingestion"] is not None
-    assert (reports_dir / "00_06_ingestion_log.md").exists()
+    assert (reports_dir / "artifacts" / "00_06_ingestion_log.md").exists()
 
 
 # ── Step 0.7: run_rowcount_reconciliation ────────────────────────────────────
@@ -333,7 +333,7 @@ def test_reconciliation_strict_passes(
     # Reconciliation uses expected counts {2073,2072,...} so file_count_ok will
     # be False (synthetic has 2 match files, not 2073) — but structure tests pass
     assert result["strength"] in ("STRICT", "DEGRADED")
-    assert (reports_dir / "00_07_rowcount_reconciliation.md").exists()
+    assert (reports_dir / "artifacts" / "00_07_rowcount_reconciliation.md").exists()
 
 
 def test_reconciliation_strict_fails_on_mismatch(
@@ -361,7 +361,7 @@ def test_reconciliation_report_includes_sql(
     load_all_raw_tables(db_con, raw_dir, decision=decision)
     reports_dir = tmp_path / "reports"
     run_rowcount_reconciliation(db_con, manifest_file, reports_dir)
-    md = (reports_dir / "00_07_rowcount_reconciliation.md").read_text()
+    md = (reports_dir / "artifacts" / "00_07_rowcount_reconciliation.md").read_text()
     assert "SELECT count(DISTINCT filename)" in md
     assert "GROUP BY filename" in md
 
@@ -413,7 +413,7 @@ def test_write_phase0_summary_produces_both_files(tmp_path: Path) -> None:
         },
     }
     write_phase0_summary(reports_dir, ingestion_result, audit_results)
-    assert (reports_dir / "00_08_phase0_summary.md").exists()
+    assert (reports_dir / "artifacts" / "00_08_phase0_summary.md").exists()
     assert (reports_dir / "INVARIANTS.md").exists()
     invariants = (reports_dir / "INVARIANTS.md").read_text()
     assert "I1." in invariants
@@ -441,8 +441,8 @@ def test_run_phase_0_audit_selective_steps(
     )
     assert "0.1" in results
     assert "0.2" not in results
-    assert (reports_dir / "00_01_source_audit.json").exists()
-    assert not (reports_dir / "00_02_match_schema_profile.md").exists()
+    assert (reports_dir / "artifacts" / "00_01_source_audit.json").exists()
+    assert not (reports_dir / "artifacts" / "00_02_match_schema_profile.md").exists()
 
 
 def test_run_phase_0_audit_idempotent(
@@ -501,7 +501,7 @@ def test_source_audit_oversized_file_passes_gate(tmp_path: Path) -> None:
 
     assert result["passed"] is True
     assert len(result["oversized_mismatches"]) == 1
-    md = (reports_dir / "00_01_source_audit.md").read_text()
+    md = (reports_dir / "artifacts" / "00_01_source_audit.md").read_text()
     assert "Oversized" in md
 
 
@@ -555,7 +555,7 @@ def test_profile_match_schema_drifted_columns(tmp_path: Path) -> None:
     result = profile_match_schema(raw, reports_dir)
 
     assert result["stability"] == "DRIFTED"
-    md = (reports_dir / "00_02_match_schema_profile.md").read_text()
+    md = (reports_dir / "artifacts" / "00_02_match_schema_profile.md").read_text()
     assert "Schema drift" in md or "extra_col" in md
 
 
@@ -720,7 +720,7 @@ def test_smoke_test_explicit_dtype_path(raw_dir: Path, tmp_path: Path) -> None:
     )
     reports_dir = tmp_path / "reports"
     result = run_smoke_test(raw_dir, decision, reports_dir)
-    md = (reports_dir / "00_05_smoke_test.md").read_text()
+    md = (reports_dir / "artifacts" / "00_05_smoke_test.md").read_text()
     assert "dtypes" in md or "explicit" in md.lower()
     # Smoke test may or may not pass depending on fixture; just assert no crash
     assert isinstance(result["passed"], bool)
@@ -766,7 +766,7 @@ def test_smoke_test_sql_error_captured(tmp_path: Path) -> None:
 
     assert result["passed"] is False
     assert len(result["errors"]) > 0
-    md = (reports_dir / "00_05_smoke_test.md").read_text()
+    md = (reports_dir / "artifacts" / "00_05_smoke_test.md").read_text()
     assert "## Errors" in md
 
 
@@ -800,7 +800,7 @@ def test_run_full_ingestion_explicit_dtype(
         "raw_leaderboard",
         "raw_profiles",
     }
-    md = (reports_dir / "00_06_ingestion_log.md").read_text()
+    md = (reports_dir / "artifacts" / "00_06_ingestion_log.md").read_text()
     assert "dtypes" in md
 
 
@@ -922,13 +922,14 @@ def test_run_phase_0_audit_later_steps(
     """Orchestrator runs steps 0.5-0.8, loading decision from disk (lines 1542, 1553-1566)."""
     reports_dir = tmp_path / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
+    (reports_dir / "artifacts").mkdir(parents=True, exist_ok=True)
 
     # Pre-write a dtype decision so line 1542 (DtypeDecision.from_json) is exercised
     decision = DtypeDecision(
         strategy="auto_detect",
         rationale="pre-written for test",
     )
-    decision.to_json(reports_dir / "00_03_dtype_decision.json")
+    decision.to_json(reports_dir / "artifacts" / "00_03_dtype_decision.json")
 
     results = run_phase_0_audit(
         db_con,

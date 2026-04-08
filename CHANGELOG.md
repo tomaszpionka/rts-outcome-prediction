@@ -19,6 +19,13 @@ merged to `master`.
 
 ### Removed
 
+## [0.22.3] — 2026-04-08 (PR #60: chore/artifacts-subdir-migration)
+
+### Changed
+- All machine-generated step artifact files (`XX_XX_*` prefix, any extension) moved from `reports/<dataset>/` into `reports/<dataset>/artifacts/` subdirectories (54 files across sc2egset, aoe2companion, aoestats)
+- Added `DATASET_ARTIFACTS_DIR`, `AOE2COMPANION_ARTIFACTS_DIR`, `AOESTATS_ARTIFACTS_DIR` config constants; updated all writer functions in `audit.py` and `exploration.py` to use them
+- Updated 4 test files, ROADMAP.md, SUPERSEDED.md, INVARIANTS.md, ARCHITECTURE.md, research logs, and sandbox notebook to reference new artifact paths
+
 ## [0.22.2] — 2026-04-08 (PR #N: chore/test-mirror-migration)
 
 ### Added
@@ -64,8 +71,8 @@ merged to `master`.
 ## [0.21.0] — 2026-04-07 (PR #56: feat/sc2-phase1-step1.8)
 
 ### Added
-- `src/rts_predict/sc2/reports/sc2egset/01_08_game_settings_audit.md` — full game settings and replay field completeness audit for SC2EGSet (22,390 replays, 70 tournaments): game speed, handicap, error flags, game mode flags, random race, map/lobby metadata, and version consistency sub-steps with embedded SQL and findings
-- `src/rts_predict/sc2/reports/sc2egset/01_08_error_flags_audit.csv` — parse error flag scan results (zero errors found across all replays)
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_game_settings_audit.md` — full game settings and replay field completeness audit for SC2EGSet (22,390 replays, 70 tournaments): game speed, handicap, error flags, game mode flags, random race, map/lobby metadata, and version consistency sub-steps with embedded SQL and findings
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_08_error_flags_audit.csv` — parse error flag scan results (zero errors found across all replays)
 
 ### Changed
 - `src/rts_predict/sc2/reports/sc2egset/ROADMAP.md` — Step 1.8 marked complete, cleaning rules C-D1 and C-E1 added to Phase 6 backlog

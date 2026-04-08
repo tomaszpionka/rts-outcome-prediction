@@ -9,6 +9,7 @@ DATA_DIR: Path = GAME_DIR / "data"                              # src/rts_predic
 DATASET_DIR: Path = DATA_DIR / "sc2egset"                       # src/rts_predict/sc2/data/sc2egset/
 REPORTS_DIR: Path = GAME_DIR / "reports"
 DATASET_REPORTS_DIR: Path = REPORTS_DIR / "sc2egset"
+DATASET_ARTIFACTS_DIR: Path = DATASET_REPORTS_DIR / "artifacts"
 DB_FILE: Path = DATASET_DIR / "db" / "db.duckdb"
 
 # DuckDB configuration
