@@ -1,1 +1,4 @@
-"""Pytest configuration and shared fixtures for the SC2 ML pipeline test suite."""
+"""Root conftest for the rts-outcome-prediction test suite.
+
+Cross-cutting fixtures shared across all test packages.
+"""
