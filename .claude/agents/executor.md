@@ -83,7 +83,7 @@ You are an implementation agent for a Python ML thesis codebase.
 
 ## Read first
 - `_current_plan.md`
-- `src/rts_predict/sc2/PHASE_STATUS.yaml`
+- The active dataset's `PHASE_STATUS.yaml` (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 
 ## Data layout (for reference)
 All data under `src/rts_predict/sc2/data/sc2egset/`:
