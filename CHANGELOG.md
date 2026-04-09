@@ -19,6 +19,17 @@ merged to `master`.
 
 ### Removed
 
+## [1.1.0] — 2026-04-09 (PR #15: feat/phase01-discovery-library)
+
+### Added
+- `src/rts_predict/common/inventory.py`: `InventoryResult`, `SubdirSummary`, `FileEntry` dataclasses and `inventory_directory()` function for filesystem inventory
+- `src/rts_predict/common/json_utils.py`: `KeyProfile` dataclass and `discover_json_schema()` function for root-level JSON schema discovery across multiple files
+- `src/rts_predict/aoe2/config.py`: `AOESTATS_RAW_OVERVIEW_DIR` constant for overview file storage
+- `src/rts_predict/aoe2/data/aoestats/acquisition.py`: `download_overview()` function for idempotent overview JSON acquisition
+- `tests/rts_predict/common/test_inventory.py`: full test coverage for inventory module
+- `tests/rts_predict/common/test_json_utils.py`: full test coverage for json_utils module (new and existing functions)
+- `tests/rts_predict/aoe2/data/aoestats/test_acquisition.py`: tests for `download_overview()`
+
 ## [1.0.1] — 2026-04-09 (PR #NN: chore/roadmap-phase01-skeleton-reset)
 
 ### Changed
