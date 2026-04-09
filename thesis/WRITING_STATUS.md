@@ -1,6 +1,6 @@
 # Thesis Writing Status
 
-Last updated: 2026-04-09 (Phase 01 Steps 01_01–01_07 done; Step 01_08 pending)
+Last updated: 2026-04-09 (all phases not_started; Phase 01 Steps not yet defined)
 
 ---
 
@@ -41,7 +41,7 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 | Section | Status | Feeds from | Notes |
 |---------|--------|------------|-------|
 | §2.1 RTS game characteristics | `SKELETON` | — | Literature |
-| §2.2 StarCraft II | `SKELETON` | Phase 01 (Data Exploration — timing, mechanics) | Game loop derivation sourced; Phase 01 confirmed 22.4 loops/sec consistent across all years |
+| §2.2 StarCraft II | `SKELETON` | Phase 01 (Data Exploration — timing, mechanics) | Game loop derivation available from literature; Phase 01 will re-derive from data. |
 | §2.3 Age of Empires II | `BLOCKED` | AoE2 roadmap | Future |
 | §2.4 ML methods for classification | `SKELETON` | — | Literature |
 | §2.5 Player skill rating systems | `SKELETON` | — | Literature; Glicko-2 refs ready |
@@ -64,7 +64,7 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 | §4.1.1 SC2EGSet description | `BLOCKED` | Phase 01 (Data Exploration) | Phase 01 Steps 01_01–01_07 done; awaiting Step 01_08 (game settings + field completeness audit) before draftable |
 | §4.1.2 AoE2 match data | `BLOCKED` | AoE2 roadmap | Future |
 | §4.1.3 Data asymmetry | `BLOCKED` | Both datasets | Future |
-| §4.2.1 Ingestion and validation | `DRAFTABLE` | Phase 01 (Data Exploration), Pipeline Section 01_01 | Phase 01 Section 01_01 complete |
+| §4.2.1 Ingestion and validation | `BLOCKED` | Phase 01 (Data Exploration), Pipeline Section 01_01 | Blocked until Phase 01 Pipeline Section 01_01 is complete under new scheme. |
 | §4.2.2 Player identity resolution | `BLOCKED` | Phase 01 (Data Exploration), Pipeline Sections 01_02–01_03 | |
 | §4.2.3 Cleaning rules | `BLOCKED` | Phase 01 (Data Exploration), Pipeline Section 01_04 | |
 | §4.3.1 Common pre-game features | `BLOCKED` | Phase 02 (Feature Engineering) | |
@@ -108,7 +108,7 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 
 | Section | Status | Feeds from | Notes |
 |---------|--------|------------|-------|
-| Appendix A — Infrastructure | `DRAFTABLE` | Phase 01 (Data Exploration), Pipeline Section 01_01 | Pipeline arch, schema |
+| Appendix A — Infrastructure | `BLOCKED` | Phase 01 (Data Exploration), Pipeline Section 01_01 | Blocked until Phase 01 produces pipeline architecture artifacts. |
 | Appendix B — Feature lists | `BLOCKED` | Phase 02 (Feature Engineering) | |
 | Appendix C — Hyperparameters | `BLOCKED` | Phase 04 (Model Training) | |
 | Appendix D — Additional results | `BLOCKED` | Phase 04 (Model Training) / Phase 05 (Evaluation & Analysis) | |

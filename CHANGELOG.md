@@ -19,6 +19,12 @@ merged to `master`.
 
 ### Removed
 
+## [1.0.1] — 2026-04-09 (PR #NN: chore/roadmap-phase01-skeleton-reset)
+
+### Changed
+- 3 dataset ROADMAPs: Phase 01 reset from detailed Steps to generic Pipeline Section skeleton; detailed versions archived with `_2026-04-09_detailed_phase01` suffix
+- `thesis/WRITING_STATUS.md`: 2 stale `DRAFTABLE` statuses reset to `BLOCKED`; Phase 01 progress claim removed from header; game loop derivation note corrected
+
 ## [1.0.0] — 2026-04-09 (PRs #71–#85: chore/phase-migration)
 
 Phase migration release. The project transitioned from an 11-phase scheme
