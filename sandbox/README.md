@@ -1,7 +1,8 @@
 # Sandbox
 
 This directory is a sandbox. Working documents live here. For the authoritative
-plan, see `_current_plan.md`.
+plan, see `_current_plan.md`. For the canonical Phase list, see `docs/PHASES.md`.
+For terminology, see `docs/TAXONOMY.md`.
 
 ## Purpose
 
@@ -15,25 +16,38 @@ them. See `_current_plan.md` sections A.1–A.3 for full rationale.
 ```
 sandbox/
   sc2/
-    sc2egset/       # SC2EGSet dataset notebooks, Phases 0–2
+    sc2egset/                         # SC2EGSet dataset notebooks
+      01_exploration/                 # Phase 01 — Data Exploration
+        01_acquisition/               # Pipeline Section 01_01
+          01_01_01_<slug>.py          # Step notebook (jupytext source)
+          01_01_01_<slug>.ipynb       # Step notebook (paired, carries outputs)
+        02_profiling/                 # Pipeline Section 01_02
+          ...
+      02_feature_engineering/         # Phase 02 (created when Phase 01 completes)
+        ...
   aoe2/
-    aoe2companion/  # Placeholder — populated when AoE2 Phase 1 begins
-    aoestats/       # Placeholder — populated when AoE2 Phase 1 begins
+    aoe2companion/                    # Placeholder — populated when Phase 01 begins
+    aoestats/                         # Placeholder — populated when Phase 01 begins
 ```
 
 ## Naming convention
 
+Notebooks follow the three-level numbering defined in `docs/TAXONOMY.md`:
+
 ```
-{PHASE:02d}_{STEP}_{descriptive_name}.ipynb
+{PHASE}_{PIPELINE_SECTION}_{STEP}_{descriptive_slug}.ipynb
 ```
+
+All numeric components are two-digit, zero-padded. The slug is descriptive
+and chosen per-Step.
 
 Examples:
-- `01_01_corpus_summary.ipynb` — Phase 1, Step 1.1
-- `01_08_game_settings_audit.ipynb` — Phase 1, Step 1.8
-- `01_90_ad_hoc_investigation.ipynb` — ad-hoc (no ROADMAP step); use 90+
+- `01_01_01_source_inventory.ipynb` — Phase 01, Pipeline Section 01_01 (Acquisition), Step 01
+- `01_02_03_duration_distribution.ipynb` — Phase 01, Pipeline Section 01_02 (Profiling), Step 03
+- `01_01_90_ad_hoc_investigation.ipynb` — ad-hoc (no ROADMAP step); use 90+
 
 Each `.ipynb` is paired with a `.py:percent` file (jupytext). Both files are
-committed. See `jupytext.toml` at the repo root.
+committed. See `sandbox/jupytext.toml` for pairing configuration.
 
 ## Hard rules
 
@@ -51,7 +65,7 @@ committed. See `jupytext.toml` at the repo root.
 
 ## Configuration pointers
 
-- `jupytext.toml` — pairing format and metadata filter (repo root)
+- `sandbox/jupytext.toml` — pairing format and metadata filter
 - `sandbox/notebook_config.toml` — cell line cap and execution timeout
 
 ## Report artifacts

@@ -19,6 +19,12 @@ merged to `master`.
 
 ### Removed
 
+## [0.29.7] — 2026-04-09 (PR #N: chore/sandbox-phase-refs)
+
+### Changed
+- `sandbox/README.md`: updated directory structure to show nested Phase/PipelineSection/Step layout per `docs/TAXONOMY.md`; updated naming convention from flat `{PHASE}_{STEP}` to three-level `{PHASE}_{SECTION}_{STEP}`; replaced old phase references ("Phases 0–2", "Phase 1", "Step 1.1", "Step 1.8") with new scheme; corrected jupytext.toml path to `sandbox/jupytext.toml`
+- `sandbox/notebook_config.toml`: removed stale `_current_plan.md B.9.16` and `Step 1.6` references
+
 ## [0.29.6] — 2026-04-09 (PR #76: chore/archive-aoestats-phase-migration)
 
 ### Changed
