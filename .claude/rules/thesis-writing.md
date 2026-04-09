@@ -69,9 +69,11 @@ citation checking, methodology alignment, and flag resolution.
 
 ## Phase-to-section mapping
 
-The authoritative phase vocabulary lives in docs/INDEX.md. Each ROADMAP.md's
-per-step 'Thesis mapping' field is the source of truth for which thesis section
-a given phase output feeds. Do not duplicate that mapping here.
+The canonical Phase list, numbering, and definitions live in docs/PHASES.md.
+docs/INDEX.md provides a convenience lookup from active Phase to methodology
+manual — it does not define Phases. Each ROADMAP.md's per-step 'Thesis mapping'
+field is the source of truth for which thesis section a given phase output
+feeds. Do not duplicate that mapping here.
 
 ## Formatting Reference
 
