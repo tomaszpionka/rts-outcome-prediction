@@ -41,10 +41,10 @@ review.
 3. `.claude/scientific-invariants.md` — the 10 universal invariants.
    Non-negotiable methodology rules.
 4. `docs/INDEX.md` — authoritative methodology source.
-5. `PHASE_STATUS.yaml` of the active game package — tells you which
-   dataset and phase the change belongs to. Resolve the active
-   ROADMAP.md path from this (sc2egset/ for Phases 0–2, reports/ for
-   Phases 3+).
+5. The active dataset's `PHASE_STATUS.yaml` (at
+   `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`) — tells
+   you which dataset and phase the change belongs to. Resolve the active
+   dataset's ROADMAP.md path from this.
 6. The active dataset's `ROADMAP.md` and, if it exists, its
    `INVARIANTS.md`.
 7. `reports/research_log.md` — recent entries, to check whether the
@@ -100,7 +100,7 @@ All data for a game package lives under `src/rts_predict/<game>/data/<dataset>/`
 - `tmp/` — DuckDB spill-to-disk. Never canonical.
 
 For SC2 the dataset is `sc2egset`. For AoE2 the dataset name is
-resolved from `PHASE_STATUS.yaml`.
+resolved from the dataset's `PHASE_STATUS.yaml`.
 
 ## Mandatory checks — code changes
 
@@ -150,7 +150,7 @@ resolved from `PHASE_STATUS.yaml`.
    and blanks).
 6. **DB access.** `get_notebook_db(...)` used, defaults to read-only.
    No raw `duckdb.connect(..., read_only=False)`.
-7. **Phase boundary.** Phase 1 notebooks must not import from
+7. **Phase boundary.** Phase 01 (Data Exploration) notebooks must not import from
    `features/`, `feature_*`, `models/`, `model_*`, or `processing`.
 8. **Conclusion structure.** Final markdown cell starts with
    `## Conclusion`, contains a findings table and (if applicable) a
@@ -309,6 +309,6 @@ HALT — required reading missing or scope unclear. Explain.
 - Before writing the verdict, re-read the diff once more. If you find
   yourself wanting to type "this looks good overall," delete that
   sentence and look harder.
-- For any temporal-leakage risk in Phase 7+ scientific code, escalate
+- For any temporal-leakage risk in modelling phases (Phase 03 and later) scientific code, escalate
   for second-pass review in Claude Chat — even Opus can miss subtle
   edge cases under time pressure.

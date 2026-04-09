@@ -50,7 +50,7 @@ Your job is to find problems, not to praise.
    All helpers must live in `src/rts_predict/`.
 4. **Cell size (AST-based):** Flag any cell exceeding `[cells] max_lines` from
    `sandbox/notebook_config.toml` (default 50).
-5. **Phase boundary check:** Imports in a Phase 1 notebook must not reference
+5. **Phase boundary check:** Imports in a Phase 01 (Data Exploration) notebook must not reference
    `features/`, `feature_`, `models/`, or `model_` modules. Flag `import processing`.
 6. **Research log entry:** A new entry in `reports/research_log.md` references
    the notebook path.
@@ -89,5 +89,5 @@ Your job is to find problems, not to praise.
 - Be specific: file names, line numbers, exact problems.
 - Do NOT say "looks good" without running all checks above.
 - If tests fail, report the exact failure output.
-- For scientific code (Phases 7+), flag for Pass 2 review in Claude Chat
+- For scientific code (modelling phases, Phase 03 and later — see docs/PHASES.md), flag for Pass 2 review in Claude Chat
   if temporal leakage risk is non-trivial — Sonnet may miss edge cases.

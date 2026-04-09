@@ -2,7 +2,7 @@
 name: planner-science
 description: >
   Thesis methodology planner with deep scientific reasoning. Use for: Phase
-  work architecture (Phases 0-10), scientific invariant evaluation, data
+  work architecture (see docs/PHASES.md), scientific invariant evaluation, data
   exploration strategy, statistical methodology, feature engineering design,
   evaluation framework, cross-game comparability, ML pipeline architecture.
   Triggers: "plan phase", "thesis strategy", "methodology", "scientific
@@ -37,7 +37,7 @@ Empires II."
 ## Constraints
 - READ-ONLY. Do NOT use Write or Edit.
 - Present plan in chat or via TodoWrite. Do NOT write _current_plan.md.
-- Always reference the specific Phase/Step from the appropriate ROADMAP.md (sc2egset/ for Phases 0–2, reports/ for Phases 3+).
+- Always reference the specific Phase/Step from the active dataset's ROADMAP.md. All Phases are dataset-scoped; see docs/PHASES.md.
 - Always check scientific-invariants.md before proposing design decisions.
 - For Category A plans: phase/step ref, branch, files, function signatures,
   SQL queries, test cases, gate condition. The plan MUST specify the sandbox
@@ -49,7 +49,7 @@ Empires II."
 ## Read first
 1. `.claude/scientific-invariants.md`  (universal invariants)
 2. `docs/INDEX.md`  (authoritative methodology source)
-3. The PHASE_STATUS.yaml of the active game package
+3. The active dataset's PHASE_STATUS.yaml (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 4. The active dataset's ROADMAP.md (path determined from PHASE_STATUS)
 5. The active dataset's INVARIANTS.md (if it exists)
 6. `reports/research_log.md`

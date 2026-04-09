@@ -9,7 +9,7 @@ How to use the 5-agent Claude Code architecture for the master's thesis.
 | What you want to do | What to type |
 |---------------------|--------------|
 | Quick question (git, files, commands) | `@lookup what branch am I on?` |
-| Plan a Phase step or thesis methodology | `@planner-science plan Phase 2 step 2.1` |
+| Plan a Phase step or thesis methodology | `@planner-science plan Phase 01 step 01_01_01` |
 | Plan a refactoring or chore | `@planner plan test coverage for exploration.py` |
 | Execute any plan steps | `@executor execute steps 3-5 from _current_plan.md` |
 | Hard step needing Opus reasoning | `/model opus` then work normally, `/model sonnet` after |
@@ -45,7 +45,7 @@ After execution → @reviewer
 
 **When to use:** Planning anything touching thesis methodology.
 
-- Phase work design (any of Phases 0-10)
+- Phase work design (see docs/PHASES.md for the canonical Phase list)
 - Data exploration / cleaning rule strategy
 - Feature engineering or evaluation framework design
 - Statistical methodology, temporal discipline decisions
@@ -61,7 +61,7 @@ then write it to `_current_plan.md` (or let the parent session do it).
 
 **Example:**
 ```
-@planner-science plan Phase 1 step 1.8 — game settings and field completeness audit
+@planner-science plan Phase 01 step 01_01_03 — source inventory and field completeness audit
 ```
 
 ### `planner` — Code Architect (Sonnet, high effort)
@@ -124,7 +124,7 @@ battery and produces a structured APPROVE / REQUEST_CHANGES verdict.
 @reviewer review changes                    ← reviews everything modified
 ```
 
-**Important caveat:** The reviewer runs on Sonnet. For Phase 7+ data science
+**Important caveat:** The reviewer runs on Sonnet. For modelling phases (Phase 03 and later — see docs/PHASES.md) data science
 code with subtle temporal leakage risks, the reviewer will flag for Pass 2
 review in Claude Chat (this Project, on Opus). Sonnet catches mechanical
 errors reliably; subtle statistical reasoning issues need Opus review.
