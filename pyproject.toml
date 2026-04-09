@@ -1,6 +1,6 @@
 [project]
 name = "rts-outcome-prediction"
-version = "1.0.1"
+version = "1.1.0"
 description = "RTS game result prediction — SC2 and AoE2 comparative ML study"
 authors = [{name = "Tomasz Pionka"}]
 requires-python = ">=3.12,<3.13"
@@ -98,7 +98,6 @@ exempt_sources = [
     "src/rts_predict/sc2/config.py",
     "src/rts_predict/aoe2/config.py",
     "src/rts_predict/aoe2/data/aoe2companion/types.py",
-    "src/rts_predict/common/json_utils.py",
 ]
 
 [tool.diff_cover]
