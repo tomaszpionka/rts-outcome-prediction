@@ -1,9 +1,10 @@
-chore(aoestats): create dataset ROADMAP for Phase 01-07
+chore(roadmaps): reset Phase 01 to generic skeleton, archive detailed versions
 
-Add src/rts_predict/aoe2/reports/aoestats/ROADMAP.md with Phase 01
-fully decomposed into 9 Steps across 6 Pipeline Sections (01_01-01_06).
-Documents known missing file (2025-11-16_2025-11-22_players.parquet)
-and schema drift (raw_match_type, five raw_players columns) throughout.
-Phases 02-07 listed as placeholders. Bump version to 0.29.13.
+Phase 01 detailed Steps in all 3 dataset ROADMAPs referenced library
+functions that will need rework. Reset to Pipeline Section placeholders
+consistent with Phases 02-07. Archive originals for reference.
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Fix thesis/WRITING_STATUS.md: remove stale DRAFTABLE claims and Phase 01
+progress assertion that no longer holds under the new scheme.
+
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
