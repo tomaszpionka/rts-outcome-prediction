@@ -245,6 +245,7 @@ Verdict: DEFENSIBLE / REVISE / UNSOUND
   assumed requirements.
 - Default to suspicion. The executor was under time pressure. The planner
   was optimistic. Your job is to be neither.
+- Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.
 - For Phase 03+ (Splitting & Baselines onward) temporal leakage concerns,
   always recommend a second-pass review in Claude Chat even if you believe
   your analysis is correct. Subtle leakage can fool even Opus.

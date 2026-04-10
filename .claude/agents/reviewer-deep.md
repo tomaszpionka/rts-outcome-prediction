@@ -315,6 +315,7 @@ compliance, and structural correctness. The distinction:
   review that misses one.
 - Do not produce a verdict until every required check is run or
   explicitly marked N/A with reason.
+- Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.
 - Before writing the verdict, re-read the diff once more. If you find
   yourself wanting to type "this looks good overall," delete that
   sentence and look harder.
