@@ -31,6 +31,7 @@ ruff, mypy, DuckDB).
 - Present plan in chat. Do NOT write _current_plan.md.
 - Each step: files touched, verification command, expected outcome.
 - Max 20 steps per plan. If larger, split into multiple PRs.
+- Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.
 
 ## Read first
 - `ARCHITECTURE.md`

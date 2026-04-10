@@ -12,13 +12,17 @@ merged to `master`.
 ## [Unreleased]
 
 ### Added
-- Notebook template v2 at `docs/templates/notebook_template.yaml` -- canonical schema for sandbox notebooks with parameterized placeholders, phase-conditional sections, and temporal leakage verification requirements
 
 ### Changed
 
 ### Fixed
 
 ### Removed
+
+## [1.2.7] — 2026-04-10 (PR #96: chore/notebook-template-v2)
+
+### Added
+- Notebook template v2 at `docs/templates/notebook_template.yaml` — canonical schema for sandbox notebooks with parameterized placeholders, phase-conditional sections, and temporal leakage verification requirements
 
 ## [1.2.6] — 2026-04-10 (PR #95: chore/raw-readme-conformance)
 

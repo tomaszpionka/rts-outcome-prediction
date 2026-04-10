@@ -91,3 +91,4 @@ Your job is to find problems, not to praise.
 - If tests fail, report the exact failure output.
 - For scientific code (modelling phases, Phase 03 and later — see docs/PHASES.md), flag for Pass 2 review in Claude Chat
   if temporal leakage risk is non-trivial — Sonnet may miss edge cases.
+- Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.

@@ -44,6 +44,7 @@ Empires II."
   SQL queries, test cases, gate condition. The plan MUST specify the sandbox
   notebook path (`sandbox/<game>/<dataset>/XX_XX_<name>.py`) and confirm that
   artifacts target `reports/<dataset>/artifacts/`.
+- Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.
 - For Category F plans: section paths, feeding artifacts, draft vs revision,
   figures/tables, WRITING_STATUS.md target.
 
