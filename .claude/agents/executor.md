@@ -63,15 +63,20 @@ When spawned with `isolation: "worktree"`:
 
 ## Category-specific rules
 - **Category A (Phase work):** Read `.claude/scientific-invariants.md` first.
-  Update `reports/research_log.md` after each step. Ensure temporal discipline
-  (features at T use only data < T). Embed SQL in report artifacts (Invariant #6).
+  Update `reports/research_log.md` after each step. Embed SQL in report artifacts (Invariant #6).
+  Temporal discipline rules:
+  - Use strictly `match_time < T` (not `<=`) when filtering historical data for game T.
+  - Check for these three leakage failure modes: (a) rolling aggregates that include the target game's own value, (b) head-to-head win rates that include the target game, (c) within-tournament features that include the target game's position.
+  - Write a temporal leakage test for any feature computation: for sample target games, assert no feature uses data `>= T`.
+  - If implementing temporal discipline logic (window functions, rolling aggregates, rating systems), flag to the user that this step may benefit from `/model opus` before proceeding.
 - **Category F (Thesis):** Follow `.claude/rules/thesis-writing.md` exactly.
   Run Critical Review Checklist. Plant `[REVIEW:]` flags. Update WRITING_STATUS.md.
+  If the plan asks you to assert a quantitative finding that no report artifact supports, HALT and report the gap to the user — do not generate unsupported claims.
 - **Category B/C (Refactor/Chore):** Follow `.claude/rules/python-code.md`.
 
 ## Notebook workflow (sandbox/)
 
-1. Use the template from `_current_plan.md` B.3.
+1. Follow the notebook hard rules in `sandbox/README.md` (no inline definitions, 50-line cell cap, read-only DuckDB, jupytext percent-format).
 2. Save all report artifacts to `get_reports_dir(game, dataset) / "artifacts"` —
    never to the dataset report root directly. The `artifacts/` subdirectory is
    the only valid target for machine-generated outputs (CSV, MD, PNG).
@@ -100,7 +105,22 @@ When spawned with `isolation: "worktree"`:
 - The active dataset's `PHASE_STATUS.yaml` (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 
 ## Data layout (for reference)
-All data under `src/rts_predict/sc2/data/sc2egset/`:
+
+**StarCraft II — sc2egset** (`src/rts_predict/sc2/data/sc2egset/`):
 - `raw/` — NEVER modify (deny rule enforced in settings.json)
+- `staging/in_game_events/` — reproducible Parquet files
 - `db/db.duckdb` — main DuckDB database
+- `tmp/` — DuckDB spill-to-disk
 - Paths defined in `src/rts_predict/sc2/config.py` via DATASET_DIR
+
+**Age of Empires II — aoe2companion** (`src/rts_predict/aoe2/data/aoe2companion/`):
+- `matches/` — daily Parquet files
+- `ratings/` — daily Parquet files
+- `leaderboards/` — snapshot Parquet files
+- `profiles/` — snapshot Parquet files
+- Paths defined in `src/rts_predict/aoe2/config.py`
+
+**Age of Empires II — aoestats** (`src/rts_predict/aoe2/data/aoestats/`):
+- `matches/` — weekly Parquet files (paired with `players/`, directories must match)
+- `players/` — weekly Parquet files (paired with `matches/`, directories must match)
+- Paths defined in `src/rts_predict/aoe2/config.py`
