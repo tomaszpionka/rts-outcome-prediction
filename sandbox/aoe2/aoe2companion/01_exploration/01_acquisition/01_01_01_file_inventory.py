@@ -35,9 +35,10 @@ import json
 import logging
 import re
 import statistics
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
+from rts_predict.common.filename_patterns import summarize_filename_patterns
 from rts_predict.common.inventory import inventory_directory
 from rts_predict.common.notebook_utils import get_reports_dir
 
@@ -143,6 +144,25 @@ for sd in result.subdirs:
 # tables) are noted separately.
 
 # %%
+# Whole-tree filename pattern summary.
+# Collect ALL FileEntry objects from the entire raw/ tree into one flat list.
+all_files = result.files_at_root + [f for sd in result.subdirs for f in sd.files]
+patterns = summarize_filename_patterns(all_files)
+
+logger.info("Total files scanned for patterns: %d", len(all_files))
+for pattern, count in patterns.items():
+    logger.info("  %s: %d", pattern, count)
+
+# %% [markdown]
+# ### Filename pattern summary
+#
+# The whole-tree pattern summary groups every file in `raw/` by its abstract
+# naming pattern — dates replaced with `{date}`, hex hashes with `{hash}`,
+# numeric IDs with `{N}`. This reveals the naming conventions across all
+# subdirectories without excluding any files. Housekeeping files (`.gitkeep`,
+# ingestion trackers) appear alongside data files in the same table.
+
+# %%
 artifact = {
     "step": "01_01_01",
     "dataset": "aoe2companion",
@@ -153,6 +173,8 @@ artifact = {
     "files_at_root": len(result.files_at_root),
     "subdirs": subdir_data,
     "date_analysis": date_analysis,
+    "filename_patterns": dict(patterns),
+    "total_files_scanned": len(all_files),
 }
 
 json_path = ARTIFACTS_DIR / "01_01_01_file_inventory.json"
@@ -188,6 +210,13 @@ if date_analysis:
         else:
             lines.append("- No gaps found")
         lines.append("")
+
+lines.extend(["\n## Filename patterns\n"])
+lines.append(f"Total files scanned: {len(all_files)}\n")
+lines.append("| Pattern | Count |")
+lines.append("|---|---|")
+for pattern, count in patterns.items():
+    lines.append(f"| `{pattern}` | {count} |")
 
 md_path = ARTIFACTS_DIR / "01_01_01_file_inventory.md"
 md_path.write_text("\n".join(lines) + "\n")

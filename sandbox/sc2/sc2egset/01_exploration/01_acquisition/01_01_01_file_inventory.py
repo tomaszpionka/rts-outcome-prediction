@@ -40,6 +40,7 @@ from pathlib import Path
 
 from rts_predict.common.inventory import inventory_directory
 from rts_predict.common.notebook_utils import get_reports_dir
+from rts_predict.common.filename_patterns import summarize_filename_patterns
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -141,6 +142,37 @@ for sd in replay_subdir_data:
 # extraction or metadata-only directories.
 
 # %%
+# Whole-tree filename pattern summary across both inventory levels.
+# Level 1 (meta_result): root files + tournament-level metadata files.
+all_files = list(meta_result.files_at_root)
+all_files.extend(f for sd in meta_result.subdirs for f in sd.files)
+# Level 2: re-scan each _data/ subdir to collect replay FileEntry objects.
+# (cell_06 built summary dicts but did not retain FileEntry objects.)
+for sd in meta_result.subdirs:
+    data_dir = RAW_DIR / sd.name / (sd.name + "_data")
+    if not data_dir.exists():
+        continue
+    replay_inv = inventory_directory(data_dir)
+    all_files.extend(replay_inv.files_at_root)
+    all_files.extend(f for rsd in replay_inv.subdirs for f in rsd.files)
+
+patterns = summarize_filename_patterns(all_files)
+
+logger.info("Total files scanned for patterns: %d", len(all_files))
+for pattern, count in patterns.items():
+    logger.info("  %s: %d", pattern, count)
+
+# %% [markdown]
+# ### Filename pattern summary
+#
+# The whole-tree pattern summary groups every file in the sc2egset `raw/`
+# tree by its abstract naming pattern — spanning both the tournament-level
+# metadata files and the `_data/` subdirectory replay files. This reveals
+# the full file taxonomy: replay JSONs (`{hash}.SC2Replay.json`), metadata
+# archives, processing trackers, and any housekeeping files (`.gitkeep`).
+# No files are excluded from this count.
+
+# %%
 artifact = {
     "step": "01_01_01",
     "dataset": "sc2egset",
@@ -153,6 +185,8 @@ artifact = {
     "total_replay_bytes": total_replay_bytes,
     "tournaments_missing_data_dir": tournaments_missing_data_dir,
     "tournaments": replay_subdir_data,
+    "filename_patterns": dict(patterns),
+    "total_files_scanned": len(all_files),
 }
 
 json_path = ARTIFACTS_DIR / "01_01_01_file_inventory.json"
@@ -189,6 +223,13 @@ for sd in replay_subdir_data:
     lines.append(
         f"| {sd['name']} | {sd['replay_file_count']} | {sd['total_mb']} | {ext_str} |"
     )
+
+lines.extend(["\n## Filename patterns\n"])
+lines.append(f"Total files scanned: {len(all_files)}\n")
+lines.append("| Pattern | Count |")
+lines.append("|---|---|")
+for pattern, count in patterns.items():
+    lines.append(f"| `{pattern}` | {count} |")
 
 if tournaments_missing_data_dir:
     lines.extend([

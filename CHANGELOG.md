@@ -19,6 +19,17 @@ merged to `master`.
 
 ### Removed
 
+## [1.2.9] — 2026-04-11 (PR #98: chore/inventory-enhancements-filename-patterns)
+
+### Added
+- `src/rts_predict/common/filename_patterns.py`: new module with `normalize_filename_to_pattern()` (replaces ISO dates → `{date}`, hex hashes ≥ 16 chars → `{hash}`, standalone numeric tokens → `{N}`) and `summarize_filename_patterns()` (returns `{pattern: count}` dict sorted by count descending)
+- `tests/rts_predict/common/test_filename_patterns.py`: 10 tests covering both functions, 100% line coverage
+
+### Changed
+- `sandbox/sc2/sc2egset/01_01_01_file_inventory.{py,ipynb}`: added `summarize_filename_patterns` import and two new cells — whole-tree pattern summary (re-scans `_data/` two-level structure to collect all replay `FileEntry` objects) and markdown interpretation; JSON artifact now includes `filename_patterns` dict and `total_files_scanned` int; MD artifact now includes a "Filename patterns" table section
+- `sandbox/aoe2/aoe2companion/01_01_01_file_inventory.{py,ipynb}`: same whole-tree pattern summary cells added; JSON and MD artifacts updated accordingly
+- `sandbox/aoe2/aoestats/01_01_01_file_inventory.{py,ipynb}`: same whole-tree pattern summary cells added; JSON and MD artifacts updated accordingly
+
 ## [1.2.8] — 2026-04-10 (PR #97: chore/notebook-template-conformance-01_01_01)
 
 ### Changed
