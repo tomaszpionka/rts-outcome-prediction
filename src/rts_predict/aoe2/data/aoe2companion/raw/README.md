@@ -31,32 +31,39 @@ description: >
   Coverage spans 2020-08-01 to 2026-04-04.
 file_format: "parquet, CSV"
 
+# NOTE: All file_count and size_mb values below are PENDING.
+# The 01_01_01 file inventory artifact currently counts .gitkeep placeholder files
+# present in each subdirectory. A corrected artifact (with post-processing exclusion
+# of .gitkeep files and root-level non-data files) is required before these
+# numbers can be populated.
 subdirectory_layout:
   - directory: "matches/"
     contents: "Daily match parquet files"
     file_pattern: "match-{date}.parquet"
-    file_count: 2074
-    size_mb: 6621.52
+    file_count: "PENDING: awaiting corrected 01_01_01 artifact"
+    size_mb: "PENDING: awaiting corrected 01_01_01 artifact"
   - directory: "leaderboards/"
     contents: "Leaderboard snapshot parquet file"
     file_pattern: "leaderboard.parquet"
-    file_count: 2
-    size_mb: 83.32
+    file_count: "PENDING: awaiting corrected 01_01_01 artifact"
+    size_mb: "PENDING: awaiting corrected 01_01_01 artifact"
   - directory: "profiles/"
     contents: "Player profile snapshot parquet file"
     file_pattern: "profile.parquet"
-    file_count: 2
-    size_mb: 161.84
+    file_count: "PENDING: awaiting corrected 01_01_01 artifact"
+    size_mb: "PENDING: awaiting corrected 01_01_01 artifact"
   - directory: "ratings/"
     contents: "Daily rating CSV files"
     file_pattern: "rating-{date}.csv"
-    file_count: 2073
-    size_mb: 2519.59
+    file_count: "PENDING: awaiting corrected 01_01_01 artifact"
+    size_mb: "PENDING: awaiting corrected 01_01_01 artifact"
 
-# total_files from 01_01_01 artifact (includes .gitkeep files in each subdir)
-total_files: 4154
-# total_size_mb derived from artifact total_bytes (9843821102) / (1024*1024)
-total_size_mb: 9387.8
+# total_files is PENDING: the 01_01_01 artifact currently counts .gitkeep files
+# in each subdirectory. A corrected artifact with post-processing exclusion of
+# .gitkeep files and root-level non-data files is required.
+total_files: "PENDING: awaiting corrected 01_01_01 artifact"
+# total_size_mb is PENDING: same artifact correction required as total_files.
+total_size_mb: "PENDING: awaiting corrected 01_01_01 artifact"
 
 # -- Section D: Temporal Coverage ----------------------------------------------
 
@@ -127,17 +134,23 @@ This directory holds the raw data layer and must never be modified.
 **Acquisition script:** `src/rts_predict/aoe2/data/aoe2companion/acquisition.py`
 **Manifest:** `src/rts_predict/aoe2/data/aoe2companion/api/api_dump_list.json`
 
+> **Note on file counts and sizes:** All numeric values (file counts, sizes) are
+> PENDING. The 01_01_01 file inventory artifact currently includes `.gitkeep`
+> placeholder files in each subdirectory in its counts. A corrected artifact with
+> post-processing exclusion of `.gitkeep` files and root-level non-data files is
+> required before these numbers can be populated.
+
 ## Subdirectory Layout
 
 | Directory | Contents | Pattern | File count | Size (MB) |
 |-----------|----------|---------|-----------|-----------|
-| `matches/` | Daily match parquet files | `match-{date}.parquet` | 2,074 | 6,621.52 |
-| `leaderboards/` | Leaderboard snapshot | `leaderboard.parquet` | 2 | 83.32 |
-| `profiles/` | Player profile snapshot | `profile.parquet` | 2 | 161.84 |
-| `ratings/` | Daily rating CSV files | `rating-{date}.csv` | 2,073 | 2,519.59 |
+| `matches/` | Daily match parquet files | `match-{date}.parquet` | PENDING | PENDING |
+| `leaderboards/` | Leaderboard snapshot | `leaderboard.parquet` | PENDING | PENDING |
+| `profiles/` | Player profile snapshot | `profile.parquet` | PENDING | PENDING |
+| `ratings/` | Daily rating CSV files | `rating-{date}.csv` | PENDING | PENDING |
 
-**Total files:** 4,154 (from 01_01_01 artifact)
-**Total size:** 9,387.8 MB (from 01_01_01 artifact total_bytes)
+**Total files:** PENDING (awaiting corrected 01_01_01 artifact)
+**Total size:** PENDING (awaiting corrected 01_01_01 artifact)
 
 ## Temporal Coverage
 
