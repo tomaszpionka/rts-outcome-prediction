@@ -19,6 +19,12 @@ merged to `master`.
 
 ### Removed
 
+## [1.2.5] — 2026-04-10 (PR #94: chore/fix-agent-definitions)
+
+### Changed
+- `planner-science` agent: fixed invariant count (10 → 8), added AoE2 data layout, added `ml-protocol.md` to read-first list, added multi-dataset coordination guidance
+- `executor` agent: expanded Category A temporal discipline rules (strict `< T`, three leakage failure modes, test requirement, Opus self-flag), fixed notebook workflow step 1 template reference, added Category F HALT-on-unsupported-claims guardrail, added AoE2 data layout and missing SC2 staging/tmp paths
+
 ## [1.2.4] — 2026-04-10 (PR #93: chore/raw-data-readme-template)
 
 ### Added

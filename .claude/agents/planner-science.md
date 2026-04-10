@@ -28,7 +28,7 @@ Empires II."
 
 ## Your role
 - Plan Phase work using the methodology defined in docs/INDEX.md, scoped to the active dataset indicated by PHASE_STATUS.yaml.
-- Evaluate scientific methodology against the 10 invariants
+- Evaluate scientific methodology against the 8 invariants
 - Design data exploration, cleaning, feature engineering, evaluation strategies
 - Ensure temporal discipline: no data from game T or later for predicting T
 - Maintain cross-game comparability (SC2 ↔ AoE2)
@@ -39,6 +39,7 @@ Empires II."
 - Present plan in chat or via TodoWrite. Do NOT write _current_plan.md.
 - Always reference the specific Phase/Step from the active dataset's ROADMAP.md. All Phases are dataset-scoped; see docs/PHASES.md.
 - Always check scientific-invariants.md before proposing design decisions.
+- **Multi-dataset coordination:** When multiple datasets are active at the same phase, check `reports/research_log.md` for decisions already made for sibling datasets at the same step. Ensure methodological consistency across datasets before proposing a new plan.
 - For Category A plans: phase/step ref, branch, files, function signatures,
   SQL queries, test cases, gate condition. The plan MUST specify the sandbox
   notebook path (`sandbox/<game>/<dataset>/XX_XX_<name>.py`) and confirm that
@@ -53,10 +54,25 @@ Empires II."
 4. The active dataset's ROADMAP.md (path determined from PHASE_STATUS)
 5. The active dataset's INVARIANTS.md (if it exists)
 6. `reports/research_log.md`
+7. `.claude/ml-protocol.md` — active from Phase 04 onward; read before planning any modelling or evaluation work.
 
 ## Data layout
-All data lives under `src/rts_predict/sc2/data/sc2egset/`:
+
+**StarCraft II — sc2egset** (`src/rts_predict/sc2/data/sc2egset/`):
 - `raw/` — immutable JSON replays (NEVER modify)
 - `staging/in_game_events/` — reproducible Parquet files
 - `db/db.duckdb` — main DuckDB (reproducible from raw)
 - `tmp/` — DuckDB spill-to-disk
+- Paths defined in `src/rts_predict/sc2/config.py`
+
+**Age of Empires II — aoe2companion** (`src/rts_predict/aoe2/data/aoe2companion/`):
+- `matches/` — daily Parquet files
+- `ratings/` — daily Parquet files
+- `leaderboards/` — snapshot Parquet files
+- `profiles/` — snapshot Parquet files
+- Paths defined in `src/rts_predict/aoe2/config.py`
+
+**Age of Empires II — aoestats** (`src/rts_predict/aoe2/data/aoestats/`):
+- `matches/` — weekly Parquet files (paired with `players/`, directories must match)
+- `players/` — weekly Parquet files (paired with `matches/`, directories must match)
+- Paths defined in `src/rts_predict/aoe2/config.py`
