@@ -12,12 +12,23 @@ merged to `master`.
 ## [Unreleased]
 
 ### Added
+- `scripts/hooks/check_phases_drift.py` — pre-commit hook that detects drift between `docs/PHASES.md` and `docs/ml_experiment_phases/PHASES.md` by comparing phase number + name pairs; fires only when either file is staged
+- `.pre-commit-config.yaml`: `phases-drift` hook entry wired to `check_phases_drift.py`
 
 ### Changed
+- `docs/templates/research_log_template.yaml`: normalized `ordering:` field to `value:` + `required:` pattern; updated `markdown_rendering` to point to `docs/research/RESEARCH_LOG_ENTRY.md`
+- `planning/current_plan.md`: added `scripts/hooks/log-subagent.sh` to T10 file_scope (was modified in execution but missing from plan manifest)
+- `CHANGELOG.md` [3.0.3]: added `.gitignore` removal to `### Removed` (was undocumented)
+- `src/rts_predict/aoe2/reports/ROADMAP.md`: removed bullet #3 (Pre-Phase-01 DuckDB row count claim) from Dataset Strategy planning indicators
+- `src/rts_predict/aoe2/reports/aoe2companion/ROADMAP.md`: replaced Source data section — removed provenance callout, DuckDB row count table, snapshot table warning, and sparse rating regime note; replaced with file-inventory-derived table (Step 01_01_01) and forward reference to schema discovery steps
+- `src/rts_predict/aoe2/reports/aoestats/ROADMAP.md`: replaced Source data section — removed provenance callout, DuckDB row count table, and schema drift section; replaced with file-inventory-derived table and forward reference to schema discovery steps
+- `src/rts_predict/aoe2/reports/aoe2companion/README.md`: removed pre-phase provenance note, T_ingestion row count section, snapshot table section, sparse rating regime section, and dtype strategy section (all DuckDB-derived); acquisition date preserved under Acquisition
+- `src/rts_predict/aoe2/reports/aoestats/README.md`: removed pre-phase provenance note, T_ingestion row count section, and schema drift section (all DuckDB-derived); acquisition date preserved under Acquisition
 
 ### Fixed
 
 ### Removed
+- `reports/RESEARCH_LOG_TEMPLATE.md` — superseded by `docs/research/RESEARCH_LOG_ENTRY.md` (added in 3.0.3)
 
 ## [3.0.3] — 2026-04-11 (PR #108: chore/template-hierarchy)
 
@@ -48,6 +59,7 @@ merged to `master`.
 ### Fixed
 
 ### Removed
+- `.gitignore`: removed `.github/tmp/` staging-area override rules (`!.github/tmp/`, `.github/tmp/*`, `!.github/tmp/.gitkeep`); the directory's `.gitkeep` remains tracked and ephemeral files (`pr.txt`, `commit.txt`) are cleaned up by the workflow immediately after use
 
 ### Follow-up
 - DAG review gates: the execution graph specified 3 separate reviewer agents for TG02/TG03/TG04 but the orchestrator combined them into a single reviewer invocation. The TG05 intermediate review gate was also elided in favor of a direct `reviewer-deep` final pass. Both deviations preserved dependency ordering. Follow-up: consider whether `planning/dags/DAG.yaml` should support a `combinable: true` flag on adjacent review gates to make this consolidation explicit rather than ad-hoc.

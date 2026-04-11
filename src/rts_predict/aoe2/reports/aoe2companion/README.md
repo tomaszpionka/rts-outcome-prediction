@@ -1,10 +1,3 @@
-> **Provenance note:** This file is a permanent acquisition provenance record
-> from the pre-phase-system era (2026-04-07). The row counts, schema details,
-> and dtype decisions recorded here have NOT been re-validated under the Phase
-> 01 system. Phase 01 Step 01_01_02 (schema discovery) will produce
-> authoritative schema artifacts. Do not cite numbers from this file as
-> Phase-01-validated findings.
-
 # aoe2companion -- Raw Data Provenance
 
 Permanent provenance record for the aoe2companion raw data. This file is
@@ -34,34 +27,6 @@ and Phase 0 artifacts).
 
 - **First run:** 17 failures (3 stale manifest size, 11 truncated, 3 broken pipe)
 - **Retry run:** all 17 resolved; 0 failures final
-
-## Row counts at T_ingestion (2026-04-07T11:21:37Z)
-
-| Table | Rows | Files |
-|-------|------|-------|
-| raw_matches | 277,099,059 | 2,073 |
-| raw_ratings | 58,317,433 | 2,072 (736 data-bearing, 1,336 zero-row sparse) |
-| raw_leaderboard | 2,381,227 | 1 |
-| raw_profiles | 3,609,686 | 1 |
-
-## Snapshot tables
-
-- **raw_leaderboard:** T_snapshot = 2026-04-06T21:08:57Z
-- **raw_profiles:** T_snapshot = 2026-04-06T21:09:07Z
-- **WARNING:** These tables MUST NOT be joined to historical matches as if
-  they were time-varying. They reflect state at T_snapshot only.
-
-## Sparse rating regime
-
-- **Boundary date:** 2025-06-26
-- **Sparse files (< 1024 bytes):** 1,791
-- **Date range:** 2020-08-01..2025-06-26
-
-## Dtype strategy
-
-- **raw_ratings:** explicit dtype map (auto_detect produced inconsistent types
-  for profile_id, games, rating, date, leaderboard_id, season, rating_diff)
-- **Artifact:** `archive/00_03_dtype_decision.json`
 
 ## Reconciliation
 

@@ -419,6 +419,7 @@ jobs:
               - "planning/dags/DAG.yaml"
               - "planning/specs/spec_01_roadmap_retractions.md"
               - ".claude/agents/executor.md"
+              - "scripts/hooks/log-subagent.sh"
             parallel_safe: false
             depends_on: []
 

@@ -27,9 +27,6 @@ Phase 01 findings):**
    (2020-2026 vs 2022-2026) based on file inventory.
 2. aoe2companion files have daily granularity; aoestats files have weekly
    granularity.
-3. Pre-Phase-01 DuckDB ingestion suggests ~277M vs ~30.7M rows — these counts
-   are unverified planning context (see provenance caveats in each dataset
-   ROADMAP).
 
 **Status:** Role assignment (PRIMARY vs SUPPLEMENTARY VALIDATION) requires
 Phase 01 Decision Gate (01_06) evidence: schema completeness, null rates,

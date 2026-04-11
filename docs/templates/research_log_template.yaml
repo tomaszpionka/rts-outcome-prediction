@@ -4,9 +4,8 @@
 # document must contain. Individual entry structure is defined in:
 #   docs/templates/research_log_entry_template.yaml
 #
-# Note: reports/RESEARCH_LOG_TEMPLATE.md is a human-readable rendering of
-# the entry template (research_log_entry_template.yaml). It already exists
-# on disk and is NOT modified by this template definition. The YAML template
+# Note: docs/research/RESEARCH_LOG_ENTRY.md is a human-readable rendering of
+# the entry template (research_log_entry_template.yaml). The YAML template
 # is the authoritative schema; the .md rendering is a convenience for authors.
 #
 # References:
@@ -24,16 +23,14 @@ header:
   thesis_title:
     value: "<full thesis title>"
     required: true
-  ordering: "Reverse chronological (newest first)"
+  ordering:
+    value: "Reverse chronological (newest first)"
+    required: false
   required: true
 
 entry_template:
   path: "docs/templates/research_log_entry_template.yaml"
-  markdown_rendering: "reports/RESEARCH_LOG_TEMPLATE.md"
-  # reports/RESEARCH_LOG_TEMPLATE.md already exists on disk as a human-readable
-  # rendering of the entry template. It is not modified by this definition --
-  # the YAML template is the authoritative schema; the .md rendering is a
-  # convenience for authors.
+  markdown_rendering: "docs/research/RESEARCH_LOG_ENTRY.md"
   required: true
 
 hierarchy_linking:
