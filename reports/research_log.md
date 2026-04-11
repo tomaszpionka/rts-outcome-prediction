@@ -44,12 +44,12 @@ potentially wasting 50% of AoE2 effort.
 **Category:** A (science)
 **Dataset:** sc2egset, aoe2companion, aoestats
 **Artifacts produced:**
-- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_01/01_01_01_file_inventory.json`
-- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_01/01_01_01_file_inventory.md`
-- `src/rts_predict/aoe2/reports/aoe2companion/artifacts/01_01/01_01_01_file_inventory.json`
-- `src/rts_predict/aoe2/reports/aoe2companion/artifacts/01_01/01_01_01_file_inventory.md`
-- `src/rts_predict/aoe2/reports/aoestats/artifacts/01_01/01_01_01_file_inventory.json`
-- `src/rts_predict/aoe2/reports/aoestats/artifacts/01_01/01_01_01_file_inventory.md`
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
+- `src/rts_predict/sc2/reports/sc2egset/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
+- `src/rts_predict/aoe2/reports/aoe2companion/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
+- `src/rts_predict/aoe2/reports/aoe2companion/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
+- `src/rts_predict/aoe2/reports/aoestats/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
+- `src/rts_predict/aoe2/reports/aoestats/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
 
 ### What
 Ran `inventory_directory()` on the raw directory of each dataset. Produced

@@ -1,4 +1,6 @@
-> **Phase activation:** Active from Phase 04 (Model Training) onward. See docs/PHASES.md.
+> **Phase activation:** Active from Phase 02 (Feature Engineering) onward.
+> The leakage rules and three failure modes below apply to any phase that
+> computes features or trains models. See docs/PHASES.md.
 
 Before reading this file, read `.claude/scientific-invariants.md`.
 The invariants there take precedence over any implementation convenience
@@ -48,7 +50,9 @@ not be used for any thesis experiment.
 
 ### reports/research_log.md (thesis material)
 - Reverse chronological, date-stamped entries
-- Each entry uses structured fields: **Objective**, **Approach**, **Issues encountered**, **Resolution/Outcome**, **Thesis notes**
+- Each entry uses structured fields: **What**, **Why**, **How** (reproducibility),
+  **Findings**, **Decisions taken**, **Decisions deferred**, **Thesis mapping**,
+  **Open questions / follow-ups**
 - References execution reports (`reports/archive/XX_run.md`) and specific commits where relevant
 - Directly usable as source material when writing thesis chapters
 - Updated every session involving experimentation, methodology decisions, issues, or breakthroughs

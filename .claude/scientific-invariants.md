@@ -36,6 +36,14 @@ Violating them produces results that cannot be defended at examination.
    here are fatal to the thesis. Verify with explicit temporal leakage
    checks.
 
+   **Normalization leakage.** Mean, standard deviation, min/max, and any
+   other summary statistics used for feature scaling must be computed on
+   training data only. The scaler object must be fit on the training fold
+   and applied (transform only) to validation and test folds. Computing
+   global z-scores across the entire dataset contaminates test-set
+   predictions with distributional information from the test period
+   (de Prado 2018, Ch. 7; Arlot & Celisse 2010).
+
    See docs/INDEX.md → Manual 03_SPLITTING_AND_BASELINES for the authoritative
    methodology.
 

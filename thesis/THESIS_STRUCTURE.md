@@ -267,8 +267,12 @@ engineering, and the unified experimental protocol.
 - Grid or Bayesian search with cross-validation on training set
 
 #### 4.4.4 Evaluation metrics
-- Primary: accuracy, log-loss, ROC-AUC
-- Secondary: calibration curve, per-matchup accuracy, cold-start stratification
+- Primary (probabilistic quality): Brier score with Murphy decomposition
+  (reliability, resolution, uncertainty), log-loss
+- Discrimination: accuracy, ROC-AUC, calibration curves (reliability
+  diagrams, ECE)
+- Stratified analysis: per-matchup accuracy, cold-start stratification,
+  prediction sharpness histograms
 - Cross-game comparison: per-game method rankings with bootstrapped CIs,
   5×2 cv F-test (Alpaydin 1999), qualitative concordance analysis
   (Friedman inapplicable with N=2 games; Demsar 2006 requires N >= 5)

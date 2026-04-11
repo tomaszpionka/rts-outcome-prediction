@@ -88,8 +88,8 @@ inputs:
     - ".claude/scientific-invariants.md"
 outputs:
   data_artifacts:
-    - "artifacts/01_01/01_01_01_file_inventory.json"
-  report: "artifacts/01_01/01_01_01_file_inventory.md"
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  report: "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
 reproducibility: "All counts produced by inventory_directory() from rts_predict.common.inventory. Code and output are in the paired notebook."
 scientific_invariants_applied:
   - number: "6"
@@ -97,7 +97,7 @@ scientific_invariants_applied:
   - number: "7"
     how_upheld: "No thresholds used — pure counting."
 gate:
-  artifact_check: "artifacts/01_01/01_01_01_file_inventory.json and .md exist and are non-empty."
+  artifact_check: "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json and .md exist and are non-empty."
   continue_predicate: "Inventory artifacts exist on disk."
   halt_predicate: "Raw directory does not exist or is empty."
 thesis_mapping:
