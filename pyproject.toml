@@ -83,7 +83,10 @@ markers = [
 [tool.coverage.run]
 source = ["src/rts_predict"]
 branch = true
-omit = ["sandbox/**"]
+omit = [
+    "sandbox/**",
+    "**/_legacy/**",
+]
 
 [tool.coverage.report]
 exclude_lines = [

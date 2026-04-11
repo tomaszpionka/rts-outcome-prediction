@@ -20,7 +20,7 @@ from rts_predict.sc2.config import (
     IN_GAME_PARQUET_DIR,
     REPLAYS_SOURCE_DIR,
 )
-from rts_predict.sc2.data.ingestion import (
+from rts_predict.sc2.data._legacy.ingestion import (
     audit_raw_data_availability,
     load_in_game_data_to_duckdb,
     move_data_to_duck_db,

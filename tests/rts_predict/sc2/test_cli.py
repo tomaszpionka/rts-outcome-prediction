@@ -173,7 +173,7 @@ class TestMainNoCommand:
 
 class TestRunExploreCommand:
     @patch(f"{_CLI}.DuckDBClient")
-    @patch("rts_predict.sc2.data.exploration.run_phase_1_exploration")
+    @patch("rts_predict.sc2.data._legacy.exploration.run_phase_1_exploration")
     def test_run_explore_command(self, m_explore, m_client_cls) -> None:
         from rts_predict.sc2.cli import _run_explore_command
 
@@ -189,7 +189,7 @@ class TestRunExploreCommand:
 
 class TestRunAuditCommand:
     @patch(f"{_CLI}.DuckDBClient")
-    @patch("rts_predict.sc2.data.audit.run_phase_0_audit")
+    @patch("rts_predict.sc2.data._legacy.audit.run_phase_0_audit")
     def test_run_audit_command(self, m_audit, m_client_cls) -> None:
         from rts_predict.sc2.cli import _run_audit_command
 

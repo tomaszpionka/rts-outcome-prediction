@@ -9,11 +9,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import duckdb
 
+# QUARANTINED: ingestion is in _legacy/ — assumes unvalidated schemas from
+# pre-Phase-system code. The `init` subcommand will fail at runtime until
+# Phase 01 schema discovery restores the quarantined modules.
 from rts_predict.common.db import DuckDBClient
 from rts_predict.common.db_cli import add_db_subparser, handle_db_command
 from rts_predict.common.schema_export import export_schemas
 from rts_predict.sc2.config import DATASETS, DEFAULT_DATASET, REPLAYS_SOURCE_DIR
-from rts_predict.sc2.data.ingestion import (
+from rts_predict.sc2.data._legacy.ingestion import (
     ingest_map_alias_files,
     load_game_events_to_duckdb,
     load_in_game_data_to_duckdb,
@@ -148,8 +151,13 @@ def main() -> None:
 
 
 def _run_explore_command(steps: list[str] | None) -> None:
-    """Run Phase 1 corpus exploration."""
-    from rts_predict.sc2.data.exploration import run_phase_1_exploration
+    """Run Phase 1 corpus exploration.
+
+    QUARANTINED: This command calls legacy code in _legacy/ that assumes
+    unvalidated schemas. It will fail at runtime until Phase 01 schema
+    discovery restores the quarantined modules.
+    """
+    from rts_predict.sc2.data._legacy.exploration import run_phase_1_exploration
 
     with DuckDBClient(DATASETS[DEFAULT_DATASET]) as client:
         results = run_phase_1_exploration(client.con, steps=steps)
@@ -174,8 +182,13 @@ def _run_export_schemas_command(
 
 
 def _run_audit_command(steps: list[str] | None) -> None:
-    """Run Phase 0 ingestion audit."""
-    from rts_predict.sc2.data.audit import run_phase_0_audit
+    """Run Phase 0 ingestion audit.
+
+    QUARANTINED: This command calls legacy code in _legacy/ that assumes
+    unvalidated schemas. It will fail at runtime until Phase 01 schema
+    discovery restores the quarantined modules.
+    """
+    from rts_predict.sc2.data._legacy.audit import run_phase_0_audit
 
     with DuckDBClient(DATASETS[DEFAULT_DATASET]) as client:
         results = run_phase_0_audit(client.con, steps=steps)

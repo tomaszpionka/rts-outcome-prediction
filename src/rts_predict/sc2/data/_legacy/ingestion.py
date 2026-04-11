@@ -41,7 +41,7 @@ from rts_predict.sc2.config import (
     IN_GAME_WORKERS,
     REPLAYS_SOURCE_DIR,
 )
-from rts_predict.sc2.data.schemas import (
+from rts_predict.sc2.data._legacy.schemas import (
     GAME_EVENT_SCHEMA,
     METADATA_SCHEMA,
     PLAYER_STATS_FIELD_MAP,

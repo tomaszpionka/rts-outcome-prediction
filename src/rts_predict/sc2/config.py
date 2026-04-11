@@ -35,6 +35,13 @@ GNN_VIZ_OUTPUT_PATH: Path = REPORTS_DIR / "gnn_space_map.png"
 # ── Reproducibility ────────────────────────────────────────────────────────────
 RANDOM_SEED: int = 42
 
+# ── QUARANTINED: ML constants below are unvalidated pre-Phase assumptions ──
+# These constants (ELO K-factors, Bayesian smoothing, GNN hyperparams, etc.)
+# were set before the Phase system was adopted. They have no empirical
+# derivation or literature citation (Invariant #7 violation).
+# Phase 02 (Feature Engineering) will derive these values empirically.
+# Do NOT use these constants in Phase 01 work.
+
 # ── ELO system ─────────────────────────────────────────────────────────────────
 ELO_K_NEW: int = 64       # K-factor for players with fewer than ELO_K_THRESHOLD games
 ELO_K_VETERAN: int = 32   # K-factor for veteran players
