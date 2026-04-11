@@ -356,6 +356,14 @@ representativeness_notes:
   # representativeness concerns have been identified.
   required: false
 
+# ==============================================================================
+# SECTION Z — EXAMPLES APPENDIX
+#
+# Read this section ONLY when creating a new raw/README.md for the first time.
+# It is reference material, not part of the template schema above.
+# Agents: skip this section during routine notebook or step work.
+# ==============================================================================
+
 # ── Section Z: Examples Appendix ────────────────────────────────────────────
 # ILLUSTRATIVE ONLY -- values are placeholders, not ground truth.
 # Populate from 01_01_01 artifacts. Do not treat numbers below as authoritative.

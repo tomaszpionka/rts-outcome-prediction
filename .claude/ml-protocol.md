@@ -53,11 +53,11 @@ not be used for any thesis experiment.
 - Each entry uses structured fields: **What**, **Why**, **How** (reproducibility),
   **Findings**, **Decisions taken**, **Decisions deferred**, **Thesis mapping**,
   **Open questions / follow-ups**
-- References execution reports (`reports/archive/XX_run.md`) and specific commits where relevant
+- References specific commits and notebook artifacts where relevant
 - Directly usable as source material when writing thesis chapters
 - Updated every session involving experimentation, methodology decisions, issues, or breakthroughs
 
-### src/rts_predict/sc2/reports/archive/XX_run.md (pipeline execution output)
-- Legacy pipeline execution results and metrics (ChatGPT/Gemini era)
-- Archived for reference — reports 07-09 contain primary baseline metrics (~64.5% accuracy)
-- Referenced from research log entries, not replaced by them
+### Legacy pipeline execution reports (removed in v2.0.0)
+- Prior execution reports (ChatGPT/Gemini era) were removed as part of the
+  archive cleanup. Historical baseline metrics (~64.5% accuracy) are
+  documented in `CHANGELOG.md` and git history.

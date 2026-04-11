@@ -7,9 +7,8 @@ Age of Empires II."
 Reverse chronological entries.
 
 > **Phase migration note (2026-04-09):** This log was reset as part of the
-> Phase 01-07 migration. Prior entries are archived at
-> `reports/archive/research_log_pre_phase_migration.md` and
-> `reports/archive/research_log_pre_notebook_sandbox.md`.
+> Phase 01-07 migration. Prior entries were removed in v2.0.0 (archive
+> cleanup); historical context is preserved in git history.
 > All new entries use the Phase XX / Step XX_YY_ZZ format per docs/PHASES.md.
 
 ---

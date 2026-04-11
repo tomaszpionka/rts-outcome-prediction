@@ -1,5 +1,9 @@
 # Thesis Structure
 
+> **Revision note (2026-04-11):** This structure is aspirational and will be
+> revised as phases complete. Chapters 5-7 subsection detail is provisional
+> and may change based on Phase 01-04 findings.
+
 **Title:** "A comparative analysis of methods for predicting game results in real-time strategy games, based on the examples of StarCraft II and Age of Empires II."
 
 **Degree:** Master of Science in Computer Science (Data Science specialisation)
@@ -281,6 +285,7 @@ engineering, and the unified experimental protocol.
 
 ---
 
+<!-- PROVISIONAL: Subsection detail below will be revised after Phase 03-04 findings. -->
 ## Chapter 5 — Experiments and Results (20–25 pp.)
 
 ### 5.1 StarCraft II results `[SC2]`
@@ -346,6 +351,7 @@ engineering, and the unified experimental protocol.
 
 ---
 
+<!-- PROVISIONAL: Subsection detail below will be revised after experiments complete. -->
 ## Chapter 6 — Discussion (8–12 pp.)
 
 ### 6.1 Interpretation of results
@@ -376,6 +382,7 @@ engineering, and the unified experimental protocol.
 
 ---
 
+<!-- PROVISIONAL: Will be revised after all results are available. -->
 ## Chapter 7 — Conclusions and Future Work (3–5 pp.)
 
 ### 7.1 Summary of contributions
