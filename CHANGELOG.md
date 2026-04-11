@@ -30,7 +30,6 @@ merged to `master`.
 - AoE2 dataset ROADMAPs (aoe2companion, aoestats): removed premature role banners, set roles to TO BE DETERMINED, restored full Phase 01-07 scope
 - STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets); updated derivation comments to three-tier chain
 - PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
-- ARCHITECTURE.md: documented full status tracking hierarchy (three-tier chain, game package contract table, progress tracking section)
 - CLAUDE.md: added materialization gate to Plan/Execute workflow; added PIPELINE_SECTION_STATUS.yaml to Key File Locations
 - `planning/README.md`: added materialization gate to lifecycle section
 - `.claude/agents/executor.md`: updated spec-first read order for dispatched agents

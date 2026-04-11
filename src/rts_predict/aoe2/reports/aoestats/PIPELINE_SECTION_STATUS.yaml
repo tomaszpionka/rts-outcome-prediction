@@ -48,6 +48,5 @@ pipeline_sections:
     name: "Decision Gates"
     phase: "01"
     status: not_started
-  # Pipeline sections for Phases 02-05 added when those Phases become active.
-  # Phase 06 is out of scope (SUPPLEMENTARY VALIDATION role -- see ROADMAP).
+  # Pipeline sections for Phases 02-06 added when those Phases become active.
   # Phase 07 has no pipeline sections.
