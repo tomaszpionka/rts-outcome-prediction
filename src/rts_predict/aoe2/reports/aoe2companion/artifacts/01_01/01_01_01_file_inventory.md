@@ -4,7 +4,7 @@
 
 **Total files:** 4154
 
-**Total size:** 9387.80 MB
+**Total size:** 9387.81 MB
 
 **Subdirectories:** 4
 
@@ -35,3 +35,18 @@
 - Gaps found: 1
   - 2025-07-10 -> 2025-07-12 (2 days)
 
+
+## Filename patterns
+
+Total files scanned: 4154
+
+| Pattern | Count |
+|---|---|
+| `match-{date}.parquet` | 2073 |
+| `rating-{date}.csv` | 2072 |
+| `.gitkeep` | 4 |
+| `.DS_Store` | 1 |
+| `README.md` | 1 |
+| `_download_manifest.json` | 1 |
+| `leaderboard.parquet` | 1 |
+| `profile.parquet` | 1 |

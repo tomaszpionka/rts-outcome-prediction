@@ -4,7 +4,7 @@
 
 **Total files:** 349
 
-**Total size:** 3773.61 MB
+**Total size:** 3773.62 MB
 
 **Subdirectories:** 3
 
@@ -46,3 +46,16 @@
 | Pair | Count match | Date range match |
 |---|---|---|
 | matches vs players | False | True |
+
+## Filename patterns
+
+Total files scanned: 349
+
+| Pattern | Count |
+|---|---|
+| `{date}_{date}_matches.parquet` | 172 |
+| `{date}_{date}_players.parquet` | 171 |
+| `.gitkeep` | 3 |
+| `README.md` | 1 |
+| `_download_manifest.json` | 1 |
+| `overview.json` | 1 |

@@ -9,7 +9,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -41,6 +41,7 @@ from pathlib import Path
 
 from rts_predict.common.inventory import inventory_directory
 from rts_predict.common.notebook_utils import get_reports_dir
+from rts_predict.common.filename_patterns import summarize_filename_patterns
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -182,6 +183,25 @@ for pair, info in paired_report.items():
 # difference. This pairing constraint is critical for downstream joins.
 
 # %%
+# Whole-tree filename pattern summary.
+# Collect ALL FileEntry objects from the entire raw/ tree into one flat list.
+all_files = result.files_at_root + [f for sd in result.subdirs for f in sd.files]
+patterns = summarize_filename_patterns(all_files)
+
+logger.info("Total files scanned for patterns: %d", len(all_files))
+for pattern, count in patterns.items():
+    logger.info("  %s: %d", pattern, count)
+
+# %% [markdown]
+# ### Filename pattern summary
+#
+# The whole-tree pattern summary groups every file in `raw/` by its abstract
+# naming pattern. For aoestats, this should reveal the weekly date-range naming
+# convention (`{date}_{date}_matches.parquet`, `{date}_{date}_players.parquet`)
+# alongside any housekeeping files (`.gitkeep`, ingestion trackers, overview
+# files). No files are excluded from this count.
+
+# %%
 artifact = {
     "step": "01_01_01",
     "dataset": "aoestats",
@@ -193,6 +213,8 @@ artifact = {
     "subdirs": subdir_data,
     "date_analysis": date_analysis,
     "paired_comparison": paired_report,
+    "filename_patterns": dict(patterns),
+    "total_files_scanned": len(all_files),
 }
 
 json_path = ARTIFACTS_DIR / "01_01_01_file_inventory.json"
@@ -239,6 +261,13 @@ if paired_report:
         lines.append(
             f"| {pair} | {info['count_match']} | {info['date_range_match']} |"
         )
+
+lines.extend(["\n## Filename patterns\n"])
+lines.append(f"Total files scanned: {len(all_files)}\n")
+lines.append("| Pattern | Count |")
+lines.append("|---|---|")
+for pattern, count in patterns.items():
+    lines.append(f"| `{pattern}` | {count} |")
 
 md_path = ARTIFACTS_DIR / "01_01_01_file_inventory.md"
 md_path.write_text("\n".join(lines) + "\n")

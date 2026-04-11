@@ -3,7 +3,7 @@
   "dataset": "aoestats",
   "raw_dir": "/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/aoe2/data/aoestats/raw",
   "total_files": 349,
-  "total_bytes": 3956914000,
+  "total_bytes": 3956922158,
   "num_subdirs": 3,
   "files_at_root": 2,
   "subdirs": [
@@ -96,5 +96,14 @@
       "players_weeks": 171,
       "date_range_match": true
     }
-  }
+  },
+  "filename_patterns": {
+    "{date}_{date}_matches.parquet": 172,
+    "{date}_{date}_players.parquet": 171,
+    ".gitkeep": 3,
+    "README.md": 1,
+    "_download_manifest.json": 1,
+    "overview.json": 1
+  },
+  "total_files_scanned": 349
 }
