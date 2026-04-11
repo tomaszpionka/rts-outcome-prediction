@@ -12,6 +12,16 @@ merged to `master`.
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [3.0.3] — 2026-04-11 (PR #108: chore/template-hierarchy)
+
+### Added
 - `docs/templates/phase_template.yaml` — ROADMAP authoring template for Phase blocks
 - `docs/templates/pipeline_section_template.yaml` — ROADMAP authoring template for Pipeline Section blocks
 - `docs/templates/dataset_roadmap_template.yaml` — ROADMAP document structure template
@@ -33,12 +43,16 @@ merged to `master`.
 - CLAUDE.md: added materialization gate to Plan/Execute workflow; added PIPELINE_SECTION_STATUS.yaml to Key File Locations
 - `planning/README.md`: added materialization gate to lifecycle section
 - `.claude/agents/executor.md`: updated spec-first read order for dispatched agents
+- `scripts/hooks/log-subagent.sh`: added model mappings for reviewer-deep, reviewer-adversarial, and writer-thesis agents
 
 ### Fixed
 
 ### Removed
 
-## [3.0.2] — 2026-04-11 (PR #N: chore/dag-orchestration-infrastructure)
+### Follow-up
+- DAG review gates: the execution graph specified 3 separate reviewer agents for TG02/TG03/TG04 but the orchestrator combined them into a single reviewer invocation. The TG05 intermediate review gate was also elided in favor of a direct `reviewer-deep` final pass. Both deviations preserved dependency ordering. Follow-up: consider whether `planning/dags/DAG.yaml` should support a `combinable: true` flag on adjacent review gates to make this consolidation explicit rather than ad-hoc.
+
+## [3.0.2] — 2026-04-11 (PR #107: chore/dag-orchestration-infrastructure)
 
 ### Added
 - `planning/` directory — unified orchestration root for plan/execute workflow
