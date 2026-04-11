@@ -9,8 +9,9 @@
 ## Scope
 
 Fill four empty template YAMLs, create three new status template YAMLs, enhance
-three existing status files per dataset, and update cross-cutting references.
-Total: 5 new files, 4 populated-from-empty files, 10 modified files.
+three existing status files per dataset, retract premature dataset strategy
+commitments in AoE2 ROADMAPs, and update cross-cutting references.
+Total: 5 new files, 4 populated-from-empty files, 13 modified files.
 
 ## Prerequisite observation
 
@@ -26,9 +27,99 @@ derived from Steps, Phase status is derived from Pipeline Sections. This matches
 the existing STEP_STATUS.yaml comment: "Phase is complete when ALL its steps are
 complete."
 
+**Premature dataset strategy retraction.** The AoE2 game-level ROADMAP and both
+AoE2 dataset ROADMAPs contain premature methodological commitments — PRIMARY /
+SUPPLEMENTARY VALIDATION role assignments, Phase 06 exclusion for aoestats, and
+"lightweight Phase 02-05 replication pass" scope restrictions — made when only
+Step 01_01_01 (File Inventory) was complete. These decisions require Phase 01
+Decision Gate (01_06) evidence: schema completeness, null rates, player identity
+coverage, temporal density. Per `docs/PHASES.md` lines 53-57: "Whether
+generalisation holds is itself a finding produced by Phase 01 and Phase 02 — not
+an assumption baked into the Phase structure." Per lines 262-265: all dataset
+ROADMAPs implement Phases 01-07. The premature commitments are retracted as part
+of this chore and replaced with provisional language.
+
 ---
 
 ## Execution steps
+
+### Step 0: Retract premature AoE2 dataset strategy commitments
+
+**Purpose:** Remove unfounded methodological commitments from AoE2 ROADMAPs
+before creating templates and status files that would propagate them.
+
+**0a. `src/rts_predict/aoe2/reports/ROADMAP.md` — rewrite Dataset Strategy**
+
+Replace the current "Dataset Strategy" section (lines 21-41) with provisional
+language:
+
+```markdown
+## Dataset Strategy (provisional — to be confirmed by Phase 01 Decision Gates)
+
+**Planning indicators (2026-04-11, based on file inventory only — not verified
+Phase 01 findings):**
+
+1. aoe2companion has more files (4,154 vs 349) and spans a longer date range
+   (2020-2026 vs 2022-2026) based on file inventory.
+2. aoe2companion files have daily granularity; aoestats files have weekly
+   granularity.
+3. Pre-Phase-01 DuckDB ingestion suggests ~277M vs ~30.7M rows — these counts
+   are unverified planning context (see provenance caveats in each dataset
+   ROADMAP).
+
+**Status:** Role assignment (PRIMARY vs SUPPLEMENTARY VALIDATION) requires
+Phase 01 Decision Gate (01_06) evidence: schema completeness, null rates,
+player identity coverage, temporal density. Until then, both datasets run
+full Phases 01-07 independently with no scope restrictions.
+
+**Decision point:** Pipeline Section 01_06 (Decision Gates) for each dataset
+will produce the comparative evidence needed to formalize roles. The decision
+will be recorded in `reports/research_log.md` with full derivation per
+Invariant 6.
+```
+
+**0b. `src/rts_predict/aoe2/reports/aoestats/ROADMAP.md` — remove role banner**
+
+Replace the "Role: SUPPLEMENTARY VALIDATION" blockquote (lines 11-13) with:
+
+```markdown
+> **Role: TO BE DETERMINED.** Role assignment (PRIMARY vs SUPPLEMENTARY
+> VALIDATION) will be formalized at the Phase 01 Decision Gate (01_06) based
+> on comparative data quality findings. Until then, this dataset runs all
+> Phases at full scope per `docs/PHASES.md`.
+```
+
+**0c. `src/rts_predict/aoe2/reports/aoe2companion/ROADMAP.md` — remove role banner**
+
+Replace the "Role: PRIMARY" blockquote (lines 11-12) with:
+
+```markdown
+> **Role: TO BE DETERMINED.** Role assignment (PRIMARY vs SUPPLEMENTARY
+> VALIDATION) will be formalized at the Phase 01 Decision Gate (01_06) based
+> on comparative data quality findings. Until then, this dataset runs all
+> Phases at full scope per `docs/PHASES.md`.
+```
+
+**0d. `reports/research_log.md` — update the dataset strategy decision entry**
+
+The existing "AoE2 Dataset Strategy Decision" entry (2026-04-11) must be
+amended. Add a "### Retraction" section at the bottom of the entry:
+
+```markdown
+### Retraction (2026-04-11)
+
+The PRIMARY / SUPPLEMENTARY VALIDATION role assignments and the aoestats Phase
+06 exclusion are retracted. These commitments were made before Phase 01 EDA and
+rely on unverified row counts and structural observations (file granularity)
+rather than schema completeness, null rates, or feature availability — evidence
+that Phase 01 Steps 01_02 through 01_06 are designed to produce. Per
+docs/PHASES.md, whether generalisation holds between datasets is a Phase 01/02
+finding, not a prior assumption. Both datasets now run full Phases 01-07
+independently. Role assignment is deferred to Pipeline Section 01_06 (Decision
+Gates).
+```
+
+---
 
 ### Step 1: Create `docs/templates/phase_template.yaml`
 
@@ -183,9 +274,12 @@ header:
     value: "<dataset identifier>"
     required: true
   role:
-    value: "<PRIMARY | SUPPLEMENTARY VALIDATION | omit if sole dataset>"
+    value: "<TO BE DETERMINED | PRIMARY | SUPPLEMENTARY VALIDATION | omit if sole dataset>"
     required: false
-    # Only for games with multiple datasets.
+    # Only for games with multiple datasets. Must be TO BE DETERMINED until
+    # Phase 01 Decision Gate (01_06) evidence supports role assignment.
+    # Role assignment requires: schema completeness, null rates, player
+    # identity coverage, temporal density — not file counts alone.
   canonical_references:
     value:
       canonical_phase_list: "docs/PHASES.md"
@@ -212,7 +306,9 @@ source_data_section:
 
 phase_sections:
   description: >
-    One ## section per Phase (01 through 07).
+    One ## section per Phase (01 through 07). All datasets implement all
+    7 Phases per docs/PHASES.md. No Phase may be excluded from a dataset
+    ROADMAP without Phase 01 Decision Gate evidence.
   active_phase_structure:
     heading: "## Phase NN -- Phase Name"
     pipeline_section_list: "Bullet list: `NN_NN` -- Pipeline Section Name"
@@ -334,8 +430,7 @@ consistently.
 **What:** sc2egset already has an empty file. aoe2companion and aoestats need
 the file created.
 
-**Structure (shared across datasets, differing in game/dataset and trailing
-comment — see aoestats note below):**
+**Structure (identical across all 3 datasets, differing only in game/dataset):**
 
 ```yaml
 # Pipeline Section status for <dataset>.
@@ -380,7 +475,7 @@ pipeline_sections:
     name: "Decision Gates"
     phase: "01"
     status: not_started
-  # Pipeline sections for later Phases added when those Phases become active.
+  # Pipeline sections for Phases 02-06 added when those Phases become active.
   # Phase 07 has no pipeline sections.
   #
   # NOTE: Only Phase 01 pipeline sections are listed here. PHASE_STATUS.yaml
@@ -389,9 +484,8 @@ pipeline_sections:
   # not pre-populated.
 ```
 
-**Dataset-specific trailing comment:**
-- **sc2egset, aoe2companion:** `# Pipeline sections for Phases 02-06 added when those Phases become active.`
-- **aoestats:** `# Pipeline sections for Phases 02-05 added when those Phases become active. Phase 06 is out of scope (SUPPLEMENTARY VALIDATION role — see ROADMAP).`
+All 3 datasets use the identical trailing comment. No dataset-specific
+exceptions — all datasets implement Phases 01-07 per `docs/PHASES.md`.
 
 **Note:** 01_01 is `in_progress` because step 01_01_01 is complete but the
 Pipeline Section's full step list is not yet determined to be complete.
@@ -471,10 +565,8 @@ PHASE_STATUS.yaml to describe the full derivation chain.
 
 ### Step 10: Update CLAUDE.md
 
-Add PIPELINE_SECTION_STATUS.yaml to Key File Locations:
-```
-- Pipeline section status: `src/rts_predict/<game>/reports/<dataset>/PIPELINE_SECTION_STATUS.yaml`
-```
+PIPELINE_SECTION_STATUS.yaml was already added to Key File Locations by the user.
+Verify it is present; no further changes needed.
 
 ---
 
@@ -494,7 +586,9 @@ Add under `[Unreleased]`:
 - PIPELINE_SECTION_STATUS.yaml for all 3 datasets (sc2egset, aoe2companion, aoestats)
 
 ### Changed
-- STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets)
+- AoE2 game-level ROADMAP: retracted premature PRIMARY/SUPPLEMENTARY role assignments, replaced with provisional language pending Phase 01 Decision Gates
+- AoE2 dataset ROADMAPs (aoe2companion, aoestats): removed premature role banners, restored full Phase 01-07 scope for both datasets
+- STEP_STATUS.yaml: added `game` and `pipeline_section` fields, updated derivation comments (all 3 datasets)
 - PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
 - ARCHITECTURE.md: documented full status tracking hierarchy
 - CLAUDE.md: added PIPELINE_SECTION_STATUS.yaml to Key File Locations
@@ -530,6 +624,20 @@ Add under `[Unreleased]`:
    populated from empty) because unlike sc2egset which has an empty file, the
    aoe2 datasets have no file at all.
 
+6. **All datasets are treated identically.** No dataset-specific Phase scope
+   exceptions. The premature PRIMARY / SUPPLEMENTARY VALIDATION role assignments
+   and the aoestats Phase 06 exclusion are retracted in Step 0 because they
+   were made without Phase 01 Decision Gate evidence. Per `docs/PHASES.md`, all
+   dataset ROADMAPs implement Phases 01-07. Role assignment is deferred to
+   Pipeline Section 01_06 (Decision Gates) where comparative data quality
+   findings will be available.
+
+7. **The `dataset_roadmap_template.yaml` role field includes `TO BE DETERMINED`**
+   as a valid value. Role assignment requires Phase 01 Decision Gate evidence
+   (schema completeness, null rates, player identity coverage, temporal density).
+   File counts and structural observations (daily vs weekly granularity) are
+   planning indicators, not evidence for methodology commitments.
+
 ---
 
 ## File manifest
@@ -547,7 +655,7 @@ Add under `[Unreleased]`:
 8. `docs/templates/dataset_roadmap_template.yaml`
 9. `docs/templates/research_log_template.yaml`
 
-**Modified files (10):**
+**Modified files (13):**
 10. `src/rts_predict/sc2/reports/sc2egset/STEP_STATUS.yaml`
 11. `src/rts_predict/aoe2/reports/aoe2companion/STEP_STATUS.yaml`
 12. `src/rts_predict/aoe2/reports/aoestats/STEP_STATUS.yaml`
@@ -555,134 +663,78 @@ Add under `[Unreleased]`:
 14. `src/rts_predict/sc2/reports/sc2egset/PHASE_STATUS.yaml`
 15. `src/rts_predict/aoe2/reports/aoe2companion/PHASE_STATUS.yaml`
 16. `src/rts_predict/aoe2/reports/aoestats/PHASE_STATUS.yaml`
-17. `ARCHITECTURE.md`
-18. `CLAUDE.md`
-19. `CHANGELOG.md`
+17. `src/rts_predict/aoe2/reports/ROADMAP.md` (retract dataset strategy)
+18. `src/rts_predict/aoe2/reports/aoestats/ROADMAP.md` (retract role banner)
+19. `src/rts_predict/aoe2/reports/aoe2companion/ROADMAP.md` (retract role banner)
+20. `reports/research_log.md` (retraction entry)
+21. `ARCHITECTURE.md`
+22. `CHANGELOG.md`
 
 ---
 
 ## Gate condition
 
-All 19 files listed in the manifest exist on disk with non-empty content. The
+All 22 files listed in the manifest exist on disk with non-empty content. The
 derivation chain is consistent: every step in STEP_STATUS.yaml has a
 `pipeline_section` field, every pipeline section in PIPELINE_SECTION_STATUS.yaml
 has a `phase` field, and the derived statuses are consistent (01_01 is
 `in_progress` because 01_01_01 is `complete`, Phase 01 is `in_progress` because
-01_01 is `in_progress`).
+01_01 is `in_progress`). All three datasets are treated identically — no
+dataset-specific Phase scope exceptions exist. AoE2 ROADMAPs contain provisional
+language for role assignment, not committed roles.
 
 ---
 
 ## Adversarial Review
 
-**Reviewer:** reviewer-adversarial agent
+**Reviewer:** reviewer-adversarial agent (two passes + premature commitment audit)
 **Date:** 2026-04-11
-**Verdict:** REVISE BEFORE EXECUTION → **all issues resolved in-plan (see below)**
+**Final verdict:** APPROVE
 
-### Issues found
+### Pass 1 — template hierarchy review
 
-**#1 — CRITICAL: Contradictory derivation rule in STEP_STATUS.yaml**
+8 issues found and resolved in-plan:
 
-The plan (Step 5) says "Existing derivation rule comments are preserved
-unchanged." The existing comments in all three STEP_STATUS.yaml files state:
+- **#1 CRITICAL** — STEP_STATUS.yaml derivation comments updated to three-tier
+  chain (resolved in Step 5)
+- **#2 MODERATE** — File manifest reclassified: 5 new + 4 populated-from-empty +
+  modified (resolved in manifest)
+- **#3 MODERATE** — aoestats Phase 06 asymmetry (superseded by Step 0 retraction
+  — all datasets now identical)
+- **#4 MODERATE** — ARCHITECTURE.md tier 7 prose rewrite (resolved in Step 9)
+- **#5 MODERATE** — STEP_STATUS.yaml added to game package contract table
+  (resolved in Step 9)
+- **#6 MINOR** — Template pattern distinction documented (resolved in Design
+  Decision #3)
+- **#7 MINOR** — RESEARCH_LOG_TEMPLATE.md cross-reference clarified (resolved in
+  Step 4)
+- **#8 NOTE** — Population asymmetry documented in status file comments (resolved
+  in Step 6)
 
-> PHASE_STATUS.yaml is derived from this file:
-> Phase is complete when ALL its steps are complete.
+### Pass 2 — second-pass verification
 
-This is a direct Step -> Phase derivation. The new system introduces an
-intermediate layer: Step -> PIPELINE_SECTION_STATUS -> PHASE_STATUS. After this
-chore, STEP_STATUS.yaml will contain comments claiming it directly feeds
-PHASE_STATUS.yaml, while PHASE_STATUS.yaml (Step 7) will contain a new comment
-saying "STEP_STATUS.yaml -> PIPELINE_SECTION_STATUS.yaml -> this file."
+All 8 resolutions verified as adequate. One new issue found:
 
-These two derivation descriptions are mutually contradictory on the same disk.
-The STEP_STATUS.yaml comments **must** be updated to say STEP_STATUS feeds
-PIPELINE_SECTION_STATUS (not PHASE_STATUS directly). Agents read these comments
-at session start to understand the derivation chain.
+- **#9 WARNING** — aoestats PHASE_STATUS.yaml lists Phase 06 as `not_started`
+  despite ROADMAP declaring it out of scope. Superseded by Step 0 retraction —
+  Phase 06 is restored for all datasets, so the `not_started` status is now
+  correct.
 
-**#2 — MODERATE: File manifest misclassification**
+### Pass 3 — premature dataset strategy audit
 
-The manifest lists items 1-4 as "New files" but `phase_template.yaml`,
-`pipeline_section_template.yaml`, `dataset_roadmap_template.yaml`,
-`research_log_template.yaml` already exist on disk as 0-byte files (empty but
-tracked). Items 12-13 are listed as "Modified files" but
-`PIPELINE_SECTION_STATUS.yaml` for aoe2companion and aoestats does not exist on
-disk — these are file creations, not modifications. Design Decision #5 correctly
-acknowledges this but the manifest contradicts it.
+User-initiated audit of AoE2 ROADMAPs for premature methodological commitments.
+Findings:
 
-Proposed fix: reclassify. Actual split is roughly 5 new + 4 populated-from-empty
-+ 8 modified + 2 created-from-nothing.
-
-**#3 — MODERATE: aoestats Phase 06 asymmetry unaddressed**
-
-The aoestats ROADMAP declares "It does not run Phase 06." But the plan's Step 6
-uses an identical comment for all three datasets: "Pipeline sections for Phases
-02-06 added when those Phases become active." For aoestats, Phase 06 will never
-become active. The comment should say "Phases 02-05" for aoestats. Otherwise,
-when Phase 06 work begins for sc2egset and aoe2companion, an executor reading
-aoestats's PIPELINE_SECTION_STATUS.yaml may incorrectly add Phase 06 sections
-there too.
-
-**#4 — MODERATE: ARCHITECTURE.md Source-of-Truth Hierarchy prose inconsistency**
-
-ARCHITECTURE.md tier 7 currently reads: "Strictly derived from tiers (5) and
-(6). Never authoritative; never diverges." This means PHASE_STATUS is derived
-from ROADMAPs. Under the new system, PHASE_STATUS is derived from
-PIPELINE_SECTION_STATUS, which is derived from STEP_STATUS, which is derived
-from ROADMAPs. The plan does not update the "Strictly derived from tiers (5) and
-(6)" language — it only adds sub-tiers. The existing prose will contradict the
-new derivation chain unless also rewritten.
-
-**#5 — MODERATE: STEP_STATUS.yaml missing from ARCHITECTURE.md game package contract**
-
-The plan proposes adding STEP_STATUS.yaml and PIPELINE_SECTION_STATUS.yaml rows
-to the game package contract table. But STEP_STATUS.yaml is already absent from
-the table (only PHASE_STATUS.yaml is listed). The plan should list three rows to
-add, not two.
-
-**#6 — MINOR: `value:` + `required:` pattern stretched for document-structure templates**
-
-`dataset_roadmap_template.yaml` (Step 3) uses the pattern for structural sections
-(like `usage_section`, `source_data_section`) that are prose-level layout
-descriptions, not fields with concrete placeholder values. The heading is not a
-"value" — it is a constraint. Design smell, not a blocker.
-
-**#7 — MINOR: `research_log_template.yaml` references non-existent file**
-
-Step 4 introduces a `markdown_rendering` field pointing to
-`reports/RESEARCH_LOG_TEMPLATE.md`. This file already exists on disk at that
-path, but it is not mentioned elsewhere in the plan and does not appear in the
-file manifest. If it needs updating for consistency, the plan should say so. If
-it is left as-is, the template should note that.
-
-**#8 — NOTE: Asymmetry between PHASE_STATUS and PIPELINE_SECTION_STATUS population**
-
-PHASE_STATUS.yaml lists all 7 phases including `not_started` ones.
-PIPELINE_SECTION_STATUS.yaml only lists active Phase 01 sections. This asymmetry
-is justified (Design Decision #2) but should be explicitly documented in the
-status file comments so future executors know it is intentional, not an omission.
-
-### Summary
-
-- 1 critical issue (contradictory derivation comments — must fix in plan)
-- 5 moderate issues (manifest accuracy, aoestats asymmetry, ARCHITECTURE.md prose, missing table row, document-level)
-- 2 minor issues (template pattern semantics, cross-reference)
-- All moderate/minor issues resolvable with plan edits before execution begins
-
-### Resolutions applied
-
-All 8 issues have been resolved by editing the plan above:
-
-- **#1 CRITICAL** — Step 5 now specifies updating STEP_STATUS.yaml derivation
-  comments to the three-tier chain (Step -> PIPELINE_SECTION_STATUS -> PHASE_STATUS)
-- **#2 MODERATE** — File manifest reclassified: 5 new + 4 populated-from-empty + 10 modified
-- **#3 MODERATE** — Step 6 now specifies dataset-specific trailing comments
-  (Phases 02-06 for sc2egset/aoe2companion, Phases 02-05 for aoestats)
-- **#4 MODERATE** — Step 9 now includes full prose rewrite for ARCHITECTURE.md tier 7
-- **#5 MODERATE** — Step 9 now notes STEP_STATUS.yaml was already absent from the
-  game package contract table; both rows are additions
-- **#6 MINOR** — Design Decision #3 updated to distinguish field-level vs
-  document-structure template patterns
-- **#7 MINOR** — Step 4 research_log_template.yaml now includes a comment
-  clarifying that RESEARCH_LOG_TEMPLATE.md exists and is not modified by this PR
-- **#8 NOTE** — Step 6 PIPELINE_SECTION_STATUS.yaml structure now includes an
-  explicit comment documenting the asymmetry with PHASE_STATUS.yaml as intentional
+- **BLOCKER A** — Phase 06 exclusion for aoestats contradicts `docs/PHASES.md`
+  requirement that all datasets implement Phases 01-07. **Resolved by Step 0.**
+- **BLOCKER B** — PRIMARY/SUPPLEMENTARY role assignment lacks Phase 01 evidence.
+  Based on unverified row counts, structural observations, and circular thesis
+  structure reference. **Resolved by Step 0.**
+- **WARNING** — "Lightweight Phase 02-05 replication pass" undefined. **Resolved
+  by Step 0 — language removed.**
+- **WARNING** — Contradictions pre-framed as "Threats to Validity" rather than
+  findings. **Resolved by Step 0 — language removed.**
+- **WARNING** — "9x more matches" claim violates Invariant 6 (no derivation
+  code). **Resolved by Step 0 — replaced with caveated planning indicators.**
+- **NOTE** — `_current_plan.md` Step 6 propagated Phase 06 exclusion. **Resolved
+  — all datasets now use identical trailing comment.**
