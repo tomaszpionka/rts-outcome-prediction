@@ -4,7 +4,7 @@ description: >
   Implementation agent for all execution tasks. Use for: Phase work code,
   refactoring, tests, documentation, thesis chapters, chores, PR wrap-up.
   Triggers: "execute step", "implement", "run step", "write", or any
-  task requiring file modifications. For complex data science or thesis
+  work requiring file modifications. For complex data science or thesis
   writing steps, the user may switch to Opus via /model opus mid-session.
 model: sonnet
 effort: high

@@ -12,6 +12,17 @@ merged to `master`.
 ## [Unreleased]
 
 ### Added
+- `planning/` directory — unified orchestration root for plan/execute workflow
+- `planning/INDEX.md` — agent routing table (token-efficient entry point)
+- `planning/README.md` — lifecycle, purge protocol, source-of-truth rules
+- `planning/dags/README.md` — DAG format documentation, commit strategy, review gates
+- `docs/templates/dag_template.yaml` — YAML schema for execution DAGs
+- `docs/templates/dag_status_template.yaml` — lightweight execution state tracker
+- `docs/templates/spec_template.md` — YAML-frontmatter + markdown for task specs
+- `scripts/hooks/guard-master-branch.sh` — prevents Write/Edit on master branch
+- DAG, Job, Task Group, Task — operational terms in `docs/TAXONOMY.md`
+- DAG Orchestration section in `docs/agents/AGENT_MANUAL.md`
+- Tier 8b (planning artifacts) in `ARCHITECTURE.md` source-of-truth hierarchy
 - `docs/templates/phase_template.yaml` — ROADMAP authoring template for Phase blocks
 - `docs/templates/pipeline_section_template.yaml` — ROADMAP authoring template for Pipeline Section blocks
 - `docs/templates/dataset_roadmap_template.yaml` — ROADMAP document structure template
@@ -22,6 +33,12 @@ merged to `master`.
 - PIPELINE_SECTION_STATUS.yaml for all 3 datasets (sc2egset, aoe2companion, aoestats)
 
 ### Changed
+- `_current_plan.md` → `planning/current_plan.md` (path migration across 13 files)
+- `specs/` → `planning/specs/` (directory restructure)
+- `.claude/settings.json` — added branch guard hook to PreToolUse
+- Planners now required to include "Suggested Execution Graph" in every plan
+- Executor "Read first" updated for spec-file vs full-plan dispatch
+- Disambiguated casual "task" usage in agent descriptions (now a formal term)
 - STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets); updated derivation comments to three-tier chain
 - PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
 - ARCHITECTURE.md: documented full status tracking hierarchy (three-tier chain, game package contract table, progress tracking section)

@@ -27,7 +27,7 @@ When asked to create a plan or run a read-only/planning session:
 
 ## Commands
 
-| Task | Command |
+| Action | Command |
 |------|---------|
 | Run tests | `source .venv/bin/activate && poetry run pytest tests/ -v --cov=rts_predict --cov-report=term-missing` |
 | Lint | `source .venv/bin/activate && poetry run ruff check src/ tests/` |
