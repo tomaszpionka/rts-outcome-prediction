@@ -258,11 +258,6 @@ src/rts_predict/*/in_game_processing_manifest.json
 # Other files to ignore
 **/.DS_Store
 
-# PR body staging area
-!.github/tmp/
-.github/tmp/*
-!.github/tmp/.gitkeep
-
 # api dirs — ignore everything except .gitkeep
 **/data/*/api/*
 !**/data/*/api/.gitkeep

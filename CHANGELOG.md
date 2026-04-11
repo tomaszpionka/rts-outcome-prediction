@@ -15,17 +15,25 @@ merged to `master`.
 - `docs/templates/phase_template.yaml` — ROADMAP authoring template for Phase blocks
 - `docs/templates/pipeline_section_template.yaml` — ROADMAP authoring template for Pipeline Section blocks
 - `docs/templates/dataset_roadmap_template.yaml` — ROADMAP document structure template
-- `docs/templates/research_log_template.yaml` — research log document structure template
+- `docs/templates/research_log_template.yaml` — research log document structure template (updated to match new hierarchy)
 - `docs/templates/phase_status_template.yaml` — schema for PHASE_STATUS.yaml files
 - `docs/templates/pipeline_section_status_template.yaml` — schema for PIPELINE_SECTION_STATUS.yaml files
 - `docs/templates/step_status_template.yaml` — schema for STEP_STATUS.yaml files
 - PIPELINE_SECTION_STATUS.yaml for all 3 datasets (sc2egset, aoe2companion, aoestats)
+- `docs/ml_experiment_phases/PHASES.md`, `PIPELINE_SECTIONS.md`, `STEPS.md` — canonical reference docs for the three-tier tracking hierarchy
+- `docs/research/RESEARCH_LOG.md`, `RESEARCH_LOG_ENTRY.md`, `ROADMAP.md` — reference docs for research log and roadmap conventions
+- Materialization gate in plan/execute workflow: DAG.yaml + spec files required before execution begins
+- DAG.yaml and 10 spec files in `planning/` for this branch
 
 ### Changed
+- AoE2 game-level ROADMAP: retracted premature PRIMARY/SUPPLEMENTARY role assignments, replaced with provisional language pending Phase 01 Decision Gates
+- AoE2 dataset ROADMAPs (aoe2companion, aoestats): removed premature role banners, set roles to TO BE DETERMINED, restored full Phase 01-07 scope
 - STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets); updated derivation comments to three-tier chain
 - PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
 - ARCHITECTURE.md: documented full status tracking hierarchy (three-tier chain, game package contract table, progress tracking section)
-- CLAUDE.md: added PIPELINE_SECTION_STATUS.yaml to Key File Locations
+- CLAUDE.md: added materialization gate to Plan/Execute workflow; added PIPELINE_SECTION_STATUS.yaml to Key File Locations
+- `planning/README.md`: added materialization gate to lifecycle section
+- `.claude/agents/executor.md`: updated spec-first read order for dispatched agents
 
 ### Fixed
 

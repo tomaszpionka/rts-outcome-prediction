@@ -21,11 +21,17 @@ Task), see [`docs/TAXONOMY.md`](../docs/TAXONOMY.md).
 ## Lifecycle
 
 1. **Planning session:** Planner produces plan in chat. Parent writes to
-   `current_plan.md`. Adversarial reviewer reviews. User approves.
-2. **Execution session (first action):** Parent materializes `dags/DAG.yaml`
-   and `specs/spec_*.md` from the approved plan. Updates `INDEX.md`.
-3. **During execution:** Parent dispatches agents per `DAG.yaml`. Updates
-   `DAG_STATUS.yaml` (if used). Commits per task group.
+   `current_plan.md`. Plan MUST include a Suggested Execution Graph.
+   Adversarial reviewer reviews. User approves.
+2. **Materialization (first action after approval):** Parent generates
+   `dags/DAG.yaml` and `specs/spec_*.md` from the approved plan's
+   Suggested Execution Graph. Updates `INDEX.md` with spec links.
+   Commits the materialized artifacts. **Execution MUST NOT begin until
+   DAG + specs exist on disk — no exceptions, even for single-task plans.**
+3. **Execution (only after materialization is committed):** Parent reads
+   `dags/DAG.yaml` and dispatches agents per task group. Agents read their
+   assigned spec file, not the full plan. Updates `DAG_STATUS.yaml` (if
+   used). Commits per task group. Review gates after each group.
 4. **PR wrap-up:** All planning artifacts committed on the feature branch.
 5. **After merge:** Purge protocol runs (see below).
 
