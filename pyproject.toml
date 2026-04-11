@@ -85,7 +85,6 @@ source = ["src/rts_predict"]
 branch = true
 omit = [
     "sandbox/**",
-    "**/_legacy/**",
 ]
 
 [tool.coverage.report]
@@ -102,8 +101,6 @@ ignore_missing_imports = true
 
 [tool.mirror_drift]
 exempt_sources = [
-    "src/rts_predict/sc2/data/samples/process_sample.py",
-    "src/rts_predict/sc2/data/schemas.py",
     "src/rts_predict/sc2/config.py",
     "src/rts_predict/aoe2/config.py",
     "src/rts_predict/aoe2/data/aoe2companion/types.py",

@@ -41,7 +41,7 @@ Every game package (`sc2/`, `aoe2/`, ...) must contain:
 | `cli.py` | CLI entry point registered in `pyproject.toml` | Yes |
 | `config.py` | `GAME_DIR`, `ROOT_DIR`, `REPORTS_DIR`, DB paths, constants | Yes |
 | `reports/<dataset>/PHASE_STATUS.yaml` | Machine-readable phase progress (dataset-scoped) | Per dataset |
-| `data/` | Ingestion, processing, exploration, audit modules | Yes |
+| `data/` | Processing module (Phase 01 minimal subset) | Yes |
 | `data/<dataset>/raw/` | Raw source data (gitignored contents, README tracked) | Yes |
 | `data/<dataset>/staging/` | Intermediate artifacts by type (gitignored, README tracked) | When extraction exists |
 | `data/<dataset>/db/` | DuckDB database file (gitignored, `.gitkeep` tracked) | Yes |
