@@ -8,6 +8,11 @@
 
 ---
 
+> **Role: SUPPLEMENTARY VALIDATION.** This dataset runs full Phase 01,
+> then a lightweight Phase 02–05 replication pass. It does not run
+> Phase 06. See `src/rts_predict/aoe2/reports/ROADMAP.md` for the
+> dataset strategy rationale.
+
 ## How to use this document
 
 This file decomposes Phases into Pipeline Sections and Steps for the aoestats
@@ -104,7 +109,7 @@ gate:
   continue_predicate: "Inventory artifacts exist on disk."
   halt_predicate: "Raw directory does not exist or is empty."
 thesis_mapping:
-  - "Chapter 3 — Data & Methodology > 3.1 Data Sources > aoestats"
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
 research_log_entry: "Required on completion."
 ```
 

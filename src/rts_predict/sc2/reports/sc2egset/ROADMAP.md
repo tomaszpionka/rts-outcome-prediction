@@ -87,7 +87,7 @@ gate:
   continue_predicate: "Inventory artifacts exist on disk."
   halt_predicate: "Raw directory does not exist or is empty."
 thesis_mapping:
-  - "Chapter 3 — Data & Methodology > 3.1 Data Sources > SC2EGSet"
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
 research_log_entry: "Required on completion."
 ```
 

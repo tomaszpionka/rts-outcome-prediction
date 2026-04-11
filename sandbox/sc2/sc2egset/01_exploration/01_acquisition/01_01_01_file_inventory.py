@@ -257,7 +257,7 @@ logger.info("Markdown artifact written: %s", md_path)
 # - `src/rts_predict/sc2/reports/sc2egset/artifacts/01_01/01_01_01_file_inventory.md` — human-readable inventory report
 #
 # ### Thesis mapping
-# - Chapter 3 — Data & Methodology > 3.1 Data Sources > SC2EGSet
+# - Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)
 #
 # ### Follow-ups
 # - Step 01_01_02 (if defined) or Step 01_02_01: profile the replay JSON schema and field completeness

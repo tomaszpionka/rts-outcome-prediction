@@ -14,6 +14,31 @@ Reverse chronological entries.
 
 ---
 
+## 2026-04-11 — [CROSS] AoE2 Dataset Strategy Decision
+
+**Category:** C (chore — decision record)
+
+### What
+Formalized the AoE2 dataset strategy: aoe2companion is PRIMARY,
+aoestats is SUPPLEMENTARY VALIDATION.
+
+### Why
+Both datasets had identical ROADMAP structures implying equal treatment.
+Without formalization, Phase 01 work proceeds on both at equal priority,
+potentially wasting 50% of AoE2 effort.
+
+### Decision
+- aoe2companion (277M matches, daily, 2020–2026) runs full Phases 01–07.
+- aoestats (30.7M matches, weekly, 2022–2026) runs full Phase 01, then
+  lightweight Phase 02–05 replication for validation.
+- Phase 06 uses aoe2companion exclusively.
+- Contradictions between datasets are reported in thesis §6.5.
+
+### Thesis mapping
+- Chapter 4 — Data and Methodology > 4.1 Datasets
+
+---
+
 ## 2026-04-09 — [Phase 01 / Step 01_01_01] File Inventory (all 3 datasets)
 
 **Category:** A (science)
@@ -95,7 +120,7 @@ in the ROADMAP source data section — this is not a new finding.
 - Ingestion strategy depends on what we find in schema discovery (01_01_02/03).
 
 ### Thesis mapping
-- Chapter 3 — Data & Methodology > 3.1 Data Sources
+- Chapter 4 — Data and Methodology > 4.1 Datasets
 
 ### Open questions / follow-ups
 - sc2egset: The 4 files at root and the no-extension files within tournament

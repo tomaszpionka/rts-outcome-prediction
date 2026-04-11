@@ -289,7 +289,7 @@ logger.info("Markdown artifact written: %s", md_path)
 # - `src/rts_predict/aoe2/reports/aoestats/artifacts/01_01/01_01_01_file_inventory.md` — human-readable inventory report
 #
 # ### Thesis mapping
-# - Chapter 3 — Data & Methodology > 3.1 Data Sources > aoestats
+# - Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data
 #
 # ### Follow-ups
 # - Step 01_01_02 (if defined) or Step 01_02_01: profile the Parquet schema and field completeness for each subdirectory
