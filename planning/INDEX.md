@@ -10,8 +10,16 @@
 ## Task specs
 - [Parallel execution guide](specs/README.md)
 
-<!-- Spec links are added here when the DAG is materialized.
-     Reset to this template state after PR merge. -->
+- [spec_01](specs/spec_01_templates.md) — stage + commit 7 template files
+- [spec_02](specs/spec_02_status_files.md) — stage + commit 9 status files
+- [spec_03](specs/spec_03_roadmap_retractions.md) — stage AoE2 ROADMAP retractions + research log
+- [spec_04](specs/spec_04_phases_md.md) — populate docs/ml_experiment_phases/PHASES.md
+- [spec_05](specs/spec_05_pipeline_sections_md.md) — populate PIPELINE_SECTIONS.md
+- [spec_06](specs/spec_06_steps_md.md) — populate STEPS.md
+- [spec_07](specs/spec_07_research_log_md.md) — populate docs/research/RESEARCH_LOG.md
+- [spec_08](specs/spec_08_research_log_entry_md.md) — populate RESEARCH_LOG_ENTRY.md
+- [spec_09](specs/spec_09_research_roadmap_md.md) — populate docs/research/ROADMAP.md
+- [spec_10](specs/spec_10_cleanup.md) — workflow files, delete relic, CHANGELOG
 
 ## Agent routing
 
