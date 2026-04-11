@@ -14,12 +14,15 @@ TRANSCRIPT=$(echo "$INPUT" | jq -r '.agent_transcript_path // "none"')
 
 # --- Model lookup from agent_type ---
 case "$AGENT_TYPE" in
-  planner-science)  MODEL="claude-opus-4-6"           ;;
-  executor)         MODEL="claude-sonnet-4-6"         ;;
-  planner)          MODEL="claude-sonnet-4-6"         ;;
-  reviewer)         MODEL="claude-sonnet-4-6"         ;;
-  lookup)           MODEL="claude-haiku-4-5-20251001" ;;
-  *)                MODEL="claude-sonnet-4-6"         ;;
+  planner-science)      MODEL="claude-opus-4-6"           ;;
+  reviewer-deep)        MODEL="claude-opus-4-6"           ;;
+  reviewer-adversarial) MODEL="claude-opus-4-6"           ;;
+  writer-thesis)        MODEL="claude-opus-4-6"           ;;
+  executor)             MODEL="claude-sonnet-4-6"         ;;
+  planner)              MODEL="claude-sonnet-4-6"         ;;
+  reviewer)             MODEL="claude-sonnet-4-6"         ;;
+  lookup)               MODEL="claude-haiku-4-5-20251001" ;;
+  *)                    MODEL="claude-sonnet-4-6"         ;;
 esac
 
 # --- SessionOpen: emit once per session on first SubagentStart ---

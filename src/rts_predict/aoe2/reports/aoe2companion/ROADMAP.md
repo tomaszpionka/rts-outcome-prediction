@@ -8,9 +8,10 @@
 
 ---
 
-> **Role: PRIMARY.** This is the primary AoE2 dataset. It runs full
-> Phases 01–07. See `src/rts_predict/aoe2/reports/ROADMAP.md` for the
-> dataset strategy rationale.
+> **Role: TO BE DETERMINED.** Role assignment (PRIMARY vs SUPPLEMENTARY
+> VALIDATION) will be formalized at the Phase 01 Decision Gate (01_06) based
+> on comparative data quality findings. Until then, this dataset runs all
+> Phases at full scope per `docs/PHASES.md`.
 
 ## How to use this document
 
@@ -28,38 +29,25 @@ Steps are numbered `XX_YY_ZZ` where `XX` = Phase, `YY` = Pipeline Section,
 
 ## Source data
 
-> **Provenance:** Row counts, table structures, and schema drift details below
-> come from pre-phase-system DuckDB ingestion (reports/aoe2companion/README.md,
-> 2026-04-07). They have NOT been verified under the Phase 01 system. Step
-> 01_01_02 (schema discovery) will produce authoritative schema and row count
-> artifacts. Until then, treat these values as planning context, not verified
-> findings.
-
 **aoe2companion API** — community match history and rating dataset.
-~277M matches, ~58M ratings, ~2.4M leaderboard entries, ~3.6M profiles across
-4,147 files totalling ~9.3 GB. Downloaded 2026-04-06.
+Downloaded 2026-04-06. File counts and date ranges are from
+Step 01_01_01 (file inventory).
+
+| Subdirectory | Files | Size | Notes |
+|---|---|---|---|
+| `matches/` | 2,073 `.parquet` | 6,622 MB | Daily, 2020-08-01 to 2026-04-04, no gaps |
+| `ratings/` | 2,072 `.csv` | 2,520 MB | Daily, 2020-08-01 to 2026-04-04, 1 gap (2 days, 2025-07-10–2025-07-12) |
+| `leaderboards/` | 1 `.parquet` | 83 MB | Single-file snapshot |
+| `profiles/` | 1 `.parquet` | 162 MB | Single-file snapshot |
+
+**Total:** 4,154 files, ~9.3 GB.
 
 **Raw data is immutable. The API download will not be repeated.**
 Acquisition provenance is recorded in
 `src/rts_predict/aoe2/reports/aoe2companion/README.md`.
 
-**4 raw tables:**
-
-| Table | Rows | Nature |
-|-------|------|--------|
-| raw_matches | 277,099,059 | append-ordered historical records |
-| raw_ratings | 58,317,433 | append-ordered historical records |
-| raw_leaderboard | 2,381,227 | point-in-time snapshot (T_snapshot = 2026-04-06T21:08:57Z) |
-| raw_profiles | 3,609,686 | point-in-time snapshot (T_snapshot = 2026-04-06T21:09:07Z) |
-
-**WARNING — snapshot tables:** `raw_leaderboard` and `raw_profiles` MUST NOT be
-joined to historical matches as if they were time-varying. They reflect state at
-`T_snapshot` only and must be treated as static reference lookups.
-
-**Sparse rating regime:** The rating history data is sparse before 2025-06-26.
-Files dated 2020-08-01 through 2025-06-26 account for 1,791 of the 2,072 rating
-files and contain fewer than 1,024 bytes each. Analyses that depend on rating
-completeness must segment at this boundary date.
+Row counts, schema, and column-level characteristics will be established
+by Phase 01 Steps 01_01_02 (schema discovery) and 01_03 (systematic profiling).
 
 ---
 

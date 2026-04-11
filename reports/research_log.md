@@ -36,6 +36,18 @@ potentially wasting 50% of AoE2 effort.
 ### Thesis mapping
 - Chapter 4 — Data and Methodology > 4.1 Datasets
 
+### Retraction (2026-04-11)
+
+The PRIMARY / SUPPLEMENTARY VALIDATION role assignments and the aoestats Phase
+06 exclusion are retracted. These commitments were made before Phase 01 EDA and
+rely on unverified row counts and structural observations (file granularity)
+rather than schema completeness, null rates, or feature availability — evidence
+that Phase 01 Steps 01_02 through 01_06 are designed to produce. Per
+docs/PHASES.md, whether generalisation holds between datasets is a Phase 01/02
+finding, not a prior assumption. Both datasets now run full Phases 01-07
+independently. Role assignment is deferred to Pipeline Section 01_06 (Decision
+Gates).
+
 ---
 
 ## 2026-04-09 — [Phase 01 / Step 01_01_01] File Inventory (all 3 datasets)

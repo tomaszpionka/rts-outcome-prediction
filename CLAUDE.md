@@ -38,13 +38,23 @@ When asked to create a plan or run a read-only/planning session:
 
 ## Plan / Execute Workflow
 
-All non-trivial work uses two sessions. `planning/current_plan.md` is the handoff artifact.
+All non-trivial work uses three phases. `planning/current_plan.md` is the
+handoff artifact; `planning/dags/DAG.yaml` and `planning/specs/spec_*.md`
+are the execution contract.
 
 **Planning session:** Identify category (A–F), read required context, write plan
-to `planning/current_plan.md`. No code changes. End by asking for approval.
+to `planning/current_plan.md`. Plan MUST include a Suggested Execution Graph.
+No code changes. End by asking for approval.
 
-**Execution session:** Read `planning/current_plan.md` → execute exactly as written → run
-tests after each logical unit → report which gate condition is met.
+**Materialization (first action after approval):** Generate `planning/dags/DAG.yaml`
+and `planning/specs/spec_*.md` from the approved plan. Update `planning/INDEX.md`
+with spec links. Commit the materialization. Execution MUST NOT begin until
+DAG + specs exist on disk — no exceptions, even for single-task plans.
+
+**Execution:** Read `planning/dags/DAG.yaml` → dispatch agents per task groups →
+agents read their assigned spec file, not the full plan → review gates after
+each task group → run tests after each logical unit → report which gate
+condition is met.
 
 | Category | Branch prefix | Read before planning |
 |----------|--------------|---------------------|

@@ -1,10 +1,3 @@
-> **Provenance note:** This file is a permanent acquisition provenance record
-> from the pre-phase-system era (2026-04-07). The row counts, schema details,
-> and dtype decisions recorded here have NOT been re-validated under the Phase
-> 01 system. Phase 01 Step 01_01_02 (schema discovery) will produce
-> authoritative schema artifacts. Do not cite numbers from this file as
-> Phase-01-validated findings.
-
 # aoestats -- Raw Data Provenance
 
 Permanent provenance record for the aoestats raw data. This file is
@@ -31,27 +24,6 @@ artifacts).
 
 - `2025-11-16_2025-11-22_players.parquet`: missing_from_disk, documented in
   manifest with status='failed'. This is a known gap, not silent corruption.
-
-## Row counts at T_ingestion (2026-04-07T16:36:52Z)
-
-| Table | Rows | Files |
-|-------|------|-------|
-| raw_matches | 30,690,651 | 172 |
-| raw_players | 107,627,584 | 171 |
-
-## Schema drift
-
-Type drift resolved by DuckDB `union_by_name = true` (widest compatible type):
-
-**raw_matches:**
-- `raw_match_type`: DOUBLE to BIGINT
-
-**raw_players:**
-- `feudal_age_uptime`: DOUBLE to INTEGER
-- `castle_age_uptime`: DOUBLE to INTEGER
-- `imperial_age_uptime`: DOUBLE to INTEGER
-- `profile_id`: DOUBLE to BIGINT
-- `opening`: VARCHAR to INTEGER
 
 ## Reconciliation
 

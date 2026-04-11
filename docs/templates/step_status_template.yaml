@@ -1,0 +1,71 @@
+# Schema template for STEP_STATUS.yaml files.
+#
+# One STEP_STATUS.yaml exists per dataset, at:
+#   src/rts_predict/<game>/reports/<dataset>/STEP_STATUS.yaml
+#
+# This file defines the authoritative schema for those status files.
+# STEP_STATUS is the authoritative source for the derivation chain:
+#   this file -> PIPELINE_SECTION_STATUS.yaml -> PHASE_STATUS.yaml
+#
+# See also: docs/templates/pipeline_section_status_template.yaml (downstream)
+#           docs/templates/phase_status_template.yaml (two tiers downstream)
+#
+# References:
+#   - docs/TAXONOMY.md -- definitions of Phase, Pipeline Section, Step
+#   - docs/PHASES.md   -- canonical Phase list
+#   - src/rts_predict/<game>/reports/<dataset>/ROADMAP.md -- step definitions
+
+# -- File identity --
+file_path:
+  value: "src/rts_predict/<game>/reports/<dataset>/STEP_STATUS.yaml"
+  required: false
+  # Inferred from directory structure; omitted in practice.
+
+game:
+  value: "<sc2 | aoe2>"
+  required: true
+
+dataset:
+  value: "<sc2egset | aoe2companion | aoestats>"
+  required: true
+
+# -- Derivation --
+feeds:
+  value: "src/rts_predict/<game>/reports/<dataset>/PIPELINE_SECTION_STATUS.yaml"
+  required: true
+
+# -- Steps --
+steps:
+  description: >
+    Map of step number (string "NN_NN_NN") to step entry.
+    Steps are added incrementally as they are defined in the ROADMAP.
+    The step number encodes the full hierarchy: Phase_PipelineSection_Step.
+  entry_schema:
+    step_number:
+      value: "<NN_NN_NN>"     # Phase_PipelineSection_Step, e.g. "01_01_01"
+      required: true
+    name:
+      value: "<step name from ROADMAP>"
+      required: true
+    pipeline_section:
+      value: "<NN_NN>"        # Upward link to pipeline section
+      required: true
+      # Derived from the step number (first two components), but made explicit
+      # so status queries do not need to parse the step number string.
+    status:
+      value: "<not_started | in_progress | complete>"
+      required: true
+    completed_at:
+      value: "<YYYY-MM-DD>"
+      required: false
+      # Required when status is complete; omit otherwise.
+
+# -- Derivation rule --
+derivation_rule:
+  description: >
+    This file feeds PIPELINE_SECTION_STATUS.yaml:
+      Pipeline section is complete    when ALL its steps are complete.
+      Pipeline section is in_progress when ANY step is in_progress or complete.
+      Pipeline section is not_started when NO step has started.
+  required: false
+  # Informational. Not a field to be filled in.

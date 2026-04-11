@@ -12,26 +12,59 @@ merged to `master`.
 ## [Unreleased]
 
 ### Added
-- `docs/templates/phase_template.yaml` — ROADMAP authoring template for Phase blocks
-- `docs/templates/pipeline_section_template.yaml` — ROADMAP authoring template for Pipeline Section blocks
-- `docs/templates/dataset_roadmap_template.yaml` — ROADMAP document structure template
-- `docs/templates/research_log_template.yaml` — research log document structure template
-- `docs/templates/phase_status_template.yaml` — schema for PHASE_STATUS.yaml files
-- `docs/templates/pipeline_section_status_template.yaml` — schema for PIPELINE_SECTION_STATUS.yaml files
-- `docs/templates/step_status_template.yaml` — schema for STEP_STATUS.yaml files
-- PIPELINE_SECTION_STATUS.yaml for all 3 datasets (sc2egset, aoe2companion, aoestats)
+- `scripts/hooks/check_phases_drift.py` — pre-commit hook that detects drift between `docs/PHASES.md` and `docs/ml_experiment_phases/PHASES.md` by comparing phase number + name pairs; fires only when either file is staged
+- `.pre-commit-config.yaml`: `phases-drift` hook entry wired to `check_phases_drift.py`
 
 ### Changed
-- STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets); updated derivation comments to three-tier chain
-- PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
-- ARCHITECTURE.md: documented full status tracking hierarchy (three-tier chain, game package contract table, progress tracking section)
-- CLAUDE.md: added PIPELINE_SECTION_STATUS.yaml to Key File Locations
+- `docs/templates/research_log_template.yaml`: normalized `ordering:` field to `value:` + `required:` pattern; updated `markdown_rendering` to point to `docs/research/RESEARCH_LOG_ENTRY.md`
+- `planning/current_plan.md`: added `scripts/hooks/log-subagent.sh` to T10 file_scope (was modified in execution but missing from plan manifest)
+- `CHANGELOG.md` [3.0.3]: added `.gitignore` removal to `### Removed` (was undocumented)
+- `src/rts_predict/aoe2/reports/ROADMAP.md`: removed bullet #3 (Pre-Phase-01 DuckDB row count claim) from Dataset Strategy planning indicators
+- `src/rts_predict/aoe2/reports/aoe2companion/ROADMAP.md`: replaced Source data section — removed provenance callout, DuckDB row count table, snapshot table warning, and sparse rating regime note; replaced with file-inventory-derived table (Step 01_01_01) and forward reference to schema discovery steps
+- `src/rts_predict/aoe2/reports/aoestats/ROADMAP.md`: replaced Source data section — removed provenance callout, DuckDB row count table, and schema drift section; replaced with file-inventory-derived table and forward reference to schema discovery steps
+- `src/rts_predict/aoe2/reports/aoe2companion/README.md`: removed pre-phase provenance note, T_ingestion row count section, snapshot table section, sparse rating regime section, and dtype strategy section (all DuckDB-derived); acquisition date preserved under Acquisition
+- `src/rts_predict/aoe2/reports/aoestats/README.md`: removed pre-phase provenance note, T_ingestion row count section, and schema drift section (all DuckDB-derived); acquisition date preserved under Acquisition
 
 ### Fixed
 
 ### Removed
+- `reports/RESEARCH_LOG_TEMPLATE.md` — superseded by `docs/research/RESEARCH_LOG_ENTRY.md` (added in 3.0.3)
 
-## [3.0.2] — 2026-04-11 (PR #N: chore/dag-orchestration-infrastructure)
+## [3.0.3] — 2026-04-11 (PR #108: chore/template-hierarchy)
+
+### Added
+- `docs/templates/phase_template.yaml` — ROADMAP authoring template for Phase blocks
+- `docs/templates/pipeline_section_template.yaml` — ROADMAP authoring template for Pipeline Section blocks
+- `docs/templates/dataset_roadmap_template.yaml` — ROADMAP document structure template
+- `docs/templates/research_log_template.yaml` — research log document structure template (updated to match new hierarchy)
+- `docs/templates/phase_status_template.yaml` — schema for PHASE_STATUS.yaml files
+- `docs/templates/pipeline_section_status_template.yaml` — schema for PIPELINE_SECTION_STATUS.yaml files
+- `docs/templates/step_status_template.yaml` — schema for STEP_STATUS.yaml files
+- PIPELINE_SECTION_STATUS.yaml for all 3 datasets (sc2egset, aoe2companion, aoestats)
+- `docs/ml_experiment_phases/PHASES.md`, `PIPELINE_SECTIONS.md`, `STEPS.md` — canonical reference docs for the three-tier tracking hierarchy
+- `docs/research/RESEARCH_LOG.md`, `RESEARCH_LOG_ENTRY.md`, `ROADMAP.md` — reference docs for research log and roadmap conventions
+- Materialization gate in plan/execute workflow: DAG.yaml + spec files required before execution begins
+- DAG.yaml and 10 spec files in `planning/` for this branch
+
+### Changed
+- AoE2 game-level ROADMAP: retracted premature PRIMARY/SUPPLEMENTARY role assignments, replaced with provisional language pending Phase 01 Decision Gates
+- AoE2 dataset ROADMAPs (aoe2companion, aoestats): removed premature role banners, set roles to TO BE DETERMINED, restored full Phase 01-07 scope
+- STEP_STATUS.yaml: added `game` and `pipeline_section` fields (all 3 datasets); updated derivation comments to three-tier chain
+- PHASE_STATUS.yaml: added derivation chain comments (all 3 datasets)
+- CLAUDE.md: added materialization gate to Plan/Execute workflow; added PIPELINE_SECTION_STATUS.yaml to Key File Locations
+- `planning/README.md`: added materialization gate to lifecycle section
+- `.claude/agents/executor.md`: updated spec-first read order for dispatched agents
+- `scripts/hooks/log-subagent.sh`: added model mappings for reviewer-deep, reviewer-adversarial, and writer-thesis agents
+
+### Fixed
+
+### Removed
+- `.gitignore`: removed `.github/tmp/` staging-area override rules (`!.github/tmp/`, `.github/tmp/*`, `!.github/tmp/.gitkeep`); the directory's `.gitkeep` remains tracked and ephemeral files (`pr.txt`, `commit.txt`) are cleaned up by the workflow immediately after use
+
+### Follow-up
+- DAG review gates: the execution graph specified 3 separate reviewer agents for TG02/TG03/TG04 but the orchestrator combined them into a single reviewer invocation. The TG05 intermediate review gate was also elided in favor of a direct `reviewer-deep` final pass. Both deviations preserved dependency ordering. Follow-up: consider whether `planning/dags/DAG.yaml` should support a `combinable: true` flag on adjacent review gates to make this consolidation explicit rather than ad-hoc.
+
+## [3.0.2] — 2026-04-11 (PR #107: chore/dag-orchestration-infrastructure)
 
 ### Added
 - `planning/` directory — unified orchestration root for plan/execute workflow

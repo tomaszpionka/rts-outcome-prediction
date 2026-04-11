@@ -8,10 +8,10 @@
 
 ---
 
-> **Role: SUPPLEMENTARY VALIDATION.** This dataset runs full Phase 01,
-> then a lightweight Phase 02–05 replication pass. It does not run
-> Phase 06. See `src/rts_predict/aoe2/reports/ROADMAP.md` for the
-> dataset strategy rationale.
+> **Role: TO BE DETERMINED.** Role assignment (PRIMARY vs SUPPLEMENTARY
+> VALIDATION) will be formalized at the Phase 01 Decision Gate (01_06) based
+> on comparative data quality findings. Until then, this dataset runs all
+> Phases at full scope per `docs/PHASES.md`.
 
 ## How to use this document
 
@@ -29,45 +29,29 @@ Steps are numbered `XX_YY_ZZ` where `XX` = Phase, `YY` = Pipeline Section,
 
 ## Source data
 
-> **Provenance:** Row counts, table structures, and schema drift details below
-> come from pre-phase-system DuckDB ingestion (reports/aoestats/README.md,
-> 2026-04-07). They have NOT been verified under the Phase 01 system. Step
-> 01_01_02 (schema discovery) will produce authoritative schema and row count
-> artifacts. Until then, treat these values as planning context, not verified
-> findings.
-
 **aoestats.io weekly dumps** — community match and player statistics dataset.
-~30.7M matches, ~107.6M players across 343 files on disk (172 match parquets +
-171 player parquets). Downloaded 2026-04-06.
+Downloaded 2026-04-06. File counts and date ranges are from
+Step 01_01_01 (file inventory).
+
+| Subdirectory | Files | Size | Notes |
+|---|---|---|---|
+| `matches/` | 172 `.parquet` | 611 MB | Weekly, 2022-08-28 to 2026-02-07, 3 gaps (43, 8, 8 days) |
+| `players/` | 171 `.parquet` | 3,163 MB | Weekly, same range; 1 known missing file (see below) |
+| `overview/` | 1 `.json` | <1 MB | Single-file snapshot |
+
+**Total:** 349 files in subdirectories, ~3.8 GB.
+
+**WARNING — known file gap:** `2025-11-16_2025-11-22_players.parquet` is
+missing from disk. This is a documented download failure (status='failed' in
+manifest), not silent corruption. All Steps that depend on players data MUST
+acknowledge this gap.
 
 **Raw data is immutable. The weekly dump download will not be repeated.**
 Acquisition provenance is recorded in
 `src/rts_predict/aoe2/reports/aoestats/README.md`.
 
-**2 raw tables:**
-
-| Table | Rows | Files |
-|-------|------|-------|
-| raw_matches | 30,690,651 | 172 |
-| raw_players | 107,627,584 | 171 |
-
-**WARNING — known data gap:** `2025-11-16_2025-11-22_players.parquet` is missing
-from disk. This is a documented download failure recorded in the manifest with
-`status='failed'`. It is not silent corruption. The raw_players table therefore
-contains 171 files instead of 172. All Steps that depend on raw_players MUST
-acknowledge this gap.
-
-**WARNING — schema drift:** Type drift was resolved by DuckDB
-`union_by_name = true` (widest compatible type wins). Known drifted columns:
-
-- `raw_matches.raw_match_type`: DOUBLE → BIGINT
-- `raw_players.feudal_age_uptime`: DOUBLE → INTEGER
-- `raw_players.castle_age_uptime`: DOUBLE → INTEGER
-- `raw_players.imperial_age_uptime`: DOUBLE → INTEGER
-- `raw_players.profile_id`: DOUBLE → BIGINT
-- `raw_players.opening`: VARCHAR → INTEGER
-
-Profiling steps must verify that resolved types match the canonical types above.
+Row counts, schema, and column-level characteristics will be established
+by Phase 01 Steps 01_01_02 (schema discovery) and 01_03 (systematic profiling).
 
 ---
 

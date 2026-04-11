@@ -1,0 +1,59 @@
+# Template for the overall structure of reports/research_log.md.
+#
+# This is the container template -- it documents what the research log
+# document must contain. Individual entry structure is defined in:
+#   docs/templates/research_log_entry_template.yaml
+#
+# Note: docs/research/RESEARCH_LOG_ENTRY.md is a human-readable rendering of
+# the entry template (research_log_entry_template.yaml). The YAML template
+# is the authoritative schema; the .md rendering is a convenience for authors.
+#
+# References:
+#   - docs/TAXONOMY.md -- definitions of Phase, Pipeline Section, Step
+#   - docs/templates/research_log_entry_template.yaml -- entry-level schema
+
+document:
+  path: "reports/research_log.md"
+  description: >
+    Unified chronological narrative of all research decisions and
+    findings, tagged by dataset. Newest entries first.
+  required: true
+
+header:
+  thesis_title:
+    value: "<full thesis title>"
+    required: true
+  ordering:
+    value: "Reverse chronological (newest first)"
+    required: false
+  required: true
+
+entry_template:
+  path: "docs/templates/research_log_entry_template.yaml"
+  markdown_rendering: "docs/research/RESEARCH_LOG_ENTRY.md"
+  required: true
+
+hierarchy_linking:
+  description: >
+    Each entry's title includes a Phase/Step reference
+    (e.g., "[Phase 01 / Step 01_01_01]") that links it to the
+    Phase > Pipeline Section > Step hierarchy. Non-Phase entries
+    use [CROSS] or [CHORE] tags. The Pipeline Section is
+    implicit in the Step number (first two components).
+  required: true
+
+dataset_tags:
+  allowed: ["sc2egset", "aoe2companion", "aoestats", "CROSS"]
+  description: >
+    Every entry must specify its dataset scope. CROSS is used for
+    entries that span multiple datasets or are game-agnostic.
+  required: true
+
+cross_references:
+  to_roadmaps: >
+    Entry artifacts must match paths declared in the ROADMAP step
+    definition's outputs field.
+  to_step_status: >
+    Completion of a research log entry is a prerequisite for marking
+    a Step as complete in STEP_STATUS.yaml.
+  required: true
