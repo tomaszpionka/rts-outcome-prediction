@@ -1,11 +1,9 @@
-"""Data ingestion, processing, and temporal splitting for the SC2 ML pipeline.
+"""SC2 data pipeline — Phase 01 minimal subset.
 
 Submodules:
-    schemas     — PyArrow schemas and PLAYER_STATS_FIELD_MAP for Parquet event files.
-    ingestion   — Raw replay loading (JSON to DuckDB) and in-game event extraction
-                  (replay to Parquet to DuckDB).
-    processing  — DuckDB view creation, series grouping, and temporal train/val/test
-                  splitting with tournament-level boundaries.
-    cv          — Expanding-window temporal cross-validator with series-aware
-                  fold boundaries for scikit-learn integration.
+    processing  — raw_enriched view creation (filesystem-derived columns only).
+
+Legacy modules (ingestion, exploration, audit, schemas) were deleted in v2.1.0.
+They assumed raw file schema knowledge not validated under the Phase 01 system.
+Phase 01 Step 01_01_02 (schema discovery) will produce validated replacements.
 """

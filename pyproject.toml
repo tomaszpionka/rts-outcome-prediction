@@ -1,6 +1,6 @@
 [project]
 name = "rts-outcome-prediction"
-version = "2.0.0"
+version = "3.0.0"
 description = "RTS game result prediction — SC2 and AoE2 comparative ML study"
 authors = [{name = "Tomasz Pionka"}]
 requires-python = ">=3.12,<3.13"
@@ -83,7 +83,9 @@ markers = [
 [tool.coverage.run]
 source = ["src/rts_predict"]
 branch = true
-omit = ["sandbox/**"]
+omit = [
+    "sandbox/**",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -99,8 +101,6 @@ ignore_missing_imports = true
 
 [tool.mirror_drift]
 exempt_sources = [
-    "src/rts_predict/sc2/data/samples/process_sample.py",
-    "src/rts_predict/sc2/data/schemas.py",
     "src/rts_predict/sc2/config.py",
     "src/rts_predict/aoe2/config.py",
     "src/rts_predict/aoe2/data/aoe2companion/types.py",
