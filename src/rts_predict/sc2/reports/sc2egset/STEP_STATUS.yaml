@@ -2,16 +2,21 @@
 # Derived from ROADMAP.md step definitions.
 # If this file disagrees with the ROADMAP, this file is wrong.
 #
-# PHASE_STATUS.yaml is derived from this file:
-#   Phase is complete    when ALL its steps are complete.
-#   Phase is in_progress when ANY step is in_progress or complete.
-#   Phase is not_started when NO step has started.
+# PIPELINE_SECTION_STATUS.yaml is derived from this file:
+#   Pipeline section is complete    when ALL its steps are complete.
+#   Pipeline section is in_progress when ANY step is in_progress or complete.
+#   Pipeline section is not_started when NO step has started.
+#
+# Derivation chain:
+#   this file -> PIPELINE_SECTION_STATUS.yaml -> PHASE_STATUS.yaml
 
+game: sc2
 dataset: sc2egset
 
 steps:
   "01_01_01":
     name: "File Inventory"
+    pipeline_section: "01_01"
     status: complete
     completed_at: "2026-04-09"
   # Future steps will be added here as they are defined in the ROADMAP.

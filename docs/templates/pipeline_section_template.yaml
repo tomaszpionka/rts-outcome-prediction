@@ -1,0 +1,66 @@
+# ROADMAP authoring template for Pipeline Section blocks.
+#
+# Use this template when defining a Pipeline Section within a Phase in a
+# dataset ROADMAP.md. This defines the Pipeline Section block structure that
+# ROADMAP authors use.
+#
+# References:
+#   - docs/TAXONOMY.md     -- definitions of Phase, Pipeline Section, Step
+#   - docs/PHASES.md       -- canonical Pipeline Section list (numbers, names)
+#   - docs/templates/step_template.yaml -- full Step definition schema
+#
+# Status file template (for PIPELINE_SECTION_STATUS.yaml):
+#   docs/templates/pipeline_section_status_template.yaml
+
+# -- Identity --
+section_number:
+  value: "<NN_NN>"        # Phase_Section, zero-padded
+  required: true
+
+name:
+  value: "<pipeline section name from docs/PHASES.md>"
+  required: true
+
+# -- Hierarchy context --
+phase:
+  value: "<NN -- phase name>"
+  required: true
+
+manual_section:
+  value: "<manual_filename.md, section or part number>"
+  required: true
+
+canonical_reference:
+  value: "docs/PHASES.md"
+  required: true
+
+# -- Dataset context --
+dataset:
+  value: "<sc2egset | aoe2companion | aoestats>"
+  required: true
+
+# -- Steps --
+steps:
+  value:
+    - step_number: "<NN_NN_NN>"
+      name: "<step name>"
+  required: true
+  # Steps are defined in full using docs/templates/step_template.yaml.
+  # This field is a summary index; full Step definitions are fenced
+  # YAML blocks in the ROADMAP.
+
+# -- Gate --
+gate:
+  exit_criteria:
+    value: "<what must hold for this Pipeline Section to be complete>"
+    required: true
+
+# -- Status derivation rule --
+status_derivation:
+  description: >
+    Pipeline Section status is derived from Step statuses:
+      complete    -- all Steps are complete
+      in_progress -- any Step is in_progress or complete
+      not_started -- no Step has started
+  required: false
+  # Informational. Not a field to be filled in -- it documents the rule.

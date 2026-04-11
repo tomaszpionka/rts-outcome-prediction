@@ -1,0 +1,67 @@
+# ROADMAP authoring template for Phase blocks.
+#
+# Use this template when adding a new Phase section to a dataset ROADMAP.md.
+# This is NOT a status file template -- it defines the Phase block structure
+# that ROADMAP authors copy and fill in.
+#
+# References:
+#   - docs/TAXONOMY.md     -- definitions of Phase, Pipeline Section, Step
+#   - docs/PHASES.md       -- canonical Phase list (numbers, names, Pipeline Sections)
+#   - .claude/scientific-invariants.md -- invariants that apply to all Phase work
+#
+# Status file template (for PHASE_STATUS.yaml):
+#   docs/templates/phase_status_template.yaml
+
+# -- Identity --
+phase_number:
+  value: "<NN>"           # Two-digit zero-padded
+  required: true
+
+name:
+  value: "<phase name from docs/PHASES.md>"
+  required: true
+
+# -- Source --
+source_manual:
+  value: "<docs/ml_experiment_lifecycle/NN_MANUAL_NAME.md>"
+  required: true
+
+canonical_reference:
+  value: "docs/PHASES.md"
+  required: true
+  # This is always docs/PHASES.md. Included to make the derivation explicit.
+
+# -- Dataset context --
+dataset:
+  value: "<sc2egset | aoe2companion | aoestats>"
+  required: true
+
+# -- Pipeline Sections --
+pipeline_sections:
+  value:
+    - number: "<NN_NN>"
+      name: "<pipeline section name from docs/PHASES.md>"
+  required: true
+  # The list must match docs/PHASES.md exactly. ROADMAPs do not invent,
+  # rename, or omit Pipeline Sections.
+
+# -- Gate --
+gate:
+  exit_criteria:
+    value: "<what must hold for this Phase to be considered complete>"
+    required: true
+  is_gate_marker:
+    value: false
+    required: true
+    # true only for Phase 07
+
+# -- Status derivation rule --
+status_derivation:
+  description: >
+    Phase status is derived from Pipeline Section statuses (which are
+    themselves derived from Step statuses):
+      complete    -- all Pipeline Sections are complete
+      in_progress -- any Pipeline Section is in_progress or complete
+      not_started -- no Pipeline Section has started
+  required: false
+  # Informational. Not a field to be filled in -- it documents the rule.

@@ -1,0 +1,62 @@
+# Template for the overall structure of a dataset-level ROADMAP.md file.
+#
+# Documents what sections a ROADMAP must contain and in what order.
+# This is a document-structure template: it describes layout constraints
+# and required sections, not individual field values.
+#
+# References:
+#   - docs/TAXONOMY.md -- definitions of Phase, Pipeline Section, Step
+#   - docs/PHASES.md   -- canonical Phase and Pipeline Section list
+#   - docs/templates/phase_template.yaml           -- Phase block schema
+#   - docs/templates/pipeline_section_template.yaml -- Pipeline Section block schema
+#   - docs/templates/step_template.yaml            -- Step definition schema
+
+header:
+  game:
+    value: "<game identifier>"
+    required: true
+  dataset:
+    value: "<dataset identifier>"
+    required: true
+  role:
+    value: "<PRIMARY | SUPPLEMENTARY VALIDATION | omit if sole dataset>"
+    required: false
+    # Only for games with multiple datasets.
+  canonical_references:
+    value:
+      canonical_phase_list: "docs/PHASES.md"
+      methodology_manuals: "docs/INDEX.md"
+      step_schema: "docs/templates/step_template.yaml"
+    required: true
+
+usage_section:
+  heading: "## How to use this document"
+  description: >
+    Prose block explaining that this ROADMAP decomposes Phases into
+    Pipeline Sections and Steps. Must state that the canonical Phase and
+    Pipeline Section definitions live in docs/PHASES.md, and that this
+    ROADMAP does not invent them. Must describe the XX_YY_ZZ numbering.
+  required: true
+
+source_data_section:
+  heading: "## Source data"
+  description: >
+    Dataset provenance: citation, row counts, known issues, temporal
+    coverage, warnings about snapshot tables or schema drift.
+    Pre-Phase-01 values are marked with a provenance caveat.
+  required: true
+
+phase_sections:
+  description: >
+    One ## section per Phase (01 through 07).
+  active_phase_structure:
+    heading: "## Phase NN -- Phase Name"
+    pipeline_section_list: "Bullet list: `NN_NN` -- Pipeline Section Name"
+    step_definitions: "Fenced YAML blocks per docs/templates/step_template.yaml"
+  placeholder_phase_structure:
+    heading: "## Phase NN -- Phase Name (placeholder)"
+    body: "Pipeline Sections: see `docs/PHASES.md`. Steps to be defined when Phase NN-1 gate is met."
+  gate_marker_structure:
+    heading: "## Phase 07 -- Thesis Writing Wrap-up (gate marker)"
+    body: "Per `docs/PHASES.md`, Phase 07 is a gate marker with no Pipeline Sections."
+  required: true

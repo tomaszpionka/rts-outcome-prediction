@@ -5,6 +5,11 @@
 #
 # Canonical phase list: docs/PHASES.md
 # Statuses: not_started | in_progress | complete
+#
+# Derivation chain:
+#   STEP_STATUS.yaml -> PIPELINE_SECTION_STATUS.yaml -> this file
+# Phase status is derived from pipeline section statuses.
+# See PIPELINE_SECTION_STATUS.yaml for the intermediate derivation.
 
 game: aoe2
 dataset: aoestats

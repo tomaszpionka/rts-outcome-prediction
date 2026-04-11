@@ -1,0 +1,63 @@
+# Schema template for PHASE_STATUS.yaml files.
+#
+# One PHASE_STATUS.yaml exists per dataset, at:
+#   src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml
+#
+# This file defines the authoritative schema for those status files.
+# See also: docs/templates/pipeline_section_status_template.yaml (upstream)
+#           docs/templates/step_status_template.yaml (two tiers upstream)
+#
+# References:
+#   - docs/TAXONOMY.md -- definitions of Phase, Pipeline Section, Step
+#   - docs/PHASES.md   -- canonical Phase list (numbers, names)
+
+# -- File identity --
+file_path:
+  value: "src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml"
+  required: true
+
+game:
+  value: "<sc2 | aoe2>"
+  required: true
+
+dataset:
+  value: "<sc2egset | aoe2companion | aoestats>"
+  required: true
+
+dataset_roadmap:
+  value: "src/rts_predict/<game>/reports/<dataset>/ROADMAP.md"
+  required: true
+
+# -- Derivation --
+derived_from:
+  value: "src/rts_predict/<game>/reports/<dataset>/PIPELINE_SECTION_STATUS.yaml"
+  required: true
+  # PHASE_STATUS is derived from PIPELINE_SECTION_STATUS, not directly from
+  # STEP_STATUS. Full chain: STEP_STATUS -> PIPELINE_SECTION_STATUS -> this file.
+
+# -- Phases --
+phases:
+  description: >
+    Map of phase number (two-digit string) to phase entry.
+    All 7 phases are listed, including not_started ones.
+    (Asymmetry with PIPELINE_SECTION_STATUS, which only lists active phases.)
+  entry_schema:
+    phase_number:
+      value: "<NN>"           # Two-digit string key, e.g. "01"
+      required: true
+    name:
+      value: "<phase name from docs/PHASES.md>"
+      required: true
+    status:
+      value: "<not_started | in_progress | complete>"
+      required: true
+
+# -- Derivation rule --
+derivation_rule:
+  description: >
+    Phase status is derived from pipeline section statuses:
+      complete    -- all pipeline sections for this phase are complete
+      in_progress -- any pipeline section for this phase is in_progress or complete
+      not_started -- no pipeline section for this phase has started
+  required: false
+  # Informational. Not a field to be filled in.

@@ -1,0 +1,52 @@
+# Pipeline Section status for sc2egset.
+# Derived from STEP_STATUS.yaml.
+# If this file disagrees with STEP_STATUS.yaml, this file is wrong.
+#
+# PHASE_STATUS.yaml is derived from this file:
+#   Phase is complete    when ALL its pipeline sections are complete.
+#   Phase is in_progress when ANY pipeline section is in_progress or complete.
+#   Phase is not_started when NO pipeline section has started.
+#
+# This file is derived from STEP_STATUS.yaml:
+#   Pipeline section is complete    when ALL its steps are complete.
+#   Pipeline section is in_progress when ANY step is in_progress or complete.
+#   Pipeline section is not_started when NO step has started.
+#
+# Derivation chain:
+#   STEP_STATUS.yaml -> this file -> PHASE_STATUS.yaml
+#
+# NOTE: Only Phase 01 pipeline sections are listed here. PHASE_STATUS.yaml
+# lists all 7 phases (including not_started ones). This asymmetry is
+# intentional -- pipeline sections are added incrementally as Phases activate,
+# not pre-populated.
+
+game: sc2
+dataset: sc2egset
+
+pipeline_sections:
+  "01_01":
+    name: "Data Acquisition & Source Inventory"
+    phase: "01"
+    status: in_progress
+  "01_02":
+    name: "Exploratory Data Analysis (Tukey-style)"
+    phase: "01"
+    status: not_started
+  "01_03":
+    name: "Systematic Data Profiling"
+    phase: "01"
+    status: not_started
+  "01_04":
+    name: "Data Cleaning"
+    phase: "01"
+    status: not_started
+  "01_05":
+    name: "Temporal & Panel EDA"
+    phase: "01"
+    status: not_started
+  "01_06":
+    name: "Decision Gates"
+    phase: "01"
+    status: not_started
+  # Pipeline sections for Phases 02-06 added when those Phases become active.
+  # Phase 07 has no pipeline sections.
