@@ -480,6 +480,51 @@ isolation — no architectural changes.
 
 ---
 
+## DAG Orchestration
+
+The plan/execute workflow supports DAG-based multi-agent orchestration.
+See `planning/README.md` for the full lifecycle and `planning/dags/README.md`
+for the DAG format.
+
+### Planning session
+
+1. Planner produces plan in chat (includes "Suggested Execution Graph" section).
+2. Parent writes plan to `planning/current_plan.md`.
+3. Adversarial reviewer reviews the plan.
+4. User approves.
+
+### Execution session
+
+1. Parent materializes `planning/dags/DAG.yaml` and `planning/specs/spec_*.md`.
+2. Parent reads `DAG.yaml` and dispatches agents per task group:
+   - Parallel-safe tasks within a group run simultaneously.
+   - Sequential tasks run one at a time.
+3. After each task group: parent stages, commits, dispatches review gate.
+4. After all groups: final adversarial review.
+5. PR wrap-up.
+
+### Review gates
+
+| Gate | Agent | When |
+|------|-------|------|
+| Per-group (heavyweight) | `reviewer-deep` | Any `.py`, `.ipynb`, SQL, or `src/`/`sandbox/` in scope |
+| Per-group (lightweight) | `reviewer` | All scope is `.md`, `.yaml`, status files only |
+| Final | `reviewer-adversarial` | After all groups complete |
+
+### Failure handling
+
+All failures halt the DAG. The user decides next action in the session.
+No automatic retries. The parent may re-run a single task group after
+the user addresses the issue.
+
+### Templates
+
+- DAG format: `docs/templates/dag_template.yaml`
+- DAG status: `docs/templates/dag_status_template.yaml`
+- Spec format: `docs/templates/spec_template.md`
+
+---
+
 ## Troubleshooting
 
 **Agent not being invoked:** Claude sometimes handles tasks in the main

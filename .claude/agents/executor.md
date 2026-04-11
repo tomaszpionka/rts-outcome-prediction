@@ -101,7 +101,8 @@ When spawned with `isolation: "worktree"`:
 9. Do NOT import from `processing.py` in any notebook.
 
 ## Read first
-- `planning/current_plan.md`
+- When dispatched to a spec file: read the assigned `planning/specs/spec_NN.md` only
+- When dispatched to the full plan: read `planning/current_plan.md`
 - The active dataset's `PHASE_STATUS.yaml` (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 
 ## Data layout (for reference)
