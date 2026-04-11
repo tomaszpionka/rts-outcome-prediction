@@ -18,23 +18,25 @@ ROADMAP with fully defined Steps for the active Phase.
 
 ---
 
-## Dataset Strategy
+## Dataset Strategy (provisional — to be confirmed by Phase 01 Decision Gates)
 
-**Decision (2026-04-11):** aoe2companion is the PRIMARY AoE2 dataset;
-aoestats is SUPPLEMENTARY VALIDATION.
+**Planning indicators (2026-04-11, based on file inventory only — not verified
+Phase 01 findings):**
 
-**Justification:**
-1. aoe2companion has 9× more matches (277M vs 30.7M) and longer time span
-   (2020–2026 vs 2022–2026) — better for temporal features and cold-start
-   analysis (RQ4).
-2. Daily granularity (vs weekly) enables denser rating computation.
-3. THESIS_STRUCTURE.md §5.2 expects a single AoE2 result set.
+1. aoe2companion has more files (4,154 vs 349) and spans a longer date range
+   (2020-2026 vs 2022-2026) based on file inventory.
+2. aoe2companion files have daily granularity; aoestats files have weekly
+   granularity.
+3. Pre-Phase-01 DuckDB ingestion suggests ~277M vs ~30.7M rows — these counts
+   are unverified planning context (see provenance caveats in each dataset
+   ROADMAP).
 
-**Implications:**
-- aoe2companion runs full Phases 01–07.
-- aoestats runs full Phase 01 for data quality understanding, then a
-  lightweight Phase 02–05 pass for validation only (replicate the
-  aoe2companion pipeline and compare results).
-- Phase 06 uses aoe2companion data exclusively.
-- If aoestats results contradict aoe2companion, report in thesis §6.5
-  (Threats to Validity).
+**Status:** Role assignment (PRIMARY vs SUPPLEMENTARY VALIDATION) requires
+Phase 01 Decision Gate (01_06) evidence: schema completeness, null rates,
+player identity coverage, temporal density. Until then, both datasets run
+full Phases 01-07 independently with no scope restrictions.
+
+**Decision point:** Pipeline Section 01_06 (Decision Gates) for each dataset
+will produce the comparative evidence needed to formalize roles. The decision
+will be recorded in `reports/research_log.md` with full derivation per
+Invariant 6.

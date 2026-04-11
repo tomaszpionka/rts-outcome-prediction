@@ -8,9 +8,10 @@
 
 ---
 
-> **Role: PRIMARY.** This is the primary AoE2 dataset. It runs full
-> Phases 01–07. See `src/rts_predict/aoe2/reports/ROADMAP.md` for the
-> dataset strategy rationale.
+> **Role: TO BE DETERMINED.** Role assignment (PRIMARY vs SUPPLEMENTARY
+> VALIDATION) will be formalized at the Phase 01 Decision Gate (01_06) based
+> on comparative data quality findings. Until then, this dataset runs all
+> Phases at full scope per `docs/PHASES.md`.
 
 ## How to use this document
 
