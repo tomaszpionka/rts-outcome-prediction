@@ -10,16 +10,14 @@
 ## Task specs
 - [Parallel execution guide](specs/README.md)
 
-- [spec_01](specs/spec_01_templates.md) — stage + commit 7 template files
-- [spec_02](specs/spec_02_status_files.md) — stage + commit 9 status files
-- [spec_03](specs/spec_03_roadmap_retractions.md) — stage AoE2 ROADMAP retractions + research log
-- [spec_04](specs/spec_04_phases_md.md) — populate docs/ml_experiment_phases/PHASES.md
-- [spec_05](specs/spec_05_pipeline_sections_md.md) — populate PIPELINE_SECTIONS.md
-- [spec_06](specs/spec_06_steps_md.md) — populate STEPS.md
-- [spec_07](specs/spec_07_research_log_md.md) — populate docs/research/RESEARCH_LOG.md
-- [spec_08](specs/spec_08_research_log_entry_md.md) — populate RESEARCH_LOG_ENTRY.md
-- [spec_09](specs/spec_09_research_roadmap_md.md) — populate docs/research/ROADMAP.md
-- [spec_10](specs/spec_10_cleanup.md) — workflow files, delete relic, CHANGELOG
+- [spec_01](specs/spec_01_plan_template.md) — rewrite plan_template.md (DAG-compatible)
+- [spec_02](specs/spec_02_critique_template.md) — rewrite plan_critique_template.md (8 invariants, citations)
+- [spec_03](specs/spec_03_output_contract.md) — rewrite planner_output_contract.md (agent-agnostic, plan-only)
+- [spec_04](specs/spec_04_planning_readme.md) — add critique to lifecycle and purge
+- [spec_05](specs/spec_05_planner_science.md) — add contract ref, critique-flagging
+- [spec_06](specs/spec_06_planner.md) — add contract ref, critique-flagging
+- [spec_07](specs/spec_07_materialize.md) — add critique pre-flight for A/F
+- [spec_08](specs/spec_08_changelog.md) — CHANGELOG update
 
 ## Agent routing
 

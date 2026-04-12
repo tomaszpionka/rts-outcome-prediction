@@ -12,6 +12,7 @@ Task), see [`docs/TAXONOMY.md`](../docs/TAXONOMY.md).
 | `INDEX.md` | Permanent (reset after merge) | Agent routing table — which agent reads what |
 | `README.md` | Permanent | This file |
 | `current_plan.md` | Ephemeral | The authoritative Spec for the active PR |
+| `current_plan.critique.md` | Ephemeral | Adversarial critique produced by reviewer-adversarial (Category A/B/F mandatory; D conditional on file_scope touching game src); not produced by the planner |
 | `specs/README.md` | Permanent | Parallel execution guide (Strategy A/B) |
 | `specs/spec_*.md` | Ephemeral | Individual task specs, one per DAG task |
 | `dags/README.md` | Permanent | DAG format documentation |
@@ -22,7 +23,9 @@ Task), see [`docs/TAXONOMY.md`](../docs/TAXONOMY.md).
 
 1. **Planning session:** Planner produces plan in chat. Parent writes to
    `current_plan.md`. Plan MUST include a Suggested Execution Graph.
-   Adversarial reviewer reviews. User approves.
+   For Category A/F (and optionally B/D), after the plan is written and before
+   materialization, reviewer-adversarial reads `current_plan.md` and produces
+   `current_plan.critique.md`. User approves.
 2. **Materialization (first action after approval):**
    a. **Purge old specs:** Delete all `specs/spec_*.md` files (keep `README.md`).
       Old specs belong to the prior plan — they must not persist into the new
@@ -55,7 +58,8 @@ together and commit once as `chore(planning): purge artifacts from merged PR #N`
 2. Replace `dags/DAG.yaml` with `# No active DAG`
 3. Delete `dags/DAG_STATUS.yaml` (if present)
 4. Delete all `specs/spec_*.md` files
-5. Reset `INDEX.md` to its template state (remove spec links, keep structure)
+5. Delete `current_plan.critique.md` (if present)
+6. Reset `INDEX.md` to its template state (remove spec links, keep structure)
 
 ## Source-of-truth
 

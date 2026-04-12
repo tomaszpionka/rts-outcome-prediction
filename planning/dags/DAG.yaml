@@ -1,17 +1,17 @@
-dag_id: "dag_session_audit_dashboard"
+dag_id: "dag_plan_template_rewrite"
 plan_ref: "planning/current_plan.md"
 category: "C"
-branch: "chore/session-audit-dashboard"
+branch: "chore/plan-template-rewrite"
 base_ref: "master"
 default_isolation: "shared_branch"
 
 jobs:
   - job_id: "J01"
-    name: "Session audit dashboard"
+    name: "Plan template rewrite"
 
     task_groups:
       - group_id: "TG01"
-        name: "Consolidate hook logs"
+        name: "Rewrite plan + critique templates"
         depends_on: []
         review_gate:
           agent: "reviewer"
@@ -19,75 +19,104 @@ jobs:
           on_blocker: "halt"
         tasks:
           - task_id: "T01"
-            name: "Update log-subagent.sh — paths + project field"
+            name: "Rewrite plan_template.md"
+            spec_file: "planning/specs/spec_01_plan_template.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_01_log_subagent.md"
-            file_scope:
-              - "scripts/hooks/log-subagent.sh"
             parallel_safe: true
+            file_scope:
+              - "docs/templates/plan_template.md"
+            read_scope:
+              - "docs/templates/dag_template.yaml"
+              - "planning/current_plan.md"
             depends_on: []
           - task_id: "T02"
-            name: "Update log-bash.sh — path + project field"
+            name: "Rewrite plan_critique_template.md"
+            spec_file: "planning/specs/spec_02_critique_template.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_02_log_bash.md"
-            file_scope:
-              - "scripts/hooks/log-bash.sh"
             parallel_safe: true
-            depends_on: []
-          - task_id: "T03"
-            name: "Update hooks README"
-            agent: "executor"
-            spec_file: "planning/specs/spec_03_hooks_readme.md"
             file_scope:
-              - "scripts/hooks/README.md"
-            parallel_safe: true
+              - "docs/templates/plan_critique_template.md"
+            read_scope:
+              - ".claude/scientific-invariants.md"
             depends_on: []
-          - task_id: "T04"
-            name: "Migrate old logs — stage, prepend, cleanup"
-            agent: "executor"
-            spec_file: "planning/specs/spec_04_migrate_logs.md"
-            file_scope: []
-            parallel_safe: false
-            depends_on: ["T01", "T02"]
 
       - group_id: "TG02"
-        name: "Create dashboard script"
+        name: "Rewrite planner output contract"
         depends_on: ["TG01"]
         review_gate:
           agent: "reviewer"
           scope: "diff"
           on_blocker: "halt"
         tasks:
-          - task_id: "T05"
-            name: "Write scripts/session_audit.py"
+          - task_id: "T03"
+            name: "Rewrite planner_output_contract.md"
+            spec_file: "planning/specs/spec_03_output_contract.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_05_dashboard.md"
-            file_scope:
-              - "scripts/session_audit.py"
-            read_scope:
-              - "session_audit.md"
-              - "scripts/hooks/log-subagent.sh"
-              - "scripts/hooks/log-bash.sh"
             parallel_safe: false
+            file_scope:
+              - "docs/templates/planner_output_contract.md"
+            read_scope:
+              - "docs/templates/plan_template.md"
+              - "docs/templates/plan_critique_template.md"
+              - "docs/TAXONOMY.md"
             depends_on: []
 
       - group_id: "TG03"
-        name: "Cleanup + CHANGELOG"
+        name: "Update lifecycle, agents, and materialization"
         depends_on: ["TG02"]
+        review_gate:
+          agent: "reviewer"
+          scope: "diff"
+          on_blocker: "halt"
+        tasks:
+          - task_id: "T04"
+            name: "Update planning/README.md"
+            spec_file: "planning/specs/spec_04_planning_readme.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - "planning/README.md"
+            depends_on: []
+          - task_id: "T05"
+            name: "Update planner-science.md"
+            spec_file: "planning/specs/spec_05_planner_science.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/agents/planner-science.md"
+            depends_on: []
+          - task_id: "T06"
+            name: "Update planner.md"
+            spec_file: "planning/specs/spec_06_planner.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/agents/planner.md"
+            depends_on: []
+          - task_id: "T07"
+            name: "Update materialize_plan.md"
+            spec_file: "planning/specs/spec_07_materialize.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/commands/materialize_plan.md"
+            depends_on: []
+
+      - group_id: "TG04"
+        name: "CHANGELOG"
+        depends_on: ["TG03"]
         review_gate:
           agent: "reviewer"
           scope: "cumulative"
           on_blocker: "halt"
         tasks:
-          - task_id: "T06"
-            name: "Delete static reports, update CHANGELOG"
+          - task_id: "T08"
+            name: "Update CHANGELOG"
+            spec_file: "planning/specs/spec_08_changelog.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_06_cleanup.md"
+            parallel_safe: false
             file_scope:
               - "CHANGELOG.md"
-              - "session_audit.md"
-              - "session_audit_plan.md"
-            parallel_safe: false
             depends_on: []
 
 final_review:

@@ -105,9 +105,20 @@ When spawned with `isolation: "worktree"`:
 9. Do NOT import from `processing.py` in any notebook.
 
 ## Read first
-- When dispatched to a spec file: read the assigned `planning/specs/spec_NN.md` only
-- When dispatched to the full plan: read `planning/current_plan.md`
-- The active dataset's `PHASE_STATUS.yaml` (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
+When dispatched with a `spec_file` reference (DAG execution):
+1. Read the spec file FIRST — it is your contract
+2. Echo back: `task_id`, `file_scope`, and the number of verification checks
+3. Only then begin execution
+4. Do not infer requirements from the dispatch prompt — the spec is the sole
+   source of truth for your task
+5. If the spec file does not exist or is empty, STOP and report the error
+
+When dispatched without a spec file (manual step execution):
+- Read `planning/current_plan.md` for step instructions
+
+Always (both paths):
+- For Category A or F work, also read the active dataset's `PHASE_STATUS.yaml`
+  (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 
 ## Data layout (for reference)
 
