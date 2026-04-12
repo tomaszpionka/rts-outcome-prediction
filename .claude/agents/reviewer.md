@@ -52,7 +52,7 @@ Your job is to find problems, not to praise.
    `sandbox/notebook_config.toml` (default 50).
 5. **Phase boundary check:** Imports in a Phase 01 (Data Exploration) notebook must not reference
    `features/`, `feature_`, `models/`, or `model_` modules. Flag `import processing`.
-6. **Research log entry:** A new entry in `reports/research_log.md` references
+6. **Research log entry:** A new entry in active dataset's `research_log.md` references
    the notebook path.
 7. **Report artifact consistency:** If the notebook front-matter lists artifacts,
    verify those files are present in the changeset.

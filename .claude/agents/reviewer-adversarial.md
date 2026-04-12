@@ -50,8 +50,8 @@ at least items 1–5.
 5. `.claude/ml-protocol.md` — ML experiment constraints (active Phase 04+).
 6. `.claude/rules/thesis-writing.md` — thesis quality standards.
 7. `.claude/rules/sql-data.md` — SQL and data pipeline constraints.
-8. `reports/research_log.md` — recent entries, to detect contradictions
-   with prior findings.
+8. The active dataset's `research_log.md` and `reports/research_log.md`
+   (CROSS entries) — check for contradictions with prior findings in both.
 9. `planning/current_plan.md` (if reviewing a plan).
 10. The artifact under review (notebook .py, thesis chapter, feature
     catalog, SQL file, etc.).

@@ -48,7 +48,10 @@ not be used for any thesis experiment.
 - Concise one-liners grouped by: `Added`, `Changed`, `Fixed`, `Removed`
 - Updated every session that changes code
 
-### reports/research_log.md (thesis material)
+### research_log.md (thesis material)
+- **Per-dataset logs** live at `src/rts_predict/<game>/reports/<dataset>/research_log.md`.
+  Write all dataset-specific experiment entries there — never to the root `reports/research_log.md`.
+- **Root log** (`reports/research_log.md`) is for CROSS entries only: decisions that span multiple games or datasets (e.g. shared methodology choices, cross-game comparisons).
 - Reverse chronological, date-stamped entries
 - Each entry follows the template at `docs/templates/research_log_entry_template.yaml`.
   Required sections for Category A: What, Why, How (reproducibility), Findings,

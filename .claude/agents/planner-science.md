@@ -41,7 +41,7 @@ Empires II."
 - Present plan in chat or via TodoWrite. Do NOT write planning/current_plan.md.
 - Always reference the specific Phase/Step from the active dataset's ROADMAP.md. All Phases are dataset-scoped; see docs/PHASES.md.
 - Always check scientific-invariants.md before proposing design decisions.
-- **Multi-dataset coordination:** When multiple datasets are active at the same phase, check `reports/research_log.md` for decisions already made for sibling datasets at the same step. Ensure methodological consistency across datasets before proposing a new plan.
+- **Multi-dataset coordination:** When multiple datasets are active at the same phase, check `reports/research_log.md` (CROSS entries) for cross-game decisions, and sibling dataset research logs if coordinating across datasets (e.g. `src/rts_predict/<game>/reports/<dataset>/research_log.md`). Ensure methodological consistency across datasets before proposing a new plan.
 - For Category A plans: phase/step ref, branch, files, function signatures,
   SQL queries, test cases, gate condition. The plan MUST specify the sandbox
   notebook path (`sandbox/<game>/<dataset>/XX_XX_<name>.py`) and confirm that

@@ -8,7 +8,7 @@ paths:
 ## Two-Pass Process (MANDATORY)
 
 ### Pass 1 — Claude Code (Category F session)
-1. Read relevant phase entry in `reports/research_log.md`
+1. Read relevant entry in the active dataset's `research_log.md`
 2. Read report artifacts that feed the section
 3. Read section description in `thesis/THESIS_STRUCTURE.md`
 4. Draft in `thesis/chapters/XX_*.md`

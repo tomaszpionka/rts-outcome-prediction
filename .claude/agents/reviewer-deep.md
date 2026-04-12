@@ -47,8 +47,8 @@ review.
    dataset's ROADMAP.md path from this.
 6. The active dataset's `ROADMAP.md` and, if it exists, its
    `INVARIANTS.md`.
-7. `reports/research_log.md` — recent entries, to check whether the
-   change contradicts or duplicates prior findings.
+7. The active dataset's `research_log.md` and `reports/research_log.md`
+   (CROSS entries) — check for contradictions with prior findings in both.
 8. `planning/current_plan.md` (if present) — the plan you are reviewing against.
 9. Any spec file the user references (e.g. `spec_06_finalization.md`).
 10. `docs/templates/research_log_entry_template.yaml` if research log entries are in
