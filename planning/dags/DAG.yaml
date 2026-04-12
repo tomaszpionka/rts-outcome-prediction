@@ -1,17 +1,17 @@
-dag_id: "dag_session_audit_dashboard"
+dag_id: "dag_canary_test"
 plan_ref: "planning/current_plan.md"
 category: "C"
-branch: "chore/session-audit-dashboard"
+branch: "chore/plan-template-rewrite"
 base_ref: "master"
 default_isolation: "shared_branch"
 
 jobs:
   - job_id: "J01"
-    name: "Session audit dashboard"
+    name: "Canary test"
 
     task_groups:
       - group_id: "TG01"
-        name: "Consolidate hook logs"
+        name: "Write canary files"
         depends_on: []
         review_gate:
           agent: "reviewer"
@@ -19,79 +19,24 @@ jobs:
           on_blocker: "halt"
         tasks:
           - task_id: "T01"
-            name: "Update log-subagent.sh — paths + project field"
+            name: "Canary alpha"
             agent: "executor"
-            spec_file: "planning/specs/spec_01_log_subagent.md"
+            spec_file: "planning/specs/spec_01_canary_alpha.md"
             file_scope:
-              - "scripts/hooks/log-subagent.sh"
+              - "canary/123456.txt"
             parallel_safe: true
             depends_on: []
           - task_id: "T02"
-            name: "Update log-bash.sh — path + project field"
+            name: "Canary beta"
             agent: "executor"
-            spec_file: "planning/specs/spec_02_log_bash.md"
+            spec_file: "planning/specs/spec_02_canary_beta.md"
             file_scope:
-              - "scripts/hooks/log-bash.sh"
+              - "canary/02.txt"
             parallel_safe: true
-            depends_on: []
-          - task_id: "T03"
-            name: "Update hooks README"
-            agent: "executor"
-            spec_file: "planning/specs/spec_03_hooks_readme.md"
-            file_scope:
-              - "scripts/hooks/README.md"
-            parallel_safe: true
-            depends_on: []
-          - task_id: "T04"
-            name: "Migrate old logs — stage, prepend, cleanup"
-            agent: "executor"
-            spec_file: "planning/specs/spec_04_migrate_logs.md"
-            file_scope: []
-            parallel_safe: false
-            depends_on: ["T01", "T02"]
-
-      - group_id: "TG02"
-        name: "Create dashboard script"
-        depends_on: ["TG01"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T05"
-            name: "Write scripts/session_audit.py"
-            agent: "executor"
-            spec_file: "planning/specs/spec_05_dashboard.md"
-            file_scope:
-              - "scripts/session_audit.py"
-            read_scope:
-              - "session_audit.md"
-              - "scripts/hooks/log-subagent.sh"
-              - "scripts/hooks/log-bash.sh"
-            parallel_safe: false
-            depends_on: []
-
-      - group_id: "TG03"
-        name: "Cleanup + CHANGELOG"
-        depends_on: ["TG02"]
-        review_gate:
-          agent: "reviewer"
-          scope: "cumulative"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T06"
-            name: "Delete static reports, update CHANGELOG"
-            agent: "executor"
-            spec_file: "planning/specs/spec_06_cleanup.md"
-            file_scope:
-              - "CHANGELOG.md"
-              - "session_audit.md"
-              - "session_audit_plan.md"
-            parallel_safe: false
             depends_on: []
 
 final_review:
-  agent: "reviewer-deep"
+  agent: "reviewer"
   scope: "all"
   base_ref: "master"
   on_blocker: "halt"
