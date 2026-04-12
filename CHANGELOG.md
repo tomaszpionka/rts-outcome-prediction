@@ -13,11 +13,24 @@ merged to `master`.
 
 ### Added
 
+- 8 directory `README.md` files (routing documents for key subdirectories)
+- `docs/INDEX.md` — centralized directory map and routing hub
+- `scripts/hooks/check_planning_drift.py` — pre-commit hook for planning artifact validation
+- `tests/infrastructure/test_check_planning_drift.py`
+
 ### Changed
+
+- `CLAUDE.md` trimmed (~16 lines removed, dispatch rules preserved)
+- `ARCHITECTURE.md` trimmed (~18 lines, pointers replace duplication)
+- `.claude/agents/executor.md` trimmed (~40 lines, data layout + notebook workflow replaced with pointers)
 
 ### Fixed
 
 ### Removed
+
+- `docs/ml_experiment_phases/PHASES.md` (derivative of canonical `docs/PHASES.md`)
+- `docs/ml_experiment_phases/PIPELINE_SECTIONS.md` (derivative)
+- `scripts/hooks/check_phases_drift.py` (no longer needed)
 
 ## [3.1.0] — 2026-04-12 (PR #111: chore/research-log-split)
 
