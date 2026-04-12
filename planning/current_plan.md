@@ -1,605 +1,469 @@
 ---
 category: "A"
-branch: "feat/rerun-01-01-01"
+branch: "feat/phase01-schema-discovery"
 date: "2026-04-12"
 planner_model: "claude-opus-4-6"
+dataset: "sc2egset, aoe2companion, aoestats"
+phase: "01"
+pipeline_section: "01_01"
+invariants_touched:
+  - 6
+  - 7
+  - 9
+source_artifacts:
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
 ---
 
-# Category A Plan: Rerun Phase 01 Step 01_01_01 (File Inventory) -- Context Leak Cleanup
+# Category A Plan: Phase 01 Step 01_01_02 — Schema Discovery
 
-**Phase/Step:** Phase 01, Pipeline Section 01_01, Step 01_01_01
+**Phase/Step:** Phase 01, Pipeline Section 01_01, Step 01_01_02
 **Datasets:** sc2egset, aoe2companion, aoestats
 
 ## Scope
 
-Codify a new scientific invariant (artifact-chain discipline), create a
-dataset reports README template, strip all context leaks from existing
-documents, rerun the 01_01_01 file inventory notebooks for all 3 datasets,
-and repopulate all downstream documents strictly from artifacts.
+Create utility code for Parquet/CSV schema reading, then run schema
+discovery notebooks for all 3 datasets. Each notebook samples files across
+the temporal range, reads headers/schemas/metadata (without loading row
+data), and produces artifacts documenting column names, types, nesting
+structure, and cross-file consistency. Update ROADMAPs with step
+definitions, write research log entries, and produce a CROSS entry.
 
 ## Problem Statement
 
-The existing research log entries for 01_01_01 contain context leaks --
-conclusions that require content-level knowledge that a file inventory
-cannot produce. The same leaks propagated into ROADMAP source data sections,
-raw/README.md files, and the root CROSS log. There is no general invariant
-preventing these leaks, and the dataset-level `reports/README.md` files
-lack a template -- creating a vector for future leaks.
+Step 01_01_01 established what files exist on disk. Before any DuckDB
+ingestion can be designed, we need to know what those files contain
+structurally — column names, data types, nesting depth (JSON), and whether
+the schema is consistent across files. This is the minimum information
+needed to write DDL and ingestion scripts.
 
-A file inventory (01_01_01) should report ONLY filesystem-level observations:
-- Directory tree structure (names, nesting)
-- File counts per directory
-- File extensions and types
-- File sizes
-- Date strings extracted from filenames (pattern-based, not content-based)
-- Gaps in date sequences from filenames
-
-It should NOT report:
-- What the files contain (01_01_02 Schema Discovery)
-- Whether data is "daily" or "weekly" (frequency interpretation)
-- Whether a file is a "snapshot" (role interpretation)
-- Whether the data is "structurally sound" (content analysis)
-- What the files represent ("replays," "matches," "players") beyond literal
-  extension/filename strings
-
-## Context Leaks Identified
-
-| Location | Leaks |
-|----------|-------|
-| sc2egset research_log.md | "structurally sound," "non-empty," "replay files," "tournament directories," "tournament coverage" |
-| aoe2companion research_log.md | Interpretive phrasing beyond file-level scope |
-| aoestats research_log.md | Same pattern |
-| aoe2companion ROADMAP Source data | "Daily" (x2), "Single-file snapshot" (x2), populated file counts and date ranges |
-| aoestats ROADMAP Source data | "Weekly" (x2), "Single-file snapshot," "documented download failure," populated file counts |
-| sc2egset ROADMAP Source data | "~22,000 competitive 1v1 replays" (content-level claim) |
-| sc2egset raw/README.md | "Per-replay JSON files" (x70), "tournament" as semantic label, `temporal_grain: per_game` |
-| aoe2companion raw/README.md | "Daily match," "Daily rating," "Leaderboard snapshot," `temporal_grain: daily` |
-| aoestats raw/README.md | "Weekly match," "Weekly player," "Overview JSON reference," `temporal_grain: weekly` |
-| sc2egset reports/README.md | Does not exist -- no template |
-| aoe2companion reports/README.md | Incomplete, no template conformance |
-| aoestats reports/README.md | Incomplete, no template conformance |
-| Root CROSS log | "structurally sound" |
-
-## Pipeline Context
-
-```
-01_01_01: File Inventory
-  Input:  raw/ directory
-  Output: file tree, counts, types, sizes, filename-derived dates, gaps
-  Scope:  filesystem-level only -- do not open files
-
-01_01_02: Schema Discovery
-  Input:  raw/ files (open and read headers/schemas)
-  Output: column names, types, sample rows, format details
-  Scope:  file-content-level -- do not analyze data semantics
-```
-
-Each step's research log entry reports ONLY what that step's artifacts
-contain. No forward-referencing, no interpretive conclusions beyond scope.
-This will be codified as Invariant #9.
-
-## Pre-verified Facts
-
-- `inventory_directory()` in `src/rts_predict/common/inventory.py` is
-  confirmed filesystem-only: calls `glob()` and `stat()`, never opens files.
-- Raw data is immutable; artifact numbers will not change on rerun.
-- All 3 notebooks exist and have jupytext `.py` pairs.
-- The existing invariants are numbered 1-8. Adding #9 requires updating
-  three agent files that reference "8 invariants":
-  - `.claude/agents/reviewer-deep.md:197`
-  - `.claude/agents/planner-science.md:33`
-  - `.claude/agents/reviewer-adversarial.md:42`
-- sc2egset has no `reports/README.md`; the other two have unstructured ones.
-- `docs/templates/raw_data_readme_template.yaml` exists (for raw/README.md).
-  No equivalent exists for `reports/README.md`.
+Per Invariant #9, this step reads structure, not content. It cannot report
+row counts, value distributions, or semantic interpretations.
 
 ## Assumptions & Unknowns
 
-- Raw data is immutable; artifact numbers will not change on rerun.
-- `inventory_directory()` is filesystem-only (verified: glob + stat only).
-- Existing notebooks execute without error (they ran successfully on
-  2026-04-09; raw data has not changed since).
-- Some context leaks listed in the plan may already have been cleaned in
-  prior sessions. Executors verify current state before stripping.
+- `discover_json_schema()` and `get_json_keypaths()` already exist in
+  `rts_predict.common.json_utils` and are tested.
+- `pyarrow.parquet.read_schema()` reads Parquet metadata without loading
+  row data — zero-row operation, very fast.
+- sc2egset JSON files are ~3MB each. Loading 210 files for keypath
+  enumeration = ~630MB sequential reads. Feasible on 36GB M4 Max.
+- SC2 replay format may have evolved across 2016-2024 (protocol versions).
+  Schema discovery should detect this but not resolve it (resolution is
+  01_04 cleaning).
+- CSV type inference from 10 rows may misidentify types. This is a known
+  limitation, documented in the report.
 
 ## Literature Context
 
-Not applicable — file inventory is a data management step, not a
-methodology step. Invariant #9 (research pipeline discipline) is an
-internal thesis methodology commitment analogous to Invariant #3 (temporal
-discipline), which follows de Prado 2018 and Arlot & Celisse 2010 on
-information leakage prevention.
+The Manual 01_DATA_EXPLORATION, Section 1 explicitly lists "schema
+information (column names, types, constraints, relationships)" as a
+component of the source inventory. This step fulfills that requirement.
 
 ## Open Questions
 
-1. Should the 01_01_01 notebook markdown cells be audited for interpretive
-   prose? Currently the plan scopes cleanup to downstream documents
-   (research logs, ROADMAPs, READMEs), not the notebook itself.
-2. The `coverage_notes` field in raw/READMEs may contain provenance claims
-   from acquisition scripts. After stripping, should these be repopulated
-   from acquisition provenance (external docs) or from artifacts?
+1. Should `_download_manifest.json` files in aoe2companion and aoestats
+   root directories get their own schema section? They are acquisition
+   metadata, not game data. Decision: include them — Invariant #9 says
+   we should not assume content without reading it.
+2. If sc2egset shows era-dependent schema variation, should the notebook
+   escalate to a full census for variant keys? Decision: yes, as a
+   conditional extension documented in the notebook.
 
-## Execution Order Rationale
+## Research Question
 
-Context leaks must be stripped BEFORE notebooks rerun. If an executor reads
-a ROADMAP containing "Daily" while writing a new research log entry, the
-leak propagates. The correct order is:
+*"What is the internal structure of each file type in this dataset: what
+fields/columns exist, what are their data types, how deep is the nesting
+(JSON), and is this structure consistent across files?"*
 
-1. **Prep:** codify invariant, create template, strip all leaks
-2. **Rerun:** notebooks execute into a clean document context
-3. **Populate:** new entries and README updates written from artifacts only
-4. **Cross:** root log updated last
+## Scope Boundary (Invariant #9)
+
+**01_01_02 CAN conclude** (observable from headers/schemas):
+- Column names and physical data types (Arrow types for Parquet, Python
+  types for JSON, inferred types for CSV)
+- Nesting depth and nested key names (JSON)
+- Whether all files of the same type share the same schema
+- Nullability from schema metadata (Parquet) or key presence frequency (JSON)
+
+**01_01_02 CANNOT conclude** (requires querying row content):
+- Row counts
+- Value distributions, histograms, summary statistics
+- Missing value rates at the row level
+- Semantic interpretation of columns (e.g., "this column is a player ID")
+- Whether dates in filenames match dates in content
+- Data quality or deduplication
+- DuckDB type mappings (deferred to ingestion design step — depends on
+  value range and cardinality knowledge not yet established)
+
+**Note on sample values:** The `discover_json_schema()` function captures
+up to 3 sample values per key for type-inference validation. These are
+included in the artifact for auditability but the step's conclusions do
+NOT reference them semantically. Seeing a value like "Serral" in a string
+column does not allow this step to conclude "this column contains player
+nicknames" — that is semantic interpretation belonging to 01_02 EDA.
+
+## Sampling Strategy
+
+**Census where cheap, stratified sample where expensive.**
+
+`pyarrow.parquet.read_schema()` reads only footer metadata — sub-second
+for thousands of files. CSV `pd.read_csv(nrows=50)` reads header + 50 rows
+— fast enough for a full sweep. JSON parsing is expensive (~3MB per file).
+Census is used for Parquet and CSV; stratified sampling for JSON only.
+
+| Dataset | File type | Strategy | Count | Rationale |
+|---------|-----------|----------|-------|-----------|
+| sc2egset | JSON root schema | Stratified sample | 70 (1 per dir) | ~3MB/file, I/O cost justifies sampling |
+| sc2egset | JSON keypaths | Stratified sample | 210 (3 per dir) | Full traversal, higher cost per file |
+| aoe2companion | Parquet (matches) | Full census | 2,073 | Metadata-only read, sub-second |
+| aoe2companion | CSV (ratings) | Full census, 50 rows | 2,072 | Header + 50 rows per file for type inference |
+| aoe2companion | Parquet (singletons) | Census | 2 files | Only 1 file each |
+| aoestats | Parquet (matches) | Full census | 172 | Metadata-only read |
+| aoestats | Parquet (players) | Full census | 171 | Metadata-only read |
+| aoestats | JSON (overview) | Census (1 file) | Only 1 file |
+
+File selection is deterministic (first N alphabetically per directory, or
+evenly spaced by date index) for reproducibility.
+
+## Artifact Specification
+
+Each dataset produces two artifacts:
+
+**JSON:** `artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json`
+- Sampling metadata (strategy, counts, selection method)
+- Per-file-type schema: column name, physical type (Arrow for Parquet,
+  Python for JSON, inferred for CSV), nullable, frequency (JSON),
+  sample values (up to 3, for type validation only)
+- Nesting depth and keypath tree (JSON only)
+- Schema consistency verdict per subdirectory
+- No DuckDB type proposals (deferred to ingestion design)
+
+**Markdown:** `artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md`
+- Sampling methodology summary
+- Per-file-type schema tables (column name | physical type | nullable)
+- Schema consistency verdict
+- Structural observations only (no content-level interpretation)
 
 ---
 
 ## Execution Steps
 
-### T00 -- Codify Invariant #9 (research pipeline discipline)
+### T01 — Create Parquet/CSV schema utility code + tests
 
-**Objective:** Add a new scientific invariant and update stale count
-references so all downstream executors see the rule in their read_scope.
+**Objective:** Add `discover_parquet_schema()` and `discover_csv_schema()`
+functions with tests.
 
 **Instructions:**
-1. Read `.claude/scientific-invariants.md`.
-2. Add a new section after `### Cross-game comparability` (Invariant #8)
-   and before `## Per-dataset findings`:
-
-   ```markdown
-   ### Research pipeline discipline
-
-   9. **A step's conclusions must derive only from its own artifacts and all
-      prior steps' artifacts.** Step XX_YY_ZZ may reference:
-      - Artifacts it produces during its own execution
-      - Artifacts produced by any completed predecessor step (any step with a
-        lower number whose artifacts exist on disk)
-      - External source documentation (paper citations, acquisition provenance,
-        Zenodo metadata)
-
-      It must NOT reference:
-      - Knowledge that would be produced by a future step
-      - Implicit domain knowledge not grounded in an existing artifact
-      - Content-level understanding of data not yet established by a completed
-        step's artifact
-
-      This applies to all downstream documents that inherit from a step's
-      findings: research log entries, ROADMAP source data summaries, and
-      raw/README.md files. If a document states a fact derived from the data,
-      the artifact that established that fact must already exist on disk.
-
-      **External source documentation** means information traceable to a
-      specific sentence in a cited publication, API documentation page, or
-      dataset metadata record. Use exact source titles and descriptions
-      (e.g., "SC2EGSet: StarCraft II Esport Replay and Game-state Dataset")
-      rather than paraphrased interpretive labels (e.g., "tournament replay
-      files"). Exact citations are deferred to thesis chapters; in pipeline
-      documents, use the source's own title verbatim.
-
-      **Example:** Step 01_01_01 (file inventory) sees filenames and sizes. It
-      cannot call files "daily match dumps" because "daily" and "match" are
-      content-level conclusions -- "daily" requires confirming filename-date
-      patterns against actual content cadence (01_01_02+), and "match" requires
-      reading file schemas (01_01_02). It can report: "2,073 `.parquet` files
-      in `matches/` named `match-{YYYY-MM-DD}.parquet`."
-
-      See Invariant #3 for the analogous rule applied to feature computation.
-   ```
-3. Update `.claude/agents/reviewer-deep.md` line 197:
-   "For each of the 8 invariants" -> "For each of the 9 invariants"
-4. Update `.claude/agents/planner-science.md` line 33:
-   "against the 8 invariants" -> "against the 9 invariants"
-5. Update `.claude/agents/reviewer-adversarial.md` line 42:
-   "the 8 universal methodology invariants" -> "the 9 universal methodology invariants"
+1. Create `src/rts_predict/common/parquet_utils.py` with:
+   - `discover_parquet_schema(file_path) -> dict` — calls
+     `pyarrow.parquet.read_schema()`, returns column names, Arrow types,
+     nullable flags (no DuckDB type proposals — deferred to ingestion)
+   - `discover_parquet_schemas(file_paths) -> dict` — runs on multiple
+     files, compares schemas, returns consistency verdict + any variant
+     columns
+   - `discover_csv_schema(file_path, sample_rows=50) -> dict` — reads
+     header + N rows, infers types via pandas, returns column names and
+     inferred types (no DuckDB type proposals)
+2. Write tests in `tests/rts_predict/common/test_parquet_utils.py`:
+   - Test with a small synthetic Parquet file (created in conftest)
+   - Test schema consistency check with matching and mismatching schemas
+   - Test CSV schema inference with a small synthetic CSV
+   - Test `sample_rows=50` parameter
+4. Run `source .venv/bin/activate && poetry run pytest tests/rts_predict/common/test_parquet_utils.py -v`
+5. Run `source .venv/bin/activate && poetry run ruff check src/rts_predict/common/parquet_utils.py`
+6. Run `source .venv/bin/activate && poetry run mypy src/rts_predict/common/parquet_utils.py`
 
 **Verification:**
-- Invariant #9 exists in `.claude/scientific-invariants.md`
-- `grep -c "8 invariants\|8 universal" .claude/agents/reviewer-deep.md .claude/agents/planner-science.md .claude/agents/reviewer-adversarial.md`
-  returns 0 for all three files
+- Tests pass
+- Ruff clean
+- Mypy clean
+- `discover_parquet_schema()` returns column names + Arrow types + DuckDB proposals
+- `discover_csv_schema()` returns column names + inferred types
 
 **File scope:**
-- `.claude/scientific-invariants.md`
-- `.claude/agents/reviewer-deep.md`
-- `.claude/agents/planner-science.md`
-- `.claude/agents/reviewer-adversarial.md`
+- `src/rts_predict/common/parquet_utils.py` (create)
+- `tests/rts_predict/common/test_parquet_utils.py` (create)
+
+**Read scope:**
+- `src/rts_predict/common/json_utils.py` (for style reference)
 
 ---
 
-### T01 -- Create dataset reports README template
+### T02 — Run schema discovery for all 3 datasets + write research logs
 
-**Objective:** Create `docs/templates/dataset_reports_readme_template.yaml`
-so all `reports/README.md` files across datasets follow a consistent
-structure with Invariant #9 annotations.
+**Objective:** Create and execute 3 schema discovery notebooks, produce
+artifacts, write research log entries and CROSS entry. Update ROADMAPs
+with step definitions.
 
-**Instructions:**
-1. Read `docs/templates/raw_data_readme_template.yaml` for style reference.
-2. Create `docs/templates/dataset_reports_readme_template.yaml` with these
-   sections, each annotated with which step populates it:
+This is a parameterized task — one set of instructions, iterated per
+dataset.
 
-   ```yaml
-   # Dataset Reports README Template (v1)
-   #
-   # Canonical schema for reports/README.md files across all datasets:
-   #   src/rts_predict/games/<game>/datasets/<dataset>/reports/README.md
-   #
-   # Purpose: permanent provenance record for the dataset. Independent of
-   # the phase system -- not archived when phases are reset.
-   #
-   # Invariant #9 compliance: each field is annotated with the step or
-   # source that populates it. A field MUST NOT be populated until that
-   # step's artifacts exist on disk.
-   #
-   # Authoritative sources:
-   #   Scientific Invariants  .claude/scientific-invariants.md
-   #   Raw Data Template      docs/templates/raw_data_readme_template.yaml
-   #   Phase definitions      docs/PHASES.md
+**Datasets:**
 
-   # -- Section A: Identity -----------------------------------------------
+```yaml
+datasets:
+  - id: sc2egset
+    game: sc2
+    notebook: sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.py
+    artifacts_dir: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/
+    research_log: src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+    roadmap: src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
+    raw_dir: src/rts_predict/games/sc2/datasets/sc2egset/data/raw/
+    prior_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json
+    file_types: "JSON (.SC2Replay.json)"
+    method: |
+      1. Read 01_01_01 artifact to get directory list
+      2. Select 1 file per dir (first alphabetically) for root schema via discover_json_schema()
+      3. Select 3 files per dir for keypaths via get_json_keypaths()
+      4. Compare root schemas across all 70 dirs for consistency
+      5. Report: root key catalog, keypath tree, types, consistency verdict (no DuckDB types)
+    sample: "70 root (1/dir), 210 keypaths (3/dir) — stratified, JSON I/O cost justifies sampling"
 
-   game:          # <sc2 | aoe2>
-   dataset:       # <dataset_name>
-   reports_dir:   # <repo-relative path to this reports/ directory>
+  - id: aoe2companion
+    game: aoe2
+    notebook: sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_02_schema_discovery.py
+    artifacts_dir: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/
+    research_log: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md
+    roadmap: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md
+    raw_dir: src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/
+    prior_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json
+    file_types: "Parquet (matches, leaderboards, profiles) + CSV (ratings)"
+    method: |
+      1. Read 01_01_01 artifact to get file lists per subdir
+      2. Parquet (matches): full census — discover_parquet_schemas() on all 2,073 files
+      3. CSV (ratings): full census — discover_csv_schema(sample_rows=50) on all 2,072 files
+      4. Singletons: read_schema() on leaderboard.parquet, profile.parquet
+      5. Compare schemas within each subdir for consistency
+      6. Report: column catalogs, Arrow/inferred types, consistency verdicts (no DuckDB types)
+    sample: "Full census for Parquet (metadata-only) and CSV (header + 50 rows)"
 
-   # -- Section B: Acquisition provenance ----------------------------------
-   # Source: acquisition script execution (pre-Phase 01)
+  - id: aoestats
+    game: aoe2
+    notebook: sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_02_schema_discovery.py
+    artifacts_dir: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/
+    research_log: src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md
+    roadmap: src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md
+    raw_dir: src/rts_predict/games/aoe2/datasets/aoestats/data/raw/
+    prior_artifact: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json
+    file_types: "Parquet (matches, players) + JSON (overview)"
+    method: |
+      1. Read 01_01_01 artifact to get file lists per subdir
+      2. Parquet: full census — discover_parquet_schemas() on all 172 matches + 171 players files
+      3. JSON: discover_json_schema() on overview.json (census, 1 file)
+      4. Cross-compare matches and players column names for structural overlap (raw string comparison)
+      5. Compare schemas within each subdir for consistency
+      6. Report: column catalogs, Arrow types, consistency verdicts, column name overlap (no DuckDB types)
+    sample: "Full census for Parquet (metadata-only), census for JSON"
+```
 
-   acquisition:
-     date:         # <YYYY-MM-DD>
-     script:       # <CLI command or "manual download">
-     branch:       # <branch name where acquisition was committed>
-     source:       # <source name>
-     source_url:   # <URL>
-     method:       # <cdn_download | api_download | manual_download>
+**Instructions (per dataset):**
 
-   # -- Section C: File inventory summary ----------------------------------
-   # Source: Step 01_01_01 artifact
-   # Invariant #9: MUST NOT contain interpretive labels (daily, weekly,
-   # snapshot, replay, match, etc.). Report file counts, sizes, extensions,
-   # and filename patterns only.
+1. Read the dataset's ROADMAP. Add the 01_01_02 step definition YAML block
+   after the existing 01_01_01 block. Use the step definitions from this
+   plan (see Step Definitions section below).
+2. Create the notebook (jupytext-paired `.py`). Structure:
+   - Cell 1: imports, config, paths
+   - Cell 2: load 01_01_01 artifact to get file lists
+   - Cell 3: sampling logic (deterministic file selection)
+   - Cell 4: schema discovery (per dataset method above)
+   - Cell 5: schema consistency check
+   - Cell 6: write JSON artifact
+   - Cell 7: write Markdown artifact
+3. Run fresh-kernel execution:
+   `source .venv/bin/activate && poetry run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 <notebook_path>.ipynb`
+4. Sync jupytext:
+   `source .venv/bin/activate && poetry run jupytext --sync <notebook_path>.ipynb`
+5. Read produced artifacts (JSON + MD).
+6. Write research log entry using `docs/templates/research_log_entry_template.yaml`:
+   - Set `step_scope: content`
+   - Report: column counts, type distributions, nesting depth, consistency
+     verdict, sample values
+   - Per Invariant #9: no row counts, no value distributions, no semantic
+     interpretation beyond what column names literally say
+7. After all 3 datasets complete: write CROSS entry in
+   `reports/research_log.md` constrained to structural observations only:
+   - File format per dataset (JSON / Parquet / CSV)
+   - Column count per file type
+   - Nesting depth per file type (0 for flat Parquet/CSV, N for JSON)
+   - Column name overlap across datasets as raw string comparison
+   - Do NOT include semantic interpretation ("both contain match data")
+   - Do NOT include ingestion design ("sc2egset needs flattening")
+8. Update each dataset's `STEP_STATUS.yaml` to mark 01_01_02 as complete.
 
-   file_inventory:
-     total_files:    # <integer from 01_01_01 artifact, excluding dotfiles>
-     total_size_mb:  # <number from 01_01_01 artifact>
-     subdirectories: # <count of subdirectories>
-     artifact_ref:   # <repo-relative path to 01_01_01_file_inventory.json>
-
-   # -- Section D: Known issues --------------------------------------------
-   # Source: acquisition script logs or 01_01_01 artifact
-   # Report filesystem-level facts only. Do NOT interpret cause or meaning.
-   # Example: "171 files in players/ vs 172 in matches/" (fact)
-   # Not: "documented download failure" (provenance claim beyond filesystem)
-
-   known_issues: []
-
-   # -- Section E: Reconciliation ------------------------------------------
-   # Source: acquisition script verification
-
-   reconciliation:
-     strength:   # <FULL | DEGRADED | NONE>
-     reason:     # <one-line explanation>
-
-   # -- Section F: Provenance rule -----------------------------------------
-
-   provenance_rule: >
-     Raw data is immutable. The acquisition will not be repeated.
-   ```
-
-3. Update `docs/templates/research_log_entry_template.yaml`:
-   - Add a `step_scope` field after `dataset:` in the header fields:
-     ```yaml
-     step_scope:
-       format: "**Step scope:** filesystem | content | query | model"
-       required: true
-       condition: "Required for Category A entries."
-       notes: >
-         Per Invariant #9, a step's conclusions must derive only from its own
-         artifacts and all prior steps' artifacts. The step_scope field declares
-         what level of observation this step operates at, so reviewers can
-         verify that findings do not exceed scope. Values:
-         - filesystem: file tree, counts, sizes, filename patterns (01_01_01)
-         - content: file headers, schemas, sample rows (01_01_02)
-         - query: DuckDB queries on ingested data (01_01_03+)
-         - model: feature engineering, model training (Phase 02+)
-     ```
-   - Add Invariant #9 reference to the `findings` section notes:
-     "Per Invariant #9, findings must not exceed the declared step_scope."
-
-**Verification:**
-- Template file exists at `docs/templates/dataset_reports_readme_template.yaml`
-- Every section has a `# Source:` annotation
-- Template references Invariant #9
-- Research log entry template has `step_scope` field with Invariant #9 annotation
-
-**File scope:**
-- `docs/templates/dataset_reports_readme_template.yaml`
-- `docs/templates/research_log_entry_template.yaml`
-
----
-
-### T02 -- Strip context leaks from all datasets
-
-**Objective:** Remove all interpretive content from research logs, ROADMAP
-source data sections, reports/READMEs, and raw/READMEs across all 3 datasets.
-This creates a clean context for the notebook reruns.
-
-**Instructions:**
-
-**Research logs (3 files):**
-1. For each dataset's `reports/research_log.md`, delete the entire 01_01_01
-   entry. Leave the file header and any other entries intact.
-
-**ROADMAP source data sections (3 files):**
-2. For each dataset's `reports/ROADMAP.md`, locate the "Source data" section.
-3. Strip all populated file counts, date ranges, and interpretive labels
-   from the summary table/prose. Replace with stubs:
-   - sc2egset: remove "~22,000 competitive 1v1 replays from 70+ tournaments
-     covering 2016-2024." Replace with: "File counts and layout from
-     Step 01_01_01 artifacts (to be repopulated after rerun)."
-   - aoe2companion: remove the table with "Daily," "Single-file snapshot,"
-     file counts, sizes. Replace with same stub.
-   - aoestats: remove the table with "Weekly," "Single-file snapshot," file
-     counts, WARNING block. Replace with same stub.
-4. Keep the citation/DOI (sc2egset), source name, acquisition date, and
-   any external documentation unchanged.
-
-**reports/READMEs (3 files -- create sc2egset):**
-5. Create `src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md`
-   from the template (T01). Populate Section B (Acquisition) from external
-   documentation. Leave Sections C-D as stubs.
-6. Rewrite `aoe2companion/reports/README.md` to conform to template. Keep
-   Section B populated, stub Section C (file inventory), keep Section D
-   (known issues) as filesystem-level facts only, keep Section E.
-7. Rewrite `aoestats/reports/README.md` to conform to template. Same rules.
-   The known download failure should be restated as a filesystem fact:
-   "171 files in `players/` vs 172 in `matches/`."
-
-**raw/READMEs (3 files):**
-8. For each dataset's `data/raw/README.md`:
-   - Strip the `description` field in Section C — remove interpretive labels
-     like "daily match parquet files," "leaderboard and profile snapshots,"
-     "weekly match and player parquet files," "tournament replay files."
-     Replace with stub: `# to be repopulated from 01_01_01 artifacts`
-   - Strip `temporal_grain` value — replace with stub:
-     `# to be populated from 01_01_01 artifact date_analysis`
-   - Strip interpretive labels from `contents:` fields in
-     `subdirectory_layout` entries (e.g., "Daily match parquet files" ->
-     stub or pattern-only description)
-   - Strip interpretive labels from the markdown body tables
-   - Strip `coverage_notes` if it contains forward-references to steps
-     not yet completed (e.g., "identified during Phase 01 profiling")
-   - Keep Sections B (Provenance), E (Acquisition Filtering),
-     H (Known Limitations) unchanged
-   - Mark stripped fields with `# to be repopulated from 01_01_01 artifacts`
-
-**Verification:**
-- `grep -riE "daily|weekly|snapshot|structurally sound|per.game" --include="*.md"`
-  across all 3 datasets' reports/ and data/raw/ dirs returns zero matches
-  (excluding ROADMAP step definition yaml blocks and quoted filenames)
-- sc2egset `reports/README.md` exists and follows template
-- All 3 `reports/README.md` files have consistent structure
+**Verification (per dataset):**
+- Artifacts exist: `01_01_02_schema_discovery.json` and `.md`
+- `.ipynb` / `.py` pair synced
+- Research log entry has `step_scope: content`
+- Research log entry contains no row counts, value distributions, or
+  semantic interpretations
+- ROADMAP has 01_01_02 step definition
+- STEP_STATUS.yaml updated
 
 **File scope:**
+- `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.ipynb`
+- `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.py`
+- `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_02_schema_discovery.ipynb`
+- `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_02_schema_discovery.py`
+- `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_02_schema_discovery.ipynb`
+- `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_02_schema_discovery.py`
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md`
 - `src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md`
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md`
 - `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md` (create)
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md`
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md`
-- `src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md`
-- `src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md`
-
-**Read scope:**
-- `docs/templates/dataset_reports_readme_template.yaml` (from T01)
-- `docs/templates/raw_data_readme_template.yaml`
-- `.claude/scientific-invariants.md`
-
----
-
-### T03 -- Rerun sc2egset 01_01_01
-
-**Objective:** Rerun the file inventory notebook into a clean context,
-write a new research log entry from artifacts only.
-
-**Instructions:**
-1. Read the notebook at
-   `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`.
-2. Verify the notebook calls `inventory_directory()` and writes artifacts to:
-   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
-3. Run fresh-kernel execution:
-   `source .venv/bin/activate && poetry run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-4. Sync jupytext:
-   `source .venv/bin/activate && poetry run jupytext --sync sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-5. Read the produced artifacts (JSON + MD).
-6. Write a new research log entry using
-   `docs/templates/research_log_entry_template.yaml`. Strict rules:
-   - Report: directory tree, file counts per directory, extensions, sizes,
-     filename-derived date ranges, gaps
-   - Do NOT interpret directory names as data semantics
-   - Do NOT use words like "daily," "weekly," "snapshot," "structurally sound,"
-     "replay," "tournament" (as semantic labels) unless they appear literally
-     in artifact output as filenames/extensions
-   - `matches/`, `_data/` etc. are directory names -- quote them as such,
-     not as data claims
-   - Per Invariant #9: conclusions derive from artifacts only
-7. Verify `.ipynb` and `.py` pair are synced.
-
-**Verification:**
-- Artifacts exist and are current (timestamp matches notebook execution)
-- Research log entry contains only file-level observations
-- `grep -iE "daily|weekly|snapshot|structurally sound" research_log.md`
-  returns zero matches outside of directory name contexts
-- `.ipynb` and `.py` pair synced
-
-**File scope:**
-- `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-- `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.py`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/STEP_STATUS.yaml`
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/`
-
-**Read scope:**
-- `.claude/scientific-invariants.md`
-- `docs/templates/research_log_entry_template.yaml`
-
----
-
-### T04 -- Rerun aoe2companion 01_01_01
-
-**Objective:** Same as T03 for aoe2companion.
-
-**Instructions:** Same pattern as T03. Target paths:
-- Notebook: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-- Artifacts: `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/`
-- Research log: `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md`
-
-Same strict scoping rules and Invariant #9 constraint.
-
-**Verification:** Same as T03 adapted to aoe2companion paths.
-
-**File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-- `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.py`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md`
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/`
-
-**Read scope:**
-- `.claude/scientific-invariants.md`
-- `docs/templates/research_log_entry_template.yaml`
-
----
-
-### T05 -- Rerun aoestats 01_01_01
-
-**Objective:** Same as T03 for aoestats.
-
-**Instructions:** Same pattern as T03. Target paths:
-- Notebook: `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-- Artifacts: `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/`
-- Research log: `src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md`
-
-Same strict scoping rules and Invariant #9 constraint.
-
-**Verification:** Same as T03 adapted to aoestats paths.
-
-**File scope:**
-- `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
-- `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.py`
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md`
 - `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/`
+- `reports/research_log.md`
 
 **Read scope:**
 - `.claude/scientific-invariants.md`
 - `docs/templates/research_log_entry_template.yaml`
+- `docs/templates/step_template.yaml`
+- `src/rts_predict/common/json_utils.py`
+- `src/rts_predict/common/parquet_utils.py` (from T01)
+- Each dataset's 01_01_01 artifact (listed in datasets table above)
 
 ---
 
-### T06 -- Populate sc2egset docs from artifacts
+## Step Definitions (for ROADMAPs)
 
-**Objective:** Repopulate the sc2egset ROADMAP source data section,
-raw/README.md, and reports/README.md strictly from fresh 01_01_01 artifacts.
+### sc2egset
 
-**Instructions:**
-1. Read the fresh artifacts (JSON + MD) from T03.
-2. Update ROADMAP source data section: repopulate file counts, sizes,
-   directory structure from artifacts. Use filesystem-level language only.
-   No "replay," "tournament" as semantic labels -- use directory names
-   and file extensions.
-3. Update raw/README.md: repopulate `subdirectory_layout` entries,
-   `total_files`, `total_size_mb`, `description`, and `contents:` fields
-   from artifacts. Populate `temporal_grain` from artifact `date_analysis`
-   (filename-derived cadence is filesystem-level). Use pattern-based
-   descriptions for `contents:` fields (e.g., "`.SC2Replay.json` files").
-4. Update reports/README.md: populate Section C (file inventory) from
-   artifacts. Must conform to `docs/templates/dataset_reports_readme_template.yaml`.
-5. Per Invariant #9: every stated fact must trace to the 01_01_01 artifact.
+```yaml
+step_number: "01_01_02"
+name: "Schema Discovery"
+description: "Sample sc2egset JSON files across all 70 directories. Discover root-level keys, nested keypaths, data types, and schema consistency across eras."
+phase: "01 — Data Exploration"
+pipeline_section: "01_01 — Data Acquisition & Source Inventory"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 1"
+dataset: "sc2egset"
+question: "What is the internal structure of the SC2EGSet JSON files, and is this structure consistent across all 70 directories?"
+method: "Select 1 file from each of the 70 _data/ subdirectories (first alphabetically) for root-level schema via discover_json_schema(). Select 3 files from each directory for full keypath enumeration via get_json_keypaths(). Compare schemas across directories to detect era-dependent variation. Report root-level key catalog, full keypath tree, observed types, and consistency verdict. No DuckDB type proposals (deferred to ingestion design)."
+stratification: "By directory (all 70 represented; temporal range 2016-2024)."
+predecessors:
+  - "01_01_01"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.py"
+inputs:
+  duckdb_tables: "none — reads raw JSON files directly"
+  prior_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+  report: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md"
+reproducibility: "All schema profiles produced by discover_json_schema() and get_json_keypaths() from rts_predict.common.json_utils. File selection is deterministic (first N alphabetically per directory). Code and output in the paired notebook per Invariant #6."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "Schema profiles produced by code in the notebook, saved alongside the report."
+  - number: "7"
+    how_upheld: "Sample size (1 per directory for root schema, 3 for keypaths) justified by temporal stratification in the report."
+  - number: "9"
+    how_upheld: "Conclusions limited to structural observations. No row counts, value distributions, or semantic interpretation."
+gate:
+  artifact_check: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json and .md exist and are non-empty."
+  continue_predicate: "Schema artifacts exist and report a consistency verdict for all 70 directories."
+  halt_predicate: "More than 30% of sampled files fail to parse."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
 
-**Verification:**
-- No interpretive labels in any of the 3 files
-- reports/README.md conforms to template
-- All numbers match 01_01_01 artifact values
+### aoe2companion
 
-**File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (Source data section)
-- `src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md`
+```yaml
+step_number: "01_01_02"
+name: "Schema Discovery"
+description: "Read Parquet metadata and CSV headers from aoe2companion raw files. Discover column schemas for matches, ratings, leaderboards, and profiles. Check schema consistency across the temporal range."
+phase: "01 — Data Exploration"
+pipeline_section: "01_01 — Data Acquisition & Source Inventory"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 1"
+dataset: "aoe2companion"
+question: "What columns exist in each file type, what are their data types, and is the schema consistent across the temporal range?"
+method: "Full census: pyarrow.parquet.read_schema() on all 2,073 files in matches/ (metadata-only, sub-second). Full census: pd.read_csv(nrows=50) on all 2,072 files in ratings/ (header + 50 rows for type inference). Read schema from singleton leaderboard.parquet and profile.parquet. Compare schemas within each subdirectory for consistency. Report column catalogs, Arrow/inferred types, and consistency verdicts. No DuckDB type proposals."
+stratification: "By subdirectory. Full census within each — no sampling needed for Parquet metadata or CSV headers."
+predecessors:
+  - "01_01_01"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_02_schema_discovery.py"
+inputs:
+  duckdb_tables: "none — reads raw file metadata directly"
+  prior_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+  report: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md"
+reproducibility: "Parquet schemas via pyarrow.parquet.read_schema() (full census on all files). CSV schemas via pd.read_csv(nrows=50) (full census, 50 rows per file for type inference — sufficient to detect type variation without full content read). Code and output in the paired notebook per Invariant #6."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "Schema profiles produced by code in the notebook, saved alongside the report."
+  - number: "7"
+    how_upheld: "Full census for Parquet (metadata-only, zero cost) and CSV (header + 50 rows). Census eliminates sample-size justification requirement."
+  - number: "9"
+    how_upheld: "Conclusions limited to column-level structural observations. No row counts or value distributions. No DuckDB type proposals."
+gate:
+  artifact_check: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json and .md exist and are non-empty."
+  continue_predicate: "Schema artifacts exist and report a consistency verdict for all subdirectories."
+  halt_predicate: "Any Parquet file fails to open."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
 
-**Read scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
-- `docs/templates/dataset_reports_readme_template.yaml`
+### aoestats
 
----
-
-### T07 -- Populate aoe2companion docs from artifacts
-
-**Objective:** Same as T06 for aoe2companion.
-
-**Instructions:** Same pattern as T06. Target paths:
-- ROADMAP: `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md`
-- raw/README.md: `src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md`
-- reports/README.md: `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md`
-
-**Verification:** Same as T06 adapted to aoe2companion paths.
-
-**File scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md` (Source data section)
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md`
-
-**Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
-- `docs/templates/dataset_reports_readme_template.yaml`
-
----
-
-### T08 -- Populate aoestats docs from artifacts
-
-**Objective:** Same as T06 for aoestats.
-
-**Instructions:** Same pattern as T06. Target paths:
-- ROADMAP: `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md`
-- raw/README.md: `src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md`
-- reports/README.md: `src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md`
-
-**Verification:** Same as T06 adapted to aoestats paths.
-
-**File scope:**
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md` (Source data section)
-- `src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md`
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md`
-
-**Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
-- `docs/templates/dataset_reports_readme_template.yaml`
-
----
-
-### T09 -- Update root CROSS log
-
-**Objective:** Replace the interpretive CROSS summary with a factual one.
-
-**Instructions:**
-1. Read `reports/research_log.md`.
-2. Find the CROSS summary for 01_01_01 (line ~64).
-3. Replace with factual content only:
-   "Step 01_01_01 file inventory rerun completed for all 3 datasets.
-   Context leaks stripped, research log entries rewritten from artifacts.
-   ROADMAP source data sections, raw/README.md, and reports/README.md
-   repopulated strictly from 01_01_01 artifacts per Invariant #9.
-   Per-dataset findings in each dataset's research_log.md."
-4. Do NOT include any cross-dataset comparisons or interpretive claims.
-
-**Verification:**
-- Root CROSS log has factual 01_01_01 summary
-- `grep -iE "structurally sound|non-empty|daily|weekly" reports/research_log.md`
-  in the 01_01_01 section returns zero matches
-
-**File scope:** `reports/research_log.md`
-**Read scope:** none (T03-T08 must complete first)
+```yaml
+step_number: "01_01_02"
+name: "Schema Discovery"
+description: "Read Parquet metadata from aoestats matches and players files. Read overview.json structure. Check schema consistency across the temporal range and compare matches/players schemas for structural overlap."
+phase: "01 — Data Exploration"
+pipeline_section: "01_01 — Data Acquisition & Source Inventory"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 1"
+dataset: "aoestats"
+question: "What columns exist in each file type, what are their data types, is the schema consistent across the temporal range, and do matches and players share structurally overlapping columns?"
+method: "Full census: pyarrow.parquet.read_schema() on all 172 matches + 171 players files (metadata-only). discover_json_schema() on overview.json (1 file). Compare schemas within each subdirectory for consistency. Cross-compare matches and players column names for structural overlap (raw string comparison). Report column catalogs, Arrow types, consistency verdicts, and column name overlap. No DuckDB type proposals."
+stratification: "By subdirectory. Full census within each."
+predecessors:
+  - "01_01_01"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_02_schema_discovery.py"
+inputs:
+  duckdb_tables: "none — reads raw file metadata directly"
+  prior_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+  report: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md"
+reproducibility: "Parquet schemas via pyarrow.parquet.read_schema() (full census on all files). JSON schema via discover_json_schema() (census, 1 file). Code and output in the paired notebook per Invariant #6."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "Schema profiles produced by code in the notebook, saved alongside the report."
+  - number: "7"
+    how_upheld: "Full census for Parquet (metadata-only, zero cost) and JSON (1 file). Census eliminates sample-size justification requirement."
+  - number: "9"
+    how_upheld: "Conclusions limited to column-level structural observations. Cross-subdirectory comparison is structural (column name overlap as raw string comparison), not content-level. No DuckDB type proposals."
+gate:
+  artifact_check: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json and .md exist and are non-empty."
+  continue_predicate: "Schema artifacts exist and report a consistency verdict for all subdirectories."
+  halt_predicate: "Any Parquet file fails to open."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
 
 ---
 
@@ -607,340 +471,141 @@ raw/README.md, and reports/README.md strictly from fresh 01_01_01 artifacts.
 
 | File | Action | Task |
 |------|--------|------|
-| `.claude/scientific-invariants.md` | Add Invariant #9 | T00 |
-| `.claude/agents/reviewer-deep.md` | "8 invariants" -> "9 invariants" | T00 |
-| `.claude/agents/planner-science.md` | "8 invariants" -> "9 invariants" | T00 |
-| `.claude/agents/reviewer-adversarial.md` | "8 universal" -> "9 universal" | T00 |
-| `docs/templates/dataset_reports_readme_template.yaml` | Create | T01 |
-| `docs/templates/research_log_entry_template.yaml` | Add step_scope field | T01 |
-| `src/.../sc2egset/reports/research_log.md` | Delete 01_01_01 entry | T02 |
-| `src/.../aoe2companion/reports/research_log.md` | Delete 01_01_01 entry | T02 |
-| `src/.../aoestats/reports/research_log.md` | Delete 01_01_01 entry | T02 |
-| `src/.../sc2egset/reports/ROADMAP.md` | Strip source data | T02, T06 |
-| `src/.../aoe2companion/reports/ROADMAP.md` | Strip source data | T02, T07 |
-| `src/.../aoestats/reports/ROADMAP.md` | Strip source data | T02, T08 |
-| `src/.../sc2egset/reports/README.md` | Create from template | T02, T06 |
-| `src/.../aoe2companion/reports/README.md` | Conform to template | T02, T07 |
-| `src/.../aoestats/reports/README.md` | Conform to template | T02, T08 |
-| `src/.../sc2egset/data/raw/README.md` | Strip + repopulate | T02, T06 |
-| `src/.../aoe2companion/data/raw/README.md` | Strip + repopulate | T02, T07 |
-| `src/.../aoestats/data/raw/README.md` | Strip + repopulate | T02, T08 |
-| `sandbox/.../sc2egset/.../01_01_01_file_inventory.ipynb` | Rerun | T03 |
-| `sandbox/.../sc2egset/.../01_01_01_file_inventory.py` | Sync | T03 |
-| `sandbox/.../aoe2companion/.../01_01_01_file_inventory.ipynb` | Rerun | T04 |
-| `sandbox/.../aoe2companion/.../01_01_01_file_inventory.py` | Sync | T04 |
-| `sandbox/.../aoestats/.../01_01_01_file_inventory.ipynb` | Rerun | T05 |
-| `sandbox/.../aoestats/.../01_01_01_file_inventory.py` | Sync | T05 |
-| `src/.../sc2egset/reports/artifacts/.../01_01_01_file_inventory.json` | Regenerate | T03 |
-| `src/.../sc2egset/reports/artifacts/.../01_01_01_file_inventory.md` | Regenerate | T03 |
-| `src/.../aoe2companion/reports/artifacts/.../01_01_01_file_inventory.json` | Regenerate | T04 |
-| `src/.../aoe2companion/reports/artifacts/.../01_01_01_file_inventory.md` | Regenerate | T04 |
-| `src/.../aoestats/reports/artifacts/.../01_01_01_file_inventory.json` | Regenerate | T05 |
-| `src/.../aoestats/reports/artifacts/.../01_01_01_file_inventory.md` | Regenerate | T05 |
-| `reports/research_log.md` | Update CROSS summary | T09 |
+| `src/rts_predict/common/parquet_utils.py` | Create | T01 |
+| `tests/rts_predict/common/test_parquet_utils.py` | Create | T01 |
+| `sandbox/.../sc2egset/.../01_01_02_schema_discovery.{ipynb,py}` | Create + execute | T02 |
+| `sandbox/.../aoe2companion/.../01_01_02_schema_discovery.{ipynb,py}` | Create + execute | T02 |
+| `sandbox/.../aoestats/.../01_01_02_schema_discovery.{ipynb,py}` | Create + execute | T02 |
+| `src/.../sc2egset/reports/artifacts/.../01_01_02_schema_discovery.{json,md}` | Generate | T02 |
+| `src/.../aoe2companion/reports/artifacts/.../01_01_02_schema_discovery.{json,md}` | Generate | T02 |
+| `src/.../aoestats/reports/artifacts/.../01_01_02_schema_discovery.{json,md}` | Generate | T02 |
+| `src/.../sc2egset/reports/ROADMAP.md` | Add step definition | T02 |
+| `src/.../aoe2companion/reports/ROADMAP.md` | Add step definition | T02 |
+| `src/.../aoestats/reports/ROADMAP.md` | Add step definition | T02 |
+| `src/.../sc2egset/reports/research_log.md` | Add entry | T02 |
+| `src/.../aoe2companion/reports/research_log.md` | Add entry | T02 |
+| `src/.../aoestats/reports/research_log.md` | Add entry | T02 |
+| `src/.../sc2egset/reports/STEP_STATUS.yaml` | Mark 01_01_02 complete | T02 |
+| `src/.../aoe2companion/reports/STEP_STATUS.yaml` | Mark 01_01_02 complete | T02 |
+| `src/.../aoestats/reports/STEP_STATUS.yaml` | Mark 01_01_02 complete | T02 |
+| `reports/research_log.md` | Add CROSS entry | T02 |
 
 ## Gate Condition
 
-- Invariant #9 exists in `.claude/scientific-invariants.md`
-- `docs/templates/dataset_reports_readme_template.yaml` exists
-- "8 invariants" count references updated in all three agent files
-- 3 notebooks executed fresh-kernel without error
+- `parquet_utils.py` exists with `discover_parquet_schema()` and
+  `discover_csv_schema()` functions
+- Tests pass: `pytest tests/rts_predict/common/test_parquet_utils.py -v`
+- Ruff and mypy clean on `parquet_utils.py`
 - 6 artifact files exist (JSON + MD per dataset) with current timestamps
-- 3 per-dataset research log entries contain ONLY file-level observations
-- 3 ROADMAP source data sections repopulated without interpretive labels
-- 3 raw/README.md files repopulated from artifacts, no interpretive labels
-- 3 reports/README.md files exist and conform to template
-- Machine check: `grep -riE "snapshot|structurally sound|non.empty|per.game"`
-  across all modified files returns zero matches (excluding ROADMAP step
-  definition yaml blocks). Note: "daily" and "weekly" are NOW permitted in
-  `temporal_grain` and date_analysis-derived fields (filesystem-level from
-  artifact). The regex excludes these as they are artifact-populated values.
-  Separately check that "daily|weekly" do NOT appear as semantic labels
-  for file roles (e.g., "daily match files" is banned; `temporal_grain:
-  daily` is allowed).
-- Root CROSS log has factual summary (no interpretive claims)
-- STEP_STATUS.yaml still shows 01_01_01 as complete for all 3 datasets
+- 3 notebooks executed fresh-kernel without error
 - `.ipynb` / `.py` pairs synced for all 3 notebooks
+- 3 per-dataset research log entries have `step_scope: content`
+- 3 per-dataset research log entries contain no row counts, value
+  distributions, or semantic interpretations
+- 3 ROADMAPs have 01_01_02 step definition YAML blocks
+- 3 STEP_STATUS.yaml files show 01_01_02 as complete
+- Root CROSS log has factual 01_01_02 summary
+- Full test suite passes: `pytest tests/ -v --cov`
 
 ## Design Decisions
 
-1. **Cleanup before rerun.** Context leaks are stripped (T02) before
-   notebooks execute (T03-T05). This prevents executors from reading
-   leaked content while writing new entries.
+1. **2 consolidated specs, not 8.** T01 (utility code) and T02 (all 3
+   notebooks + docs) — applying the spec consolidation rule. T02 uses a
+   parameterized dataset table. T02 writes ~22 files, exceeding the ~15
+   guideline. Accepted: the parameterized table keeps instructions
+   unified, and splitting notebooks from docs would force a second
+   executor to re-read all artifacts. The token savings outweigh the
+   tracking complexity.
 
-2. **Adversarial critique required.** This plan introduces Invariant #9,
-   a permanent methodology commitment. The invariant text must be
-   stress-tested before codification.
+2. **No intermediate review gate.** Final `reviewer-adversarial` only,
+   per the new DAG token economy policy.
 
-3. **Final reviewer is `reviewer-adversarial`.** Category A with a new
-   invariant warrants adversarial final review.
+3. **Census where cheap, stratified where expensive.** Parquet metadata
+   reads and CSV header reads are sub-second — full census eliminates
+   sampling defensibility concerns at zero cost. JSON parsing is ~3MB
+   per file — stratified sampling justified by I/O cost.
 
-4. **reports/README.md template created.** Without a template, future
-   steps would populate unstructured fields with interpretive content --
-   the same context leak vector this plan eliminates.
+4. **sc2egset samples 70+210 files.** Higher than AoE2 because the JSON
+   format has no embedded schema metadata — we must read file content.
+   The 70 directories serve as natural strata.
 
-5. **ROADMAP step definitions (yaml blocks) untouched.** They describe
-   *what to do*, not *what was found*.
+5. **No DuckDB type proposals.** Deferred to ingestion design step.
+   DuckDB type choice depends on value range and cardinality — content-
+   level knowledge this step does not have.
 
-6. **raw/README.md provenance sections (B, E, H) untouched.** Those come
-   from external documentation, not from 01_01_01 findings.
+6. **Step definitions go in ROADMAPs during T02.** Not a separate task —
+   the executor creating the notebook also has the context to write the
+   step definition.
 
-7. **`temporal_grain` populated from artifact date_analysis.** Filename-
-   derived date cadence (e.g., consecutive dates = daily, 7-day ranges =
-   weekly) is a filesystem-level observation — the notebook extracts dates
-   from filenames without opening files. The artifact's `date_analysis`
-   section is the source of truth for this field.
+7. **Sample values included for auditability, not interpretation.** The
+   `discover_json_schema()` function captures up to 3 sample values per
+   key. These support type-inference validation. The step's conclusions
+   do not reference them semantically.
 
 ---
 
 ## Suggested Execution Graph
 
 ```yaml
-dag_id: "dag_rerun_01_01_01"
+dag_id: "dag_schema_discovery"
 plan_ref: "planning/current_plan.md"
 category: "A"
-branch: "feat/rerun-01-01-01"
+branch: "feat/phase01-schema-discovery"
 base_ref: "master"
 default_isolation: "shared_branch"
+phase_ref: "01"
+pipeline_section_ref: "01_01"
+step_refs:
+  - "01_01_02"
 
 jobs:
-  - job_id: "J00_prep"
-    name: "Preparation -- invariant, template, cleanup"
+  - job_id: "J01"
+    name: "Schema discovery — all datasets"
     task_groups:
-      - group_id: "TG00_methodology"
-        name: "Codify Invariant #9 + create template"
+      - group_id: "TG01"
+        name: "Utility code"
         depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
         tasks:
-          - task_id: "T00"
-            name: "Codify Invariant #9"
-            spec_file: "planning/specs/spec_00_invariant9.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - ".claude/scientific-invariants.md"
-              - ".claude/agents/reviewer-deep.md"
-              - ".claude/agents/planner-science.md"
-              - ".claude/agents/reviewer-adversarial.md"
-            read_scope: []
-            depends_on: []
           - task_id: "T01"
-            name: "Create reports README template + update research log template"
-            spec_file: "planning/specs/spec_01_templates.md"
+            name: "Create parquet_utils + tests"
+            spec_file: "planning/specs/spec_01_parquet_utils.md"
             agent: "executor"
-            parallel_safe: true
+            model: "sonnet"
+            parallel_safe: false
             file_scope:
-              - "docs/templates/dataset_reports_readme_template.yaml"
-              - "docs/templates/research_log_entry_template.yaml"
+              - "src/rts_predict/common/parquet_utils.py"
+              - "tests/rts_predict/common/test_parquet_utils.py"
             read_scope:
-              - "docs/templates/raw_data_readme_template.yaml"
+              - "src/rts_predict/common/json_utils.py"
             depends_on: []
 
-      - group_id: "TG01_cleanup"
-        name: "Strip all context leaks"
-        depends_on: ["TG00_methodology"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
+      - group_id: "TG02"
+        name: "Notebooks + artifacts + docs (all 3 datasets)"
+        depends_on: ["TG01"]
         tasks:
           - task_id: "T02"
-            name: "Strip context leaks from all datasets"
-            spec_file: "planning/specs/spec_02_strip_leaks.md"
+            name: "Schema discovery — all 3 datasets (parameterized)"
+            spec_file: "planning/specs/spec_02_schema_discovery.md"
             agent: "executor"
+            model: "sonnet"
             parallel_safe: false
             file_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md"
-            read_scope:
-              - "docs/templates/dataset_reports_readme_template.yaml"
-              - "docs/templates/raw_data_readme_template.yaml"
-              - ".claude/scientific-invariants.md"
-            depends_on: []
-
-  - job_id: "J01_sc2"
-    name: "01_01_01 -- sc2egset"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_sc2"
-        name: "Rerun sc2 notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T03"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_03_sc2_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_sc2"
-        name: "Populate sc2 docs from artifacts"
-        depends_on: ["TG01_sc2"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T06"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_06_sc2_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J02_aoe2c"
-    name: "01_01_01 -- aoe2companion"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_aoe2c"
-        name: "Rerun aoe2companion notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T04"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_04_aoe2c_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_aoe2c"
-        name: "Populate aoe2companion docs from artifacts"
-        depends_on: ["TG01_aoe2c"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T07"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_07_aoe2c_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J03_aoestats"
-    name: "01_01_01 -- aoestats"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_aoestats"
-        name: "Rerun aoestats notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T05"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_05_aoestats_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_aoestats"
-        name: "Populate aoestats docs from artifacts"
-        depends_on: ["TG01_aoestats"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T08"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_08_aoestats_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J04_cross"
-    name: "01_01_01 -- CROSS log update"
-    depends_on: ["J01_sc2", "J02_aoe2c", "J03_aoestats"]
-    task_groups:
-      - group_id: "TG01_cross"
-        name: "Update root CROSS log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T09"
-            name: "Update CROSS log summary"
-            spec_file: "planning/specs/spec_09_cross_log.md"
-            agent: "executor"
-            parallel_safe: false
-            file_scope:
+              - "sandbox/sc2/sc2egset/01_exploration/01_acquisition/"
+              - "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/"
+              - "sandbox/aoe2/aoestats/01_exploration/01_acquisition/"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/"
               - "reports/research_log.md"
-            read_scope: []
+            read_scope:
+              - ".claude/scientific-invariants.md"
+              - "docs/templates/research_log_entry_template.yaml"
+              - "docs/templates/step_template.yaml"
+              - "src/rts_predict/common/json_utils.py"
+              - "src/rts_predict/common/parquet_utils.py"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
             depends_on: []
 
 final_review:
@@ -956,14 +621,10 @@ failure_policy:
 ## Dependency Graph
 
 ```
-J00_prep:
-  TG00: T00 (Invariant #9) + T01 (template)  [parallel]
-    |
-  TG01: T02 (strip all leaks)
-    |
-    +---> J01_sc2:  T03 (rerun) -> T06 (populate) ----+
-    |                                                   |
-    +---> J02_aoe2c: T04 (rerun) -> T07 (populate) ---+-> J04_cross: T09
-    |                                                   |
-    +---> J03_aoestats: T05 (rerun) -> T08 (populate) +
+TG01: T01 (parquet_utils + tests)
+  |
+TG02: T02 (3 notebooks + artifacts + research logs + ROADMAPs + CROSS)
 ```
+
+2 specs, 2 dispatches. The DAG applies all token economy improvements:
+no intermediate review gates, model hints, consolidated parameterized spec.

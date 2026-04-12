@@ -1,7 +1,7 @@
-# Adversarial Critique — Plan: Rerun 01_01_01
+# Adversarial Critique — Plan: Schema Discovery 01_01_02
 
 **Plan:** planning/current_plan.md
-**Phase:** 01 (Data Exploration) / Step 01_01_01 Rerun
+**Phase:** 01 / Step 01_01_02 (Schema Discovery)
 **Date:** 2026-04-12
 **Verdict:** REVISE BEFORE EXECUTION
 
@@ -9,87 +9,109 @@
 
 ## Lens assessments
 
-- **Temporal discipline:** N/A — Phase 01 file inventory; no features, no model inputs.
-- **Statistical methodology:** N/A — no statistical analysis, models, or evaluation.
-- **Feature engineering:** N/A — no features constructed.
-- **Thesis defensibility:** ADEQUATE — see findings below.
-- **Cross-game comparability:** MAINTAINED — identical treatment across all 3 datasets.
+- **Temporal discipline:** N/A — no features or predictions
+- **Statistical methodology:** N/A — no statistical tests
+- **Feature engineering:** N/A — no features constructed
+- **Thesis defensibility:** ADEQUATE — two weaknesses below
+- **Cross-game comparability:** AT RISK — CROSS entry scope ambiguity
 
 ## Findings
 
-### 1. [WARNING] Invariant #9 "external source documentation" boundary
+### 1. [WARNING] Invariant #9 boundary: sample_values expose content
 
-The invariant text allows referencing "External source documentation (paper
-citations, acquisition provenance, Zenodo metadata)" but did not define a
-test for what qualifies.
+The plan says "reads structure, not content." But `discover_json_schema()`
+stores actual scalar values (strings, ints) in `sample_values`. If the
+artifact stores `["Serral", "Maru", "Reynor"]`, any reader can interpret
+the column semantically — exactly what the scope boundary forbids.
 
-**Resolution (applied to plan):** Added explicit boundary definition to
-Invariant #9 text — use exact source titles verbatim, not paraphrased
-interpretive labels. Citations deferred to thesis chapters.
+The `step_scope: content` definition does explicitly allow "sample rows,"
+so this is not a violation. But the plan's own Scope Boundary section
+says no "semantic interpretation of columns" — while sample values enable
+exactly that.
 
-### 2. [WARNING] Raw README `description` field — surviving leak vector
+**Resolution needed:** Acknowledge the tension explicitly. Document that
+sample values are included for type-inference validation only, and the
+step's conclusions do not reference them semantically.
 
-The `description` field in Section C of each raw README contained
-interpretive labels ("daily match parquet files," "tournament replay files").
-The plan did not address this field.
+### 2. [WARNING] Parquet schema should be census, not sample
 
-**Resolution (applied to plan):** Added `description` field to T02 strip
-list. T06-T08 repopulate from artifacts.
+`pyarrow.parquet.read_schema()` reads only footer metadata — no row data.
+For aoe2companion (2073 files) and aoestats (172 files), reading ALL
+schemas is a sub-second operation. Sampling 5 when a census is free
+introduces an unnecessary methodological weakness.
 
-### 3. [WARNING] `temporal_grain: unknown` contradiction
+An examiner can ask: "Why did you sample when a census was free?"
 
-Setting `temporal_grain: unknown` when the 01_01_01 artifact contains
-date_analysis with cadence information creates an internal contradiction.
+**Resolution needed:** Change Parquet subdirectories to full schema census.
+Keep the temporal stratification narrative for the thesis but base it on
+complete data.
 
-**Resolution (applied to plan):** Changed to populate `temporal_grain` from
-artifact `date_analysis`. Filename-derived date cadence is filesystem-level
-observation, not content-level interpretation.
+### 3. [WARNING] T02 file scope exceeds ~15-file cap
 
-### 4. [WARNING] Gate verification regex false positives/negatives
+T02 writes 22 files (6 notebooks, 6 artifacts, 3 ROADMAPs, 3 research
+logs, 3 STEP_STATUS, 1 CROSS). The plan template says "Cap at ~15 files."
 
-The regex `complete\b` matches `gap_analysis_status: complete` (legitimate
-template value). The regex also missed interpretive terms like "tournament,"
-"replay" as semantic labels.
+Natural split: T02a (notebooks + artifacts = 12 files), T02b (ROADMAPs +
+research logs + STEP_STATUS + CROSS = 10 files).
 
-**Resolution (applied to plan):** Removed `complete\b` from regex. Clarified
-that "daily/weekly" are now permitted in `temporal_grain` fields but banned
-as semantic role labels for files.
+**Resolution needed:** Either split or explicitly acknowledge the guideline
+is exceeded with stated rationale.
 
-### 5. [NOTE] Third agent file missed
+### 4. [NOTE] DuckDB type proposals are partially outside scope
 
-`.claude/agents/reviewer-adversarial.md:42` references "the 8 universal
-methodology invariants." Plan only updated two agent files.
+For Parquet: Arrow-to-DuckDB mapping is mechanical — defensible. For JSON:
+the `_propose_duckdb_type()` heuristic always maps `int` to `BIGINT`
+regardless of value range — a design decision, not a structural
+observation. For CSV: `pd.read_csv(nrows=10)` infers types from actual
+cell values — content-level reading.
 
-**Resolution (applied to plan):** Added to T00 file scope and instructions.
+**Recommendation:** Document that DuckDB type proposals are preliminary,
+to be validated during ingestion. Also: justify `nrows=10` per Invariant
+#7 (no magic numbers) or trace it to a source.
 
-### 6. [NOTE] Research log entry template lacks Invariant #9 annotation
+### 5. [NOTE] CROSS entry scope ambiguity
 
-The template that guides research log entry authoring did not reference
-Invariant #9 or include a scope field.
+"Structural parallels" is ambiguous. Column name string equality is
+structural. "Both datasets contain match-level records with player
+identifiers" is semantic interpretation.
 
-**Resolution (applied to plan):** T01 now updates the research log entry
-template with a `step_scope` field annotated with Invariant #9.
+**Recommendation:** Constrain CROSS entry to: format enumeration, column
+name overlap as raw string comparison, schema complexity comparison
+(nesting depth, column count). Exclude ingestion design observations.
 
-### 7. [NOTE] `coverage_notes` forward-references
+### 6. [NOTE] discover_parquet_schema() wrapper justification
 
-The aoe2companion raw README `coverage_notes` field says "identified during
-Phase 01 profiling" — a potential forward reference.
+The wrapper adds dict serialization, DuckDB proposal, and multi-file
+consistency check. The consistency check is genuinely new; the rest is
+thin. Justified by precedent (`json_utils.py`). Ensure tests cover both
+matching and mismatching schema cases.
 
-**Resolution (applied to plan):** Added to T02 strip list — strip
-`coverage_notes` if it contains forward-references to unfinished steps.
+### 7. [NOTE] get_json_keypaths() performance
 
-### 8. [NOTE] Stale leak references in Context Leaks Identified table
+210 files x 3MB = 630MB sequential JSON parsing. Feasible but potentially
+slow. The 600s notebook timeout should be sufficient but hasn't been
+validated.
 
-Some leaks listed in the plan may reference text that has already been
-cleaned or differs from current file state. Executors should verify current
-state before stripping.
+## Invariant compliance
 
-**Resolution:** T02 spec instructs executor to verify current state of each
-file before stripping. Stale references are non-blocking — executor skips
-text that no longer exists.
+| # | Status | Notes |
+|---|--------|-------|
+| 6 | RESPECTED | Code in notebooks, artifacts alongside reports |
+| 7 | AT RISK | Parquet sample size unjustified (census is free); CSV nrows=10 not traced |
+| 9 | AT RISK | sample_values tension; CSV row reading is content-level |
 
----
+## Required revisions before materialization
 
-## Post-revision verdict
+1. **sample_values tension** (finding #1): Add one sentence to Scope
+   Boundary acknowledging sample values are for type-inference validation
+   only, not semantic interpretation.
+2. **Parquet census** (finding #2): Change from 5-file sample to full
+   schema census for Parquet subdirectories.
+3. **T02 scope** (finding #3): Either split T02 or acknowledge the ~15-file
+   guideline is exceeded with rationale.
 
-All 8 findings addressed in plan revision. **APPROVED FOR MATERIALIZATION.**
+## Recommended but not blocking
+
+4. Document DuckDB type proposals as preliminary (finding #4).
+5. Constrain CROSS entry to structural observations with examples (finding #5).
+6. Justify CSV nrows=10 or trace to source (finding #4).
