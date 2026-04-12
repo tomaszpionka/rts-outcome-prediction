@@ -1,4 +1,4 @@
-dag_id: "dag_canary_test"
+dag_id: "dag_plan_template_rewrite"
 plan_ref: "planning/current_plan.md"
 category: "C"
 branch: "chore/plan-template-rewrite"
@@ -7,11 +7,11 @@ default_isolation: "shared_branch"
 
 jobs:
   - job_id: "J01"
-    name: "Canary test"
+    name: "Plan template rewrite"
 
     task_groups:
       - group_id: "TG01"
-        name: "Write canary files"
+        name: "Rewrite plan + critique templates"
         depends_on: []
         review_gate:
           agent: "reviewer"
@@ -19,24 +19,108 @@ jobs:
           on_blocker: "halt"
         tasks:
           - task_id: "T01"
-            name: "Canary alpha"
+            name: "Rewrite plan_template.md"
+            spec_file: "planning/specs/spec_01_plan_template.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_01_canary_alpha.md"
-            file_scope:
-              - "canary/123456.txt"
             parallel_safe: true
+            file_scope:
+              - "docs/templates/plan_template.md"
+            read_scope:
+              - "docs/templates/dag_template.yaml"
+              - "planning/current_plan.md"
             depends_on: []
           - task_id: "T02"
-            name: "Canary beta"
+            name: "Rewrite plan_critique_template.md"
+            spec_file: "planning/specs/spec_02_critique_template.md"
             agent: "executor"
-            spec_file: "planning/specs/spec_02_canary_beta.md"
-            file_scope:
-              - "canary/02.txt"
             parallel_safe: true
+            file_scope:
+              - "docs/templates/plan_critique_template.md"
+            read_scope:
+              - ".claude/scientific-invariants.md"
+            depends_on: []
+
+      - group_id: "TG02"
+        name: "Rewrite planner output contract"
+        depends_on: ["TG01"]
+        review_gate:
+          agent: "reviewer"
+          scope: "diff"
+          on_blocker: "halt"
+        tasks:
+          - task_id: "T03"
+            name: "Rewrite planner_output_contract.md"
+            spec_file: "planning/specs/spec_03_output_contract.md"
+            agent: "executor"
+            parallel_safe: false
+            file_scope:
+              - "docs/templates/planner_output_contract.md"
+            read_scope:
+              - "docs/templates/plan_template.md"
+              - "docs/templates/plan_critique_template.md"
+              - "docs/TAXONOMY.md"
+            depends_on: []
+
+      - group_id: "TG03"
+        name: "Update lifecycle, agents, and materialization"
+        depends_on: ["TG02"]
+        review_gate:
+          agent: "reviewer"
+          scope: "diff"
+          on_blocker: "halt"
+        tasks:
+          - task_id: "T04"
+            name: "Update planning/README.md"
+            spec_file: "planning/specs/spec_04_planning_readme.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - "planning/README.md"
+            depends_on: []
+          - task_id: "T05"
+            name: "Update planner-science.md"
+            spec_file: "planning/specs/spec_05_planner_science.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/agents/planner-science.md"
+            depends_on: []
+          - task_id: "T06"
+            name: "Update planner.md"
+            spec_file: "planning/specs/spec_06_planner.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/agents/planner.md"
+            depends_on: []
+          - task_id: "T07"
+            name: "Update materialize_plan.md"
+            spec_file: "planning/specs/spec_07_materialize.md"
+            agent: "executor"
+            parallel_safe: true
+            file_scope:
+              - ".claude/commands/materialize_plan.md"
+            depends_on: []
+
+      - group_id: "TG04"
+        name: "CHANGELOG"
+        depends_on: ["TG03"]
+        review_gate:
+          agent: "reviewer"
+          scope: "cumulative"
+          on_blocker: "halt"
+        tasks:
+          - task_id: "T08"
+            name: "Update CHANGELOG"
+            spec_file: "planning/specs/spec_08_changelog.md"
+            agent: "executor"
+            parallel_safe: false
+            file_scope:
+              - "CHANGELOG.md"
             depends_on: []
 
 final_review:
-  agent: "reviewer"
+  agent: "reviewer-deep"
   scope: "all"
   base_ref: "master"
   on_blocker: "halt"
