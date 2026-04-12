@@ -17,14 +17,19 @@ merged to `master`.
 - `docs/INDEX.md` — centralized directory map and routing hub
 - `scripts/hooks/check_planning_drift.py` — pre-commit hook for planning artifact validation
 - `tests/infrastructure/test_check_planning_drift.py`
+- `tests/infrastructure/test_check_planning_drift.py` — 4 additional tests: `test_main_integration_clean`, `test_main_integration_errors`, `test_absolute_spec_file_path`, `test_legacy_heuristic_false_positive`
 
 ### Changed
 
 - `CLAUDE.md` trimmed (~16 lines removed, dispatch rules preserved)
 - `ARCHITECTURE.md` trimmed (~18 lines, pointers replace duplication)
 - `.claude/agents/executor.md` trimmed (~40 lines, data layout + notebook workflow replaced with pointers)
+- `src/rts_predict/aoe2/README.md` — added 4 per-dataset report/artifact path constants
+- `docs/TAXONOMY.md` — added Strategy A/B parallel execution definitions; `docs/agents/AGENT_MANUAL.md` and `planning/README.md` updated with formal terms
 
 ### Fixed
+
+- `scripts/hooks/check_planning_drift.py` — absolute `spec_file` path handling in orphan detection
 
 ### Removed
 
