@@ -12,7 +12,8 @@ Violating them produces results that cannot be defended at examination.
 ### Identity and splitting
 
 1. **The split is per-player, not per-game.** Player A's test set is their last
-   tournament. Player B may be in training for the same physical game. This is
+   chronological hold-out unit (defined per dataset in ROADMAP.md, Phase 03).
+   Player B may be in training for the same physical game. This is
    correct and intentional — the prediction task is "given what we know about
    this player's history, predict their next game," not "predict this game
    from a god's-eye view."
@@ -49,9 +50,9 @@ Violating them produces results that cannot be defended at examination.
 
 4. **The prediction target is the next game given all prior history.**
    For a given focal player and target game at time T, the feature window
-   includes all cross-tournament history (`match_time < T`) plus
-   within-tournament games already played (`match_time < T`, same tournament).
-   This is not the same as predicting tournament outcomes — it is per-game
+   includes all prior match history (`match_time < T`) plus
+   matches already played (`match_time < T`).
+   This is not the same as predicting match outcomes from a god's-eye view — it is per-game
    prediction with a growing context window.
 
 ### Symmetric player treatment
@@ -150,8 +151,8 @@ Violating them produces results that cannot be defended at examination.
    specific sentence in a cited publication, API documentation page, or
    dataset metadata record. Use exact source titles and descriptions
    (e.g., "SC2EGSet: StarCraft II Esport Replay and Game-state Dataset")
-   rather than paraphrased interpretive labels (e.g., "tournament replay
-   files"). Exact citations are deferred to thesis chapters; in pipeline
+   rather than paraphrased interpretive labels (e.g., "replay files").
+   Exact citations are deferred to thesis chapters; in pipeline
    documents, use the source's own title verbatim.
 
    **Example:** Step 01_01_01 (file inventory) sees filenames and sizes. It

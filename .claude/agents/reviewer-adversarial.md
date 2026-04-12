@@ -73,7 +73,7 @@ Check:
 - Rolling aggregates: window definition, sort order, exclusion of current row.
 - Rating systems (Elo/Glicko): is the rating used the one BEFORE game T?
 - Head-to-head stats: does the count include the current matchup?
-- Within-tournament features: does "games played so far" include the target?
+- Co-occurring match features: does "games played so far" include the target?
 - Normalization: are mean/std computed on training data only, or globally?
 - Any join that could pull in future data through a time-unaware key.
 
