@@ -32,10 +32,10 @@ acquisition:
 # sizes, extensions, and filename patterns only.
 
 file_inventory:
-  total_files:    # to be repopulated from 01_01_01 artifacts
-  total_size_mb:  # to be repopulated from 01_01_01 artifacts
-  subdirectories: # to be repopulated from 01_01_01 artifacts
-  artifact_ref:   # to be repopulated from 01_01_01 artifacts
+  total_files:    4153
+  total_size_mb:  9387.80
+  subdirectories: 4
+  artifact_ref:   "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
 
 # -- Section D: Known issues ----------------------------------------------------
 # Source: acquisition script logs or 01_01_01 artifact

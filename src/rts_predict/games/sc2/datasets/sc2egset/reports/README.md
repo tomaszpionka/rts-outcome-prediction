@@ -28,10 +28,10 @@ acquisition:
 # sizes, extensions, and filename patterns only.
 
 file_inventory:
-  total_files:    # to be repopulated from 01_01_01 artifacts
-  total_size_mb:  # to be repopulated from 01_01_01 artifacts
-  subdirectories: # to be repopulated from 01_01_01 artifacts
-  artifact_ref:   # to be repopulated from 01_01_01 artifacts
+  total_files:    22821
+  total_size_mb:  214060.62
+  subdirectories: 70
+  artifact_ref:   "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
 
 # -- Section D: Known issues ----------------------------------------------------
 # Source: acquisition script logs or 01_01_01 artifact

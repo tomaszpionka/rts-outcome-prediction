@@ -30,15 +30,18 @@ Steps are numbered `XX_YY_ZZ` where `XX` = Phase, `YY` = Pipeline Section,
 
 ## Source data
 
-**aoestats.io weekly dumps** — community match and player statistics dataset.
+**aoestats.io weekly DB dumps** — community match and player statistics dataset.
 Downloaded 2026-04-06. File counts and date ranges are from
 Step 01_01_01 (file inventory).
 
-| Subdirectory | Files | Size | Notes |
-|---|---|---|---|
+| Subdirectory | Files (.parquet / .json) | Size (MB) |
+|---|---|---|
+| `matches/` | 172 | 610.55 |
+| `players/` | 171 | 3162.86 |
+| `overview/` | 1 | 0.02 |
 
-
-**Total:**
+**Total:** 344 data files (excluding 3 `.gitkeep` dotfiles and 2 root files),
+3773.61 MB. Filename-derived date range: 2022-08-28 to 2026-02-07.
 
 **Raw data is immutable. The weekly dump download will not be repeated.**
 Acquisition provenance is recorded in
