@@ -134,7 +134,7 @@ code until instructed.
 
 See `ARCHITECTURE.md` for the full tracking protocol. Key rules:
 - **Session start:** Read active STEP_STATUS.yaml and PHASE_STATUS.yaml, then scientific-invariants.md
-- **After Category A step:** Update `reports/research_log.md`
+- **After Category A step:** Update the active dataset's `research_log.md`
 - **After phase gate:** Update PHASE_STATUS.yaml, check `thesis/WRITING_STATUS.md`
 - **After Category F:** Update `thesis/chapters/REVIEW_QUEUE.md`
 - **Session end:** See git-workflow rule (loads on PR/commit operations)

@@ -1,6 +1,18 @@
 # Research Log Entry Template
 #
-# Canonical template for entries in reports/research_log.md.
+# Canonical template for research log entries.
+#
+# DESTINATION RULES
+# -----------------
+# Dataset-specific entries (sc2egset, aoe2companion, aoestats) go into the
+# per-dataset log:
+#   src/rts_predict/<game>/reports/<dataset>/research_log.md
+#
+# Cross-cutting entries (CROSS tag) go into the root index log:
+#   reports/research_log.md
+#
+# Do NOT write dataset-specific entries into reports/research_log.md.
+#
 # Required for Category A (science) and Category F (writing) work.
 # Recommended for Category C (chore) when methodology decisions are made.
 #

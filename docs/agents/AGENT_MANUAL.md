@@ -64,7 +64,7 @@ After execution:
 - Cross-game comparability protocol
 - Thesis chapter structure and content planning
 
-**What it does:** Reads your roadmap, scientific invariants, and research log.
+**What it does:** Reads your roadmap, scientific invariants, and the dataset's research log.
 Produces a detailed plan with phase/step references, file lists, function
 signatures, SQL queries, test cases, and gate conditions.
 
@@ -328,7 +328,7 @@ Step 4:  If BLOCKER findings:
            → revise the plan or artifact before proceeding
            → re-invoke @reviewer-adversarial after revision
          If WARNING findings:
-           → document in research_log.md and proceed
+           → document in the dataset's `research_log.md` and proceed
          If NOTE findings:
            → optional follow-up
 ```
@@ -470,7 +470,7 @@ where an agent works through an entire Phase independently:
   shared-branch parallel execution for specs that touch non-overlapping files
   (see Workflow E above)
 - Implements test gates as mandatory checkpoints between steps
-- Records decisions and restarts in research_log.md
+- Records decisions and restarts in the dataset's `research_log.md`
 - May use Docker for reproducible environments
 
 The 8-agent architecture is forward-compatible with this. The planner produces

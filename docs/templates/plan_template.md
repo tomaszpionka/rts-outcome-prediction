@@ -28,7 +28,12 @@ critique_required:  # true | false
 
 # research_log_ref: path to the research_log.md entry this plan will produce
 #   Optional; category A and F only.
-research_log_ref:   # e.g. reports/research_log.md#2026-04-12-phase01-ingest
+#   For dataset-specific work, this points to the per-dataset log:
+#     src/rts_predict/<game>/reports/<dataset>/research_log.md#<anchor>
+#   For cross-cutting (CROSS) work, point to the root index log:
+#     reports/research_log.md#<anchor>
+#   Do NOT point dataset-specific entries at the root log.
+research_log_ref:   # e.g. src/rts_predict/sc2/reports/sc2egset/research_log.md#2026-04-12-phase01-ingest
 ---
 
 # Plan: <short title>

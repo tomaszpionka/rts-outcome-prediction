@@ -156,7 +156,7 @@ section.
 |------|----------|---------|
 | Project taxonomy | `docs/TAXONOMY.md` | Single source of truth for all project terminology (see file for full list) |
 | Methodology manuals | `docs/INDEX.md` → `docs/ml_experiment_lifecycle/` | ML experiment lifecycle reference (01–06) |
-| Research log | `reports/research_log.md` | Unified chronological narrative, tagged `[SC2]`/`[AoE2]`/`[CROSS]` |
+| Research log | `reports/research_log.md` (index + `[CROSS]` entries); `src/rts_predict/<game>/reports/<dataset>/research_log.md` (per-dataset findings) | Chronological narrative: index holds cross-cutting entries, per-dataset files hold game/dataset-specific findings |
 | Thesis | `thesis/` | Chapters, figures, tables, bibliography |
 | Review queue | `thesis/chapters/REVIEW_QUEUE.md` | Pass 1→2 handoff for thesis writing |
 | Scientific invariants | `.claude/scientific-invariants.md` | Methodology constraints (apply to all games) |
@@ -183,7 +183,9 @@ Thesis section progress is tracked in `thesis/WRITING_STATUS.md` (per-section st
 and `thesis/chapters/REVIEW_QUEUE.md` (Pass 2 review queue).
 
 The changelog (`CHANGELOG.md`) tracks code changes per version. The research log
-(`reports/research_log.md`) tracks analytical findings per phase.
+tracks analytical findings per phase: `reports/research_log.md` is the index and
+holds cross-cutting (`[CROSS]`) entries; per-dataset findings live at
+`src/rts_predict/<game>/reports/<dataset>/research_log.md`.
 
 ## Version management
 

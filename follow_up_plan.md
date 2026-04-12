@@ -540,3 +540,204 @@ This plan addresses findings from two adversarial reviews run on 2026-04-11:
 Both audits were triggered by the user after the DAG orchestration infrastructure
 was merged (PR #107) to ensure the documentation layer is consistent, minimal,
 and navigable.
+
+---
+
+## Compatibility Review (2026-04-12)
+
+**Context:** On `chore/plan-template-rewrite`, dispatch rules were added to
+CLAUDE.md and executor.md (pointer dispatch, spec-first protocol), plan and
+critique templates were redesigned, and the planner output contract was
+rewritten. This review checks the follow-up plan against those changes.
+
+### CONFLICT: A.1.1 — Trim Plan/Execute Workflow in CLAUDE.md
+
+The plan wants to replace the entire Plan/Execute Workflow section (lines
+39-57) with a 3-line pointer to `planning/README.md`.
+
+**Problem:** The template rewrite added Dispatch rules (lines 61-76) to this
+section. These rules were empirically validated via a canary test — without
+them, the orchestrator reads the plan and duplicates spec content in dispatch
+prompts. The dispatch rules are:
+- Executor dispatch: pointer prompt (spec_file path only, no content)
+- Review gate dispatch: diff scope
+- Final review dispatch: plan_ref + spec paths + base_ref from DAG metadata
+- NEVER rule in Critical Rules: don't read specs/plan when dispatching executors
+
+**These cannot be trimmed.** They're operational — every session needs them
+during DAG execution. Moving them to `planning/README.md` would break the
+guarantee, because the orchestrator is told NOT to read planning files during
+execution (it would never see the rules it needs to follow).
+
+**Fix:** A.1.1 must preserve the dispatch rules. It can still trim the
+lifecycle description (planning session → materialization → execution) to a
+pointer, but the dispatch rules and the Critical Rules NEVER line must stay
+in CLAUDE.md.
+
+### STRUCTURAL ISSUE: Suggested Execution Graph doesn't follow DAG schema
+
+The plan's execution graph (lines 449-530) uses pseudo-YAML without:
+- `spec_file` paths per task
+- `parallel_safe` flags
+- Proper `review_gate` structure (missing `base_ref`, `scope`, `on_blocker`)
+- DAG metadata fields (`dag_id`, `plan_ref`, `base_ref`, `default_isolation`)
+
+This would fail `/materialize_plan`. The graph must use the real
+`dag_template.yaml` schema before materialization.
+
+**Fix:** Rewrite the Suggested Execution Graph to match `dag_template.yaml`.
+This also means adding `spec_file` references to the Execution Steps, with
+the per-task structure from the new plan template (Objective / Instructions /
+Verification / File scope / Read scope).
+
+### Compatible sections
+
+A.1.2 through A.5 and all B sections (directory indexing) are compatible
+with the template rewrite changes:
+- A.1.2 (delete A/F plan requirements) — now covered by output contract
+- A.1.3 (delete PIPELINE_SECTION_STATUS) — unrelated to dispatch rules
+- A.1.4 (fix stale Project Status) — unrelated
+- A.1.5 (trim Progress Tracking) — unrelated
+- A.1.6 (delete Parallel Executor Orchestration) — unrelated
+- A.2-A.4 (ARCHITECTURE.md, executor.md, specs/README.md) — unrelated
+- B.1-B.10 (directory indexing) — unrelated
+
+### executor.md line numbers are stale
+
+The plan references executor.md lines 36, 82-106, 112-131 for trimming.
+The template rewrite merged "Spec-first protocol" and "Read first" into
+one section, shifting line numbers. The plan's executor.md tasks (A.3.1-A.3.3)
+need re-targeting against the post-rewrite file.
+
+---
+
+## Workstream C: Template Enforcement (2026-04-12 addition)
+
+### The enforcement question
+
+Should template enforcement use Claude hooks, pre-commit hooks, or custom
+Python scripts?
+
+### Answer: pre-commit hook calling a custom Python script
+
+**Not Claude hooks.** Here's why, based on the existing infrastructure:
+
+#### What Claude hooks do in this project
+
+From `.claude/settings.json`, Claude hooks serve two purposes:
+- **Audit logging** — `log-bash.sh`, `log-subagent.sh` (never block, exit 0)
+- **Operational guards** — `guard-write-path.sh`, `guard-master-branch.sh`
+  (block dangerous writes, exit 2)
+
+They are NOT used for content validation. That's what pre-commit hooks do.
+
+#### Why Claude hooks are wrong for template enforcement
+
+1. **Single-file visibility.** A `PreToolUse: Write` hook sees ONE file per
+   invocation. Template enforcement needs cross-file validation — DAG
+   `spec_file` refs must resolve to spec files on disk. Pre-commit sees all
+   staged files together.
+
+2. **Blocks the executor mid-work.** If a Claude hook rejects a Write, the
+   executor gets interrupted while following its spec. The executor's job is
+   to write what the spec says — validation should happen at commit time, not
+   during iterative editing. Executors work, pre-commit validates, reviewer
+   confirms.
+
+3. **Non-standard.** Pre-commit hooks run regardless of who commits — Claude,
+   human, or CI. Claude hooks only run inside Claude Code sessions.
+
+4. **Latency on every write.** A PreToolUse hook fires on every Write/Edit to
+   any file. Filtering by path (`planning/*`) adds complexity and still slows
+   down non-planning writes with the filter check.
+
+#### Why pre-commit is right
+
+The project already has the exact pattern:
+
+| Existing hook | What it does | Pattern |
+|---------------|-------------|---------|
+| `check_phases_drift.py` | Compares phase tables across 2 files | Cross-file structural validation |
+| `check_mirror_drift.py` | Ensures test files mirror source files | Cross-file structural validation |
+| ruff | Validates Python style | Single-file validation |
+| jupytext | Ensures .py/.ipynb sync | Cross-file sync validation |
+
+Template enforcement is cross-file structural validation — same category as
+phases-drift and mirror-drift. Same implementation pattern: stdlib-only Python,
+~150 lines, exits 1 on drift, prints specific errors.
+
+### What the validation script should check
+
+New script: `scripts/hooks/check_planning_drift.py`
+
+**When `planning/current_plan.md` is staged:**
+- Parse YAML frontmatter → `category`, `branch`, `date` required
+- Required sections present: `## Scope`, `## Execution Steps`,
+  `## File Manifest`, `## Suggested Execution Graph`
+- Category A/F: also `## Assumptions`, `## Literature context`
+- `## Execution Steps` has `### TNN` headers
+- `## Suggested Execution Graph` contains parseable YAML
+
+**When `planning/specs/spec_*.md` are staged:**
+- YAML frontmatter has: `task_id`, `task_name`, `agent`, `dag_ref`,
+  `group_id`, `file_scope`, `category`
+- Sections present: `## Objective`, `## Instructions`, `## Verification`
+
+**When `planning/dags/DAG.yaml` is staged:**
+- Valid YAML
+- Required fields: `dag_id`, `plan_ref`, `category`, `branch`, `base_ref`
+- Every task has: `task_id`, `spec_file`, `agent`, `file_scope`, `depends_on`
+- All `spec_file` refs resolve to files on disk
+
+**Cross-file (DAG + specs both staged):**
+- Every `spec_file` in DAG has a matching spec on disk
+- Every spec on disk is referenced in the DAG (no orphans)
+
+### Pre-commit config addition
+
+```yaml
+- repo: local
+  hooks:
+    - id: planning-drift
+      name: planning artifact validation
+      language: system
+      entry: python scripts/hooks/check_planning_drift.py
+      files: ^planning/
+      pass_filenames: false
+```
+
+Budget: <1 second (YAML parse + regex). No impact on non-planning commits.
+
+### Enforcement layering
+
+Three layers, each catching different classes of issues:
+
+| Layer | When | What it catches | Tool |
+|-------|------|----------------|------|
+| Pre-commit hook | `git commit` | Structural: missing sections, bad YAML, broken refs | `check_planning_drift.py` |
+| Reviewer (per-TG) | After each task group | Quality: unclear instructions, weak verification | reviewer agent |
+| Reviewer-deep (final) | After all groups | Semantic: plan-vs-reality drift, scope violations | reviewer-deep agent |
+
+The pre-commit hook catches what a regex can find. The reviewers catch what
+only an LLM can evaluate. No overlap, no gaps.
+
+---
+
+## Execution Recommendation
+
+1. **Do NOT execute this plan until the template rewrite merges.** The plan
+   references CLAUDE.md and executor.md at line numbers that are now stale.
+
+2. **Before execution, revise:**
+   - A.1.1: preserve dispatch rules
+   - Execution graph: rewrite to real DAG schema with spec_files
+   - Add Workstream C (template enforcement pre-commit hook) as a new TG
+   - Re-target executor.md line references
+
+3. **The revised plan should be materialized fresh** using the new plan
+   template (after T01 from the current plan creates it).
+
+---
+
+*Compatibility review conducted 2026-04-12 against chore/plan-template-rewrite
+branch changes (dispatch rules, spec-first protocol, template redesign).*

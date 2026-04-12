@@ -3,26 +3,55 @@
 ## Purpose
 
 `docs/research/RESEARCH_LOG.md` (this file) is a **specification document**.
-It describes the structure, location, and rules governing the research log.
+It describes the structure, location, and rules governing the research log
+system.
 It is NOT the log itself.
 
-The actual log lives at:
+---
+
+## Log Structure
+
+The research log is split across multiple files:
+
+### Root index log
 
 ```
 reports/research_log.md
 ```
 
-That file is the unified chronological narrative of all research decisions and
-findings across the full thesis project, tagged by dataset, with newest entries
-first.
+The root log is **index-only**. It contains:
+
+- Links to each per-dataset log.
+- Entries tagged `CROSS` — those that span multiple datasets or are
+  game-agnostic (e.g., cross-dataset methodology decisions, infrastructure
+  chores).
+
+Dataset-specific entries MUST NOT be written to the root log.
+
+### Per-dataset logs
+
+```
+src/rts_predict/<game>/reports/<dataset>/research_log.md
+```
+
+Each dataset has its own log. Examples:
+
+```
+src/rts_predict/sc2/reports/sc2egset/research_log.md
+src/rts_predict/aoe2/reports/aoe2companion/research_log.md
+src/rts_predict/aoe2/reports/aoestats/research_log.md
+```
+
+All dataset-specific entries (sc2egset, aoe2companion, aoestats) are written
+to the matching per-dataset log, never to the root log.
 
 ---
 
 ## Ordering
 
-Entries in `reports/research_log.md` are ordered **reverse chronological**
-(newest entry at the top). This allows readers to see the most recent state of
-the research immediately without scrolling.
+Entries in every log are ordered **reverse chronological** (newest entry at the
+top). This allows readers to see the most recent state of the research
+immediately without scrolling.
 
 ---
 
@@ -135,6 +164,19 @@ The dataset appears in the entry header field:
 Completion of a research log entry is a **prerequisite** for marking a Step as
 complete in `STEP_STATUS.yaml`. Do not set a step to `DONE` without a
 corresponding log entry.
+
+### Entry destination
+
+| Entry dataset tag | Write to |
+|---|---|
+| `sc2egset` | `src/rts_predict/sc2/reports/sc2egset/research_log.md` |
+| `aoe2companion` | `src/rts_predict/aoe2/reports/aoe2companion/research_log.md` |
+| `aoestats` | `src/rts_predict/aoe2/reports/aoestats/research_log.md` |
+| `CROSS` | `reports/research_log.md` (root index log) |
+
+Dataset-specific entries (any tag other than `CROSS`) MUST go into the
+per-dataset log. The root log at `reports/research_log.md` is reserved
+for CROSS entries and index links only.
 
 ---
 

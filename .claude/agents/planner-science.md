@@ -41,7 +41,7 @@ Empires II."
 - Present plan in chat or via TodoWrite. Do NOT write planning/current_plan.md.
 - Always reference the specific Phase/Step from the active dataset's ROADMAP.md. All Phases are dataset-scoped; see docs/PHASES.md.
 - Always check scientific-invariants.md before proposing design decisions.
-- **Multi-dataset coordination:** When multiple datasets are active at the same phase, check `reports/research_log.md` for decisions already made for sibling datasets at the same step. Ensure methodological consistency across datasets before proposing a new plan.
+- **Multi-dataset coordination:** When multiple datasets are active at the same phase, check `reports/research_log.md` (CROSS entries) for cross-game decisions, and sibling dataset research logs if coordinating across datasets (e.g. `src/rts_predict/<game>/reports/<dataset>/research_log.md`). Ensure methodological consistency across datasets before proposing a new plan.
 - For Category A plans: phase/step ref, branch, files, function signatures,
   SQL queries, test cases, gate condition. The plan MUST specify the sandbox
   notebook path (`sandbox/<game>/<dataset>/XX_XX_<name>.py`) and confirm that
@@ -63,7 +63,7 @@ Empires II."
 3. The active dataset's PHASE_STATUS.yaml (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 4. The active dataset's ROADMAP.md (path determined from PHASE_STATUS)
 5. The active dataset's INVARIANTS.md (if it exists)
-6. `reports/research_log.md`
+6. The active dataset's `research_log.md` (per-dataset findings), then `reports/research_log.md` (CROSS entries)
 7. `.claude/ml-protocol.md` — active from Phase 02 onward; read before planning any feature engineering, modelling, or evaluation work.
 
 ## Data layout

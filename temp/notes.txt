@@ -1,3 +1,6 @@
 try restrict net and test dangerously skip permissions
 act harder on experiments
 hooks for claude actions / activity registry/summary
+\
+
+rtk gain optymalizacja tokenow i readow TODO

@@ -1,7 +1,22 @@
-# Template for the overall structure of reports/research_log.md.
+# Template for the overall structure of research log documents.
 #
-# This is the container template -- it documents what the research log
-# document must contain. Individual entry structure is defined in:
+# STRUCTURE OVERVIEW
+# ------------------
+# The research log is split into per-dataset logs plus a root index:
+#
+#   Root index (CROSS entries only):
+#     reports/research_log.md
+#
+#   Per-dataset logs (dataset-specific entries):
+#     src/rts_predict/<game>/reports/<dataset>/research_log.md
+#
+# Per-dataset logs follow the same schema described in this template.
+# Root log contains only CROSS entries (cross-dataset or game-agnostic)
+# and index links to per-dataset logs. Dataset-specific entries MUST NOT
+# be written to the root log.
+#
+# This template is the container template -- it documents what each research
+# log document must contain. Individual entry structure is defined in:
 #   docs/templates/research_log_entry_template.yaml
 #
 # Note: docs/research/RESEARCH_LOG_ENTRY.md is a human-readable rendering of
@@ -13,10 +28,16 @@
 #   - docs/templates/research_log_entry_template.yaml -- entry-level schema
 
 document:
-  path: "reports/research_log.md"
+  path: "src/rts_predict/<game>/reports/<dataset>/research_log.md"
   description: >
-    Unified chronological narrative of all research decisions and
-    findings, tagged by dataset. Newest entries first.
+    Per-dataset chronological narrative of all research decisions and
+    findings for one dataset. Newest entries first. For CROSS entries
+    (cross-dataset or game-agnostic), use reports/research_log.md
+    (root index) instead.
+  note: >
+    The root log at reports/research_log.md is index-only. It lists
+    per-dataset logs and contains only CROSS-tagged entries. All
+    dataset-specific entries belong in the per-dataset log.
   required: true
 
 header:

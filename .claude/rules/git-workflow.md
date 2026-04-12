@@ -70,6 +70,6 @@ rm -f .github/tmp/pr.txt .github/tmp/commit.txt
 1. Tests pass with coverage
 2. Ruff and mypy clean
 3. CHANGELOG.md updated under `[Unreleased]`
-4. research_log.md updated (mandatory for Category A)
+4. active dataset's `research_log.md` updated (mandatory for Category A)
 5. Proposed commit messages for uncommitted work
 6. Summary of ready-to-merge vs in-progress

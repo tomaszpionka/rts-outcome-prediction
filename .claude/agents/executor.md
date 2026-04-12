@@ -67,7 +67,8 @@ When spawned with `isolation: "worktree"`:
 
 ## Category-specific rules
 - **Category A (Phase work):** Read `.claude/scientific-invariants.md` first.
-  Update `reports/research_log.md` after each step. Embed SQL in report artifacts (Invariant #6).
+  Update the active dataset's `research_log.md` after each step. Embed SQL in report artifacts (Invariant #6).
+  If a finding has cross-game implications (Invariant #8), also add a [CROSS] entry to `reports/research_log.md`.
   Temporal discipline rules:
   - Use strictly `match_time < T` (not `<=`) when filtering historical data for game T.
   - Check for these three leakage failure modes: (a) rolling aggregates that include the target game's own value, (b) head-to-head win rates that include the target game, (c) within-tournament features that include the target game's position.
@@ -99,7 +100,7 @@ When spawned with `isolation: "worktree"`:
    write to a sibling file instead of `--inplace`, never modifying the canonical
    notebook — but follow exactly one pattern consistently per notebook.
 6. Verify both `.ipynb` and `.py` pair files are present and synced.
-7. Update `reports/research_log.md` with a new entry.
+7. Update the active dataset's `research_log.md` with a new entry.
 8. DuckDB connections are read-only by default. Document any write-access need
    in the front-matter.
 9. Do NOT import from `processing.py` in any notebook.

@@ -4,8 +4,19 @@
 
 # Research Log Entry Template
 
-Copy this block to `reports/research_log.md` for every new entry.
+Copy this block to the appropriate log file for every new entry.
 Section requirements differ by category — see the per-section guidance below.
+
+**Where to write the entry:**
+
+| Dataset tag | Destination file |
+|---|---|
+| `sc2egset` | `src/rts_predict/sc2/reports/sc2egset/research_log.md` |
+| `aoe2companion` | `src/rts_predict/aoe2/reports/aoe2companion/research_log.md` |
+| `aoestats` | `src/rts_predict/aoe2/reports/aoestats/research_log.md` |
+| `CROSS` | `reports/research_log.md` (root index log — CROSS entries only) |
+
+Dataset-specific entries MUST NOT be written to `reports/research_log.md`.
 
 ---
 

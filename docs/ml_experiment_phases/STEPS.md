@@ -50,8 +50,8 @@ Every Step must produce all three outputs before it is considered complete:
    `src/rts_predict/<game>/reports/<dataset>/artifacts/`, mirroring the Phase
    and Pipeline Section directory structure of the notebook.
 
-3. **One research log entry** — in `reports/research_log.md`, summarising the
-   Step's findings and linking back to the Step ID.
+3. **One research log entry** — in the dataset's `research_log.md`, summarising
+   the Step's findings and linking back to the Step ID.
 
 A Step is incomplete if any of these three outputs is missing.
 
