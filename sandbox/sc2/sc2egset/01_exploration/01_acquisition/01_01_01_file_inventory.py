@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # %%
-from rts_predict.sc2.config import REPLAYS_SOURCE_DIR
+from rts_predict.games.sc2.config import REPLAYS_SOURCE_DIR
 
 RAW_DIR: Path = REPLAYS_SOURCE_DIR
 ARTIFACTS_DIR: Path = get_reports_dir("sc2", "sc2egset") / "artifacts" / "01_exploration" / "01_acquisition"

@@ -121,15 +121,23 @@ def get_notebook_db(
 def get_reports_dir(game: str, dataset: str) -> Path:
     """Return the absolute path to the dataset's reports directory.
 
-    Both game config modules (sc2/config.py and aoe2/config.py) export
-    a REPORTS_DIR constant. The returned path is REPORTS_DIR / dataset.
+    Both game config modules export a ``REPORTS_DIR`` constant.  The
+    returned path is ``REPORTS_DIR / dataset``.
+
+    For single-dataset games (SC2) ``REPORTS_DIR`` points to the
+    ``reports/`` subdirectory inside the dataset tree.  For multi-dataset
+    games (AoE2) ``REPORTS_DIR`` is the parent ``datasets/`` directory so
+    that ``REPORTS_DIR / dataset`` resolves to the per-dataset directory;
+    callers are responsible for appending the ``reports/`` segment when
+    needed (e.g. ``get_reports_dir("aoe2", "aoestats") / "reports" /
+    "artifacts"``).
 
     Args:
         game: Game identifier ("sc2" or "aoe2").
         dataset: Dataset identifier (e.g. "sc2egset", "aoe2companion").
 
     Returns:
-        Absolute Path to the reports directory.
+        Absolute Path to the per-dataset directory (``REPORTS_DIR / dataset``).
 
     Raises:
         ValueError: If game or dataset is not recognized, or if the
