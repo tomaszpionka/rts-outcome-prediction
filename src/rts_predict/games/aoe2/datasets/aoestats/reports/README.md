@@ -2,8 +2,6 @@
 
 Permanent provenance record for the aoestats raw data. This file is
 independent of the phase system and is not archived when phases are reset.
-For full details, see `archive/` (original INVARIANTS.md and Phase 0
-artifacts).
 
 ---
 
