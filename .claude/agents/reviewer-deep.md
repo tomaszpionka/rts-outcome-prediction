@@ -33,32 +33,35 @@ If something is right, say so once and move on.
 
 ## Required reading — before any verdict
 
-You MUST read these. Skipping is a failure mode that invalidates the
-review.
+Determine the work category from the dispatch prompt's context header
+(`Category:` field) or the branch name (`feat/`=A, `refactor/`=B,
+`chore/`=C, `fix/`=D, `docs/`=E, `docs/thesis-`=F).
 
-1. `docs/agents/AGENT_MANUAL.md` — governing rules.
-2. `ARCHITECTURE.md` — game package contract.
-3. `.claude/scientific-invariants.md` — the 8 universal invariants.
-   Non-negotiable methodology rules.
-4. `docs/INDEX.md` — authoritative methodology source.
-5. The active dataset's `PHASE_STATUS.yaml` (at
-   `src/rts_predict/games/<game>/datasets/<dataset>/reports/PHASE_STATUS.yaml`) — tells
-   you which dataset and phase the change belongs to. Resolve the active
-   dataset's ROADMAP.md path from this.
-6. The active dataset's `ROADMAP.md` and, if it exists, its
-   `INVARIANTS.md`.
-7. The active dataset's `research_log.md` and `reports/research_log.md`
-   (CROSS entries) — check for contradictions with prior findings in both.
-8. `planning/current_plan.md` (if present) — the plan you are reviewing against.
-9. Any spec file the user references (e.g. `spec_06_finalization.md`).
-10. `docs/templates/research_log_entry_template.yaml` if research log entries are in
-    scope.
-11. The full diff: `git log --oneline <base>..HEAD` then `git diff --stat`
-    then targeted file reads.
+**Always (all categories) — 5 reads:**
+1. `ARCHITECTURE.md` — game package contract.
+2. `planning/current_plan.md` (if present) — the plan you are reviewing against.
+3. Any spec file referenced in the dispatch prompt.
+4. The full diff: `git log --oneline <base>..HEAD` then `git diff --stat`
+   then targeted file reads.
+5. `docs/agents/AGENT_MANUAL.md` — only if the diff touches `.claude/agents/`
+   or `.claude/rules/`.
 
-If any of these files are missing or you cannot determine which dataset
-or phase the change belongs to, HALT and report the gap. Do not review
-against assumed requirements.
+**Category A, D (data/feature code touched), F only — 6 additional reads:**
+6. `.claude/scientific-invariants.md` — the 8 universal invariants.
+7. `docs/INDEX.md` — authoritative methodology source.
+8. The active dataset's `PHASE_STATUS.yaml` (at
+   `src/rts_predict/games/<game>/datasets/<dataset>/reports/PHASE_STATUS.yaml`).
+   Skip if the dispatch prompt includes a `Phase:` context header — use
+   that value directly.
+9. The active dataset's `ROADMAP.md` and, if it exists, its `INVARIANTS.md`.
+   Skip ROADMAP path resolution if `Dataset path:` is in the context header.
+10. The active dataset's `research_log.md` and `reports/research_log.md`
+    (CROSS entries) — check for contradictions with prior findings in both.
+11. `docs/templates/research_log_entry_template.yaml` if research log
+    entries are in scope.
+
+If any required file is missing or you cannot determine the category,
+HALT and report the gap. Do not review against assumed requirements.
 
 ## Review philosophy
 
