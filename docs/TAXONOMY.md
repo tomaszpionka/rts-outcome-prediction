@@ -93,7 +93,7 @@ not depend on `01_01_99`.
 
 - One sandbox notebook pair at the canonical path (see *Directory layout*).
 - One or more artifacts under the matching `reports/<dataset>/artifacts/` subpath.
-- One entry in `reports/research_log.md` summarising the Step's findings.
+- One entry in the dataset's `research_log.md` summarising the Step's findings.
 
 **Step schema.** A Step's definition in a dataset ROADMAP is a fenced YAML
 block matching the schema in [`docs/templates/step_template.yaml`](templates/step_template.yaml).

@@ -24,7 +24,7 @@ source .venv/bin/activate && poetry run pytest tests/ -v --cov=rts_predict
 | `CLAUDE.md` | AI assistant instructions and project rules — read first |
 | `.claude/scientific-invariants.md` | Thesis methodology constraints — non-negotiable |
 | `docs/PHASES.md` | **Canonical phase list — 7 Phases of the ML experiment lifecycle** |
-| `reports/research_log.md` | Reverse-chronological thesis narrative |
+| `src/rts_predict/<game>/reports/<dataset>/research_log.md` | Per-dataset reverse-chronological thesis narrative |
 | `CHANGELOG.md` | Code version history |
 | `.claude/` | Coding, workflow, and ML experiment standards |
 | `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md` | Institutional requirements — formatting, defense, grading |

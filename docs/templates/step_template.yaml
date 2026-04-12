@@ -156,5 +156,5 @@ thesis_mapping:
   # source Step.
 
 research_log_entry:
-  value: "<required on completion, following docs/templates/research_log_entry_template.yaml; must link back to this Step ID>"
+  value: "<required on completion, following docs/templates/research_log_entry_template.yaml; must link back to this Step ID; entry goes into the per-dataset log at src/rts_predict/<game>/reports/<dataset>/research_log.md, NOT into reports/research_log.md>"
   required: true

@@ -47,6 +47,8 @@ Connected tracking files (outside `docs/`):
 
 | Tracker | Location | Purpose |
 |---------|----------|---------|
+| Research log (index) | `reports/research_log.md` | Cross-cutting (`[CROSS]`) entries and index of per-dataset logs |
+| Research log (per-dataset) | `<game>/reports/<dataset>/research_log.md` | Game/dataset-specific analytical findings per phase |
 | Chapter progress | `thesis/WRITING_STATUS.md` | Per-section SKELETON → FINAL status |
 | Chapter structure | `thesis/THESIS_STRUCTURE.md` | Section outline with scope definitions |
 | Review queue | `thesis/chapters/REVIEW_QUEUE.md` | Pass 1 → Pass 2 handoff tracking |

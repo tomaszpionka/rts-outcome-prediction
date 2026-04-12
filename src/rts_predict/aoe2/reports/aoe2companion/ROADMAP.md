@@ -5,6 +5,7 @@
 **Canonical phase list:** `docs/PHASES.md`
 **Methodology manuals:** `docs/INDEX.md`
 **Step definition schema:** `docs/templates/step_template.yaml`
+**Research log:** `research_log.md` (sibling file — per-dataset reverse-chronological narrative)
 
 ---
 

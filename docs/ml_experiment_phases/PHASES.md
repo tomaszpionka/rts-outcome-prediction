@@ -37,8 +37,8 @@ into the Phase structure.
 
 Cross-dataset or cross-game coordination (e.g., applying one dataset's
 trained model to another, or conducting Phase 06 transfer experiments
-that span games) is tracked in `reports/research_log.md` and the thesis
-chapters, not in any ROADMAP.
+that span games) is tracked in `reports/research_log.md` CROSS entries
+and the thesis chapters, not in any ROADMAP.
 
 ---
 
@@ -52,8 +52,7 @@ incorporated into the thesis narrative.
 **What Phase 07 entails in a dataset ROADMAP:**
 
 - All prior Phases (01–06) have met their exit gates for that dataset.
-- `reports/research_log.md` entries for that dataset are current and
-  thesis-citable.
+- Per-dataset `research_log.md` entries are current and thesis-citable.
 - All report artifacts under `reports/<dataset>/artifacts/` are present
   and referenced from the research log.
 
