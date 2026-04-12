@@ -12,6 +12,7 @@ Classical ML on pre-game features, with optional in-game and GNN comparisons.
 - **NEVER** use data from game T or later to compute features for game T
 - **NEVER** begin a new phase until all prior phase artifacts exist on disk
 - **NEVER** skip the plan/execute two-session workflow for non-trivial work
+- **NEVER** read `current_plan.md` or spec files when dispatching executors during DAG execution — read ONLY `DAG.yaml` and pass the `spec_file` path as a pointer
 
 ## Planning Protocol
 
@@ -56,6 +57,25 @@ MUST NOT begin until DAG + specs exist on disk — no exceptions.
 agents read their assigned spec file, not the full plan → review gates after
 each task group → run tests after each logical unit → report which gate
 condition is met.
+
+**Dispatch rules:**
+- *Executor dispatch:* The prompt MUST be a pointer — the `spec_file` path +
+  at most a 1-2 line context summary. MUST NOT restate spec content. The spec
+  is the sole source of truth and the executor reads it via tool call.
+- *Review gate dispatch:* After each task group, dispatch the reviewer agent
+  specified in the group's `review_gate`. The prompt passes the diff scope —
+  the reviewer reads the diff itself, not the specs.
+- *Final review dispatch:* Dispatch the agent specified in the DAG's
+  `final_review` section with: (a) `plan_ref` path from the DAG, (b) all
+  `spec_file` paths from the DAG, (c) `base_ref` for the diff. Default is
+  reviewer-deep; for complex DAGs (Category A phase work, multi-job DAGs)
+  use reviewer-adversarial. The final reviewer reads the plan, all specs,
+  and the full diff to check plan-vs-reality alignment, spec compliance, and
+  scope drift. The orchestrator passes these paths from DAG metadata — it
+  does NOT read them itself.
+- *General:* "Execute the DAG" means: read `DAG.yaml`, dispatch per its graph,
+  nothing more. The orchestrator does NOT read `current_plan.md` or spec
+  files when dispatching.
 
 | Category | Branch prefix | Read before planning |
 |----------|--------------|---------------------|

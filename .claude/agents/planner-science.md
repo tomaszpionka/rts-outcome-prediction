@@ -50,6 +50,12 @@ Empires II."
 - **DAG requirement:** Every plan MUST include a "Suggested Execution Graph" section that proposes: (1) task groups with descriptions, (2) dependencies between groups, (3) tasks within each group with agent assignment and file scope, (4) which tasks are parallel-safe, (5) a `spec_file` path for each task following the `planning/specs/spec_NN_<short_name>.md` convention (numbering starts at 01). These paths are consumed verbatim by `/materialize_plan` — the planner decides the spec naming, not the materializer.
 - For Category F plans: section paths, feeding artifacts, draft vs revision,
   figures/tables, WRITING_STATUS.md target.
+- **Output contract:** Plan output must conform to
+  `docs/templates/planner_output_contract.md`. Read it before producing output.
+- **Critique gate (A/F only):** For Category A or F plans, after producing the
+  plan, instruct the parent session that adversarial critique is required before
+  materialization. Do NOT produce the critique yourself — reviewer-adversarial
+  handles it.
 
 ## Read first
 1. `.claude/scientific-invariants.md`  (universal invariants)

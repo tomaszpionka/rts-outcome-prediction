@@ -14,6 +14,15 @@ merged to `master`.
 ### Added
 
 ### Changed
+- `docs/templates/plan_template.md` — rewritten with DAG-compatible, per-task structure covering Categories A–F, gate conditions, and agent assignments
+- `docs/templates/plan_critique_template.md` — rewritten to cover all 8 scientific invariants, citation requirements, temporal discipline checks, and to be produced by reviewer-adversarial
+- `docs/templates/planner_output_contract.md` — rewritten as agent-agnostic, plan-only output contract with Category A–F sections; all critiques now routed to reviewer-adversarial
+- `planning/README.md` — updated to include critique step in the plan lifecycle and purge rule for `current_plan.critique.md`
+- `.claude/agents/planner-science.md` — updated to reference `planner_output_contract.md` and flag critique requirement
+- `.claude/agents/planner.md` — updated to reference `planner_output_contract.md` and critique-flagging rules for Category B/D
+- `.claude/commands/materialize_plan.md` — updated to enforce critique pre-flight check for Category A and F plans
+- `.claude/agents/executor.md` — updated "Read first" section with explicit spec-first dispatch protocol (echo task_id, file_scope, verification count before execution)
+- `CLAUDE.md` — added "Dispatch rules" block to the Plan/Execute Workflow section documenting executor, review gate, and final review dispatch conventions
 
 ### Fixed
 

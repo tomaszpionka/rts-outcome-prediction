@@ -39,6 +39,13 @@ user the plan needs revision before materialization.
 3. Verify the plan contains a **Suggested Execution Graph** section with
    task_id, spec_file, file_scope, and depends_on for each task. If any
    of these are missing, STOP — the plan is incomplete.
+4. Read the plan's frontmatter to extract `category` and
+   `critique_required`. If `category` is A or F (or `critique_required`
+   is true), verify `planning/current_plan.critique.md` exists and is
+   non-empty. If missing, HALT with message: "Category A/F requires
+   adversarial critique before materialization. Dispatch
+   reviewer-adversarial to produce
+   `planning/current_plan.critique.md` first."
 
 ## Step 1: Purge old specs
 
