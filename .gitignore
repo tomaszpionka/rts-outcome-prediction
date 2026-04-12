@@ -214,10 +214,6 @@ __marimo__/
 # Local project files
 .continue
 tmp/
-**/data/samples/raw/*
-!**/data/samples/raw/
-!**/data/samples/raw/.gitkeep
-**/datasets/*/data/samples/raw/*
 
 # Game-scoped artifacts (per-game models, logs, manifests)
 src/rts_predict/*/models/*.joblib
