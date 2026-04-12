@@ -13,6 +13,16 @@ merged to `master`.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [3.1.1] — 2026-04-12 (PR #113: chore/token-economy-indexing)
+
+### Added
+
 - 9 directory `README.md` files (routing documents for key subdirectories)
 - `docs/INDEX.md` — centralized directory map and routing hub
 - `scripts/hooks/check_planning_drift.py` — pre-commit hook for planning artifact validation
