@@ -34,7 +34,7 @@ repos:
       - id: planning-drift
         name: planning artifact validation
         language: system
-        entry: python scripts/hooks/check_planning_drift.py
+        entry: poetry run python scripts/hooks/check_planning_drift.py
         files: ^planning/
         pass_filenames: false
 

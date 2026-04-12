@@ -5,7 +5,6 @@ Validates three artifact types when planning/ files are staged:
 
 1. ``planning/current_plan.md`` — YAML frontmatter fields + required sections.
    Bootstrap tolerance: legacy markdown-bold metadata warns but does not block.
-   # TODO: enforce strict YAML frontmatter after this PR
 
 2. ``planning/specs/spec_*.md`` — YAML frontmatter fields + required sections.
    Required sections: ## Objective, ## Instructions, ## Verification.
@@ -129,7 +128,7 @@ def _extract_yaml_frontmatter(text: str) -> tuple[dict[str, Any] | None, bool]:
 
 
 def _extract_sections(text: str) -> set[str]:
-    """Extract lowercase heading names from markdown (## level).
+    """Extract lowercase heading names from markdown at the ## level only.
 
     Args:
         text: Full markdown file content.
@@ -139,7 +138,7 @@ def _extract_sections(text: str) -> set[str]:
     """
     headings: set[str] = set()
     for line in text.splitlines():
-        m = re.match(r"^#{1,6}\s+(.+)", line)
+        m = re.match(r"^##\s+(.+)", line)
         if m:
             headings.add(m.group(1).strip().lower())
     return headings
