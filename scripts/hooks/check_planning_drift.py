@@ -338,7 +338,17 @@ def check_orphaned_specs(
         str(p.relative_to(root))
         for p in search_dir.glob("spec_*.md")
     }
-    referenced = set(dag_spec_files)
+    # Normalize any absolute spec_file paths to relative before comparing.
+    referenced: set[str] = set()
+    for sf in dag_spec_files:
+        p = Path(sf)
+        if p.is_absolute():
+            try:
+                referenced.add(str(p.relative_to(root)))
+            except ValueError:
+                referenced.add(sf)
+        else:
+            referenced.add(sf)
     orphans = disk_specs - referenced
     for orphan in sorted(orphans):
         errors.append(f"{orphan}: spec file on disk is not referenced in any DAG task")
@@ -349,31 +359,46 @@ def check_orphaned_specs(
 # Entry point
 # ---------------------------------------------------------------------------
 
-def main() -> int:
+def main(repo_root: Path | None = None) -> int:
     """Run all planning drift checks and return exit code.
+
+    Args:
+        repo_root: Repository root to use for resolving paths. Defaults to
+            the module-level ``REPO_ROOT`` (inferred from the script location).
+            Pass a custom path to run checks against a synthetic tree in tests.
 
     Returns:
         0 if all checks pass, 1 if any errors were found.
     """
+    root = repo_root if repo_root is not None else REPO_ROOT
+    planning_dir = root / "planning"
+    specs_dir = planning_dir / "specs"
+    dags_dir = planning_dir / "dags"
+    current_plan = planning_dir / "current_plan.md"
+
     all_errors: list[str] = []
     all_dag_spec_files: list[str] = []
 
     # 1. Validate current_plan.md (if it exists)
-    if CURRENT_PLAN.exists():
-        all_errors.extend(validate_current_plan(CURRENT_PLAN))
+    if current_plan.exists():
+        all_errors.extend(validate_current_plan(current_plan, repo_root=root))
 
     # 2. Validate all spec files
-    for spec_path in sorted(SPECS_DIR.glob("spec_*.md")):
-        all_errors.extend(validate_spec_file(spec_path))
+    for spec_path in sorted(specs_dir.glob("spec_*.md")):
+        all_errors.extend(validate_spec_file(spec_path, repo_root=root))
 
     # 3. Validate all DAG.yaml files + collect spec_file refs
-    for dag_path in sorted(DAGS_DIR.glob("*.yaml")):
-        dag_errors, spec_files = validate_dag(dag_path)
+    for dag_path in sorted(dags_dir.glob("*.yaml")):
+        dag_errors, spec_files = validate_dag(dag_path, repo_root=root)
         all_errors.extend(dag_errors)
         all_dag_spec_files.extend(spec_files)
 
     # 4. Cross-file: check for orphaned specs
-    all_errors.extend(check_orphaned_specs(all_dag_spec_files))
+    all_errors.extend(
+        check_orphaned_specs(
+            all_dag_spec_files, specs_dir=specs_dir, repo_root=root
+        )
+    )
 
     if all_errors:
         print("PLANNING DRIFT DETECTED:")

@@ -307,11 +307,15 @@ Step 4:  @reviewer review changes
 Step 5:  [parent stages, commits, wraps up PR]
 ```
 
-**Two strategies:**
-- **Shared branch:** Executors edit the same working tree. Requires
-  non-overlapping file ownership. See `planning/specs/README.md` for file maps.
-- **Worktree isolation:** Each executor gets `isolation: "worktree"`.
-  Full file isolation, but requires merging branches afterwards.
+**Strategy A (shared branch):** Executors edit the same working tree.
+Requires non-overlapping file ownership. Executors do NOT run
+`git add/commit` — the parent orchestrator stages and commits.
+
+**Strategy B (worktree isolation):** Each executor gets
+`isolation: "worktree"`. Full file isolation, but requires merging
+branches afterwards.
+
+See `docs/TAXONOMY.md` for formal definitions.
 
 ### Workflow F: Methodology Challenge
 

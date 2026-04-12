@@ -621,3 +621,135 @@ class TestCheckOrphanedSpecs:
             [], specs_dir=specs_dir, repo_root=tmp_path
         )
         assert errors == [], f"README.md should not be flagged: {errors}"
+
+    def test_absolute_spec_file_path(self, mod: ModuleType, tmp_path: Path) -> None:
+        """A DAG with an absolute spec_file value is not reported as an orphan."""
+        specs_dir = tmp_path / "planning" / "specs"
+        specs_dir.mkdir(parents=True)
+        spec_file = specs_dir / "spec_01_example.md"
+        spec_file.write_text(_VALID_SPEC)
+
+        # Pass the absolute path as a DAG ref
+        absolute_ref = str(spec_file.resolve())
+        errors = mod.check_orphaned_specs(  # type: ignore[attr-defined]
+            [absolute_ref], specs_dir=specs_dir, repo_root=tmp_path
+        )
+        assert errors == [], f"Absolute spec_file path should not cause orphan error: {errors}"
+
+
+# ---------------------------------------------------------------------------
+# Tests: _extract_yaml_frontmatter (legacy heuristic false positive)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractYamlFrontmatter:
+    """Tests for _extract_yaml_frontmatter() edge cases."""
+
+    def test_legacy_heuristic_false_positive(self, mod: ModuleType) -> None:
+        """Frontmatter presence takes precedence over bold-pattern match.
+
+        A plan with proper YAML frontmatter AND **NOTE:** bold text in the
+        first 10 lines must NOT be flagged as legacy bold-metadata.
+        """
+        content = textwrap.dedent("""\
+            ---
+            category: C
+            branch: chore/example
+            date: 2026-04-12
+            ---
+
+            **NOTE:** This is an important note.
+
+            Some body text here.
+        """)
+        frontmatter, is_legacy_bold_metadata = mod._extract_yaml_frontmatter(content)  # type: ignore[attr-defined]
+        assert is_legacy_bold_metadata is False, (
+            "Expected is_legacy_bold_metadata=False when frontmatter is present, "
+            f"got: {is_legacy_bold_metadata}"
+        )
+        assert frontmatter is not None, "Expected frontmatter to be parsed"
+
+
+# ---------------------------------------------------------------------------
+# Tests: main() integration
+# ---------------------------------------------------------------------------
+
+
+def _build_valid_tree(tmp_path: Path) -> None:
+    """Build a minimal valid planning artifact tree under tmp_path."""
+    planning = tmp_path / "planning"
+    specs_dir = planning / "specs"
+    dags_dir = planning / "dags"
+    specs_dir.mkdir(parents=True)
+    dags_dir.mkdir(parents=True)
+
+    # current_plan.md
+    (planning / "current_plan.md").write_text(_VALID_PLAN_YAML_FM)
+
+    # spec file
+    (specs_dir / "spec_01_foo.md").write_text(_VALID_SPEC)
+
+    # DAG referencing the spec
+    dag_content = textwrap.dedent("""\
+        dag_id: "dag_foo"
+        plan_ref: "planning/current_plan.md"
+        category: "C"
+        branch: "chore/example"
+        base_ref: "master"
+
+        jobs:
+          - job_id: "J01"
+            name: "Foo job"
+            task_groups:
+              - group_id: "TG01"
+                name: "Foo group"
+                depends_on: []
+                tasks:
+                  - task_id: "T01"
+                    name: "Do something"
+                    spec_file: "planning/specs/spec_01_foo.md"
+                    file_scope:
+                      - "path/to/file.py"
+                    depends_on: []
+    """)
+    (dags_dir / "DAG.yaml").write_text(dag_content)
+
+
+class TestMainIntegration:
+    """Integration tests for main()."""
+
+    def test_main_integration_clean(self, mod: ModuleType, tmp_path: Path) -> None:
+        """main() returns 0 when all artifacts are valid."""
+        _build_valid_tree(tmp_path)
+        rc = mod.main(repo_root=tmp_path)  # type: ignore[attr-defined]
+        assert rc == 0, f"Expected exit code 0 for a clean tree, got: {rc}"
+
+    def test_main_integration_errors(self, mod: ModuleType, tmp_path: Path) -> None:
+        """main() returns 1 when a spec file is missing ## Objective."""
+        _build_valid_tree(tmp_path)
+
+        # Overwrite spec file to remove ## Objective
+        broken_spec = textwrap.dedent("""\
+            ---
+            task_id: "T01"
+            task_name: "Do something"
+            agent: "executor"
+            dag_ref: "planning/dags/DAG.yaml"
+            group_id: "TG01"
+            file_scope:
+              - "path/to/file.py"
+            category: "C"
+            ---
+
+            ## Instructions
+
+            1. Do the thing.
+
+            ## Verification
+
+            - pytest passes
+        """)
+        (tmp_path / "planning" / "specs" / "spec_01_foo.md").write_text(broken_spec)
+
+        rc = mod.main(repo_root=tmp_path)  # type: ignore[attr-defined]
+        assert rc == 1, f"Expected exit code 1 when spec is missing Objective, got: {rc}"

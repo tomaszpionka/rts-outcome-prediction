@@ -35,6 +35,10 @@ poetry run aoe2 --help
 | `AOE2COMPANION_DB_FILE` | `src/rts_predict/aoe2/data/aoe2companion/db/db.duckdb` |
 | `AOESTATS_DIR` | `src/rts_predict/aoe2/data/aoestats/` |
 | `AOESTATS_DB_FILE` | `src/rts_predict/aoe2/data/aoestats/db/db.duckdb` |
+| `AOE2COMPANION_REPORTS_DIR` | `src/rts_predict/aoe2/reports/aoe2companion/` |
+| `AOE2COMPANION_ARTIFACTS_DIR` | `src/rts_predict/aoe2/reports/aoe2companion/artifacts/` |
+| `AOESTATS_REPORTS_DIR` | `src/rts_predict/aoe2/reports/aoestats/` |
+| `AOESTATS_ARTIFACTS_DIR` | `src/rts_predict/aoe2/reports/aoestats/artifacts/` |
 
 ## Datasets
 

@@ -13,7 +13,7 @@ Task), see [`docs/TAXONOMY.md`](../docs/TAXONOMY.md).
 | `README.md` | Permanent | This file |
 | `current_plan.md` | Ephemeral | The authoritative Spec for the active PR |
 | `current_plan.critique.md` | Ephemeral | Adversarial critique produced by reviewer-adversarial (Category A/B/F mandatory; D conditional on file_scope touching game src); not produced by the planner |
-| `specs/README.md` | Permanent | Parallel execution guide (Strategy A/B) |
+| `specs/README.md` | Permanent | Parallel execution guide (Strategy A/B — see `docs/TAXONOMY.md` for Strategy A/B definitions) |
 | `specs/spec_*.md` | Ephemeral | Individual task specs, one per DAG task |
 | `dags/README.md` | Permanent | DAG format documentation |
 | `dags/DAG.yaml` | Ephemeral | The single active execution graph |
