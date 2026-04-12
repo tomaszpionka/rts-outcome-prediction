@@ -26,17 +26,16 @@ repos:
         types: [python]
         pass_filenames: false
 
-  # ── Phase-table drift check ────────────────────────────────────────────────
-  # Runs only when docs/PHASES.md or docs/ml_experiment_phases/PHASES.md is
-  # staged. Compares phase number + name pairs and fails if they diverge.
-  # No dependencies — stdlib only.
+  # ── Planning artifact validation ──────────────────────────────────────────
+  # Validates planning specs and DAG for structural integrity (required sections,
+  # valid spec_file refs). Runs when any file under planning/ is staged.
   - repo: local
     hooks:
-      - id: phases-drift
-        name: phases table drift check
-        entry: python scripts/hooks/check_phases_drift.py
+      - id: planning-drift
+        name: planning artifact validation
         language: system
-        files: ^docs/(PHASES\.md|ml_experiment_phases/PHASES\.md)$
+        entry: poetry run python scripts/hooks/check_planning_drift.py
+        files: ^planning/
         pass_filenames: false
 
   # ── Jupytext sync (notebook pairs in sandbox/) ─────────────────────────────

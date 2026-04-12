@@ -263,6 +263,28 @@ part of a Step (e.g., just the library code), or a non-science operation
 (e.g., updating a research log). Multiple Tasks across one or more Task
 Groups may be needed to complete a single Step.
 
+### Parallel execution strategies
+
+When a Task Group contains multiple Tasks that run in parallel, the
+orchestrator chooses one of two strategies based on whether their
+`file_scope` declarations overlap.
+
+- **Strategy A (shared branch):** All parallel executors work on the same
+  branch. Executors do NOT run `git add` or `git commit` — the parent
+  orchestrator stages and commits after each task group completes and its
+  review gate passes. Use when file scopes do not overlap. DAG field:
+  `default_isolation: "shared_branch"`.
+
+- **Strategy B (worktree isolation):** Each executor runs in a temporary
+  git worktree on its own branch via `isolation: "worktree"`. Changes are
+  merged back by the orchestrator after each executor completes. Use when
+  file scopes overlap or when executors need independent git state. DAG
+  field: task-level `isolation: "worktree"`.
+
+The strategy is declared in the DAG. Executors do not choose their own
+strategy — they follow the isolation mode they are dispatched with.
+See `docs/templates/dag_template.yaml` for the DAG fields.
+
 ---
 
 ## Terms explicitly not used

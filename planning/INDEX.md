@@ -10,19 +10,10 @@
 ## Task specs
 - [Parallel execution guide](specs/README.md)
 
-- [spec_01](specs/spec_01_sc2_research_log.md) — create sc2egset per-dataset research log
-- [spec_02](specs/spec_02_aoe2c_research_log.md) — create aoe2companion per-dataset research log
-- [spec_03](specs/spec_03_aoestats_research_log.md) — create aoestats per-dataset research log
-- [spec_04](specs/spec_04_root_index.md) — rewrite root research_log.md as index + CROSS
-- [spec_05](specs/spec_05_orchestrator_agents.md) — update CLAUDE.md + executor.md
-- [spec_06](specs/spec_06_reviewer_agents.md) — update reviewer-deep + reviewer-adversarial
-- [spec_07](specs/spec_07_planner_agents.md) — update planner-science + ml-protocol
-- [spec_08](specs/spec_08_rules.md) — update reviewer + git-workflow + thesis-writing
-- [spec_09](specs/spec_09_architecture.md) — update ARCHITECTURE.md + INDEX.md
-- [spec_10](specs/spec_10_phase_docs.md) — update TAXONOMY + PHASES + STEPS
-- [spec_11](specs/spec_11_templates.md) — update templates + research docs
-- [spec_12](specs/spec_12_remaining_refs.md) — update AGENT_MANUAL + README + ROADMAPs
-- [spec_13](specs/spec_13_changelog.md) — CHANGELOG update
+- [spec_01](specs/spec_01_drift_tests.md) — planning drift hook: main() tests + absolute path fix
+- [spec_02](specs/spec_02_aoe2_readme.md) — aoe2 README: per-dataset report/artifact paths
+- [spec_03](specs/spec_03_strategy_ab.md) — Strategy A/B: TAXONOMY.md + pointers
+- [spec_04](specs/spec_04_changelog.md) — CHANGELOG for follow-up fixes
 
 ## Agent routing
 
