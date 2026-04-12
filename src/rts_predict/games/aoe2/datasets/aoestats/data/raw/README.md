@@ -25,65 +25,54 @@ acquisition_script: "src/rts_predict/games/aoe2/datasets/aoestats/data/acquisiti
 # -- Section C: Content and Layout ---------------------------------------------
 
 description: >
-  Weekly database dumps from aoestats.io. Contains paired weekly match and player
-  parquet files named by date range, plus a single overview JSON reference file.
-  172 non-zero match weeks downloaded (2022-08-28 to 2026-02-07).
-  16 zero-match weeks from the manifest were excluded during acquisition
-  (derived from manifest comparison; 188 total manifest entries - 172 downloaded = 16 excluded).
+  Three subdirectories: matches/ (172 `.parquet` files), players/ (171
+  `.parquet` files), overview/ (1 `.json` file). Dotfiles excluded
+  (.gitkeep x3, one per subdir). 2 root files (README.md,
+  _download_manifest.json) not counted in subdirectory totals.
 file_format: "parquet, JSON"
 
-# File counts and sizes populated from 01_01_01 artifact (step F.1).
-# Dotfiles excluded: .gitkeep x3 (one per subdir).
+# File counts and sizes from 01_01_01 artifact. Dotfiles excluded.
 subdirectory_layout:
   - directory: "matches/"
-    contents: "Weekly match parquet files named {start_date}_{end_date}_matches.parquet"
+    contents: "`.parquet` files named `{date}_{date}_matches.parquet`"
     file_pattern: "{start_date}_{end_date}_matches.parquet"
     file_count: 172
     size_mb: 610.55
   - directory: "players/"
-    contents: "Weekly player parquet files named {start_date}_{end_date}_players.parquet"
+    contents: "`.parquet` files named `{date}_{date}_players.parquet`"
     file_pattern: "{start_date}_{end_date}_players.parquet"
     file_count: 171
     size_mb: 3162.86
   - directory: "overview/"
-    contents: "Overview JSON reference file with lookup tables (civilizations, maps, game modes)"
+    contents: "`.json` file named `overview.json`"
     file_pattern: "overview.json"
     file_count: 1
     size_mb: 0.02
 
-total_files: 346  # excludes 3 dotfiles (.gitkeep x3)
-total_size_mb: 3773.6
+total_files: 344
+total_size_mb: 3773.61
 
 # -- Section D: Temporal Coverage ----------------------------------------------
 
-temporal_grain: weekly
+temporal_grain: "filename-derived weekly cadence ({date}_{date} prefix pattern)"
 # Dates from 01_01_01 artifact date_analysis.matches
 date_range_start: "2022-08-28"
 date_range_end: "2026-02-07"
 
-# Gaps identified in 01_01_01 artifact date_analysis. Matches and players share
-# the same first three gaps; players has one additional gap.
+# Gaps from 01_01_01 artifact date_analysis.matches
 known_gaps:
-  - gap_start: "2024-07-20"
-    gap_end: "2024-09-01"
-    reason: "43-day gap in weekly dumps; present in both matches and players (01_01_01 artifact)"
-  - gap_start: "2024-09-28"
-    gap_end: "2024-10-06"
-    reason: "8-day gap in weekly dumps; present in both matches and players (01_01_01 artifact)"
-  - gap_start: "2025-03-22"
-    gap_end: "2025-03-30"
-    reason: "8-day gap in weekly dumps; present in both matches and players (01_01_01 artifact)"
-  - gap_start: "2025-11-15"
-    gap_end: "2025-11-23"
-    reason: "8-day gap in players dumps only; matches unaffected (01_01_01 artifact date_analysis.players)"
+  - prev_end: "2024-07-20"
+    next_start: "2024-09-01"
+    gap_days: 43
+  - prev_end: "2024-09-28"
+    next_start: "2024-10-06"
+    gap_days: 8
+  - prev_end: "2025-03-22"
+    next_start: "2025-03-30"
+    gap_days: 8
 
-gap_analysis_status: complete
-coverage_notes: >
-  Per-directory file counts: matches/=172, players/=171 (each excludes 1 .gitkeep).
-  The 1-file count mismatch between matches and players is reflected in the
-  fourth gap entry above (players has one additional gap week).
-  16 zero-match weeks from the manifest were excluded during acquisition
-  (see acquisition_filters below).
+gap_analysis_status: not_started
+# coverage_notes: stripped -- forward references to Phase 01 profiling steps not yet complete
 
 # -- Section E: Acquisition Filtering ------------------------------------------
 
@@ -142,30 +131,26 @@ This directory holds the raw data layer and must never be modified.
 **Acquisition script:** `src/rts_predict/games/aoe2/datasets/aoestats/data/acquisition.py`
 **Manifest:** `src/rts_predict/games/aoe2/datasets/aoestats/data/api/db_dump_list.json`
 
-> **File counts and sizes:** Populated from 01_01_01 artifact. Dotfiles excluded
-> (.gitkeep x3, one per subdir). Counts reflect data files only.
+> **File counts and sizes:** From 01_01_01 artifact. Dotfiles excluded
+> (.gitkeep x3, one per subdir). 2 root files not counted in subdirectory totals.
 
 ## Subdirectory Layout
 
 | Directory | Contents | Pattern | File count | Size (MB) |
 |-----------|----------|---------|-----------|-----------|
-| `matches/` | Weekly match parquet files | `{start}_{end}_matches.parquet` | 172 | 610.6 |
-| `players/` | Weekly player parquet files | `{start}_{end}_players.parquet` | 171 | 3,162.9 |
-| `overview/` | Overview JSON reference | `overview.json` | 1 | 0.02 |
+| `matches/` | `.parquet` files | `{date}_{date}_matches.parquet` | 172 | 610.55 |
+| `players/` | `.parquet` files | `{date}_{date}_players.parquet` | 171 | 3162.86 |
+| `overview/` | `.json` file | `overview.json` | 1 | 0.02 |
 
-**Total files:** 346 (excludes 3 dotfiles: .gitkeep x3)
-**Total size:** 3,773.6 MB (3.7 GB)
+**Total files:** 344 (excluding dotfiles and root files)
+**Total size:** 3773.61 MB
 
 ## Temporal Coverage
 
-- **Grain:** weekly
-- **Date range:** 2022-08-28 to 2026-02-07 (from 01_01_01 artifact)
-- **Gap analysis status:** complete
-- **Known gaps:**
-  - 2024-07-20 to 2024-09-01 (43 days, both matches and players)
-  - 2024-09-28 to 2024-10-06 (8 days, both matches and players)
-  - 2025-03-22 to 2025-03-30 (8 days, both matches and players)
-  - 2025-11-15 to 2025-11-23 (8 days, players only)
+- **Grain:** filename-derived weekly cadence (`{date}_{date}` prefix pattern)
+- **Date range:** 2022-08-28 to 2026-02-07 (from artifact `date_analysis.matches`)
+- **Gap analysis status:** not_started
+- **Known gaps (matches/):** 2024-07-20 to 2024-09-01 (43 days); 2024-09-28 to 2024-10-06 (8 days); 2025-03-22 to 2025-03-30 (8 days)
 
 ## Acquisition Filtering
 

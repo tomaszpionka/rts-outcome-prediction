@@ -1,40 +1,56 @@
-# aoe2companion -- Raw Data Provenance
+# aoe2companion -- Dataset Reports Provenance
 
-Permanent provenance record for the aoe2companion raw data. This file is
+Permanent provenance record for the aoe2companion dataset. This file is
 independent of the phase system and is not archived when phases are reset.
-For full details, see `archive/` (original INVARIANTS.md, download report,
-and Phase 0 artifacts).
 
 ---
 
-## Acquisition
+# -- Section A: Identity -------------------------------------------------------
 
-- **Download date:** 2026-04-06
-- **Script:** `poetry run aoe2 download aoe2companion`
-- **Branch:** `feat/aoe2-phase0-acquisition`
-- **Source:** aoe2companion API (CDN-hosted parquet and CSV files)
+game: aoe2
+dataset: aoe2companion
+reports_dir: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/
 
-## File inventory
+# -- Section B: Acquisition provenance -----------------------------------------
+# Source: acquisition script execution (pre-Phase 01)
 
-- **Total files:** 4,147
-  - 2,073 match parquets
-  - 2,072 rating CSVs
-  - 1 leaderboard parquet
-  - 1 profile parquet
-- **Final on-disk size:** ~9.3 GB
+acquisition:
+  date: "2026-04-06"
+  script: "poetry run aoe2 download aoe2companion"
+  branch: "feat/aoe2-phase0-acquisition"
+  source: "aoe2companion API (CDN-hosted parquet and CSV files)"
+  source_url: "https://www.aoe2companion.com/more/api"
+  method: cdn_download
 
-## Download failures and resolution
+# Download results (from acquisition script logs):
+# - First run: 17 failures (3 stale manifest size, 11 truncated, 3 broken pipe)
+# - Retry run: all 17 resolved; 0 failures final
 
-- **First run:** 17 failures (3 stale manifest size, 11 truncated, 3 broken pipe)
-- **Retry run:** all 17 resolved; 0 failures final
+# -- Section C: File inventory summary -----------------------------------------
+# Source: Step 01_01_01 artifact
+# Invariant #9: MUST NOT contain interpretive labels. Report file counts,
+# sizes, extensions, and filename patterns only.
 
-## Reconciliation
+file_inventory:
+  total_files:    4153
+  total_size_mb:  9387.80
+  subdirectories: 4
+  artifact_ref:   "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
 
-- **Strength:** DEGRADED
-- **Reason:** manifest lacks per-file row counts; limited to file-count match
+# -- Section D: Known issues ----------------------------------------------------
+# Source: acquisition script logs or 01_01_01 artifact
+# Report filesystem-level facts only.
 
-## Provenance rule
+known_issues: []
 
-Every raw table has a `filename` column populated by `filename = true` on the
-source read. Removing or aliasing this column in any downstream view is
-forbidden.
+# -- Section E: Reconciliation --------------------------------------------------
+# Source: acquisition script verification
+
+reconciliation:
+  strength: DEGRADED
+  reason: "manifest lacks per-file row counts; limited to file-count match"
+
+# -- Section F: Provenance rule -------------------------------------------------
+
+provenance_rule: >
+  Raw data is immutable. The API download will not be repeated.

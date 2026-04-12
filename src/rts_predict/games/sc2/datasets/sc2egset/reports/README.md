@@ -1,26 +1,26 @@
-# aoestats -- Dataset Reports Provenance
+# sc2egset -- Dataset Reports Provenance
 
-Permanent provenance record for the aoestats dataset. This file is
+Permanent provenance record for the sc2egset dataset. This file is
 independent of the phase system and is not archived when phases are reset.
 
 ---
 
 # -- Section A: Identity -------------------------------------------------------
 
-game: aoe2
-dataset: aoestats
-reports_dir: src/rts_predict/games/aoe2/datasets/aoestats/reports/
+game: sc2
+dataset: sc2egset
+reports_dir: src/rts_predict/games/sc2/datasets/sc2egset/reports/
 
 # -- Section B: Acquisition provenance -----------------------------------------
 # Source: acquisition script execution (pre-Phase 01)
 
 acquisition:
-  date: "2026-04-06"
-  script: "poetry run aoe2 download aoestats --force"
-  branch: "feat/aoe2-phase0-acquisition"
-  source: "aoestats.io"
-  source_url: "https://aoestats.io"
-  method: cdn_download
+  date: "2025-12-05"
+  script: "manual download from Zenodo"
+  branch: "feat/sc2egset-acquisition"
+  source: "SC2EGSet -- StarCraft II Esport Replay and Game-state Dataset"
+  source_url: "https://zenodo.org/records/17829625"
+  method: manual_download
 
 # -- Section C: File inventory summary -----------------------------------------
 # Source: Step 01_01_01 artifact
@@ -28,26 +28,25 @@ acquisition:
 # sizes, extensions, and filename patterns only.
 
 file_inventory:
-  total_files:    349
-  total_size_mb:  3773.61
-  subdirectories: 3
-  artifact_ref:   "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  total_files:    22821
+  total_size_mb:  214060.62
+  subdirectories: 70
+  artifact_ref:   "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
 
 # -- Section D: Known issues ----------------------------------------------------
 # Source: acquisition script logs or 01_01_01 artifact
 # Report filesystem-level facts only.
 
-known_issues:
-  - "171 files in players/ vs 172 in matches/. Source: _download_manifest.json, status='failed' for 2025-11-16_2025-11-22_players.parquet."
+known_issues: []
 
 # -- Section E: Reconciliation --------------------------------------------------
 # Source: acquisition script verification
 
 reconciliation:
-  strength: DEGRADED
-  reason: "manifest lacks per-file row counts; limited to file-count match"
+  strength: FULL
+  reason: "Zenodo v2.1.0 release; manual download; no acquisition script used"
 
 # -- Section F: Provenance rule -------------------------------------------------
 
 provenance_rule: >
-  Raw data is immutable. The weekly dump download will not be repeated.
+  Raw data is immutable. The acquisition will not be repeated.

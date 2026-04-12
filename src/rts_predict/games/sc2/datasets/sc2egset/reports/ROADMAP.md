@@ -25,21 +25,26 @@ Steps are numbered `XX_YY_ZZ` where `XX` = Phase, `YY` = Pipeline Section,
 
 ## Source data
 
-**SC2EGSet v2.1.0** — StarCraft II Esport Replay and Game-state Dataset.
-~22,000 competitive 1v1 replays from 70+ tournaments covering 2016–2024.
+**SC2EGSet: StarCraft II Esport Replay and Game-state Dataset** — Zenodo v2.1.0.
 
-Citation: Białecki, A. et al. (2023). *SC2EGSet: StarCraft II Esport Replay
+Raw directory layout: `raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json`
+(two-level: 70 tournament directories, each containing a `_data/` subdirectory
+with `.SC2Replay.json` files and a `map_foreign_to_english_mapping.json` metadata
+file at the tournament level).
+
+File counts from 01_01_01 artifact:
+- `.SC2Replay.json` files: 22,390
+- Metadata files (`.zip`, `.log`, `.json` at tournament level): 431
+- Files at root level: 3
+- Total files scanned: 22,821
+- Total `.SC2Replay.json` size: 214,060.62 MB
+
+Directory name prefix range: `2016_` through `2024_` (70 directories).
+
+Source: Białecki, A. et al. (2023). *SC2EGSet: StarCraft II Esport Replay
 and Game-state Dataset.* Scientific Data 10(1), 600.
 https://doi.org/10.1038/s41597-023-02510-7 — version 2.1.0 from Zenodo:
 https://zenodo.org/records/17829625
-
-**Game loop timing:** The SC2 engine runs at 16 game loops per game-second
-(Normal speed). All competitive play uses Faster speed (1.4× multiplier),
-giving **22.4 game loops = 1 real-time second**. Use `game_loops / 22.4 / 60`
-for real-time minutes. The older formula `game_loops / 16.0 / 60` produces
-game-minutes (internal engine time) — both are valid but must be clearly
-labelled. All artifacts in this ROADMAP use real-time minutes unless
-explicitly noted.
 
 ---
 

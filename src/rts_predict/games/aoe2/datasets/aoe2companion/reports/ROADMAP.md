@@ -30,18 +30,19 @@ Steps are numbered `XX_YY_ZZ` where `XX` = Phase, `YY` = Pipeline Section,
 
 ## Source data
 
-**aoe2companion API** — community match history and rating dataset.
+**aoe2companion CDN dump** — community match history and rating dataset.
 Downloaded 2026-04-06. File counts and date ranges are from
 Step 01_01_01 (file inventory).
 
-| Subdirectory | Files | Size | Notes |
+| Subdirectory | Files | Size (MB) | Extensions |
 |---|---|---|---|
-| `matches/` | 2,073 `.parquet` | 6,622 MB | Daily, 2020-08-01 to 2026-04-04, no gaps |
-| `ratings/` | 2,072 `.csv` | 2,520 MB | Daily, 2020-08-01 to 2026-04-04, 1 gap (2 days, 2025-07-10–2025-07-12) |
-| `leaderboards/` | 1 `.parquet` | 83 MB | Single-file snapshot |
-| `profiles/` | 1 `.parquet` | 162 MB | Single-file snapshot |
+| `leaderboards/` | 2 | 83.32 | `.parquet`: 1, `.gitkeep`: 1 |
+| `matches/` | 2074 | 6621.52 | `.parquet`: 2073, `.gitkeep`: 1 |
+| `profiles/` | 2 | 161.84 | `.parquet`: 1, `.gitkeep`: 1 |
+| `ratings/` | 2073 | 2519.59 | `.csv`: 2072, `.gitkeep`: 1 |
 
-**Total:** 4,154 files, ~9.3 GB.
+**Total files:** 4153 (including root-level `README.md` and `_download_manifest.json`)
+**Total size:** 9387.80 MB
 
 **Raw data is immutable. The API download will not be repeated.**
 Acquisition provenance is recorded in

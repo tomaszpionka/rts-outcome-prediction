@@ -71,7 +71,7 @@ When spawned with `isolation: "worktree"`:
   If a finding has cross-game implications (Invariant #8), also add a [CROSS] entry to `reports/research_log.md`.
   Temporal discipline rules:
   - Use strictly `match_time < T` (not `<=`) when filtering historical data for game T.
-  - Check for these three leakage failure modes: (a) rolling aggregates that include the target game's own value, (b) head-to-head win rates that include the target game, (c) within-tournament features that include the target game's position.
+  - Check for these three leakage failure modes: (a) rolling aggregates that include the target game's own value, (b) head-to-head win rates that include the target game, (c) features from co-occurring matches that include the target game's position relative to later matches.
   - Write a temporal leakage test for any feature computation: for sample target games, assert no feature uses data `>= T`.
   - If implementing temporal discipline logic (window functions, rolling aggregates, rating systems), flag to the user that this step may benefit from `/model opus` before proceeding.
 - **Category F (Thesis):** Follow `.claude/rules/thesis-writing.md` exactly.

@@ -22,7 +22,7 @@ rts-outcome-prediction/
 │   └── aoe2/                # AoE2 placeholders
 ├── tests/                   # Mirrored test tree — see .claude/rules/python-code.md
 ├── thesis/                  # Thesis chapters and figures
-├── reports/                 # Cross-cutting research log and archives
+├── reports/                 # Cross-cutting research log
 └── docs/                    # Methodology manuals and agent documentation
 ```
 

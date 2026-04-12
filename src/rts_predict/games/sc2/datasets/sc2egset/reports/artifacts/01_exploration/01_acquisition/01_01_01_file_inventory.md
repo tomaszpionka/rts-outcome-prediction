@@ -2,28 +2,28 @@
 
 **Raw directory:** `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/data/raw`
 
-**Layout:** `raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json`
+**Layout:** `raw/DIR/DIR_data/*.SC2Replay.json`
 
-**Tournament directories:** 70
+**Top-level directories:** 70
 
 **Total replay files:** 22390
 
 **Total replay size:** 214060.62 MB
 
-**Metadata files (zip/log/json at tournament level):** 432
+**Metadata files (zip/log/json at directory level):** 431
 
-**Files at root level:** 4
+**Files at root level:** 3
 
 
-## Summary statistics (replays per tournament)
+## Summary statistics (files per top-level directory)
 
 - Min: 30
 - Max: 1296
 - Median: 260.5
 
-## Per-tournament breakdown
+## Per-directory breakdown
 
-| Tournament | Replay Files | Size (MB) | Extensions |
+| Directory | Files | Size (MB) | Extensions |
 |---|---|---|---|
 | 2016_IEM_10_Taipei | 30 | 188.4 | .json: 30 |
 | 2016_IEM_11_Shanghai | 60 | 337.81 | .json: 60 |
@@ -98,13 +98,13 @@
 
 ## Filename patterns
 
-Total files scanned: 22822
+Total files scanned: 22821
 
 | Pattern | Count |
 |---|---|
 | `{hash}.SC2Replay.json` | 22390 |
 | `map_foreign_to_english_mapping.json` | 70 |
-| `.DS_Store` | 9 |
+| `.DS_Store` | 8 |
 | `{N}_IEM_Katowice_data.zip` | 5 |
 | `{N}_IEM_Katowice_main_log.log` | 5 |
 | `{N}_IEM_Katowice_processed_failed.log` | 5 |

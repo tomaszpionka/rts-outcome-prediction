@@ -15,15 +15,15 @@ strictly from games played before T may be used to predict G's outcome.
 This applies to ALL features without exception.
 
 **Why this matters for this thesis:** The prediction task is a sliding window —
-predict game M+1 for a player given their results in games 1..M within a
-tournament, plus their entire cross-tournament history before that tournament.
+predict game M+1 for a player given their results in games 1..M, plus their
+entire prior match history.
 Any feature computed from game M+1 itself (its duration, its in-game stats,
 its result) is contamination that makes results unreproducible in real inference.
 
 **The three leakage failure modes to test explicitly:**
 1. Rolling aggregates computed using the target game's own value
 2. Head-to-head win rates that include the target game
-3. Within-tournament features that include the target game's position
+3. Features from co-occurring matches that include the target game's position
 
 ## Experiment Protocol
 
@@ -31,7 +31,7 @@ its result) is contamination that makes results unreproducible in real inference
 2. **Run and log** — after every experiment (Step), write a `research_log.md` entry in the active dataset's reports directory (`src/rts_predict/games/<game>/datasets/<dataset>/reports/research_log.md`) following the template at `docs/templates/research_log_entry_template.yaml`
 3. **Compare baselines** — always compare against established results (~63-65% accuracy for classical models)
 4. **Temporal splits only** — no random shuffling. The correct split strategy is
-per-player leave-last-tournament-out (see the active dataset's ROADMAP.md, Phase 03 — Splitting & Baselines). The
+per-player chronological hold-out (see the active dataset's ROADMAP.md, Phase 03 — Splitting & Baselines for the dataset-specific hold-out unit). The
 legacy create_temporal_split() and GLOBAL_TEST_SIZE are superseded and must
 not be used for any thesis experiment.
 5. **Fixed seeds** — random seed 42 is the convention; all experiments must be reproducible
