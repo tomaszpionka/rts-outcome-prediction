@@ -63,7 +63,7 @@ Empires II."
 3. The active dataset's PHASE_STATUS.yaml (at `src/rts_predict/<game>/reports/<dataset>/PHASE_STATUS.yaml`)
 4. The active dataset's ROADMAP.md (path determined from PHASE_STATUS)
 5. The active dataset's INVARIANTS.md (if it exists)
-6. `reports/research_log.md`
+6. The active dataset's `research_log.md` (per-dataset findings), then `reports/research_log.md` (CROSS entries)
 7. `.claude/ml-protocol.md` — active from Phase 02 onward; read before planning any feature engineering, modelling, or evaluation work.
 
 ## Data layout
