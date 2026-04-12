@@ -38,6 +38,32 @@ repos:
         files: ^planning/
         pass_filenames: false
 
+  # ── Tier 7 status chain consistency ──────────────────────────────────────
+  # Fires when any STEP_STATUS, PIPELINE_SECTION_STATUS, or PHASE_STATUS yaml
+  # is staged. Derives expected downstream values from STEP_STATUS and flags
+  # any drift. Tier 7 is non-authoritative — drift means regenerate, not edit.
+  - repo: local
+    hooks:
+      - id: status-chain-drift
+        name: status chain consistency (Tier 7)
+        language: system
+        entry: poetry run python scripts/hooks/check_status_chain.py
+        files: (STEP_STATUS|PIPELINE_SECTION_STATUS|PHASE_STATUS)\.yaml$
+        pass_filenames: false
+
+  # ── Rule trigger glob validation ──────────────────────────────────────────
+  # Fires when any .claude/rules/*.md is staged. Checks that every paths: glob
+  # in the rule's frontmatter matches at least one real file. A dead glob means
+  # the rule silently never fires (e.g. after a path restructure).
+  - repo: local
+    hooks:
+      - id: rule-trigger-check
+        name: .claude/rules trigger glob validation
+        language: system
+        entry: poetry run python scripts/hooks/check_rule_triggers.py
+        files: ^\.claude/rules/
+        pass_filenames: false
+
   # ── Jupytext sync (notebook pairs in sandbox/) ─────────────────────────────
   # Keeps .py and .ipynb paired files in sync. Both files must be staged
   # together when committing a notebook change (sandbox/README.md rule 4).
