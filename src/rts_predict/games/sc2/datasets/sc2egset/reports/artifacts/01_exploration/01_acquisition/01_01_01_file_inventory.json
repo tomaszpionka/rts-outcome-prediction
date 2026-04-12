@@ -2,14 +2,14 @@
   "step": "01_01_01",
   "dataset": "sc2egset",
   "raw_dir": "/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/data/raw",
-  "layout": "two-level: raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json",
-  "num_tournament_dirs": 70,
+  "layout": "two-level: raw/DIR/DIR_data/*.SC2Replay.json",
+  "num_top_level_dirs": 70,
   "files_at_root": 3,
   "metadata_files_total": 431,
   "total_replay_files": 22390,
   "total_replay_bytes": 224458832476,
-  "tournaments_missing_data_dir": [],
-  "tournaments": [
+  "dirs_missing_data_subdir": [],
+  "top_level_dirs": [
     {
       "name": "2016_IEM_10_Taipei",
       "replay_file_count": 30,

@@ -55,7 +55,7 @@ Full code: `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inv
 
 ### Findings
 
-- Raw directory layout: `raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json` (two levels)
+- Raw directory layout: `raw/DIR/DIR_data/*.SC2Replay.json` (two levels)
 - 70 top-level directories under `raw/`
 - 3 files at `raw/` root: `README.md`, `README.sc2egset.md`, `SC2EGSet_datasheet.pdf`
 - 431 metadata files distributed across top-level directories (`.zip`, `.log`, `.json` patterns)
