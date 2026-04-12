@@ -9,6 +9,7 @@ import pytest
 
 from rts_predict.common.parquet_utils import (
     discover_csv_schema,
+    discover_csv_schemas,
     discover_parquet_schema,
     discover_parquet_schemas,
 )
@@ -223,3 +224,121 @@ def test_discover_csv_schema_no_duckdb_keys(csv_file: Path) -> None:
     for col in result["columns"]:
         assert "duckdb_type" not in col
         assert "proposed_duckdb_type" not in col
+
+
+# ---------------------------------------------------------------------------
+# discover_csv_schemas tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def csv_file_matching(tmp_path: Path) -> Path:
+    """CSV file with the same schema as csv_file (player_id, rating, league)."""
+    df = pd.DataFrame(
+        {
+            "player_id": list(range(5)),
+            "rating": [1500.0, 1600.5, None, 1700.0, 1800.0],
+            "league": ["bronze", "silver", "gold", "platinum", "diamond"],
+        }
+    )
+    path = tmp_path / "players2.csv"
+    df.to_csv(path, index=False)
+    return path
+
+
+@pytest.fixture()
+def csv_file_different_type(tmp_path: Path) -> Path:
+    """CSV file where 'rating' column has a different inferred type (str instead of float)."""
+    df = pd.DataFrame(
+        {
+            "player_id": list(range(5)),
+            "rating": ["1500", "1600", "1700", "1800", "1900"],  # strings -> object type
+            "league": ["bronze", "silver", "gold", "platinum", "diamond"],
+        }
+    )
+    path = tmp_path / "players_str_rating.csv"
+    df.to_csv(path, index=False)
+    return path
+
+
+@pytest.fixture()
+def csv_file_missing_column(tmp_path: Path) -> Path:
+    """CSV file where 'rating' column is absent."""
+    df = pd.DataFrame(
+        {
+            "player_id": list(range(5)),
+            "league": ["bronze", "silver", "gold", "platinum", "diamond"],
+        }
+    )
+    path = tmp_path / "players_no_rating.csv"
+    df.to_csv(path, index=False)
+    return path
+
+
+def test_discover_csv_schemas_same_schema(
+    csv_file: Path, csv_file_matching: Path
+) -> None:
+    result = discover_csv_schemas([csv_file, csv_file_matching])
+    assert result["all_files_same_schema"] is True
+    assert result["variant_columns"] == []
+    assert result["files_checked"] == 2
+    assert len(result["schemas"]) == 2
+
+
+def test_discover_csv_schemas_same_file_twice(csv_file: Path) -> None:
+    result = discover_csv_schemas([csv_file, csv_file])
+    assert result["all_files_same_schema"] is True
+    assert result["variant_columns"] == []
+    assert result["files_checked"] == 2
+
+
+def test_discover_csv_schemas_different_column_type(
+    csv_file: Path, csv_file_different_type: Path
+) -> None:
+    """Different inferred type for 'rating' (float64 vs object) must be reported."""
+    result = discover_csv_schemas([csv_file, csv_file_different_type])
+    assert result["all_files_same_schema"] is False
+    assert "rating" in result["variant_columns"]
+
+
+def test_discover_csv_schemas_missing_column(
+    csv_file: Path, csv_file_missing_column: Path
+) -> None:
+    """Column absent in one file must appear in variant_columns."""
+    result = discover_csv_schemas([csv_file, csv_file_missing_column])
+    assert result["all_files_same_schema"] is False
+    assert "rating" in result["variant_columns"]
+
+
+def test_discover_csv_schemas_single_file(csv_file: Path) -> None:
+    result = discover_csv_schemas([csv_file])
+    assert result["all_files_same_schema"] is True
+    assert result["variant_columns"] == []
+    assert result["files_checked"] == 1
+
+
+def test_discover_csv_schemas_empty_list() -> None:
+    result = discover_csv_schemas([])
+    assert result["all_files_same_schema"] is True
+    assert result["variant_columns"] == []
+    assert result["files_checked"] == 0
+    assert result["schemas"] == []
+
+
+def test_discover_csv_schemas_skips_bad_file(
+    tmp_path: Path, csv_file: Path
+) -> None:
+    bad_file = tmp_path / "bad.csv"
+    bad_file.write_bytes(b"\x00\x01\x02\x03")  # invalid CSV content
+    # Bad file may or may not raise — the function should handle it gracefully
+    # The good file must still be checked
+    result = discover_csv_schemas([bad_file, csv_file])
+    assert result["files_checked"] >= 1
+
+
+def test_discover_csv_schemas_variant_columns_sorted(
+    csv_file: Path, csv_file_missing_column: Path
+) -> None:
+    """variant_columns list must be sorted."""
+    result = discover_csv_schemas([csv_file, csv_file_missing_column])
+    assert result["variant_columns"] == sorted(result["variant_columns"])

@@ -139,21 +139,21 @@ for fp in root_schema_files:
 all_key_sets = list(per_dir_key_sets.values())
 if all_key_sets:
     reference_keys = all_key_sets[0]
-    variant_dirs = [
+    variant_directories = [
         d for d, ks in per_dir_key_sets.items() if ks != reference_keys
     ]
-    all_files_same_schema = len(variant_dirs) == 0
+    all_files_same_schema = len(variant_directories) == 0
 else:
     all_files_same_schema = True
-    variant_dirs = []
+    variant_directories = []
 
 logger.info(
-    "Schema consistency: all_same=%s, variant_dirs_count=%d",
+    "Schema consistency: all_same=%s, variant_directories_count=%d",
     all_files_same_schema,
-    len(variant_dirs),
+    len(variant_directories),
 )
-if variant_dirs:
-    logger.info("Variant directories: %s", variant_dirs[:10])
+if variant_directories:
+    logger.info("Variant directories: %s", variant_directories[:10])
 
 # %% [markdown]
 # ## Cell 6 — Write JSON artifact
@@ -199,7 +199,7 @@ artifact = {
             },
             "consistency": {
                 "all_files_same_schema": all_files_same_schema,
-                "variant_dirs": variant_dirs if not all_files_same_schema else [],
+                "variant_directories": variant_directories if not all_files_same_schema else [],
             },
         }
     ],
@@ -267,8 +267,8 @@ md_lines += [
     "",
 ]
 if not all_files_same_schema:
-    md_lines.append(f"**Variant directories ({len(variant_dirs)}):**")
-    for vd in variant_dirs:
+    md_lines.append(f"**Variant directories ({len(variant_directories)}):**")
+    for vd in variant_directories:
         md_lines.append(f"- {vd}")
     md_lines.append("")
 

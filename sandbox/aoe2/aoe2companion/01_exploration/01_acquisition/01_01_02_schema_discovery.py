@@ -36,7 +36,7 @@ import json
 import logging
 from pathlib import Path
 
-from rts_predict.common.parquet_utils import discover_parquet_schema, discover_parquet_schemas, discover_csv_schema
+from rts_predict.common.parquet_utils import discover_parquet_schema, discover_parquet_schemas, discover_csv_schema, discover_csv_schemas
 from rts_predict.common.notebook_utils import get_reports_dir
 from rts_predict.games.aoe2.config import (
     AOE2COMPANION_RAW_DIR,
@@ -108,35 +108,18 @@ logger.info(
 )
 
 # %%
-logger.info("Running discover_csv_schema() on %d ratings files...", len(ratings_csv_files))
-ratings_schemas = []
-ratings_errors = 0
-for fp in ratings_csv_files:
-    try:
-        ratings_schemas.append(discover_csv_schema(fp, sample_rows=50))
-    except Exception as exc:
-        ratings_errors += 1
-        logger.warning("CSV error for %s: %s", fp, exc)
+logger.info("Running discover_csv_schemas() on %d ratings files...", len(ratings_csv_files))
+ratings_result = discover_csv_schemas(ratings_csv_files, sample_rows=50)
+ratings_schemas = ratings_result["schemas"]
+ratings_all_same = ratings_result["all_files_same_schema"]
+ratings_variant_cols: list[str] = ratings_result["variant_columns"]
 
-logger.info("ratings CSV files processed: %d (errors: %d)", len(ratings_schemas), ratings_errors)
-
-# %%
-# Check ratings schema consistency
-if len(ratings_schemas) > 1:
-    ref_cols = [(c["name"], c["inferred_type"]) for c in ratings_schemas[0]["columns"]]
-    ratings_variant_cols: list[str] = []
-    for s in ratings_schemas[1:]:
-        s_cols = [(c["name"], c["inferred_type"]) for c in s["columns"]]
-        if s_cols != ref_cols:
-            s_names = {c["name"] for c in s["columns"]}
-            ref_names = {c[0] for c in ref_cols}
-            ratings_variant_cols.extend(s_names.symmetric_difference(ref_names))
-    ratings_all_same = len(ratings_variant_cols) == 0
-else:
-    ratings_all_same = True
-    ratings_variant_cols = []
-
-logger.info("ratings consistency: all_same=%s, variant_cols=%s", ratings_all_same, ratings_variant_cols[:5])
+logger.info(
+    "ratings CSV files processed: %d, all_same=%s, variant_cols=%s",
+    ratings_result["files_checked"],
+    ratings_all_same,
+    ratings_variant_cols[:5],
+)
 
 # %%
 leaderboard_schema = discover_parquet_schema(leaderboard_file) if leaderboard_file.exists() else {}
@@ -177,7 +160,7 @@ artifact = {
         "total_files_in_dataset": inventory["total_files"],
         "files_checked": (
             len(matches_parquet_files)
-            + len(ratings_csv_files)
+            + ratings_result["files_checked"]
             + (1 if leaderboard_file.exists() else 0)
             + (1 if profile_file.exists() else 0)
         ),
@@ -205,14 +188,14 @@ artifact = {
             "type": "csv",
             "subdirectory": "ratings",
             "files_in_subdirectory": len(ratings_csv_files),
-            "files_checked": len(ratings_schemas),
+            "files_checked": ratings_result["files_checked"],
             "schema": {
                 "columns": build_column_list(ratings_representative, col_type_key="inferred_type"),
                 "total_columns": ratings_representative.get("total_columns", 0),
             },
             "consistency": {
                 "all_files_same_schema": ratings_all_same,
-                "variant_columns": sorted(set(ratings_variant_cols)),
+                "variant_columns": ratings_variant_cols,
             },
         },
         {
@@ -280,7 +263,7 @@ md_lines = [
     "| File type | Subdirectory | Files in dataset | Files checked | Method |",
     "|-----------|-------------|-----------------|--------------|--------|",
     f"| Parquet | `matches/` | {len(matches_parquet_files)} | {matches_result['files_checked']} | metadata-only (pyarrow.parquet.read_schema) |",
-    f"| CSV | `ratings/` | {len(ratings_csv_files)} | {len(ratings_schemas)} | header + 50 rows (pd.read_csv) |",
+    f"| CSV | `ratings/` | {len(ratings_csv_files)} | {ratings_result['files_checked']} | header + 50 rows (discover_csv_schemas) |",
     f"| Parquet | `leaderboards/` | 1 | {1 if leaderboard_file.exists() else 0} | metadata-only |",
     f"| Parquet | `profiles/` | 1 | {1 if profile_file.exists() else 0} | metadata-only |",
     "",

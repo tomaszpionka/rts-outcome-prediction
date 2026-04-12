@@ -19,7 +19,7 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ### What
 
-Applied full census schema discovery across all 3 subdirectories. `discover_parquet_schemas()` on all 172 `matches/` Parquet files and all 171 `players/` Parquet files (metadata-only read). `discover_json_schema()` on `overview/overview.json` (1 file). Cross-compared `matches/` and `players/` column names as a raw string comparison. Schema consistency checked within each subdirectory.
+Applied full census schema discovery across all 3 subdirectories. `discover_parquet_schemas()` on all 172 `matches/` Parquet files and all 171 `players/` Parquet files (metadata-only read). `discover_json_schema()` on `overview/overview.json` (1 file). `_download_manifest.json` was inspected via `json.load()` + key inspection (1 file, 344 list items, 9 keys per item). Cross-compared `matches/` and `players/` column names as a raw string comparison. Schema consistency checked within each subdirectory.
 
 ### Why
 
@@ -84,8 +84,8 @@ Full derivation: `sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_02_s
 ### Open questions / follow-ups
 
 - The schema inconsistency in `matches/` (2 variant columns) and `players/` (5 variant columns) requires temporal investigation — at which point in the date range did the schema change? Needs content-level profiling at Step 01_03.
-- The single shared column name `game_id` between `matches/` and `players/` is the only structurally identified join key at this step; whether it is sufficient for linking records is deferred to Step 01_03.
-- The `winner` column is present in `players/` only (not `matches/`); its relationship to outcome labeling must be verified at content-level.
+- `game_id` column appears in both `matches/` and `players/` schemas (type `string` in both); it is the only column name shared between the two file types at this step.
+- Column `winner` of type `bool` is present in `players/` only (not `matches/`); its values cannot be established at this step.
 
 ---
 

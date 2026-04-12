@@ -449,6 +449,31 @@
       }
     },
     {
+      "type": "json",
+      "subdirectory": "raw/",
+      "filename": "_download_manifest.json",
+      "files_in_subdirectory": 1,
+      "files_checked": 1,
+      "schema": {
+        "root_type": "list",
+        "list_length": 4147,
+        "item_keys": [
+          {"name": "key", "observed_types": ["str"], "nullable": false},
+          {"name": "url", "observed_types": ["str"], "nullable": false},
+          {"name": "target_path", "observed_types": ["str"], "nullable": false},
+          {"name": "size", "observed_types": ["int"], "nullable": false},
+          {"name": "status", "observed_types": ["str"], "nullable": false},
+          {"name": "timestamp", "observed_types": ["str"], "nullable": false},
+          {"name": "error", "observed_types": ["null"], "nullable": true}
+        ],
+        "total_keys": 7
+      },
+      "consistency": {
+        "all_files_same_schema": true,
+        "variant_columns": []
+      }
+    },
+    {
       "type": "parquet",
       "subdirectory": "profiles",
       "files_in_subdirectory": 1,

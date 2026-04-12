@@ -138,6 +138,21 @@ Full census for all file types.
 | `discordName` | binary | True |
 | `discordInvitation` | binary | True |
 
+## raw/_download_manifest.json schema (JSON)
+
+**Root type:** list (4147 items)  
+**Total item keys:** 7  
+
+| Key | Observed types | Nullable |
+|-----|----------------|----------|
+| `key` | str | False |
+| `url` | str | False |
+| `target_path` | str | False |
+| `size` | int | False |
+| `status` | str | False |
+| `timestamp` | str | False |
+| `error` | null | True |
+
 ## Notes
 
 - No DuckDB type proposals in this step (deferred to ingestion design).

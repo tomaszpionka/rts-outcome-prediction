@@ -19,7 +19,7 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ### What
 
-Applied full census schema discovery across all 4 file types in the aoe2companion dataset. `discover_parquet_schemas()` was run on all 2,073 `matches/` Parquet files (metadata-only read). `discover_csv_schema(sample_rows=50)` was run on all 2,072 `ratings/` CSV files (header + 50 rows per file). `discover_parquet_schema()` was run on the singleton `leaderboard.parquet` and `profile.parquet` files. Schema consistency was checked within each subdirectory.
+Applied full census schema discovery across all 4 file types in the aoe2companion dataset. `discover_parquet_schemas()` was run on all 2,073 `matches/` Parquet files (metadata-only read). `discover_csv_schema(sample_rows=50)` was run on all 2,072 `ratings/` CSV files (header + 50 rows per file). `discover_parquet_schema()` was run on the singleton `leaderboard.parquet` and `profile.parquet` files. Schema consistency was checked within each subdirectory. `_download_manifest.json` was inspected via `json.load()` + key inspection (1 file, 4147 list items, 7 keys per item).
 
 ### Why
 
@@ -84,7 +84,7 @@ Full derivation: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01
 
 - The `ratings/` CSV columns are all inferred as `object` from 50-row sampling; whether the actual types are numeric or string across the full population requires Step 01_03 profiling.
 - The `binary` type for many `matches/` Parquet columns (e.g., `name`, `server`, `map`, `civ`) may indicate variable-length byte encoding; actual encoding must be established at content-level inspection.
-- The `won` column is present in `matches/` (not in ratings); its relationship to outcome labeling must be established in Step 01_02/01_03.
+- Column `won` of type `bool` is present in `matches/` (not in `ratings/`); its values cannot be established at this step.
 
 ---
 

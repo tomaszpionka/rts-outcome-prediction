@@ -18,7 +18,7 @@ Full census for all file types.
 ## matches/ schema (Parquet)
 
 **Total columns:** 17  
-**Schema consistency:** False  
+**Schema consistency:** False (variant columns: `raw_match_type`, `started_timestamp`)  
 
 | Column | Arrow type | Nullable |
 |--------|-----------|----------|
@@ -43,7 +43,7 @@ Full census for all file types.
 ## players/ schema (Parquet)
 
 **Total columns:** 13  
-**Schema consistency:** False  
+**Schema consistency:** False (variant columns: `castle_age_uptime`, `feudal_age_uptime`, `imperial_age_uptime`, `opening`, `profile_id`)  
 
 | Column | Arrow type | Nullable |
 |--------|-----------|----------|
@@ -75,6 +75,23 @@ Full census for all file types.
 | `patches` | list | False | 1 / 1 |
 | `total_match_count` | int | False | 1 / 1 |
 | `tournament_stages` | list | False | 1 / 1 |
+
+## raw/_download_manifest.json schema (JSON)
+
+**Root type:** list (344 items)  
+**Total item keys:** 9  
+
+| Key | Observed types | Nullable |
+|-----|----------------|----------|
+| `start_date` | str | False |
+| `end_date` | str | False |
+| `file_type` | str | False |
+| `url` | str | False |
+| `target_path` | str | False |
+| `checksum` | str | False |
+| `status` | str | False |
+| `timestamp` | str | False |
+| `error` | null, str | True |
 
 ## Cross-comparison: matches vs players column names
 

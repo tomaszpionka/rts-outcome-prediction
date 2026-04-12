@@ -115,6 +115,65 @@ def discover_parquet_schemas(file_paths: list[Path]) -> dict:
     }
 
 
+def discover_csv_schemas(file_paths: list[Path], sample_rows: int = 50) -> dict:
+    """Discover and compare schemas across multiple CSV files.
+
+    Calls ``discover_csv_schema()`` on each file and checks whether all
+    files share the same schema (column names and inferred types).  Files
+    that fail to read are logged as warnings and skipped.
+
+    Schema comparison is performed on ``(name, inferred_type)`` tuples so
+    that columns with the same name but different types are correctly
+    reported as variant.
+
+    Args:
+        file_paths: List of CSV file paths to inspect.
+        sample_rows: Maximum number of data rows to read per file for type
+            inference.  Defaults to 50.
+
+    Returns:
+        Dict with keys:
+            - ``schemas``: list of per-file schema dicts (same structure as
+              ``discover_csv_schema()`` output), in the same order as
+              ``file_paths`` (failed files are omitted).
+            - ``all_files_same_schema``: bool — ``True`` when every file has
+              an identical set of column names and inferred types.
+            - ``variant_columns``: list[str] — column names that differ
+              across at least two files (either missing or different type).
+              Empty when ``all_files_same_schema`` is ``True``.
+            - ``files_checked``: int — number of files successfully read.
+    """
+    schemas: list[dict] = []
+    for path in file_paths:
+        try:
+            schemas.append(discover_csv_schema(path, sample_rows=sample_rows))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Skipping %s: %s", path, exc)
+
+    if len(schemas) <= 1:
+        return {
+            "schemas": schemas,
+            "all_files_same_schema": True,
+            "variant_columns": [],
+            "files_checked": len(schemas),
+        }
+
+    ref_tuples = {(c["name"], c["inferred_type"]) for c in schemas[0]["columns"]}
+    variant_names: set[str] = set()
+    for other in schemas[1:]:
+        other_tuples = {(c["name"], c["inferred_type"]) for c in other["columns"]}
+        differing = ref_tuples.symmetric_difference(other_tuples)
+        variant_names.update(name for name, _type in differing)
+
+    all_same = len(variant_names) == 0
+    return {
+        "schemas": schemas,
+        "all_files_same_schema": all_same,
+        "variant_columns": sorted(variant_names),
+        "files_checked": len(schemas),
+    }
+
+
 def discover_csv_schema(file_path: Path, sample_rows: int = 50) -> dict:
     """Discover the schema of a CSV file by sampling the first N rows.
 

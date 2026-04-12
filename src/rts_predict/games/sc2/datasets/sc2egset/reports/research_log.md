@@ -77,7 +77,7 @@ Full derivation: `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_sc
 ### Open questions / follow-ups
 
 - The 5-level nesting depth and 7,350 keypaths suggest a complex schema. Whether all keypaths are populated across all files (vs. sparse optional fields) cannot be determined without querying row content (Step 01_03).
-- The `gameEventsErr`, `messageEventsErr`, and `trackerEvtsErr` boolean keys may indicate parse failure flags at the source; their true positive rate cannot be established at this step.
+- The `gameEventsErr`, `messageEventsErr`, and `trackerEvtsErr` boolean keys (keys with `Err` suffix) have type `bool`; their values cannot be established at this step.
 
 ---
 
