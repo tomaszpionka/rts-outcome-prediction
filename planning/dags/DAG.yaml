@@ -1,248 +1,69 @@
-dag_id: "dag_rerun_01_01_01"
+dag_id: "dag_duckdb_ingestion"
 plan_ref: "planning/current_plan.md"
 category: "A"
-branch: "feat/rerun-01-01-01"
+branch: "feat/phase01-duckdb-ingestion"
 base_ref: "master"
 default_isolation: "shared_branch"
+phase_ref: "01"
+pipeline_section_ref: "01_02"
+step_refs:
+  - "01_02_01"
 
 jobs:
-  - job_id: "J00_prep"
-    name: "Preparation -- invariant, template, cleanup"
+  - job_id: "J01"
+    name: "01_02_01 — DuckDB ingestion, all datasets"
     task_groups:
-      - group_id: "TG00_methodology"
-        name: "Codify Invariant #9 + create templates"
+      - group_id: "TG01"
+        name: "ROADMAP step definitions"
         depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
         tasks:
-          - task_id: "T00"
-            name: "Codify Invariant #9"
-            spec_file: "planning/specs/spec_00_invariant9.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - ".claude/scientific-invariants.md"
-              - ".claude/agents/reviewer-deep.md"
-              - ".claude/agents/planner-science.md"
-              - ".claude/agents/reviewer-adversarial.md"
-            read_scope: []
-            depends_on: []
           - task_id: "T01"
-            name: "Create reports README template + update research log template"
-            spec_file: "planning/specs/spec_01_templates.md"
+            name: "Add 01_02_01 step defs to all 3 ROADMAPs"
+            spec_file: "planning/specs/spec_01_roadmaps.md"
             agent: "executor"
-            parallel_safe: true
+            model: "haiku"
+            parallel_safe: false
             file_scope:
-              - "docs/templates/dataset_reports_readme_template.yaml"
-              - "docs/templates/research_log_entry_template.yaml"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md"
             read_scope:
-              - "docs/templates/raw_data_readme_template.yaml"
+              - "docs/templates/step_template.yaml"
             depends_on: []
 
-      - group_id: "TG01_cleanup"
-        name: "Strip all context leaks"
-        depends_on: ["TG00_methodology"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
+      - group_id: "TG02"
+        name: "Notebooks + ingestion + docs"
+        depends_on: ["TG01"]
         tasks:
           - task_id: "T02"
-            name: "Strip context leaks from all datasets"
-            spec_file: "planning/specs/spec_02_strip_leaks.md"
+            name: "DuckDB ingestion for all 3 datasets (parameterized)"
+            spec_file: "planning/specs/spec_02_ingestion.md"
             agent: "executor"
+            model: "opus"
             parallel_safe: false
             file_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md"
-            read_scope:
-              - "docs/templates/dataset_reports_readme_template.yaml"
-              - "docs/templates/raw_data_readme_template.yaml"
-              - ".claude/scientific-invariants.md"
-            depends_on: []
-
-  - job_id: "J01_sc2"
-    name: "01_01_01 -- sc2egset"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_sc2"
-        name: "Rerun sc2 notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T03"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_03_sc2_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_sc2"
-        name: "Populate sc2 docs from artifacts"
-        depends_on: ["TG01_sc2"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T06"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_06_sc2_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/data/raw/README.md"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J02_aoe2c"
-    name: "01_01_01 -- aoe2companion"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_aoe2c"
-        name: "Rerun aoe2companion notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T04"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_04_aoe2c_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_aoe2c"
-        name: "Populate aoe2companion docs from artifacts"
-        depends_on: ["TG01_aoe2c"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T07"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_07_aoe2c_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J03_aoestats"
-    name: "01_01_01 -- aoestats"
-    depends_on: ["J00_prep"]
-    task_groups:
-      - group_id: "TG01_aoestats"
-        name: "Rerun aoestats notebook + research log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T05"
-            name: "Rerun notebook + write research log"
-            spec_file: "planning/specs/spec_05_aoestats_rerun.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb"
-              - "sandbox/aoe2/aoestats/01_exploration/01_acquisition/01_01_01_file_inventory.py"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/"
-            read_scope:
-              - ".claude/scientific-invariants.md"
-              - "docs/templates/research_log_entry_template.yaml"
-            depends_on: []
-
-      - group_id: "TG02_aoestats"
-        name: "Populate aoestats docs from artifacts"
-        depends_on: ["TG01_aoestats"]
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T08"
-            name: "Populate ROADMAP + raw/README + reports/README"
-            spec_file: "planning/specs/spec_08_aoestats_populate.md"
-            agent: "executor"
-            parallel_safe: true
-            file_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/data/raw/README.md"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/README.md"
-            read_scope:
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
-              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-              - "docs/templates/dataset_reports_readme_template.yaml"
-            depends_on: []
-
-  - job_id: "J04_cross"
-    name: "01_01_01 -- CROSS log update"
-    depends_on: ["J01_sc2", "J02_aoe2c", "J03_aoestats"]
-    task_groups:
-      - group_id: "TG01_cross"
-        name: "Update root CROSS log"
-        depends_on: []
-        review_gate:
-          agent: "reviewer"
-          scope: "diff"
-          on_blocker: "halt"
-        tasks:
-          - task_id: "T09"
-            name: "Update CROSS log summary"
-            spec_file: "planning/specs/spec_09_cross_log.md"
-            agent: "executor"
-            parallel_safe: false
-            file_scope:
+              - "sandbox/sc2/sc2egset/01_exploration/01_eda/"
+              - "sandbox/aoe2/aoe2companion/01_exploration/01_eda/"
+              - "sandbox/aoe2/aoestats/01_exploration/01_eda/"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/pre_ingestion.py"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/pre_ingestion.py"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/pre_ingestion.py"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/data/db/"
               - "reports/research_log.md"
-            read_scope: []
+            read_scope:
+              - ".claude/scientific-invariants.md"
+              - "docs/templates/research_log_entry_template.yaml"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+              - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+              - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+              - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
             depends_on: []
 
 final_review:

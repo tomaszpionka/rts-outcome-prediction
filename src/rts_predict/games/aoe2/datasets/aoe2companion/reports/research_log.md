@@ -8,96 +8,158 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
-## 2026-04-12 — [Phase 01 / Step 01_01_01] File inventory of aoe2companion raw directory
+## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB pre-ingestion investigation
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json`
+
+### What
+
+Ingested all four raw data sources into DuckDB (`matches_raw`, `ratings_raw`,
+`leaderboards_raw`, `profiles_raw`) and validated column counts, types, and
+null rates against 01_01_02 schema discovery findings.
+
+### Why
+
+Materialise the bronze layer for queryable exploration. Invariant #7 (type
+fidelity) — verify DuckDB type inference matches Parquet/CSV source types.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.py`
+
+### Findings
+
+- `matches_raw`: 277M rows, 55 columns (54 source + filename). `binary_as_string=true` resolved all 22 unannotated BYTE_ARRAY columns to VARCHAR
+- `ratings_raw`: 58.3M rows, 8 columns. `read_csv_auto` inferred all 7 columns as VARCHAR at scale — required explicit `types=` parameter to get correct BIGINT/TIMESTAMP types
+- `leaderboards_raw`: 2.38M rows, 19 columns (singleton Parquet)
+- `profiles_raw`: 3.61M rows, 14 columns (singleton Parquet)
+- Column counts match 01_01_02 expectations plus filename column in all tables
+- `won` column: 12.99M NULLs out of 277M rows (4.7%) — matches without a recorded winner
+- File count gap: 2,073 match files vs 2,072 rating files — `rating-2025-07-11.csv` is missing
+
+### Decisions taken
+
+- All Parquet reads use `binary_as_string=true` — Parquet files have unannotated BYTE_ARRAY columns that are actually UTF-8 strings
+- CSV ratings use explicit type specification (never rely on `read_csv_auto` at scale for this dataset)
+- Raw layer uses `SELECT *` with `filename=true` — no explicit DDL at this stage
+
+### Decisions deferred
+
+- Handling of 12.99M NULL `won` values — cleaning step decision
+- Whether the missing rating file for 2025-07-11 is recoverable or should be documented as a gap
+- Profile ID join strategy between matches and ratings (different column names: `profileId` vs `profile_id`)
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 match data ingestion, binary column handling, CSV type pitfall
+- Chapter 4, §4.2.1 — Ingestion validation methodology
+
+### Open questions / follow-ups
+
+- What fraction of NULL `won` values are draws vs incomplete records?
+- Does the `profileId`/`profile_id` naming inconsistency across tables indicate different source APIs?
+
+---
+
+## 2026-04-13 — [Phase 01 / Step 01_01_02] Schema discovery
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** content
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json`
+
+### What
+
+Full census of all 4,147 data files: Parquet metadata-only reads for matches,
+leaderboards, and profiles; CSV header + 50-row samples for ratings.
+Catalogued column names, physical types, and nullability.
+
+### Why
+
+Map the exact schema of each source before ingestion. Invariant #6 requires
+knowing field names and types for reproducibility.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_02_schema_discovery.py`
+
+### Findings
+
+- Matches: 54 columns per Parquet file, consistent schema across all 2,073 daily files. 22 columns have unannotated BYTE_ARRAY physical type (no logical type annotation — Parquet files were written without UTF8 annotation)
+- Ratings: 7 CSV columns (`profile_id`, `games`, `rating`, `date`, `leaderboard_id`, `rating_diff`, `season`), consistent across 2,072 files
+- Leaderboards: 18 columns (singleton Parquet), 4 unannotated BYTE_ARRAY columns
+- Profiles: 13 columns (singleton Parquet), 11 unannotated BYTE_ARRAY columns
+- Schema is consistent within each file type — no variant columns detected
+
+### Decisions taken
+
+- Full census (not sampling) used because file counts are manageable (<4,200 files)
+- BYTE_ARRAY without annotation flagged for `binary_as_string=true` at ingestion
+
+### Decisions deferred
+
+- Ingestion strategy deferred to 01_02_01
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 dataset schema description
+
+### Open questions / follow-ups
+
+- Why do Parquet files lack UTF8 annotation on string columns? (upstream data source issue)
+
+---
+
+## 2026-04-13 — [Phase 01 / Step 01_01_01] File inventory
 
 **Category:** A (science)
 **Dataset:** aoe2companion
 **Step scope:** filesystem
 **Artifacts produced:**
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
 
 ### What
 
-Walked the aoe2companion raw directory (`src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw`) using `inventory_directory()`, which performs a pure filesystem glob and stat walk (no file reads). Counted files, measured byte sizes, listed extensions, extracted dates from filenames using the regex `(\d{4}-\d{2}-\d{2})`, and identified gaps between consecutive dated filenames. Results written to JSON and Markdown artifacts.
+Catalogued the aoe2companion raw data directory: 4 subdirectories (matches,
+ratings, leaderboards, profiles), file counts, sizes, extensions, and
+temporal coverage via filename date parsing.
 
 ### Why
 
-Step 01_01_01 establishes the filesystem baseline for all downstream exploration steps. Per Manual 01_DATA_EXPLORATION and Invariant #6, all analytical results must be reported alongside the code that produced them. Per Invariant #9, conclusions at this step are limited to what is observable from the filesystem (filenames, sizes, counts, date patterns in names).
+Establish the data landscape. Invariant #9 — filesystem-level inventory before
+content inspection.
 
 ### How (reproducibility)
 
-```python
-from rts_predict.common.inventory import inventory_directory
-from rts_predict.common.filename_patterns import summarize_filename_patterns
-import re
-from datetime import date
-
-result = inventory_directory(RAW_DIR)
-
-DATE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})")
-# For each subdirectory: extract dates from file stems, sort, find gaps > 1 day.
-
-all_files = result.files_at_root + [f for sd in result.subdirs for f in sd.files]
-patterns = summarize_filename_patterns(all_files)
-```
-
-Full derivation: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_file_inventory.py`
 
 ### Findings
 
-- Raw directory: `src/rts_predict/games/aoe2/datasets/aoe2companion/data/raw`
-- Total files: 4153
-- Total size: 9387.80 MB (9,843,818,592 bytes)
-- Subdirectory count: 4 (`leaderboards/`, `matches/`, `profiles/`, `ratings/`)
-- Files at root level (not in any subdirectory): 2
-
-**Per-subdirectory breakdown:**
-
-| Subdirectory | Files | Size (MB) | Extensions |
-|---|---|---|---|
-| `leaderboards/` | 2 | 83.32 | `.gitkeep`: 1, `.parquet`: 1 |
-| `matches/` | 2074 | 6621.52 | `.gitkeep`: 1, `.parquet`: 2073 |
-| `profiles/` | 2 | 161.84 | `.gitkeep`: 1, `.parquet`: 1 |
-| `ratings/` | 2073 | 2519.59 | `.gitkeep`: 1, `.csv`: 2072 |
-
-**Date range analysis (extracted from filenames):**
-
-- `matches/`: 2073 files with dates, 2020-08-01 to 2026-04-04, no gaps
-- `ratings/`: 2072 files with dates, 2020-08-01 to 2026-04-04, 1 gap (2025-07-10 → 2025-07-12, 2 days)
-- `leaderboards/`: no date pattern in filenames
-- `profiles/`: no date pattern in filenames
-
-**Filename patterns (whole-tree):**
-
-| Pattern | Count |
-|---|---|
-| `match-{date}.parquet` | 2073 |
-| `rating-{date}.csv` | 2072 |
-| `.gitkeep` | 4 |
-| `README.md` | 1 |
-| `_download_manifest.json` | 1 |
-| `leaderboard.parquet` | 1 |
-| `profile.parquet` | 1 |
+- 4,153 total files across 4 subdirectories, 9.2 GB total
+- Matches: 2,073 daily Parquet files (6.6 GB), 2020-08-01 to 2026-04-04, no date gaps
+- Ratings: 2,072 daily CSV files (2.5 GB), 2020-08-01 to 2026-04-04, no date gaps
+- Leaderboards: 1 singleton Parquet (83 MB)
+- Profiles: 1 singleton Parquet (162 MB)
+- 1 file count gap: matches has 2,073 files, ratings has 2,072 (missing 2025-07-11)
 
 ### Decisions taken
 
-- None — observation only.
+- Temporal coverage spans ~5.7 years — sufficient for longitudinal analysis
+- File count mismatch between matches and ratings noted for investigation
 
 ### Decisions deferred
 
-- Whether the 2-day gap in `ratings/` (2025-07-10 → 2025-07-12) is consequential for the analysis must be assessed in a later step that reads file content.
-- Interpretation of `_download_manifest.json`, `leaderboard.parquet`, and `profile.parquet` semantics deferred to Step 01_01_02 (content profiling).
-- Relationship between file count in `matches/` (2073) and `ratings/` (2072) cannot be determined at filesystem scope.
+- Internal file structure deferred to 01_01_02
 
 ### Thesis mapping
 
-- Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data
+- Chapter 4, §4.1.2 — AoE2 dataset description, temporal coverage, data volume
 
 ### Open questions / follow-ups
 
-- `leaderboards/` and `profiles/` each hold exactly 1 `.parquet` file with no date pattern; their schema and update cadence are unknown at this step.
-- `matches/` has 2073 dated `.parquet` files naming pattern `match-{date}.parquet`; `ratings/` has 2072 `rating-{date}.csv` files — the one-file count difference warrants investigation in Step 01_01_02.
-- The 2-day gap in `ratings/` (2025-07-10 → 2025-07-12) is the only gap found; its cause cannot be determined from filenames alone.
-
----
+- None — straightforward inventory step

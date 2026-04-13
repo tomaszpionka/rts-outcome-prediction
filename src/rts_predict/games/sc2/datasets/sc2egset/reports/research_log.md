@@ -8,93 +8,165 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
-## 2026-04-12 — [Phase 01 / Step 01_01_01] File inventory of sc2egset raw directory
+## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB pre-ingestion investigation
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json`
+
+### What
+
+Investigated how DuckDB's `read_json_auto` handles SC2EGSet replay JSON files.
+Tested single-file and batch (union_by_name) ingestion, measured event array
+storage costs, probed ToonPlayerDescMap behaviour, and assessed mapping file
+structure.
+
+### Why
+
+Determine the ingestion strategy for 22,390 replay files before committing to
+a table layout. Invariant #7 (type fidelity) and #9 (step scope) apply.
+
+### How (reproducibility)
+
+Notebook: `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.py`
+
+### Findings
+
+- `read_json_auto` succeeds on all 7 sampled files (100% success rate), producing 11 root-level columns
+- ToonPlayerDescMap is inferred as STRUCT with dynamic player-ID keys per file; with `union_by_name=true` it promotes to `MAP(VARCHAR, STRUCT(...))`
+- Event arrays dominate file size: gameEvents ~327 GB, trackerEvents ~41 GB, messageEvents ~0.1 GB (total ~368 GB estimated across 22,390 files)
+- Batch ingestion of 64 files from one tournament completed in 1.66 seconds within 24 GB memory limit
+- Mean vs median storage estimates diverge significantly (right-skewed distribution) — median is the conservative estimate
+- Mapping files (`map_foreign_to_english_mapping.json`): all 70 are flat `{str: str}` dicts with 1,488 entries each; cross-file consistency confirmed (all identical key sets)
+- `read_json_auto` misinterprets mapping files as a single row with 1,488 columns — not suitable for direct DuckDB ingestion
+
+### Decisions taken
+
+- Three-stream split strategy: replay scalars (DuckDB), players normalised from ToonPlayerDescMap (DuckDB), events to zstd Parquet (not DuckDB)
+- ToonPlayerDescMap stored as VARCHAR in `replays_meta` (text blob for provenance); normalised to per-player rows in `replay_players`
+- Event Parquet extraction uses Python+PyArrow (not DuckDB) due to the heterogeneous STRUCT[] problem
+- Every raw table includes `filename` column for provenance tracing
+
+### Decisions deferred
+
+- Whether mapping files need a DuckDB table at all — pending cross-tournament variation analysis and superset check (added to notebook section 7b)
+- `profile_id` DOUBLE→BIGINT precision check deferred to aoestats investigation
+- Filename uniqueness across tournaments — added as notebook section 1b, pending execution
+
+### Thesis mapping
+
+- Chapter 4, §4.1.1 — SC2EGSet dataset description, three-stream ingestion rationale
+- Chapter 4, §4.2.1 — Ingestion and validation methodology
+
+### Open questions / follow-ups
+
+- Are replay filenames (MD5 hashes) unique across all 70 tournament directories? (section 1b)
+- Do mapping files grow over time or are all 70 identical? (section 7b)
+- What is the actual zstd compression ratio at scale? Smoke test showed 16.88x on one file.
+
+---
+
+## 2026-04-13 — [Phase 01 / Step 01_01_02] Schema discovery
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** content
+**Artifacts produced:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md`
+
+### What
+
+Examined internal structure of SC2EGSet JSON replay files and mapping files.
+Catalogued root-level keys, enumerated full keypath tree, analysed event array
+struct heterogeneity, and checked schema consistency across all 70 tournament
+directories.
+
+### Why
+
+Understand the data shape before designing ingestion. Invariant #6
+(reproducibility) requires knowing exact field names and types.
+
+### How (reproducibility)
+
+Notebook: `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.py`
+
+### Findings
+
+- 11 root-level keys per replay: ToonPlayerDescMap, details, gameEvents, gameEventsErr, header, initData, messageEvents, messageEventsErr, metadata, trackerEvents, trackerEvtsErr
+- Schema consistent across all 70 directories (no era-dependent variation)
+- 70 files checked for root schema, 210 for keypath enumeration
+- Event arrays contain heterogeneous structs — gameEvents has 10+ distinct event types (CameraUpdate, SelectionDelta, Cmd, etc.), trackerEvents has 9+ (PlayerSetup, UnitBorn, PlayerStats, etc.)
+- Nested sub-structures present within events (e.g., target positions, unit types)
+
+### Decisions taken
+
+- Systematic temporal stratification sampling: 1 file per directory for root schema, 3 per directory for keypaths
+- Event array heterogeneity confirms that DuckDB's STRUCT[] union approach creates unusably wide schemas — separate extraction needed
+
+### Decisions deferred
+
+- Mapping file schema discovery added in this session (cell 5b) — pending notebook re-execution
+- Ingestion strategy deferred to 01_02_01
+
+### Thesis mapping
+
+- Chapter 4, §4.1.1 — SC2EGSet schema description
+- Appendix A — Full field catalog
+
+### Open questions / follow-ups
+
+- ToonPlayerDescMap field stability across eras (2016–2024)
+- Exact sub-field types for metadata STRUCTs (details, header, initData, metadata)
+
+---
+
+## 2026-04-13 — [Phase 01 / Step 01_01_01] File inventory
 
 **Category:** A (science)
 **Dataset:** sc2egset
 **Step scope:** filesystem
 **Artifacts produced:**
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md`
 
 ### What
 
-Ran `inventory_directory()` on the sc2egset `raw/` directory to count all files
-and subdirectories at two levels: the top-level directories (level 1)
-and each directory's `_data/` subdirectory (level 2). Filename patterns were
-summarised across both levels using `summarize_filename_patterns()`. Results
-were written to a JSON artifact and a Markdown report in the artifacts directory.
+Catalogued the SC2EGSet raw data directory: directory structure, file counts,
+sizes, and extensions across all 70 tournament directories.
 
 ### Why
 
-Phase 01, Step 01_01_01 requires establishing the authoritative file counts and
-directory structure of the raw data before any content-level work. Per Invariant
-#9, all downstream steps must reference this artifact for source file counts.
-Per Invariant #6, the code that produced every count is traceable via the paired
-notebook (`01_01_01_file_inventory.ipynb`).
+Establish the data landscape before any content inspection. Invariant #9
+requires sequential step discipline.
 
 ### How (reproducibility)
 
-```python
-from rts_predict.common.inventory import inventory_directory
-from rts_predict.common.filename_patterns import summarize_filename_patterns
-
-# Level 1: top-level directories
-meta_result = inventory_directory(RAW_DIR)
-
-# Level 2: each directory's _data/ subdir
-for sd in meta_result.subdirs:
-    data_dir = RAW_DIR / sd.name / (sd.name + "_data")
-    replay_inv = inventory_directory(data_dir)
-
-# Filename patterns across both levels
-patterns = summarize_filename_patterns(all_files)
-```
-
-Full code: `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.ipynb`
+Notebook: `sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.py`
 
 ### Findings
 
-- Raw directory layout: `raw/DIR/DIR_data/*.SC2Replay.json` (two levels)
-- 70 top-level directories under `raw/`
-- 3 files at `raw/` root: `README.md`, `README.sc2egset.md`, `SC2EGSet_datasheet.pdf`
-- 431 metadata files distributed across top-level directories (`.zip`, `.log`, `.json` patterns)
-- Each top-level directory contains one `map_foreign_to_english_mapping.json` (70 total)
-- 22,390 files with extension `.json` and pattern `{hash}.SC2Replay.json` inside `_data/` subdirectories
-- Total size of `_data/` files: 214,060.62 MB (~209 GiB)
-- Files per `_data/` subdirectory: min 30, max 1,296, median 260.5
-- 0 top-level directories with a missing `_data/` subdirectory
-- Filename-derived date range: directory names span `2016_*` through `2024_*`
-- 8 `.DS_Store` files present in the tree
-- Total files scanned across both levels: 22,821
-- All `_data/` files carry the `.json` extension; no other extension observed in `_data/` subdirectories
+- Two-level layout: `raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json`
+- 70 top-level tournament directories spanning 2016–2024
+- 22,390 replay JSON files totalling 209 GB
+- 431 metadata files (mapping files, summaries, processed mappings) at tournament root level
+- All replay files have `.json` extension (no mixed formats)
+- No directories missing `_data` subdirectory
 
 ### Decisions taken
 
-- None — observation only.
+- Layout confirmed as suitable for glob-based ingestion (`*/*_data/*.SC2Replay.json`)
+- Tournament directory name serves as temporal/provenance key
 
 ### Decisions deferred
 
-- Whether any of the 70 top-level directories should be excluded from analysis
-  (e.g., due to size, date coverage, or file count): deferred to Step 01_04_xx
-  (data cleaning / filtering decisions require content-level profiling first).
-- The `.DS_Store` files (8) and root-level housekeeping files are noted but
-  no action is needed until ingestion is designed (Phase 01 content steps).
+- Internal file structure deferred to 01_01_02
 
 ### Thesis mapping
 
-- Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II): source
-  file counts, directory layout, and date range derived from directory names.
+- Chapter 4, §4.1.1 — SC2EGSet dataset description, data volume
 
 ### Open questions / follow-ups
 
-- The `{hash}.SC2Replay.json` filename pattern does not embed dates; dates are
-  encoded only in top-level directory names, not individual filenames. Whether
-  individual files carry internal timestamps must be established at Step 01_01_02
-  (content/schema profiling).
-- The per-directory file count range (30 to 1,296) is wide; whether top-level directories with fewer files (e.g., those with < 50) represent complete acquisitions or partial extractions cannot be determined from filenames alone.
-- The `processed_failed.log` files present in every top-level directory indicate
-  a processing step was run during dataset creation; the contents of these logs
-  are unknown at this step and may surface exclusion-worthy files at Step 01_01_02.
-
----
+- None — straightforward inventory step

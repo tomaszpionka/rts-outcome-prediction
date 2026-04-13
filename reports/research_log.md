@@ -9,9 +9,9 @@ live in per-dataset logs — one per game/dataset combination.
 
 | Dataset | Log | Last entry |
 |---------|-----|------------|
-| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-12 |
-| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-12 |
-| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-12 |
+| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-13 (01_02_01) |
+| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-13 (01_02_01) |
+| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-13 (01_02_01) |
 
 > **Phase migration note (2026-04-09):** This log was reset as part of the
 > Phase 01-07 migration. Prior entries were removed in v2.0.0 (archive
@@ -22,18 +22,4 @@ live in per-dataset logs — one per game/dataset combination.
 
 ## CROSS-Dataset Entries
 
-## 2026-04-12 — [CROSS / Phase 01 / Step 01_01_01] File Inventory Summary
-
-**Category:** A (phase work — rerun)
-**Datasets:** sc2egset, aoe2companion, aoestats
-
-Step 01_01_01 file inventory rerun completed for all 3 datasets.
-Context leaks stripped, research log entries rewritten from artifacts.
-ROADMAP source data sections, raw/README.md, and reports/README.md
-repopulated strictly from 01_01_01 artifacts per Invariant #9.
-Per-dataset findings in each dataset's research_log.md.
-
-Per-dataset entries:
-- [sc2egset](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md)
-- [aoe2companion](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md)
-- [aoestats](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md)
+*(No entries yet — will be populated after notebooks are re-executed.)*

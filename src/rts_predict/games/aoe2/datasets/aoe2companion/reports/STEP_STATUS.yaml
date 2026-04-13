@@ -19,4 +19,18 @@ steps:
     pipeline_section: "01_01"
     status: complete
     completed_at: "2026-04-09"
+  "01_01_02":
+    name: "Schema Discovery"
+    pipeline_section: "01_01"
+    status: complete
+    completed_at: "2026-04-12"
+  "01_02_01":
+    name: "DuckDB Pre-Ingestion"
+    pipeline_section: "01_02"
+    status: complete
+    completed_at: "2026-04-13"
+  "01_02_02":
+    name: "DuckDB Ingestion"
+    pipeline_section: "01_02"
+    status: not_started
   # Future steps will be added here as they are defined in the ROADMAP.

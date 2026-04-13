@@ -64,13 +64,13 @@ Pipeline Sections per `docs/PHASES.md`:
 ```yaml
 step_number: "01_01_01"
 name: "File Inventory"
-description: "Walk the sc2egset raw directory, count files, measure sizes, group by subdirectory."
+description: "Establish a complete filesystem-level census of the sc2egset raw data. This grounds all subsequent steps in verified file counts, sizes, and directory structure."
 phase: "01 — Data Exploration"
 pipeline_section: "01_01 — Data Acquisition & Source Inventory"
 manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 1"
 dataset: "sc2egset"
-question: "What files exist on disk, how many are there, and how are they organized?"
-method: "Call inventory_directory() on the raw directory and on each tournament's _data/ subdirectory. The sc2egset layout is two-level: raw/TOURNAMENT/TOURNAMENT_data/*.SC2Replay.json. Report tournament-level metadata counts, per-_data/ replay counts, total replay files, total size, and summary statistics (min/max/median replays per tournament). Flag tournaments with missing _data/ dirs."
+question: "How many replay files exist, how large are they, and how are they distributed across the two-level tournament directory structure?"
+method: "Full census of the raw directory tree. Count files, measure sizes, and group by tournament subdirectory. Report summary statistics (min/max/median replays per tournament) and flag structural anomalies (e.g., missing subdirectories)."
 stratification: "By tournament directory (each tournament has its own _data/ subdir)."
 predecessors: "none — independent"
 notebook_path: "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_01_file_inventory.py"
@@ -82,16 +82,152 @@ outputs:
   data_artifacts:
     - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
   report: "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.md"
-reproducibility: "All counts produced by inventory_directory() from rts_predict.common.inventory. Code and output are in the paired notebook."
+reproducibility: "Code and output in the paired notebook."
 scientific_invariants_applied:
   - number: "6"
-    how_upheld: "Inventory counts are produced by code in the notebook, saved alongside the report."
+    how_upheld: "Inventory counts produced by code in the notebook, saved alongside the report."
   - number: "7"
-    how_upheld: "No thresholds used — pure counting."
+    how_upheld: "Full census — no sampling or thresholds."
 gate:
   artifact_check: "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json and .md exist and are non-empty."
   continue_predicate: "Inventory artifacts exist on disk."
   halt_predicate: "Raw directory does not exist or is empty."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_01_02 — Schema Discovery
+
+```yaml
+step_number: "01_01_02"
+name: "Schema Discovery"
+description: "Map the internal structure of sc2egset JSON replay files — root-level keys, nested keypaths, data types — and determine whether the schema is consistent across all 70 tournament directories (spanning 2016-2024)."
+phase: "01 — Data Exploration"
+pipeline_section: "01_01 — Data Acquisition & Source Inventory"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 1"
+dataset: "sc2egset"
+question: "What is the internal structure of the replay JSON files, and does it remain stable across tournament eras or evolve over time?"
+method: "Sample files from each of the 70 directories (deterministic selection, stratified by tournament). Enumerate root-level keys and full keypath trees. Compare schemas across directories to detect era-dependent variation and report a consistency verdict. No DuckDB type proposals — deferred to ingestion design."
+stratification: "By directory (all 70 represented; temporal range 2016-2024)."
+predecessors:
+  - "01_01_01"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/01_acquisition/01_01_02_schema_discovery.py"
+inputs:
+  duckdb_tables: "none — reads raw JSON files directly"
+  prior_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+  report: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "Schema profiles produced by code in the notebook, saved alongside the report."
+  - number: "7"
+    how_upheld: "Sample size per directory justified by temporal stratification in the report."
+  - number: "9"
+    how_upheld: "Conclusions limited to structural observations — no value distributions or semantic interpretation."
+gate:
+  artifact_check: "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json and .md exist and are non-empty."
+  continue_predicate: "Schema artifacts exist and report a consistency verdict for all 70 directories."
+  halt_predicate: "More than 30% of sampled files fail to parse."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_01 — DuckDB Pre-Ingestion Investigation
+
+```yaml
+step_number: "01_02_01"
+name: "DuckDB Pre-Ingestion Investigation"
+description: "Determine how sc2egset's deeply nested JSON (11 root keys, dynamic-key maps, 3 large event arrays) behaves when loaded into DuckDB, and decide on a table split strategy before committing to full ingestion."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: "What does the raw data look like before we commit to an ingestion strategy — are there type inference traps, storage feasibility concerns for event arrays, or structural irregularities in the mapping files that need handling?"
+method: "Smoke-test size-stratified file samples into in-memory DuckDB. DESCRIBE schemas, preview rows, and assess event array storage cost (extrapolated to full corpus). Test single-table vs split-table approaches on a mid-size tournament directory. Census all 70 tournament-level mapping files for schema consistency. Produce a design artifact with proposed DDL for a future full-ingestion step."
+stratification: "By root key group (metadata vs events vs player desc map); by tournament directory for map alias files."
+predecessors:
+  - "01_01_01"
+  - "01_01_02"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.py"
+inputs:
+  duckdb_tables:
+    - "none — investigation uses temporary in-memory DB"
+  prior_artifacts:
+    - "artifacts/01_exploration/01_acquisition/01_01_01_file_inventory.json"
+    - "artifacts/01_exploration/01_acquisition/01_01_02_schema_discovery.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json"
+  report: "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All smoke-test SQL, storage measurements, and census code in the notebook."
+  - number: "7"
+    how_upheld: "File sample selection derived from 01_01_01 per-directory size data."
+  - number: "9"
+    how_upheld: "Conclusions limited to type mappings, storage estimates, and structural consistency — no content profiling."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json and .md exist and are non-empty."
+  continue_predicate: "Design artifact documents: (1) read_json_auto behavior for all 11 root keys with DuckDB types, (2) proposed table split strategy with rationale, (3) event array storage estimate with SSD feasibility verdict, (4) full census of all 70 map_foreign_to_english_mapping.json files with cross-file consistency assessment and proposed DDL."
+  halt_predicate: "read_json_auto cannot parse any sample file, OR batch ingestion of a single directory fails."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_02 — DuckDB Ingestion
+
+```yaml
+step_number: "01_02_02"
+name: "DuckDB Ingestion"
+description: "Materialise raw sc2egset data into persistent DuckDB tables using the three-stream strategy determined by 01_02_01. Stream 1 (replays_meta): one row per replay with metadata STRUCT columns and ToonPlayerDescMap as VARCHAR. Stream 2 (replay_players): normalised from ToonPlayerDescMap, one row per (replay, player). Stream 3 (events): optional Parquet extraction for gameEvents, trackerEvents, messageEvents. Also: map_aliases table from all 70 tournament mapping files."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: "Can we materialise the three-stream ingestion strategy into persistent tables and verify row counts, column types, and NULL rates?"
+method: "Call ingestion module functions against the persistent DuckDB. Validate with DESCRIBE, row counts, NULL rates on key fields. Verify ToonPlayerDescMap is VARCHAR, event arrays are excluded from replays_meta, and map_aliases has tournament provenance."
+stratification: "By table (replays_meta, replay_players, map_aliases)."
+predecessors:
+  - "01_02_01"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_02_duckdb_ingestion.py"
+inputs:
+  duckdb_tables:
+    - "none — creates tables"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json"
+  report: "artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All ingestion SQL in the module, validation SQL in the notebook."
+  - number: "7"
+    how_upheld: "All tables carry filename provenance column."
+  - number: "9"
+    how_upheld: "Conclusions limited to ingestion success, row counts, column types, and NULL rates."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json and .md exist and are non-empty."
+  continue_predicate: "All three DuckDB tables created with expected row counts. ToonPlayerDescMap is VARCHAR. All tables have filename column."
+  halt_predicate: "Any table creation fails OR row count is zero."
 thesis_mapping:
   - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
 research_log_entry: "Required on completion."
