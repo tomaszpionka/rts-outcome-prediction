@@ -294,35 +294,6 @@
       }
     }
   ],
-  "manifest_files": [
-    {
-      "type": "json",
-      "subdirectory": "raw/",
-      "filename": "_download_manifest.json",
-      "files_in_subdirectory": 1,
-      "files_checked": 1,
-      "schema": {
-        "root_type": "list",
-        "list_length": 344,
-        "item_keys": [
-          {"name": "start_date", "observed_types": ["str"], "nullable": false},
-          {"name": "end_date", "observed_types": ["str"], "nullable": false},
-          {"name": "file_type", "observed_types": ["str"], "nullable": false},
-          {"name": "url", "observed_types": ["str"], "nullable": false},
-          {"name": "target_path", "observed_types": ["str"], "nullable": false},
-          {"name": "checksum", "observed_types": ["str"], "nullable": false},
-          {"name": "status", "observed_types": ["str"], "nullable": false},
-          {"name": "timestamp", "observed_types": ["str"], "nullable": false},
-          {"name": "error", "observed_types": ["null", "str"], "nullable": true}
-        ],
-        "total_keys": 9
-      },
-      "consistency": {
-        "all_files_same_schema": true,
-        "variant_columns": []
-      }
-    }
-  ],
   "cross_comparison": {
     "matches_vs_players_column_name_overlap": {
       "shared_column_names": [

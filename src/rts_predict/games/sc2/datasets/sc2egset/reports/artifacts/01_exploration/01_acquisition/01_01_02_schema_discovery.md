@@ -245,8 +245,70 @@ ToonPlayerDescMap.1-S2-1-10463877.region
 
 **All 70 directories share the same root-level schema:** True
 
+## Event array deep structure
+
+Sampled 5 files across the size distribution.
+
+### messageEvents
+
+- Total events sampled: 7
+- Unique event types: 1
+
+| Event type | Count | Fields | Nested fields |
+|------------|-------|--------|---------------|
+| Chat | 7 | 6 | userid |
+
+### gameEvents
+
+- Total events sampled: 114,486
+- Unique event types: 12
+
+| Event type | Count | Fields | Nested fields |
+|------------|-------|--------|---------------|
+| CameraUpdate | 62,483 | 10 | target, userid |
+| ControlGroupUpdate | 17,581 | 7 | mask, userid |
+| CommandManagerState | 10,174 | 6 | userid |
+| SelectionDelta | 8,913 | 6 | delta, userid |
+| Cmd | 6,812 | 10 | abil, cmdFlags, data, userid |
+| CmdUpdateTargetPoint | 6,182 | 5 | target, userid |
+| CmdUpdateTargetUnit | 2,108 | 5 | target, userid |
+| CameraSave | 189 | 6 | target, userid |
+| UserOptions | 22 | 18 | userid |
+| GameUserLeave | 13 | 5 | userid |
+| TriggerDialogControl | 8 | 7 | eventData, userid |
+| DecrementGameTimeRemaining | 1 | 5 | userid |
+
+### trackerEvents
+
+- Total events sampled: 13,799
+- Unique event types: 10
+
+| Event type | Count | Fields | Nested fields |
+|------------|-------|--------|---------------|
+| UnitBorn | 4,824 | 13 | none |
+| UnitDied | 3,532 | 10 | none |
+| UnitTypeChange | 2,249 | 6 | none |
+| PlayerStats | 1,091 | 5 | stats |
+| UnitInit | 847 | 10 | none |
+| UnitDone | 819 | 5 | none |
+| UnitPositions | 209 | 5 | items |
+| Upgrade | 169 | 6 | none |
+| UnitOwnerChange | 49 | 7 | none |
+| PlayerSetup | 10 | 7 | none |
+
+## Mapping file schema (`map_foreign_to_english_mapping.json`)
+
+- Files found: 70 / 70
+- Parse errors: 0
+- Top-level type: ['dict']
+- All flat (no nesting): True
+- Key types: ['str'], Value types: ['str']
+- Entries per file: min=1488, max=1488, mean=1488.0
+- Schema consistent across all files: True
+
 ## Notes
 
 - No DuckDB type proposals in this step (deferred to ingestion design).
 - Sample values in the JSON artifact are for type-inference validation only.
 - Step scope: `content` (file headers/schemas/sample root keys).
+- Event deep structure in JSON artifact has full per-field type breakdown.

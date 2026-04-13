@@ -7507,7 +7507,1867 @@
       "consistency": {
         "all_files_same_schema": true,
         "variant_directories": []
+      },
+      "event_array_deep_structure": {
+        "messageEvents": {
+          "total_events_sampled": 7,
+          "files_sampled": 5,
+          "unique_event_types": 1,
+          "event_types": [
+            {
+              "event_type": "Chat",
+              "count": 7,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "recipient",
+                "string",
+                "userid"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "recipient": [
+                  "int"
+                ],
+                "string": [
+                  "str"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "userid"
+              ]
+            }
+          ]
+        },
+        "gameEvents": {
+          "total_events_sampled": 114486,
+          "files_sampled": 5,
+          "unique_event_types": 12,
+          "event_types": [
+            {
+              "event_type": "CameraUpdate",
+              "count": 62483,
+              "fields": [
+                "distance",
+                "evtTypeName",
+                "follow",
+                "id",
+                "loop",
+                "pitch",
+                "reason",
+                "target",
+                "userid",
+                "yaw"
+              ],
+              "field_count": 10,
+              "field_types": {
+                "distance": [
+                  "float",
+                  "int",
+                  "null"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "follow": [
+                  "bool"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "pitch": [
+                  "float",
+                  "int",
+                  "null"
+                ],
+                "reason": [
+                  "int",
+                  "null"
+                ],
+                "target": [
+                  "null",
+                  "struct(2 keys)"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ],
+                "yaw": [
+                  "float",
+                  "int",
+                  "null"
+                ]
+              },
+              "nested_fields": [
+                "target",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "ControlGroupUpdate",
+              "count": 17581,
+              "fields": [
+                "controlGroupIndex",
+                "controlGroupUpdate",
+                "evtTypeName",
+                "id",
+                "loop",
+                "mask",
+                "userid"
+              ],
+              "field_count": 7,
+              "field_types": {
+                "controlGroupIndex": [
+                  "int"
+                ],
+                "controlGroupUpdate": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "mask": [
+                  "struct(1 keys)"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "mask",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "CommandManagerState",
+              "count": 10174,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "sequence",
+                "state",
+                "userid"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "sequence": [
+                  "int",
+                  "null"
+                ],
+                "state": [
+                  "int"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "userid"
+              ]
+            },
+            {
+              "event_type": "SelectionDelta",
+              "count": 8913,
+              "fields": [
+                "controlGroupId",
+                "delta",
+                "evtTypeName",
+                "id",
+                "loop",
+                "userid"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "controlGroupId": [
+                  "int"
+                ],
+                "delta": [
+                  "struct(4 keys)"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "delta",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "Cmd",
+              "count": 6812,
+              "fields": [
+                "abil",
+                "cmdFlags",
+                "data",
+                "evtTypeName",
+                "id",
+                "loop",
+                "otherUnit",
+                "sequence",
+                "unitGroup",
+                "userid"
+              ],
+              "field_count": 10,
+              "field_types": {
+                "abil": [
+                  "null",
+                  "struct(3 keys)"
+                ],
+                "cmdFlags": [
+                  "list(str)"
+                ],
+                "data": [
+                  "struct(1 keys)",
+                  "struct(2 keys)"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "otherUnit": [
+                  "null"
+                ],
+                "sequence": [
+                  "int"
+                ],
+                "unitGroup": [
+                  "null"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "abil",
+                "cmdFlags",
+                "data",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "CmdUpdateTargetPoint",
+              "count": 6182,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "target",
+                "userid"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "target": [
+                  "struct(3 keys)"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "target",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "CmdUpdateTargetUnit",
+              "count": 2108,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "target",
+                "userid"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "target": [
+                  "struct(7 keys)"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "target",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "CameraSave",
+              "count": 189,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "target",
+                "userid",
+                "which"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "target": [
+                  "struct(2 keys)"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ],
+                "which": [
+                  "int"
+                ]
+              },
+              "nested_fields": [
+                "target",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "UserOptions",
+              "count": 22,
+              "fields": [
+                "baseBuildNum",
+                "buildNum",
+                "cameraFollow",
+                "debugPauseEnabled",
+                "developmentCheatsEnabled",
+                "evtTypeName",
+                "gameFullyDownloaded",
+                "hotkeyProfile",
+                "id",
+                "isMapToMapTransition",
+                "loop",
+                "multiplayerCheatsEnabled",
+                "platformMac",
+                "syncChecksummingEnabled",
+                "testCheatsEnabled",
+                "useGalaxyAsserts",
+                "userid",
+                "versionFlags"
+              ],
+              "field_count": 18,
+              "field_types": {
+                "baseBuildNum": [
+                  "int"
+                ],
+                "buildNum": [
+                  "int"
+                ],
+                "cameraFollow": [
+                  "bool"
+                ],
+                "debugPauseEnabled": [
+                  "bool"
+                ],
+                "developmentCheatsEnabled": [
+                  "bool"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "gameFullyDownloaded": [
+                  "bool"
+                ],
+                "hotkeyProfile": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "isMapToMapTransition": [
+                  "bool"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "multiplayerCheatsEnabled": [
+                  "bool"
+                ],
+                "platformMac": [
+                  "bool"
+                ],
+                "syncChecksummingEnabled": [
+                  "bool"
+                ],
+                "testCheatsEnabled": [
+                  "bool"
+                ],
+                "useGalaxyAsserts": [
+                  "bool"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ],
+                "versionFlags": [
+                  "int"
+                ]
+              },
+              "nested_fields": [
+                "userid"
+              ]
+            },
+            {
+              "event_type": "GameUserLeave",
+              "count": 13,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "leaveReason",
+                "loop",
+                "userid"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "leaveReason": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "userid"
+              ]
+            },
+            {
+              "event_type": "TriggerDialogControl",
+              "count": 8,
+              "fields": [
+                "controlId",
+                "eventData",
+                "eventType",
+                "evtTypeName",
+                "id",
+                "loop",
+                "userid"
+              ],
+              "field_count": 7,
+              "field_types": {
+                "controlId": [
+                  "int"
+                ],
+                "eventData": [
+                  "struct(1 keys)"
+                ],
+                "eventType": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "eventData",
+                "userid"
+              ]
+            },
+            {
+              "event_type": "DecrementGameTimeRemaining",
+              "count": 1,
+              "fields": [
+                "decrementSeconds",
+                "evtTypeName",
+                "id",
+                "loop",
+                "userid"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "decrementSeconds": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "userid": [
+                  "struct(1 keys)"
+                ]
+              },
+              "nested_fields": [
+                "userid"
+              ]
+            }
+          ]
+        },
+        "trackerEvents": {
+          "total_events_sampled": 13799,
+          "files_sampled": 5,
+          "unique_event_types": 10,
+          "event_types": [
+            {
+              "event_type": "UnitBorn",
+              "count": 4824,
+              "fields": [
+                "controlPlayerId",
+                "creatorAbilityName",
+                "creatorUnitTagIndex",
+                "creatorUnitTagRecycle",
+                "evtTypeName",
+                "id",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle",
+                "unitTypeName",
+                "upkeepPlayerId",
+                "x",
+                "y"
+              ],
+              "field_count": 13,
+              "field_types": {
+                "controlPlayerId": [
+                  "int"
+                ],
+                "creatorAbilityName": [
+                  "null",
+                  "str"
+                ],
+                "creatorUnitTagIndex": [
+                  "int",
+                  "null"
+                ],
+                "creatorUnitTagRecycle": [
+                  "int",
+                  "null"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ],
+                "unitTypeName": [
+                  "str"
+                ],
+                "upkeepPlayerId": [
+                  "int"
+                ],
+                "x": [
+                  "int"
+                ],
+                "y": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "UnitDied",
+              "count": 3532,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "killerPlayerId",
+                "killerUnitTagIndex",
+                "killerUnitTagRecycle",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle",
+                "x",
+                "y"
+              ],
+              "field_count": 10,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "killerPlayerId": [
+                  "int",
+                  "null"
+                ],
+                "killerUnitTagIndex": [
+                  "int",
+                  "null"
+                ],
+                "killerUnitTagRecycle": [
+                  "int",
+                  "null"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ],
+                "x": [
+                  "int"
+                ],
+                "y": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "UnitTypeChange",
+              "count": 2249,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle",
+                "unitTypeName"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ],
+                "unitTypeName": [
+                  "str"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "PlayerStats",
+              "count": 1091,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "playerId",
+                "stats"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "playerId": [
+                  "int"
+                ],
+                "stats": [
+                  "struct(39 keys)"
+                ]
+              },
+              "nested_fields": [
+                "stats"
+              ]
+            },
+            {
+              "event_type": "UnitInit",
+              "count": 847,
+              "fields": [
+                "controlPlayerId",
+                "evtTypeName",
+                "id",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle",
+                "unitTypeName",
+                "upkeepPlayerId",
+                "x",
+                "y"
+              ],
+              "field_count": 10,
+              "field_types": {
+                "controlPlayerId": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ],
+                "unitTypeName": [
+                  "str"
+                ],
+                "upkeepPlayerId": [
+                  "int"
+                ],
+                "x": [
+                  "int"
+                ],
+                "y": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "UnitDone",
+              "count": 819,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "UnitPositions",
+              "count": 209,
+              "fields": [
+                "evtTypeName",
+                "firstUnitIndex",
+                "id",
+                "items",
+                "loop"
+              ],
+              "field_count": 5,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "firstUnitIndex": [
+                  "int"
+                ],
+                "id": [
+                  "int"
+                ],
+                "items": [
+                  "list(int)"
+                ],
+                "loop": [
+                  "int"
+                ]
+              },
+              "nested_fields": [
+                "items"
+              ]
+            },
+            {
+              "event_type": "Upgrade",
+              "count": 169,
+              "fields": [
+                "count",
+                "evtTypeName",
+                "id",
+                "loop",
+                "playerId",
+                "upgradeTypeName"
+              ],
+              "field_count": 6,
+              "field_types": {
+                "count": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "playerId": [
+                  "int"
+                ],
+                "upgradeTypeName": [
+                  "str"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "UnitOwnerChange",
+              "count": 49,
+              "fields": [
+                "controlPlayerId",
+                "evtTypeName",
+                "id",
+                "loop",
+                "unitTagIndex",
+                "unitTagRecycle",
+                "upkeepPlayerId"
+              ],
+              "field_count": 7,
+              "field_types": {
+                "controlPlayerId": [
+                  "int"
+                ],
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "unitTagIndex": [
+                  "int"
+                ],
+                "unitTagRecycle": [
+                  "int"
+                ],
+                "upkeepPlayerId": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            },
+            {
+              "event_type": "PlayerSetup",
+              "count": 10,
+              "fields": [
+                "evtTypeName",
+                "id",
+                "loop",
+                "playerId",
+                "slotId",
+                "type",
+                "userId"
+              ],
+              "field_count": 7,
+              "field_types": {
+                "evtTypeName": [
+                  "str"
+                ],
+                "id": [
+                  "int"
+                ],
+                "loop": [
+                  "int"
+                ],
+                "playerId": [
+                  "int"
+                ],
+                "slotId": [
+                  "int"
+                ],
+                "type": [
+                  "int"
+                ],
+                "userId": [
+                  "int"
+                ]
+              },
+              "nested_fields": []
+            }
+          ]
+        }
       }
+    },
+    {
+      "type": "json",
+      "subdirectory": "TOURNAMENT (root level)",
+      "filename_pattern": "map_foreign_to_english_mapping.json",
+      "files_found": 70,
+      "files_with_errors": 0,
+      "schema": {
+        "top_level_type": [
+          "dict"
+        ],
+        "all_flat": true,
+        "key_types": [
+          "str"
+        ],
+        "value_types": [
+          "str"
+        ],
+        "entry_counts": {
+          "min": 1488,
+          "max": 1488,
+          "mean": 1488.0
+        }
+      },
+      "consistency": {
+        "all_same_schema": true,
+        "variant_files": []
+      },
+      "per_file": [
+        {
+          "tournament": "2016_IEM_10_Taipei",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2016_IEM_11_Shanghai",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2016_WCS_Winter",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_HomeStory_Cup_XV",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_HomeStory_Cup_XVI",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_IEM_Shanghai",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_IEM_XI_World_Championship_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WCS_Austin",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WCS_Global_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WCS_Jonkoping",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WCS_Montreal",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WESG_Barcelona",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2017_WESG_Haikou",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_Cheeseadelphia_8",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_HomeStory_Cup_XVII",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_HomeStory_Cup_XVIII",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_IEM_PyeongChang",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WCS_Austin",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WCS_Global_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WCS_Leipzig",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WCS_Montreal",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WCS_Valencia",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2018_WESG_Grand_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_Assembly_Summer",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_HomeStory_Cup_XIX",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_HomeStory_Cup_XX",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_WCS_Fall",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_WCS_Grand_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_WCS_Spring",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_WCS_Summer",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2019_WCS_Winter",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_05_Dreamhack_Last_Chance",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_ASUS_ROG_Online",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_Dreamhack_SC2_Masters_Fall",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_Dreamhack_SC2_Masters_Summer",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_StayAtHome_Story_Cup_1",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_StayAtHome_Story_Cup_2",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_TSL5",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2020_TSL6",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_ASUS_ROG_Fall",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_Cheeseadelphia_Winter_Championship",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_Dreamhack_SC2_Masters_Fall",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_Dreamhack_SC2_Masters_Summer",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_Dreamhack_SC2_Masters_Winter",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_StayAtHome_Story_Cup_3",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_StayAtHome_Story_Cup_4",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_TSL7",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2021_TSL8",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_03_DH_SC2_Masters_Atlanta",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_Dreamhack_SC2_Masters_Last_Chance2021",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_Dreamhack_SC2_Masters_Valencia",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_HomeStory_Cup_XXI",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_HomeStory_Cup_XXII",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2022_TSL9",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2023_01_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2023_04_ESL_SC2_Masters_Summer_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2023_05_Gamers8",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2023_07_ESL_SC2_Masters_Winter_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2023_HomeStory_Cup_XXIV",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_01_IEM_Katowice",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_03_ESL_SC2_Masters_Spring_Finals",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_05_EWC",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_HomeStory_Cup_XXV",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_HomeStory_Cup_XXVI",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        },
+        {
+          "tournament": "2024_StaraZagora_BellumGensElite",
+          "top_level_type": "dict",
+          "entry_count": 1488,
+          "key_types": [
+            "str"
+          ],
+          "value_types": [
+            "str"
+          ],
+          "is_flat": true
+        }
+      ]
     }
   ]
 }
