@@ -17,7 +17,7 @@ The critique (`planning/current_plan.critique.md`) is NOT the planner's
 responsibility. After producing the plan, instruct the parent session:
 
 > "For Category A or F, adversarial critique is required before
-> materialization. Dispatch reviewer-adversarial to produce
+> execution. Dispatch reviewer-adversarial to produce
 > `planning/current_plan.critique.md`."
 
 For Category B, C, D, and E, no critique instruction is needed unless the
@@ -31,12 +31,12 @@ a critique must be requested.
 
 | Category | Plan sections required | Critique required? |
 |----------|-----------------------|-------------------|
-| A | Scope, Problem Statement, Assumptions & unknowns, Literature context, Execution Steps, File Manifest, Gate Condition, Out of scope, Open questions, Suggested Execution Graph | yes — instruct parent to dispatch reviewer-adversarial, all sections |
-| B | Scope, Execution Steps, File Manifest, Suggested Execution Graph, Out of scope | yes — instruct parent to dispatch reviewer-adversarial; invariants + weaknesses sections only |
-| C | Scope, Execution Steps, File Manifest, Suggested Execution Graph | no |
-| D | Scope, Execution Steps, File Manifest, Suggested Execution Graph, Out of scope | yes if `file_scope` touches `src/rts_predict/games/<game>/` — instruct parent to dispatch reviewer-adversarial |
-| E | Scope, Execution Steps, File Manifest, Suggested Execution Graph | no |
-| F | Scope, Problem Statement, Assumptions & unknowns, Literature context, Execution Steps, File Manifest, Gate Condition, Out of scope, Open questions, Suggested Execution Graph | yes — instruct parent to dispatch reviewer-adversarial, all sections |
+| A | Scope, Problem Statement, Assumptions & unknowns, Literature context, Execution Steps, File Manifest, Gate Condition, Out of scope, Open questions | yes — instruct parent to dispatch reviewer-adversarial, all sections |
+| B | Scope, Execution Steps, File Manifest, Out of scope | yes — instruct parent to dispatch reviewer-adversarial; invariants + weaknesses sections only |
+| C | Scope, Execution Steps, File Manifest | no |
+| D | Scope, Execution Steps, File Manifest, Out of scope | yes if `file_scope` touches `src/rts_predict/games/<game>/` — instruct parent to dispatch reviewer-adversarial |
+| E | Scope, Execution Steps, File Manifest | no |
+| F | Scope, Problem Statement, Assumptions & unknowns, Literature context, Execution Steps, File Manifest, Gate Condition, Out of scope, Open questions | yes — instruct parent to dispatch reviewer-adversarial, all sections |
 
 For Category C and E, produce only `current_plan.md`. Do not mention the
 critique at all.
@@ -59,29 +59,15 @@ spec file with minimal interpretation.
 **Verification:**
 - <Command or observable condition that confirms success>
 
-**File scope:** <Files this task WRITES — maps to `file_scope` in spec YAML>
+**File scope:** <Files this task WRITES>
 - `path/to/file.py`
 
-**Read scope:** <Files this task READS that are outputs of sibling tasks — maps to `read_scope` in spec YAML>
+**Read scope:** <Files this task READS that are outputs of sibling tasks>
 - `path/to/other_task_output.py`
 ```
 
 Tasks are numbered sequentially: T01, T02, T03, … Every task number (TNN)
-must appear exactly once in the Execution Steps and exactly once in the
-Suggested Execution Graph.
-
-## Suggested Execution Graph
-
-Every plan must include a `Suggested Execution Graph` section containing a
-fenced YAML block that conforms to `docs/templates/dag_template.yaml`.
-
-Minimum requirements for each task entry in the graph:
-
-- `task_id` — matches a TNN in Execution Steps
-- `spec_file` — `planning/specs/spec_NN_<slug>.md`
-- `file_scope` — list of files the task writes
-- `parallel_safe` — `true` only if `file_scope` does not overlap any sibling task
-- `depends_on` — list of task IDs this task blocks on, or `[]`
+must appear exactly once in the Execution Steps.
 
 ## Forbidden terms
 
@@ -106,10 +92,7 @@ T02, …) in the DAG.
   inputs is speculation.
 - `invariants_touched` must be populated for Category A and F; use `[]` for
   B–E unless data or model code is touched.
-- Every task in the DAG must have `spec_file`, `file_scope`, `parallel_safe`,
-  and `depends_on`.
-- Every TNN in Execution Steps must map to a task in the Suggested Execution
-  Graph, and vice versa.
+- Every TNN in Execution Steps must have a unique task number. Numbers are sequential: T01, T02, T03, …
 - The File Manifest must list every file that any task creates, rewrites,
   updates, or deletes. No file may be touched by an executor task if it is
   absent from the manifest.
@@ -122,9 +105,7 @@ T02, …) in the DAG.
 Before emitting `planning/current_plan.md`, verify:
 
 - [ ] `category` is one of A–F (not a scope label)
-- [ ] Suggested Execution Graph uses `jobs > task_groups > tasks` hierarchy
-- [ ] Every task has `spec_file`, `file_scope`, `parallel_safe`, `depends_on`
-- [ ] Every TNN in Execution Steps appears in the graph, and vice versa
+- [ ] Execution Steps task numbers are sequential (T01, T02, …) with no gaps or duplicates
 - [ ] File Manifest is complete — every touched file is listed
 - [ ] No forbidden taxonomy terms used as work-unit names
 - [ ] `invariants_touched` populated for Category A/F

@@ -292,30 +292,21 @@ Step 5:  [wrap up PR]
 
 No planning, no execution, no review.
 
-### Workflow E: Parallel Spec Execution
+### Workflow E: Parallel Task Execution
 
-When a plan has been split into independent spec files (`specs/spec_NN.md`):
+When a plan has tasks that can run in parallel (non-overlapping file scope):
 
 ```
-Step 1:  [parent creates branch OR uses worktree isolation]
-Step 2:  [parent spawns executor(s) — one per spec]
-         @executor execute specs/spec_01.md
-         @executor execute specs/spec_02.md   ← parallel if safe
-Step 3:  [shared branch: parent reviews all changes]
-         [worktree: parent merges each worktree branch]
+Step 1:  [parent creates branch]
+Step 2:  [parent spawns executor(s) — one per task]
+         @executor execute T01 from planning/current_plan.md
+         @executor execute T02 from planning/current_plan.md   ← parallel if safe
+Step 3:  [parent reviews all changes]
 Step 4:  @reviewer review changes
 Step 5:  [parent stages, commits, wraps up PR]
 ```
 
-**Strategy A (shared branch):** Executors edit the same working tree.
-Requires non-overlapping file ownership. Executors do NOT run
-`git add/commit` — the parent orchestrator stages and commits.
-
-**Strategy B (worktree isolation):** Each executor gets
-`isolation: "worktree"`. Full file isolation, but requires merging
-branches afterwards.
-
-See `docs/TAXONOMY.md` for formal definitions.
+Executors do NOT run `git add/commit` — the parent orchestrator stages and commits.
 
 ### Workflow F: Methodology Challenge
 
@@ -440,8 +431,7 @@ The skill walks through the complete PR Creation Flow from
 `gh pr create` — it proposes commands for the user to execute.
 
 **Planned follow-up:** `/execute-plan` — a skill to execute steps from
-`planning/current_plan.md` or a `specs/spec_NN.md` file without spelling out the
-full instruction each time.
+`planning/current_plan.md` without spelling out the full instruction each time.
 
 ---
 
@@ -471,7 +461,7 @@ where an agent works through an entire Phase independently:
 
 - Uses `maxTurns` in agent frontmatter to allow extended execution
 - Uses `isolation: worktree` for safe parallel work on separate branches, or
-  shared-branch parallel execution for specs that touch non-overlapping files
+  shared-branch parallel execution for tasks that touch non-overlapping files
   (see Workflow E above)
 - Implements test gates as mandatory checkpoints between steps
 - Records decisions and restarts in the dataset's `research_log.md`
@@ -481,70 +471,6 @@ The 8-agent architecture is forward-compatible with this. The planner produces
 the plan, the executor runs it with high maxTurns, and the reviewer validates
 at the end. The only additions needed are the test-gate mechanism and worktree
 isolation — no architectural changes.
-
----
-
-## DAG Orchestration
-
-The plan/execute workflow supports DAG-based multi-agent orchestration.
-See `planning/README.md` for the full lifecycle and `planning/dags/README.md`
-for the DAG format.
-
-### Planning session
-
-1. Planner produces plan in chat (includes "Suggested Execution Graph" section).
-2. Parent writes plan to `planning/current_plan.md`.
-3. Adversarial reviewer reviews the plan.
-4. User approves.
-
-### Execution session
-
-1. Parent materializes `planning/dags/DAG.yaml` and `planning/specs/spec_*.md`.
-2. Parent reads `DAG.yaml` and dispatches agents per task group:
-   - Parallel-safe tasks within a group run simultaneously.
-   - Sequential tasks run one at a time.
-3. After each task group: parent stages, commits. If the group has a
-   `review_gate` configured, dispatches the specified review agent
-   (optional — most groups do not need one).
-4. After all groups: final review (reviewer-adversarial for Cat A/F;
-   reviewer for Cat B/C/D/E).
-5. PR wrap-up.
-
-### Review gates
-
-Review gates are opt-in per task group. Most groups do not need one —
-the DAG-level `final_review` is the standard quality gate. Add a
-per-group review gate only when a bad result would cascade into downstream
-groups before the final review could catch it.
-
-| Gate | Agent | When |
-|------|-------|------|
-| Per-group (optional) | configured in `review_gate.agent` | Only if `review_gate` is present in the task group |
-| Final | `reviewer-adversarial` (Cat A/F) or `reviewer` (Cat B/C/D/E) | After all groups complete |
-
-### Model assignment
-
-Tasks in a DAG MAY include a `model` field to control the model tier:
-
-- **`"haiku"`** — Only for fully mechanical tasks: all content verbatim
-  in spec, no judgment calls, no code changes.
-- **`"sonnet"`** — Default for most executor tasks.
-- **`"opus"`** — Multi-file reasoning across >5 files, novel methodology
-  decisions, complex constraint satisfaction (thesis chapters).
-
-Omit `model` to inherit from the parent session.
-
-### Failure handling
-
-All failures halt the DAG. The user decides next action in the session.
-No automatic retries. The parent may re-run a single task group after
-the user addresses the issue.
-
-### Templates
-
-- DAG format: `docs/templates/dag_template.yaml`
-- DAG status: `docs/templates/dag_status_template.yaml`
-- Spec format: `docs/templates/spec_template.md`
 
 ---
 

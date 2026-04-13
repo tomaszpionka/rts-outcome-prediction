@@ -21,7 +21,7 @@ invariants_touched: # list of invariant IDs from .claude/scientific-invariants.m
 source_artifacts: []
 
 # critique_required:
-#   true  — category A and F (adversarial critique MUST exist before materialization)
+#   true  — category A and F (adversarial critique MUST exist before execution begins)
 #   optional (true/false) — category B and D
 #   false — category C and E
 critique_required:  # true | false
@@ -70,12 +70,10 @@ the Open questions section below or an external source.>
 ## Execution Steps
 
 <!--
-Each task uses the following rigid structure. The executor extracts this block
-into a spec file with minimal interpretation.
+Each task uses the following rigid structure.
 
-File scope and Read scope map to spec YAML frontmatter (`file_scope`,
-`read_scope`), not to markdown sections. They govern what the executor MAY
-write and what it MAY read from sibling tasks.
+File scope and Read scope govern what the executor MAY write and what it
+MAY read from sibling tasks.
 -->
 
 ### T01 — <task name>
@@ -91,10 +89,10 @@ write and what it MAY read from sibling tasks.
 - <Command or observable condition that confirms success — e.g. `pytest tests/... -v`>
 - <Another check>
 
-**File scope:** <List of files this task WRITES — maps to `file_scope` in spec YAML>
+**File scope:** <List of files this task WRITES>
 - `path/to/file.py`
 
-**Read scope:** <List of files this task READS that are outputs of sibling tasks — maps to `read_scope` in spec YAML>
+**Read scope:** <List of files this task READS that are outputs of sibling tasks>
 - `path/to/other_task_output.py`
 
 ---
@@ -152,113 +150,3 @@ write and what it MAY read from sibling tasks.
 
 - <Question — resolves by: <agent | user decision | experiment>>
 
-## Spec Design Rules
-
-1. **Self-contained.** Every spec must inline its full instructions.
-   Never use "Same as spec_XX" or "Same pattern as spec_XX." If the
-   plan's Execution Steps for a task reference another task, the
-   materializer inlines the full instructions with substituted paths.
-
-2. **Consolidate by read_scope.** Tasks that share the same read_scope
-   (invariants, templates) should be combined into one spec to avoid
-   redundant context loads. Each dispatch pays ~5-10K tokens in overhead.
-
-3. **Parameterize by dataset.** When N tasks do the same thing to N
-   datasets, write one spec with a dataset table. The executor iterates
-   the table. Instructions appear once.
-
-4. **Don't mix model tiers.** A haiku task and a sonnet task need
-   separate specs. The combined spec runs at the higher tier.
-
-5. **Cap at ~15 files.** Very large specs become hard to track. Split
-   at natural boundaries.
-
-## Suggested Execution Graph
-
-<!--
-Required for all categories. Must use `jobs > task_groups > tasks` hierarchy.
-Every task must include: spec_file, file_scope, parallel_safe, depends_on.
-This YAML block is the authoritative execution contract consumed by /materialize_plan.
-
-Minimal schema reference: docs/templates/dag_template.yaml
--->
-
-```yaml
-dag_id: "<unique_identifier>"                  # e.g. dag_sc2_phase01_ingest
-plan_ref: "planning/current_plan.md"
-category: "<A|B|C|D|E|F>"
-branch: "<branch-name>"
-base_ref: "master"
-default_isolation: "shared_branch"             # or "worktree" for parallel conflicting tasks
-
-jobs:
-  - job_id: "J01"
-    name: "<descriptive name>"
-    description: "<what this job accomplishes>"
-
-    task_groups:
-      - group_id: "TG01"
-        name: "<first group name>"
-        description: "<what this group accomplishes as a unit>"
-        depends_on: []
-
-        # review_gate: omitted — see dag_template.yaml
-        # Add only at cascade risk boundaries where a bad result would
-        # contaminate downstream groups. Most groups do not need one.
-
-        tasks:
-          - task_id: "T01"
-            name: "<task name>"
-            spec_file: "planning/specs/spec_01_<slug>.md"
-            agent: "executor"
-            model: "sonnet"                    # sonnet (default) | haiku | opus
-            isolation: "inherit"
-            parallel_safe: true                # true if file_scope doesn't overlap siblings
-            file_scope:
-              - "path/to/file_written_by_T01.py"
-            read_scope: []
-            depends_on: []
-
-          - task_id: "T02"
-            name: "<task name>"
-            spec_file: "planning/specs/spec_02_<slug>.md"
-            agent: "executor"
-            model: "sonnet"
-            isolation: "inherit"
-            parallel_safe: false               # false if reads T01 output
-            file_scope:
-              - "path/to/file_written_by_T02.py"
-            read_scope:
-              - "path/to/file_written_by_T01.py"
-            depends_on: ["T01"]
-
-      - group_id: "TG02"
-        name: "<second group name — runs after TG01>"
-        depends_on: ["TG01"]
-
-        # review_gate: omitted — see dag_template.yaml
-
-        tasks:
-          - task_id: "T03"
-            name: "<task name>"
-            spec_file: "planning/specs/spec_03_<slug>.md"
-            agent: "executor"
-            model: "sonnet"
-            isolation: "inherit"
-            parallel_safe: false
-            file_scope:
-              - "path/to/file_written_by_T03.py"
-            read_scope:
-              - "path/to/file_written_by_T01.py"
-            depends_on: []
-
-final_review:
-  agent: "reviewer-adversarial"                # Cat A/F: reviewer-adversarial
-                                               # Cat B/C/D/E: reviewer (Sonnet)
-  scope: "all"
-  base_ref: "master"
-  on_blocker: "halt"
-
-failure_policy:
-  on_failure: "halt"
-```
