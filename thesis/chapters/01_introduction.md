@@ -1,6 +1,6 @@
 # Chapter 1 — Introduction
 
-## 1.1 Background and motivation
+## 1.1 Tło i motywacja
 
 Na przestrzeni ostatniej dekady sport elektroniczny (ang. *esports*) przekształcił się z niszowej rozrywki w zjawisko o wymiernym znaczeniu komercyjnym, kulturowym i — co istotniejsze z perspektywy badawczej — metodologicznym [Formosa2022]. Szacunki branżowe lokują przychody globalnego rynku esportowego w pierwszej połowie lat 20. XXI w. w przedziale rzędu pojedynczych miliardów dolarów, przy czym — jak wskazują Novák i in. [Novak2025] — stanowi to mniej niż 1% przychodów globalnej branży gier wideo, co sytuuje esport raczej jako segment uzupełniający niż samodzielny sektor gospodarki. Niezależnie od skali komercyjnej to nie ona uzasadnia uwagę naukową poświęcaną tej domenie, lecz specyfika danych, jakie generuje. Gry wieloosobowe, produkujące obszerne zapisy telemetryczne z każdego meczu, stały się wartościowym środowiskiem eksperymentalnym dla metod uczenia maszynowego, statystyki i analizy danych [Vinyals2017, Bialecki2023].
 
@@ -10,16 +10,21 @@ Te cechy sprawiają, że gry RTS stanowią szczególnie wartościowy obiekt bada
 
 Praktyczne zastosowania modeli predykcyjnych w esporcie obejmują kilka wyraźnie zarysowanych obszarów. W transmisji sportowej modele estymujące prawdopodobieństwo zwycięstwa w czasie rzeczywistym wzbogacają przekaz dla widzów, dostarczając narracyjnego kontekstu zbliżonego do nakładek znanych z transmisji szachowych. Hodge i in. [Hodge2021] wykazali, że model oparty na metodzie gradientowego wzmacniania drzew decyzyjnych osiąga trafność rzędu 85% po pięciu minutach rozgrywki w Dota 2, co wskazuje na realną użyteczność takich systemów w warunkach transmisji na żywo; nowsze prace potwierdzają ten kierunek, proponując wyjaśnialne (ang. *explainable*) modele predykcji wyniku przeznaczone do zastosowań strumieniowych [GarciaMendez2025]. [REVIEW: GarciaMendez2025 — zweryfikować pełną listę autorów, grę docelową i dokładną trafność; dostęp ograniczony do metadanych ScienceDirect] W zakładach bukmacherskich kursy można interpretować jako odwzorowanie szacowanego prawdopodobieństwa zdarzeń, obciążone marżą operatora (ang. *overround*) i korygowane w odpowiedzi na napływ informacji rynkowej [Shin1993, Forrest2005]. Levitt [Levitt2004] wykazał, że bukmacherzy systematycznie wykorzystują błędy poznawcze obstawiających przy ustalaniu kursów, co oznacza, że kursy nie są wyłącznie pochodną modeli statystycznych, lecz odzwierciedlają interakcję między estymacją prawdopodobieństwa a strategią cenową operatora. [REVIEW: Shin1993 i Forrest2005 dotyczą rynków sportów tradycyjnych (wyścigi konne, piłka nożna) — przenoszenie mechanizmów na rynek esportowy wymaga odrębnego uzasadnienia; Mangat i in. [Mangat2024] omawiają zakłady esportowe, lecz z perspektywy psychologii hazardu, nie wyceny kursów] Trzeci obszar — narzędzia trenerskie — wykorzystuje modele do identyfikacji słabych punktów w strategii gracza na podstawie analizy ważności cech (ang. *feature importance*) w wytrenowanych modelach [Hodge2021]. Wreszcie, w badaniach nad sztuczną inteligencją modele predykcyjne służą jako narzędzie ewaluacyjne: porównanie przewidywań modelu z rzeczywistymi wynikami agentów AI pozwala ocenić, w jakim stopniu agent podejmuje decyzje zbliżone do optymalnych z perspektywy zagregowanych statystyk meczu [Vinyals2019].
 
-Pomimo rosnącej liczby badań nad predykcją wyników w grach esportowych — w tym prac poświęconych grom z gatunku MOBA, takim jak Dota 2 [Hodge2021] i League of Legends, oraz pracom dotyczącym StarCraft II [Baek2022] — można zaobserwować istotną lukę badawczą. Brak jest opublikowanych prac porównujących skuteczność metod predykcji *pomiędzy* różnymi grami RTS, w szczególności w warunkach asymetrycznej dostępności danych. Niniejsza praca podejmuje to zagadnienie, realizując porównawczą analizę metod predykcji wyników meczów 1v1 w StarCraft II i Age of Empires II — dwóch grach reprezentujących ten sam gatunek, ale różniących się zarówno mechaniką rozgrywki, jak i zakresem dostępnych danych telemetrycznych.
+Pomimo rosnącej liczby badań nad predykcją wyników w grach esportowych — w tym prac poświęconych grom z gatunku MOBA, takim jak Dota 2 [Hodge2021] i League of Legends, oraz pracom dotyczącym StarCraft II [Baek2022] — można zaobserwować istotną lukę badawczą. Brak jest opublikowanych prac porównujących skuteczność metod predykcji *pomiędzy* różnymi grami RTS, w szczególności w warunkach asymetrycznej dostępności danych. Skala tej luki jest wyraźnie widoczna w przypadku Age of Empires II: pomimo milionów aktywnych graczy, 45 asymetrycznych cywilizacji dostępnych w rankingowym trybie gry w okresie objętym analizowanymi zbiorami danych i rozwiniętej sceny turniejowej, jedyną opublikowaną pracą poświęconą bezpośrednio predykcji wyników meczów w AoE2 przed rokiem 2024 pozostaje analiza Çetin Taş i Müngen [CetinTas2023], wykorzystująca naiwny klasyfikator bayesowski i drzewa decyzyjne na danych z AoE2: Definitive Edition. Warto przy tym odnotować, że w polskim krajobrazie badawczym najbardziej zbliżoną tematycznie linię badawczą prowadzi grupa Andrzeja Białeckiego z Politechniki Warszawskiej, która opublikowała zarówno analizę determinant zwycięstwa w StarCraft II [Bialecki2022], jak i największy publicznie dostępny zbiór danych esportowych z tej gry [Bialecki2023] — stanowi to istotny punkt odniesienia dla niniejszej pracy, choć dotyczy wyłącznie jednego tytułu gry.
 
-## 1.2 Problem statement
+Dodatkowym czynnikiem motywującym jest ograniczenie klasycznych systemów rankingowych, takich jak system Elo [Elo1978] czy Glicko, które modelują siłę gracza jako pojedynczy skalar i zakładają przechodniość relacji „wygrywania" — założenie, którego naruszenia w grach z asymetrycznymi frakcjami udokumentowano zarówno teoretycznie [Hamilton2025], jak i empirycznie [Lin2024NCT]. Konsekwencje tego ograniczenia, stanowiące jedno z uzasadnień dla zastosowania metod uczenia maszynowego, omówiono szczegółowo w §1.2. W przypadku AoE2 przestrzeń zestawień obejmuje 990 unikalnych par cywilizacji ($\binom{45}{2}$), co czyni model jednoskalowy niewystarczającym i uzasadnia zastosowanie metod zdolnych do uchwycenia wielowymiarowej struktury interakcji między frakcjami. Niniejsza praca podejmuje to zagadnienie, realizując porównawczą analizę metod predykcji wyników meczów 1v1 w StarCraft II i Age of Empires II — dwóch grach reprezentujących ten sam gatunek, ale różniących się zarówno mechaniką rozgrywki, jak i zakresem dostępnych danych telemetrycznych.
 
-<!--
-Formal definition: given pre-game context for a 1v1 RTS match, predict P(focal player wins).
-Secondary: how does in-game state improve prediction (SC2 only)?
--->
+## 1.2 Sformułowanie problemu
 
-## 1.3 Research questions
+Centralnym zagadnieniem niniejszej pracy jest estymacja prawdopodobieństwa zwycięstwa wskazanego gracza (ang. *focal player*) w meczu 1v1 w grze strategicznej czasu rzeczywistego. Formalnie, dla danego kontekstu przedmeczowego $\mathbf{x}^{\text{pre}}$ zadanie polega na oszacowaniu warunkowego prawdopodobieństwa $P(Y = 1 \mid \mathbf{x}^{\text{pre}})$, gdzie $Y \in \{0, 1\}$ jest zmienną binarną oznaczającą zwycięstwo gracza wskazanego. Sformułowanie to celowo przyjmuje perspektywę predykcji probabilistycznej, a nie klasyfikacji twardej — uzasadnieniem jest fakt, że właściwe reguły punktacji (ang. *proper scoring rules*), takie jak wynik Briera (ang. *Brier score*) czy strata logarytmiczna (ang. *log loss*), oceniają jakość estymowanych prawdopodobieństw, a nie jedynie trafność klasyfikacji binarnej [Gneiting2007]. Jak wskazują Dimitriadis, Gneiting, Jordan i Vogel [Dimitriadis2024], pełna ewaluacja predyktora probabilistycznego wymaga jednoczesnej analizy trzech komplementarnych wymiarów za pomocą diagnostycznego tryptyku graficznego: diagramów rzetelności (ang. *reliability diagrams*) oceniających kalibrację, krzywych ROC diagnozujących zdolność dyskryminacyjną oraz diagramów Murphy'ego (ang. *Murphy diagrams*) wizualizujących ogólną jakość predykcyjną. Tryptyk ten stanowi potencjalną ramę ewaluacyjną dla porównania metod predykcyjnych; jego zastosowanie w niniejszej pracy zostanie rozważone w rozdziale poświęconym metodyce ewaluacji.
+
+Kontekst przedmeczowy $\mathbf{x}^{\text{pre}}$ obejmuje informacje dostępne przed rozpoczęciem rozgrywki, przy czym jego dokładny skład różni się między badanymi grami. Dla obu tytułów wspólnymi składowymi kontekstu są: identyfikatory graczy umożliwiające powiązanie z historią meczów, wartość rankingu lub wskaźnika umiejętności (MMR w StarCraft II, Elo w Age of Empires II) odzwierciedlająca dotychczasowe wyniki gracza, wybór frakcji (rasy w SC2, cywilizacji w AoE2) oraz mapa, na której rozgrywany jest mecz. W przypadku StarCraft II kontekst ten rozszerzony jest o wymiar niedostępny dla Age of Empires II: trajektorię stanu gry w trakcie meczu (ang. *in-game state trajectory*) aż do chwili $t$, obejmującą serie czasowe zmiennych ekonomicznych, militarnych i technologicznych, możliwą do wyodrębnienia z plików powtórek za pośrednictwem narzędzi ekstrakcji dostarczonych wraz ze zbiorem SC2EGSet [Bialecki2023]. Formalnie, kontekst predykcji w chwili $t$ definiowany jest jako $\mathbf{x}^{t} = (\mathbf{x}^{\text{pre}}, \mathbf{s}_t)$, gdzie $\mathbf{s}_t$ oznacza trajektorię stanu śródmeczowego do chwili $t$; dla Age of Empires II — w zakresie wyznaczonym przez źródła danych o charakterze agregacyjnym (aoestats.io, aoe2companion) — zachodzi $\mathbf{x}^{t} = \mathbf{x}^{\text{pre}}$, gdyż dane śródmeczowe nie są dostępne. Asymetria ta nie stanowi wady projektu, lecz celowo utrzymaną asymetrię projektu badawczego, której konsekwencje dla porównywalności wyników zostaną szczegółowo omówione w §1.4. Wtórna analiza SC2 — porównanie predykcji opartej wyłącznie na $\mathbf{x}^{\text{pre}}$ z predykcją wykorzystującą $\mathbf{x}^{t}$ — dostarcza quasi-eksperymentalnego porównania wewnątrzgrowego, pozwalającego ocenić przyrost informacyjny danych śródmeczowych przy kontroli pozostałych czynników.
+
+Wymiar porównawczy stanowi istotę kontrybucji badawczej niniejszej pracy. Przedmiotem analizy jest trenowanie i ewaluacja tej samej rodziny metod osobno na danych z obu gier, z hierarchią linii bazowych pozwalającą izolować poszczególne źródła sygnału predykcyjnego — od samej różnicy umiejętności graczy, przez asymetrię zestawień frakcji, po pełny zbiór cech kontekstowych. Konkretna struktura tej hierarchii zostanie określona w rozdziale metodycznym; istotne jest natomiast, że zastosowanie prostego modelu Elo jako jedynej linii bazowej byłoby metodologicznie niewystarczające. Jak wykazali Lin i in. [Lin2024NCT] oraz Hamilton, Kalenkova i Roughan [Hamilton2025], relacje typu kamień-papier-nożyce między frakcjami w grach PvP generują silną nieprzechodniość, której model jednoskalowy nie jest w stanie uchwycić. Problem ten jest szczególnie istotny dla AoE2, gdzie kombinatorycznie większa przestrzeń zestawień (45 cywilizacji wobec 3 ras w SC2) stwarza bogatsze pole dla interakcji nieprzechodnich — co potwierdzają empiryczne analizy Lin i in. [Lin2024NCT] przeprowadzone na ponad milionie meczów AoE2. Bez uwzględnienia struktury zestawień w hierarchii linii bazowych nie sposób odróżnić, jaka część ewentualnej przewagi klasyfikatora ML wynika z uchwycenia asymetrii frakcji, a jaka z pozostałych cech.
+
+Oprócz głównego zadania predykcji przedmeczowej niniejsza praca podejmuje pytanie wtórne, dotyczące wyłącznie StarCraft II: w jakim stopniu dostęp do trajektorii stanu gry do chwili $t$ poprawia jakość predykcji w porównaniu z modelem opartym wyłącznie na kontekście przedmeczowym, i czy zaobserwowana poprawa jest monotoniczna względem $t$, czy też wykazuje wzorce niemonotoniczne. Pytanie to wpisuje się w ugruntowaną tradycję badawczą predykcji śródmeczowej w StarCraft, zapoczątkowaną przez Ericksona i Buro [Erickson2014], którzy wykazali ogólnie rosnącą trafność predykcji w funkcji czasu rozgrywki w StarCraft: Brood War, potwierdzoną następnie przez Ravari, Bakkesa i Sproncka [Ravari2016] na wszystkich sześciu zestawieniach rasowych, a rozszerzoną na StarCraft II przez Baeka i Kima [Baek2022] z zastosowaniem trójwymiarowych sieci konwolucyjnych. Dokładna specyfikacja cech wejściowych, architektur modelowych i protokołu ewaluacji zostanie przedstawiona w rozdziale 4.
+
+## 1.3 Pytania badawcze
 
 <!--
 RQ1: Which ML methods achieve highest prediction accuracy?
@@ -29,14 +34,14 @@ RQ4: How does accuracy vary with player history length (cold-start)?
 Finalise after experiments confirm these are answerable.
 -->
 
-## 1.4 Scope and limitations
+## 1.4 Zakres i ograniczenia
 
 <!--
 1v1 only, professional/ranked, SC2 has in-game state but AoE2 does not,
 per-game prediction not per-tournament.
 -->
 
-## 1.5 Thesis outline
+## 1.5 Struktura pracy
 
 <!--
 Write last — brief description of each chapter.
@@ -50,7 +55,7 @@ Write last — brief description of each chapter.
 
 - [Ontanon2013] Ontanon, S., Synnaeve, G., Uriarte, A., Richoux, F., Churchill, D., & Preuss, M. (2013). A Survey of Real-Time Strategy Game AI Research and Competition in StarCraft. IEEE Transactions on Computational Intelligence and AI in Games, 5(4), 293-311.
 
-- [Bialecki2023] Bialecki, A., Jakubowski, M., Wozniak, P., Siedlaczek, J., & Tabaszewski, D. (2023). SC2EGSet: StarCraft II Esport Replay and Game-state Dataset. Scientific Data, 10(1), 600.
+- [Bialecki2023] Białecki, A., Jakubowska, N., Dobrowolski, P., Białecki, P., Krupiński, L., Szczap, A., Białecki, R., & Gajewski, J. (2023). SC2EGSet: StarCraft II Esport Replay and Game-state Dataset. Scientific Data, 10, 600. DOI: 10.1038/s41597-023-02510-7. https://www.nature.com/articles/s41597-023-02510-7
 
 - [Hodge2021] Hodge, V. J., Devlin, S. M., Sephton, N. J., Block, F. O., Cowling, P. I., & Drachen, A. (2021). Win Prediction in Multi-Player Esports: Live Professional Match Prediction. IEEE Transactions on Games, 13(4), 368-379.
 
@@ -69,3 +74,23 @@ Write last — brief description of each chapter.
 - [GarciaMendez2025] García-Méndez, S., & de Arriba-Pérez, F. (2025). Explainable e-sports win prediction through Machine Learning classification in streaming. Entertainment Computing, 55, 101027. https://doi.org/10.1016/j.entcom.2025.101027 [REVIEW: pełna lista autorów i gra docelowa wymagają weryfikacji z pełnego tekstu]
 
 - [Mangat2024] Mangat, H. S., Griffiths, M. D., Yu, S. M., Felvinczi, K., Ngetich, R. K., Demetrovics, Z., & Czakó, A. (2024). Understanding Esports-related Betting and Gambling: A Systematic Review of the Literature. Journal of Gambling Studies, 40(1), 145-165. https://doi.org/10.1007/s10899-023-10256-5 [REVIEW: cytowane wyłącznie w komentarzu wewnętrznym — jeśli włączane do tekstu, zweryfikować numer tomu/stron]
+
+- [CetinTas2023] Çetin Taş, İ. & Müngen, A. A. (2023). Regression Analysis of Age of Empires II DE Match Results with Machine Learning. 2023 8th International Conference on Computer Science and Engineering (UBMK), IEEE. DOI: 10.1109/UBMK59864.2023.10391048. https://ieeexplore.ieee.org/document/10391048/
+
+- [Bialecki2022] Białecki, A., Gajewski, J., Białecki, P., Phatak, A., & Memmert, D. (2022). Determinants of Victory in Esports — StarCraft II. Multimedia Tools and Applications, 82(7), 11099–11115. DOI: 10.1007/s11042-022-13373-2. https://link.springer.com/article/10.1007/s11042-022-13373-2
+
+- [Elo1978] Elo, A. E. (1978). The Rating of Chessplayers, Past and Present. Arco Publishing, New York. ISBN 978-0-668-04721-0.
+
+- [Hamilton2025] Hamilton, N., Kalenkova, A., & Roughan, M. (2025). The impact of intransitivity on the Elo rating system. PLOS ONE, 20(12), e0338261. DOI: 10.1371/journal.pone.0338261.
+
+- [Lin2024NCT] Lin, C.-C., Shih, Y.-W., Kuo, K.-T., Chen, Y.-C., Chen, C.-H., Chiu, W.-C., & Wu, I.-C. (2024). Identifying and Clustering Counter Relationships of Team Compositions in PvP Games for Efficient Balance Analysis. Transactions on Machine Learning Research (TMLR). ISSN 2835-8856. arXiv:2408.17180. https://arxiv.org/abs/2408.17180
+
+- [Balduzzi2018] Balduzzi, D., Tuyls, K., Pérolat, J., & Graepel, T. (2018). Re-evaluating Evaluation. Advances in Neural Information Processing Systems 31 (NeurIPS 2018). arXiv:1806.02643. http://papers.neurips.cc/paper/7588-re-evaluating-evaluation.pdf
+
+- [Gneiting2007] Gneiting, T. & Raftery, A. E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. Journal of the American Statistical Association, 102(477), 359–378. DOI: 10.1198/016214506000001437.
+
+- [Dimitriadis2024] Dimitriadis, T., Gneiting, T., Jordan, A. I., & Vogel, P. (2024). Evaluating probabilistic classifiers: The triptych. International Journal of Forecasting, 40(3), 1101–1122. DOI: 10.1016/j.ijforecast.2023.09.007.
+
+- [Erickson2014] Erickson, G. & Buro, M. (2014). Global State Evaluation in StarCraft. Proc. AIIDE 2014, 10(1), 112–118. DOI: 10.1609/aiide.v10i1.12725. https://ojs.aaai.org/index.php/AIIDE/article/view/12725
+
+- [Ravari2016] Ravari, Y. N., Bakkes, S., & Spronck, P. (2016). StarCraft Winner Prediction. Proc. AIIDE 2016 Workshop, 12(2), 2–8. DOI: 10.1609/aiide.v12i2.12887. https://www.spronck.net/pubs/AIIDE2016Yaser.pdf
