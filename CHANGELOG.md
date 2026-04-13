@@ -19,6 +19,22 @@ merged to `master`.
 
 ### Removed
 
+## [3.3.0] — 2026-04-13 (PR #TBD: chore/dag-decommission-and-cleanup)
+
+### Changed
+- Decommissioned DAG + spec materialization infrastructure; executors now read
+  `planning/current_plan.md` directly — no `DAG.yaml`, no `spec_NN_*.md` files
+- Removed `/dag` and `/materialize_plan` slash commands
+- Removed `docs/templates/dag_template.yaml`, `dag_status_template.yaml`, `spec_template.md`
+- Simplified `planning/README.md`, `planning/INDEX.md` to reflect two-artifact lifecycle
+- Updated all planner and executor agent definitions to remove DAG/spec requirements
+- Removed DAG/Job/Task Group/Task/parallel strategy terms from `docs/TAXONOMY.md`
+- Simplified `planner_output_contract.md` and `plan_template.md` (no Suggested Execution Graph)
+
+### Removed
+- `planning/specs/spec_*.md` pattern — specs no longer produced or consumed
+- `planning/dags/DAG.yaml` as an execution artifact (stubbed to `# No active DAG`)
+
 ## [3.2.1] — 2026-04-12 (PR #TBD: chore/dag-token-economy)
 
 ### Changed
