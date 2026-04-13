@@ -205,6 +205,13 @@ class TestLoadReplaysMeta:
         # Still 6 rows from the 2 real tournaments
         assert n == 6  # noqa: PLR2004
 
+    def test_should_drop_false_skips_drop(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """should_drop=False on a fresh connection still creates the table."""
+        n = load_replays_meta_raw(sc2_db_con, sc2_raw_dir, should_drop=False)
+        assert n == 6  # noqa: PLR2004
+
 
 # ── Tests: load_replay_players_raw ────────────────────────────────────────────
 
@@ -277,6 +284,35 @@ class TestLoadReplayPlayers:
         n2 = load_replay_players_raw(sc2_db_con, sc2_raw_dir, should_drop=True)
         assert n1 == n2
 
+    def test_should_drop_false_skips_drop(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """should_drop=False on a fresh connection still creates the table."""
+        n = load_replay_players_raw(sc2_db_con, sc2_raw_dir, should_drop=False)
+        assert n == 12  # noqa: PLR2004
+
+    def test_skips_invalid_json_file(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """Files with invalid JSON should be skipped without raising."""
+        bad_dir = sc2_raw_dir / "2020_Tournament_A" / "2020_Tournament_A_data"
+        (bad_dir / "bad.SC2Replay.json").write_text("not json {{{{")
+        n = load_replay_players_raw(sc2_db_con, sc2_raw_dir)
+        # 6 valid replays × 2 players; bad file is skipped
+        assert n == 12  # noqa: PLR2004
+
+    def test_skips_replay_with_no_players(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """A replay JSON with empty ToonPlayerDescMap contributes 0 player rows."""
+        empty_file = (
+            sc2_raw_dir / "2020_Tournament_A" / "2020_Tournament_A_data" / "empty.SC2Replay.json"
+        )
+        empty_file.write_text(json.dumps({"ToonPlayerDescMap": {}}))
+        n = load_replay_players_raw(sc2_db_con, sc2_raw_dir)
+        # 6 valid replays × 2 + 1 empty = still 12
+        assert n == 12  # noqa: PLR2004
+
 
 # ── Tests: extract_events_to_parquet ─────────────────────────────────────────
 
@@ -325,6 +361,32 @@ class TestExtractEventsToParquet:
         assert counts["trackerEvents"] == 18  # noqa: PLR2004
         assert counts["messageEvents"] == 6  # noqa: PLR2004
 
+    def test_skips_invalid_json_file(
+        self, sc2_raw_dir: Path, tmp_path: Path
+    ) -> None:
+        """Invalid JSON files should be skipped; valid files still produce events."""
+        bad_dir = sc2_raw_dir / "2020_Tournament_A" / "2020_Tournament_A_data"
+        (bad_dir / "bad.SC2Replay.json").write_text("not json {{{{")
+        output_dir = tmp_path / "events"
+        counts = extract_events_to_parquet(sc2_raw_dir, output_dir, batch_size=10)
+        # Same counts as without the bad file — it's skipped
+        assert counts["gameEvents"] == 90  # noqa: PLR2004
+
+    def test_empty_raw_dir(
+        self, tmp_path: Path
+    ) -> None:
+        """An empty raw directory should produce zero-count results (no Parquet files)."""
+        empty_raw = tmp_path / "empty_raw"
+        empty_raw.mkdir()
+        output_dir = tmp_path / "events"
+        counts = extract_events_to_parquet(empty_raw, output_dir, batch_size=10)
+        assert counts["gameEvents"] == 0
+        assert counts["trackerEvents"] == 0
+        assert counts["messageEvents"] == 0
+        # No Parquet files written when there are zero events
+        for et in ("gameEvents", "trackerEvents", "messageEvents"):
+            assert not (output_dir / f"{et}.parquet").exists()
+
 
 # ── Tests: load_map_aliases_raw ───────────────────────────────────────────────
 
@@ -371,6 +433,23 @@ class TestLoadMapAliases:
         n1 = load_map_aliases_raw(sc2_db_con, sc2_raw_dir, should_drop=True)
         n2 = load_map_aliases_raw(sc2_db_con, sc2_raw_dir, should_drop=True)
         assert n1 == n2
+
+    def test_should_drop_false_skips_drop(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """should_drop=False on a fresh connection still creates the table."""
+        n = load_map_aliases_raw(sc2_db_con, sc2_raw_dir, should_drop=False)
+        assert n == 6  # noqa: PLR2004
+
+    def test_skips_tournament_without_mapping_file(
+        self, sc2_db_con: duckdb.DuckDBPyConnection, sc2_raw_dir: Path
+    ) -> None:
+        """Tournament directories without a mapping file should be silently skipped."""
+        no_map_dir = sc2_raw_dir / "2022_No_Mapping"
+        (no_map_dir / "2022_No_Mapping_data").mkdir(parents=True)
+        n = load_map_aliases_raw(sc2_db_con, sc2_raw_dir)
+        # Still 6 rows from the 2 real tournaments
+        assert n == 6  # noqa: PLR2004
 
 
 # ── Tests: load_all_raw_tables ───────────────────────────────────────────────
