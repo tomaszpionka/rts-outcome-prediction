@@ -8,6 +8,81 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
+## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB ingestion investigation for sc2egset
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.json`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.md`
+
+### What
+
+Tested DuckDB `read_json_auto` on 7 sample .SC2Replay.json files spanning the per-directory average file-size distribution (2.1 MB to 143.1 MB). Measured event array storage requirements across all 7 samples. Tested batch ingestion on one full tournament directory (64 files). Performed a full census of all 70 map_foreign_to_english_mapping.json files. Produced a design artifact with proposed table split strategy and recommended DDL for future ingestion.
+
+### Why
+
+Step 01_02_01 assesses DuckDB ingestion feasibility before committing to a full 22,390-file load. Per Invariant #6, all measurements are reproducible. Per Invariant #9, conclusions are limited to ingestion behavior (types, storage, parse success) -- no semantic analysis.
+
+### How (reproducibility)
+
+```python
+from rts_predict.games.sc2.datasets.sc2egset.pre_ingestion import (
+    select_sample_files, test_read_json_auto_single,
+    measure_event_arrays, test_batch_ingestion,
+    census_mapping_files, test_mapping_read_json_auto,
+)
+# Sample selection: 1 from smallest-avg dir, 1 from largest-avg dir,
+# largest individual file, 3 from middle dirs
+samples = select_sample_files(inventory, REPLAYS_SOURCE_DIR)
+# read_json_auto per file
+results = [test_read_json_auto_single(con, s) for s in samples]
+# Event arrays
+ea = [measure_event_arrays(s) for s in samples]
+# Batch test on 2018_Cheeseadelphia_8 (64 files)
+batch = test_batch_ingestion(con, batch_dir)
+# Mapping census: all 70 files
+census = census_mapping_files(REPLAYS_SOURCE_DIR)
+```
+
+Full derivation: `sandbox/sc2/sc2egset/01_exploration/01_eda/01_02_01_duckdb_ingestion.ipynb`
+
+### Findings
+
+- read_json_auto succeeds on all 7 sample files (100% parse success)
+- All 11 root keys become columns; column count = 11 per file
+- ToonPlayerDescMap: single-file parse creates STRUCT with per-file player-ID keys (non-unionable). With union_by_name=true (batch), correctly promoted to MAP(VARCHAR, STRUCT(...))
+- Event array storage estimates (mean across 7 files, extrapolated to 22,390):
+  - gameEvents: 326.8 GB
+  - trackerEvents: 40.7 GB
+  - messageEvents: 0.1 GB
+  - Total: 367.6 GB
+- Batch ingestion: 64 files in 1.66 seconds, 24 GB memory limit not exceeded
+- Mapping file census: 70 files found, all identical (dict with 1,488 keys, foreign map name -> English name), combined 4.1 MB
+- DuckDB parses mapping files as MAP(VARCHAR, VARCHAR)
+
+### Decisions taken
+
+- Proposed split-table strategy: separate metadata and event tables to avoid 370 GB single-table. Event array ingestion deferred.
+- Mapping files: since all 70 are identical, a single file suffices for the lookup table.
+
+### Decisions deferred
+
+- Full 22,390-file ingestion: deferred pending decision on whether event arrays are needed for the prediction task.
+- Whether to normalize overview.json list-valued columns deferred to EDA.
+
+### Thesis mapping
+
+- Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet: DuckDB ingestion strategy, JSON complexity, storage estimates.
+
+### Open questions / follow-ups
+
+- The 367.6 GB event array estimate is based on JSON byte size; DuckDB columnar compression may reduce this substantially. Actual compressed size unknown without test ingestion.
+- ToonPlayerDescMap MAP(VARCHAR, STRUCT) type works with union_by_name=true but may have performance implications at 22,390 rows -- untested at scale.
+
+---
+
 ## 2026-04-12 — [Phase 01 / Step 01_01_02] Schema discovery of sc2egset JSON files
 
 **Category:** A (science)

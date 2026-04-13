@@ -8,6 +8,98 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB ingestion for aoe2companion
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.md`
+
+### What
+
+Performed pyarrow binary column inspection on all Parquet subdirectories. Ran smoke test on 3 files each from matches/ and ratings/. Ingested all files into DuckDB: matches_raw (277,099,059 rows), ratings_raw (58,317,433 rows), leaderboards_raw (2,381,227 rows), profiles_raw (3,609,686 rows). Verified column counts, types, won NULL count, and matches/ratings date gap.
+
+### Why
+
+Step 01_02_01 materializes the raw data layer in DuckDB. Per Invariant #6, all DDL and verification queries are recorded. Per Invariant #9, findings are limited to ingestion results.
+
+### How (reproducibility)
+
+```python
+from rts_predict.games.aoe2.datasets.aoe2companion.pre_ingestion import (
+    inspect_binary_columns, run_smoke_test,
+    ingest_matches_raw, ingest_ratings_raw,
+    ingest_leaderboards_raw, ingest_profiles_raw,
+    verify_tables, check_ratings_types, count_won_nulls, find_date_gap,
+)
+# Binary column inspection
+binary_info = inspect_binary_columns(AOE2COMPANION_RAW_DIR)
+# Full ingestion
+ingest_matches_raw(con, AOE2COMPANION_RAW_DIR)        # binary_as_string=true
+ingest_ratings_raw(con, AOE2COMPANION_RAW_DIR,         # explicit types
+                   use_explicit_types=True)
+ingest_leaderboards_raw(con, AOE2COMPANION_RAW_DIR)   # binary_as_string=true
+ingest_profiles_raw(con, AOE2COMPANION_RAW_DIR)       # binary_as_string=true
+```
+
+```sql
+-- matches_raw DDL
+CREATE TABLE matches_raw AS SELECT * FROM read_parquet(
+    'raw/matches/*.parquet', filename=true, binary_as_string=true);
+
+-- ratings_raw DDL (explicit types required — read_csv_auto fails on 2072 files)
+CREATE TABLE ratings_raw AS SELECT * FROM read_csv(
+    'raw/ratings/*.csv', filename=true, header=true,
+    types={'profile_id':'BIGINT','games':'BIGINT','rating':'BIGINT',
+           'date':'TIMESTAMP','leaderboard_id':'BIGINT',
+           'rating_diff':'BIGINT','season':'BIGINT'});
+
+-- leaderboards_raw DDL
+CREATE TABLE leaderboards_raw AS SELECT * FROM read_parquet(
+    'raw/leaderboards/leaderboard.parquet',
+    binary_as_string=true, filename=true);
+
+-- profiles_raw DDL
+CREATE TABLE profiles_raw AS SELECT * FROM read_parquet(
+    'raw/profiles/profile.parquet',
+    binary_as_string=true, filename=true);
+```
+
+Full derivation: `sandbox/aoe2/aoe2companion/01_exploration/01_eda/01_02_01_duckdb_ingestion.ipynb`
+
+### Findings
+
+- 4 tables created: matches_raw (277,099,059 rows, 55 cols), ratings_raw (58,317,433 rows, 8 cols), leaderboards_raw (2,381,227 rows, 19 cols), profiles_raw (3,609,686 rows, 14 cols)
+- Column counts match 01_01_02 + 1 filename column for all tables
+- Binary columns: all unannotated BYTE_ARRAY (converted_type=NONE) across matches (22), leaderboards (4), profiles (11). binary_as_string=true correctly resolves to VARCHAR.
+- ratings_raw: read_csv_auto inferred ALL 7 columns as VARCHAR on full 2072-file load (3 files worked fine). Re-ingested with explicit types= parameter. Final types: profile_id=BIGINT, games=BIGINT, rating=BIGINT, date=TIMESTAMP, leaderboard_id=BIGINT, rating_diff=BIGINT, season=BIGINT. Gate PASSED.
+- won column: 12,985,561 NULLs out of 277,099,059 total rows (4.7%)
+- Date gap: match-2025-07-11.parquet exists but rating-2025-07-11.csv does not (2,073 vs 2,072 files)
+- Smoke test passed
+
+### Decisions taken
+
+- Used explicit types= for ratings_raw due to read_csv_auto failure at scale.
+- binary_as_string=true applied to all Parquet reads based on pyarrow inspection confirming unannotated BYTE_ARRAY.
+
+### Decisions deferred
+
+- won NULL semantics (4.7% NULL rate): deferred to EDA profiling.
+- Whether the 2025-07-11 date gap affects downstream joins: noted for awareness.
+
+### Thesis mapping
+
+- Chapter 4 -- Data and Methodology > 4.1.2 AoE2 aoe2companion: DuckDB schema, binary column handling, CSV type inference.
+
+### Open questions / follow-ups
+
+- The read_csv_auto failure on 2072 files (all VARCHAR) suggests DuckDB's sample-based type inference breaks down at scale. This is a DuckDB behavior worth noting for the methodology chapter.
+- won NULL rate of 4.7% needs investigation: are these incomplete matches, disconnections, or a data collection artifact?
+
+---
+
 ## 2026-04-12 — [Phase 01 / Step 01_01_02] Schema discovery of aoe2companion raw files
 
 **Category:** A (science)

@@ -8,6 +8,92 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB ingestion for aoestats
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.json`
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/01_eda/01_02_01_duckdb_ingestion.md`
+
+### What
+
+Ran pyarrow variant column census on all 172 matches + 171 players Parquet files. Performed smoke test on 3 files per subdirectory. Ingested all files into DuckDB: matches_raw (30,690,651 rows), players_raw (107,627,584 rows), overviews_raw (1 row). Verified auto-promoted types, NULL counts, duration column types, and missing-week asymmetry.
+
+### Why
+
+Step 01_02_01 materializes the raw data layer in DuckDB. Per Invariant #6, all DDL and verification queries are recorded. Per Invariant #9, findings are limited to ingestion results -- no value distributions or semantic analysis.
+
+### How (reproducibility)
+
+```python
+from rts_predict.games.aoe2.datasets.aoestats.pre_ingestion import (
+    run_variant_census, run_smoke_test,
+    ingest_matches_raw, ingest_players_raw, ingest_overviews_raw,
+    verify_tables, check_duration_type, find_missing_weeks,
+)
+# Census: pyarrow.parquet.read_schema on all files
+census = run_variant_census(AOESTATS_RAW_DIR)
+# Smoke test: 3 files per subdirectory
+smoke = run_smoke_test(con_smoke, AOESTATS_RAW_DIR)
+# Full ingestion
+ingest_matches_raw(con, AOESTATS_RAW_DIR)   # union_by_name=true
+ingest_players_raw(con, AOESTATS_RAW_DIR)   # union_by_name=true
+ingest_overviews_raw(con, AOESTATS_RAW_DIR) # read_json_auto
+```
+
+```sql
+-- matches_raw DDL
+CREATE TABLE matches_raw AS
+SELECT * FROM read_parquet('raw/matches/*.parquet',
+    union_by_name=true, filename=true);
+
+-- players_raw DDL
+CREATE TABLE players_raw AS
+SELECT * FROM read_parquet('raw/players/*.parquet',
+    union_by_name=true, filename=true);
+
+-- overviews_raw DDL
+CREATE TABLE overviews_raw AS
+SELECT * FROM read_json_auto('raw/overview/overview.json',
+    filename=true);
+```
+
+Full derivation: `sandbox/aoe2/aoestats/01_exploration/01_eda/01_02_01_duckdb_ingestion.ipynb`
+
+### Findings
+
+- 3 tables created: matches_raw (30,690,651 rows, 18 cols), players_raw (107,627,584 rows, 14 cols), overviews_raw (1 row, 9 cols)
+- Variant column auto-promotion confirmed: started_timestamp -> TIMESTAMP WITH TIME ZONE, raw_match_type -> DOUBLE, feudal/castle/imperial_age_uptime -> DOUBLE, profile_id -> DOUBLE, opening -> VARCHAR
+- Duration columns: Arrow duration[ns] mapped to BIGINT (nanoseconds) by DuckDB 1.5.1, NOT INTERVAL. Sample values confirm reasonableness (e.g., 2971.6s).
+- Missing week: 2025-11-16 to 2025-11-22 has matches but no player data (172 vs 171 files)
+- profile_id is DOUBLE due to mixed int64/double sources. Flagged for precision concern (IDs > 2^53).
+- players_raw variant NULL counts: feudal_age_uptime=93,726,448, castle_age_uptime=94,641,831, imperial_age_uptime=98,468,904, profile_id=1,185, opening=92,616,290
+- Smoke test passed on 3 files per subdirectory
+
+### Decisions taken
+
+- Duration columns left as BIGINT nanoseconds at bronze layer -- conversion to seconds deferred to silver layer.
+- profile_id left as DOUBLE at bronze layer -- precision investigation deferred to EDA.
+- overviews_raw list-valued columns left as DuckDB JSON arrays -- normalization deferred to EDA.
+
+### Decisions deferred
+
+- Whether NULL-heavy variant columns (feudal/castle/imperial uptime, opening) represent missing data or absent features: requires content-level profiling in EDA.
+- Duration BIGINT->seconds conversion strategy deferred to silver layer design.
+
+### Thesis mapping
+
+- Chapter 4 -- Data and Methodology > 4.1.2 AoE2 aoestats: DuckDB schema, variant columns, ingestion strategy.
+
+### Open questions / follow-ups
+
+- The ~87% NULL rate in age uptime columns suggests these fields are populated only for replay-enhanced matches. Correlation with replay_enhanced column to be checked in EDA.
+- profile_id has only 1,185 NULLs (0.001%) -- likely from a few files with all-null profile_id (36 files had double type).
+
+---
+
 ## 2026-04-12 — [Phase 01 / Step 01_01_02] Schema discovery of aoestats raw files
 
 **Category:** A (science)

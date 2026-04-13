@@ -9,9 +9,9 @@ live in per-dataset logs — one per game/dataset combination.
 
 | Dataset | Log | Last entry |
 |---------|-----|------------|
-| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-12 (01_01_02) |
-| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-12 (01_01_02) |
-| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-12 (01_01_02) |
+| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-13 (01_02_01) |
+| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-13 (01_02_01) |
+| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-13 (01_02_01) |
 
 > **Phase migration note (2026-04-09):** This log was reset as part of the
 > Phase 01-07 migration. Prior entries were removed in v2.0.0 (archive
@@ -21,6 +21,52 @@ live in per-dataset logs — one per game/dataset combination.
 ---
 
 ## CROSS-Dataset Entries
+
+## 2026-04-13 — [CROSS / Phase 01 / Step 01_02_01] DuckDB Ingestion Cross-Dataset Summary
+
+**Category:** A (science)
+**Datasets:** sc2egset, aoe2companion, aoestats
+
+### Ingestion complexity comparison
+
+| Dataset | Complexity | Approach | Result |
+|---------|-----------|----------|--------|
+| sc2egset | Hard | Investigation only | read_json_auto works; 367.6 GB event arrays; split-table proposed |
+| aoe2companion | Easy | Full ingestion | 4 tables; binary_as_string required; CSV types need explicit spec |
+| aoestats | Medium | Full ingestion with variant census | 3 tables; union_by_name handles all variants automatically |
+
+### Tables created per dataset
+
+| Dataset | Tables | Total rows |
+|---------|--------|-----------|
+| sc2egset | 0 (investigation only) | -- |
+| aoe2companion | 4 (matches_raw, ratings_raw, leaderboards_raw, profiles_raw) | 341,407,405 |
+| aoestats | 3 (matches_raw, players_raw, overviews_raw) | 138,318,236 |
+
+### Row counts
+
+| Table | aoe2companion | aoestats |
+|-------|--------------|---------|
+| matches_raw | 277,099,059 | 30,690,651 |
+| ratings_raw | 58,317,433 | -- |
+| leaderboards_raw | 2,381,227 | -- |
+| profiles_raw | 3,609,686 | -- |
+| players_raw | -- | 107,627,584 |
+| overviews_raw | -- | 1 |
+
+### Cross-dataset timestamp precision
+
+- aoe2companion: `started`/`finished` columns use `timestamp[ms, tz=UTC]` in source Parquet -> DuckDB TIMESTAMP
+- aoestats: `started_timestamp` uses mixed `timestamp[us, tz=UTC]` (68 files) and `timestamp[ns, tz=UTC]` (104 files) -> DuckDB TIMESTAMP WITH TIME ZONE
+
+This precision asymmetry is a structural fact for downstream join awareness. No semantic comparison of data content.
+
+Per-dataset entries:
+- [sc2egset](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md)
+- [aoe2companion](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md)
+- [aoestats](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md)
+
+---
 
 ## 2026-04-12 — [CROSS / Phase 01 / Step 01_01_02] Schema Discovery Structural Summary
 
