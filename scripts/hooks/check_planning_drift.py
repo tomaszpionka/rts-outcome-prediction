@@ -47,7 +47,6 @@ PLAN_SECTIONS_UNIVERSAL = {
     "scope",
     "execution steps",
     "file manifest",
-    "suggested execution graph",
 }
 
 # Additional required sections for category A and F
@@ -277,6 +276,10 @@ def validate_dag(
         dag = yaml.safe_load(path.read_text())
     except yaml.YAMLError as exc:
         errors.append(f"{rel}: invalid YAML — {exc}")
+        return errors, spec_files
+
+    if dag is None:
+        # Stub DAG (decommissioned / no active DAG) — skip validation
         return errors, spec_files
 
     if not isinstance(dag, dict):

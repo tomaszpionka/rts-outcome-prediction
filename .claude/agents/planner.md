@@ -32,7 +32,6 @@ ruff, mypy, DuckDB).
 - Each step: files touched, verification command, expected outcome.
 - Max 20 steps per plan. If larger, split into multiple PRs.
 - Bash commands must be single-line or `&&`-chained. Never use heredocs or `python3 -c "..."` with newlines — a newline followed by `#` inside a quoted argument triggers a hard permission prompt.
-- **DAG requirement:** Every plan MUST include a "Suggested Execution Graph" section that proposes: (1) task groups with descriptions, (2) dependencies between groups, (3) tasks within each group with agent assignment and file scope, (4) which tasks are parallel-safe, (5) a `spec_file` path for each task following the `planning/specs/spec_NN_<short_name>.md` convention (numbering starts at 01). These paths are consumed verbatim by `/materialize_plan` — the planner decides the spec naming, not the materializer.
 - **Output contract:** Plan output must conform to `docs/templates/planner_output_contract.md`. Read it before producing output.
 - **Critique routing (Category B/D):** For Category B (always) and Category D (when `file_scope` touches `src/rts_predict/<game>/`), instruct the parent session to dispatch `reviewer-adversarial` to produce `planning/current_plan.critique.md` (using `docs/templates/plan_critique_template.md`). For Category C/E, no critique is needed. Do NOT produce the critique yourself.
 
