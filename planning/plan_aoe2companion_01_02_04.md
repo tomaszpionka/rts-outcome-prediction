@@ -14,10 +14,13 @@
 
 Step 01_02_01 characterised the raw Parquet/CSV files pre-ingestion and diagnosed
 the `won` column NULL root cause (genuine NULLs, 4.69%, uniformly distributed).
-Step 01_02_02 materialises four raw DuckDB tables. However, after ingestion,
-no column-level profiling has been performed on the DuckDB tables. The pipeline
-section 01_02 (Tukey-style EDA) cannot advance toward completion without a
-first-pass univariate census of all available fields across all four tables.
+Step 01_02_02 materialises four raw DuckDB tables. Step 01_02_03 established the
+definitive column-name and column-type baseline for all four raw sources, producing
+the `data/db/schemas/raw/*.yaml` source-of-truth files (matches_raw: 55 columns,
+ratings_raw: 8, leaderboards_raw: 19, profiles_raw: 14). However, after ingestion
+and schema documentation, no column-level profiling has been performed on the DuckDB
+tables. The pipeline section 01_02 (Tukey-style EDA) cannot advance toward completion
+without a first-pass univariate census of all available fields across all four tables.
 
 The aoe2companion dataset differs structurally from sc2egset in critical ways:
 no STRUCT columns (all flat scalars), a BOOLEAN target variable (`won`) instead
@@ -333,10 +336,10 @@ Use the cardinality values computed in Section A and Section H.
 
 | Artifact | Path |
 |----------|------|
-| JSON report | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.json` |
-| Markdown summary | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.md` |
-| Notebook (py) | `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.py` |
-| Notebook (ipynb) | `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.ipynb` |
+| JSON report | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json` |
+| Markdown summary | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md` |
+| Notebook (py) | `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py` |
+| Notebook (ipynb) | `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.ipynb` |
 
 The markdown artifact must contain every SQL query verbatim (Invariant #6).
 
@@ -346,17 +349,18 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 
 ### T00 — Add step to ROADMAP
 
-**Objective:** Register 01_02_03 in ROADMAP.md before STEP_STATUS.yaml is
+**Objective:** Register 01_02_04 in ROADMAP.md before STEP_STATUS.yaml is
 updated. STEP_STATUS.yaml is derived from the ROADMAP — writing STEP_STATUS
 without a ROADMAP entry violates the project's derivation chain.
 
 **Instructions:**
 1. Read `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md`
    to locate the existing step schema.
-2. Append a step definition block for `01_02_03` after the `01_02_02` block,
+2. Append a step definition block for `01_02_04` after the `01_02_03` block,
    using the same YAML schema (step_number, name, description, phase,
    pipeline_section, predecessors, notebook_path, inputs, outputs, gate,
    thesis_mapping, research_log_entry).
+   - `step_number`: `"01_02_04"`
    - `name`: "Univariate Census & Target Variable EDA"
    - `question`: "What are the NULL rates, cardinality, value distributions,
      and descriptive statistics across all columns of all four raw DuckDB
@@ -364,10 +368,11 @@ without a ROADMAP entry violates the project's derivation chain.
      overall and stratified by leaderboard?"
    - `manual_reference`: `docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md,
      Sections 2.1, 3.1, 3.2, 3.3`
-   - `predecessors`: `[01_02_02]`
+   - `predecessors`: `[01_02_03]`
 
 **Verification:**
-- ROADMAP.md contains a valid `01_02_03` step block with all required fields.
+- ROADMAP.md contains a valid `01_02_04` step block with all required fields.
+- The `predecessors` field lists `01_02_03` (not `01_02_02`).
 
 **File scope:**
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md`
@@ -380,10 +385,12 @@ without a ROADMAP entry violates the project's derivation chain.
 
 **Prerequisites:** Step 01_02_02 must be complete — all four DuckDB tables
 (`matches_raw`, `ratings_raw`, `leaderboards_raw`, `profiles_raw`) must exist
-in the persistent database.
+in the persistent database. Step 01_02_03 must also be complete — the
+`data/db/schemas/raw/*.yaml` files must exist and confirm the column counts
+(matches=55, ratings=8, leaderboards=19, profiles=14).
 
 **Instructions:**
-1. Create `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.py`
+1. Create `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py`
    with jupytext `percent` format header.
 2. Section 1: Full NULL census of `matches_raw` — iterate over all 55
    columns from `DESCRIBE matches_raw`, querying NULL count, NULL percentage,
@@ -430,16 +437,16 @@ The executor should:
 - Print progress logging for long-running queries.
 
 **Verification:**
-- Notebook runs to completion: `source .venv/bin/activate && poetry run jupyter execute sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.ipynb`
+- Notebook runs to completion: `source .venv/bin/activate && poetry run jupyter execute sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.ipynb`
 - Both `.py` and `.ipynb` files exist and are paired.
 - JSON artifact exists and is valid JSON.
 - Markdown artifact exists and contains inline SQL for every result table.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.md`
+- `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py`
+- `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.ipynb`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
 
 ---
 
@@ -449,12 +456,14 @@ The executor should:
 Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
 
 **Instructions:**
-1. Add `01_02_03` to `STEP_STATUS.yaml` with status `complete` and
+1. Add `01_02_04` to `STEP_STATUS.yaml` with status `complete` and
    `completed_at` set to execution date.
 2. Add a research log entry at the top of `research_log.md` (reverse
-   chronological) following existing entry format. Include: What, Why, How,
-   Findings (with key numbers from the artifact), Decisions taken, Decisions
-   deferred, Thesis mapping, Open questions.
+   chronological — the most recent entry is currently 01_02_03 dated
+   2026-04-14) following existing entry format. The new entry is for step
+   `01_02_04`. Include: What, Why, How, Findings (with key numbers from the
+   artifact), Decisions taken, Decisions deferred, Thesis mapping, Open
+   questions.
 3. Findings section must reference specific numbers from the JSON artifact —
    no fabricated values.
 4. Decisions deferred must include:
@@ -472,8 +481,8 @@ Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
      profileId? (Cross-table join integrity — deferred to a subsequent step.)
 
 **Verification:**
-- `STEP_STATUS.yaml` lists `01_02_03` with status `complete`.
-- `research_log.md` has a new entry at the top referencing step `01_02_03`.
+- `STEP_STATUS.yaml` lists `01_02_04` with status `complete`.
+- `research_log.md` has a new entry at the top referencing step `01_02_04`.
 - Research log entry mentions leaderboard filtering deferral.
 
 **File scope:**
@@ -481,7 +490,7 @@ Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
 - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md`
 
 **Read scope (depends on T01):**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
 
 ---
 
@@ -490,10 +499,10 @@ Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
 | File | Action |
 |------|--------|
 | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md` | Update (T00) |
-| `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.py` | Create (T01) |
-| `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_univariate_census.ipynb` | Create (T01) |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.json` | Create (T01) |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_univariate_census.md` | Create (T01) |
+| `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py` | Create (T01) |
+| `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.ipynb` | Create (T01) |
+| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json` | Create (T01) |
+| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md` | Create (T01) |
 | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml` | Update (T02) |
 | `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md` | Update (T02) |
 
@@ -503,8 +512,8 @@ Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
 
 All of the following must be true before this step is marked complete:
 
-1. JSON artifact `01_02_03_univariate_census.json` exists and is valid JSON.
-2. Markdown artifact `01_02_03_univariate_census.md` contains inline SQL for
+1. JSON artifact `01_02_04_univariate_census.json` exists and is valid JSON.
+2. Markdown artifact `01_02_04_univariate_census.md` contains inline SQL for
    every reported result (Invariant #6).
 3. JSON artifact contains: NULL counts and percentages for all 55 `matches_raw`
    columns, `won` value distribution with TRUE, FALSE, and NULL counts,
@@ -513,10 +522,10 @@ All of the following must be true before this step is marked complete:
 4. JSON artifact contains NULL census for all three auxiliary tables
    (`leaderboards_raw`, `profiles_raw`, `ratings_raw`).
 5. JSON artifact contains a dead/constant/near-constant field list.
-6. `STEP_STATUS.yaml` lists `01_02_03` as `complete`.
-7. `research_log.md` has a dated entry for step `01_02_03` that mentions
+6. `STEP_STATUS.yaml` lists `01_02_04` as `complete`.
+7. `research_log.md` has a dated entry for step `01_02_04` that mentions
    leaderboard filtering deferral.
-8. ROADMAP.md contains a valid `01_02_03` step block.
+8. ROADMAP.md contains a valid `01_02_04` step block with `predecessors: [01_02_03]`.
 9. No numbers in artifacts were fabricated — all derive from SQL executed
    in the notebook.
 
@@ -591,7 +600,7 @@ All of the following must be true before this step is marked complete:
    memory issues. Full distinct value lists are deferred to the artifact
    JSON.
 3. **Step 01_02_02 not yet complete.** This plan assumes 01_02_02 will be
-   completed before execution of 01_02_03 begins. If the DuckDB tables
+   completed before execution of 01_02_04 begins. If the DuckDB tables
    do not exist, the notebook will fail on the first query. This is by
    design — the dependency is explicit.
 
@@ -600,7 +609,24 @@ All of the following must be true before this step is marked complete:
 ## Prerequisite Dependency
 
 **This step cannot be executed until Step 01_02_02 (DuckDB Ingestion) is
-complete.** The STEP_STATUS currently shows 01_02_02 as `not_started`.
+complete.** The STEP_STATUS currently shows:
+- `01_01_01` File Inventory: `complete` (2026-04-09)
+- `01_01_02` Schema Discovery: `complete` (2026-04-12)
+- `01_02_01` DuckDB Pre-Ingestion: `complete` (2026-04-13)
+- `01_02_02` DuckDB Ingestion: `not_started`
+- `01_02_03` Raw Schema DESCRIBE: complete (ran in-memory because 01_02_02 had
+  not yet been executed; produced `data/db/schemas/raw/*.yaml` source-of-truth
+  files)
+
+Step 01_02_04 requires **both** of the following to be complete:
+1. **01_02_02** — the persistent DuckDB must contain all four tables
+   (`matches_raw`, `ratings_raw`, `leaderboards_raw`, `profiles_raw`) so
+   that `get_notebook_db("aoe2", "aoe2companion")` returns a working
+   connection.
+2. **01_02_03** — the schema YAMLs must exist, confirming the column counts
+   (matches=55, ratings=8, leaderboards=19, profiles=14) that the notebook's
+   queries rely on.
+
 The notebook code for 01_02_02 exists at
 `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_02_duckdb_ingestion.py`
 but has not been executed. Before dispatching T01, ensure:

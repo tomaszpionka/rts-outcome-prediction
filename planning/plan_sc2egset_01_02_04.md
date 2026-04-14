@@ -12,7 +12,7 @@
 
 ## Scientific Rationale
 
-Step 01_02_02 materialised three raw DuckDB tables and three event views, but the STRUCT columns in `replays_meta_raw` (`details`, `header`, `initData`, `metadata`) remain opaque blobs. The research log explicitly notes that "only 7 of 25 columns checked" for NULL rates in `replay_players_raw`, and the `SQ`, `supplyCappedPercent`, `highestLeague` columns are flagged as open questions. The pipeline section `01_02` (Tukey-style EDA) cannot advance toward completion without a first-pass univariate census of all available fields — this is the foundational layer of the EDA manual's three-layer approach (Section 2.1: univariate, then bivariate, then multivariate).
+Step 01_02_02 materialised three raw DuckDB tables and three event views, but the STRUCT columns in `replays_meta_raw` (`details`, `header`, `initData`, `metadata`) remain opaque blobs. The research log explicitly notes that "only 7 of 25 columns checked" for NULL rates in `replay_players_raw`, and the `SQ`, `supplyCappedPercent`, `highestLeague` columns are flagged as open questions. Step 01_02_03 captured the definitive column-name and column-type snapshot via DESCRIBE for all six `*_raw` objects and populated the `data/db/schemas/raw/*.yaml` source-of-truth files, but performed no value-level analysis. The pipeline section `01_02` (Tukey-style EDA) cannot advance toward completion without a first-pass univariate census of all available fields — this is the foundational layer of the EDA manual's three-layer approach (Section 2.1: univariate, then bivariate, then multivariate).
 
 This step answers:
 
@@ -30,23 +30,32 @@ This step answers:
 
 ### A. STRUCT field extraction from `replays_meta_raw`
 
-Extract scalar fields from the four STRUCT columns into a flat view for analysis. Note: `version` is a DuckDB reserved keyword and **must** be quoted as `header."version"` in all SQL — unquoted form will raise a parse error.
+Extract scalar fields from the four STRUCT columns into a flat view for analysis. The confirmed STRUCT types (from `data/db/schemas/raw/replays_meta_raw.yaml`, produced by step 01_02_03) are:
 
-- `details.gameSpeed` — expected categorical (Faster/Fast/Normal/Slow/Slower)
-- `details.isBlizzardMap` — boolean
+- `details`: `STRUCT(gameSpeed VARCHAR, isBlizzardMap BOOLEAN, timeUTC VARCHAR)`
+- `header`: `STRUCT(elapsedGameLoops BIGINT, "version" VARCHAR)` — note `version` is a DuckDB reserved keyword and **must** be quoted as `header."version"` in all SQL
+- `metadata`: `STRUCT(baseBuild VARCHAR, dataBuild VARCHAR, gameVersion VARCHAR, mapName VARCHAR)`
+- `initData`: `STRUCT(gameDescription STRUCT(gameOptions STRUCT(...), gameSpeed VARCHAR, isBlizzardMap BOOLEAN, mapAuthorName VARCHAR, mapFileSyncChecksum BIGINT, mapSizeX BIGINT, mapSizeY BIGINT, maxPlayers BIGINT))`
+
+Fields extracted:
+
+- `details.gameSpeed` — expected categorical (Faster/Fast/Normal/Slow/Slower); VARCHAR
+- `details.isBlizzardMap` — BOOLEAN
 - `details.timeUTC` — VARCHAR timestamp
-- `header.elapsedGameLoops` — game duration in game loops
-- `header."version"` — game version string; cardinality and top-k
-- `metadata.baseBuild`, `metadata.dataBuild` — build identifiers
-- `metadata.gameVersion` — version string
-- `metadata.mapName` — map name; cardinality, top-k, join feasibility with `map_aliases_raw`
-- `initData.gameDescription.maxPlayers` — expected 2 for 1v1
-- `initData.gameDescription.gameSpeed` — data-quality cross-check against `details.gameSpeed`
-- `initData.gameDescription.isBlizzardMap` — data-quality cross-check against `details.isBlizzardMap`
-- `initData.gameDescription.mapSizeX`, `initData.gameDescription.mapSizeY` — map dimensions
-- Error columns: `gameEventsErr`, `messageEventsErr`, `trackerEvtsErr` — boolean; count TRUE values
+- `header.elapsedGameLoops` — game duration in game loops; BIGINT
+- `header."version"` — game version string; VARCHAR; cardinality and top-k
+- `metadata.baseBuild`, `metadata.dataBuild` — build identifiers; VARCHAR
+- `metadata.gameVersion` — version string; VARCHAR
+- `metadata.mapName` — map name; VARCHAR; cardinality, top-k, join feasibility with `map_aliases_raw`
+- `initData.gameDescription.maxPlayers` — expected 2 for 1v1; BIGINT
+- `initData.gameDescription.gameSpeed` — data-quality cross-check against `details.gameSpeed`; VARCHAR
+- `initData.gameDescription.isBlizzardMap` — data-quality cross-check against `details.isBlizzardMap`; BOOLEAN
+- `initData.gameDescription.mapSizeX`, `initData.gameDescription.mapSizeY` — map dimensions; BIGINT
+- Error columns: `gameEventsErr`, `messageEventsErr`, `trackerEvtsErr` — BOOLEAN (top-level columns); count TRUE values
 
-Note: `initData.gameDescription.gameOptions` sub-STRUCT (fields: `competitive`, `observers`, `practice`, `randomRaces`) is **not extracted in this step** — these fields may be relevant for filtering non-competitive replays in 01_04. Document as a deferred finding in the research log entry.
+Note: `initData.gameDescription.gameOptions` sub-STRUCT (fields include: `advancedSharedControl`, `amm`, `battleNet`, `clientDebugFlags`, `competitive`, `cooperative`, `fog`, `heroDuplicatesAllowed`, `lockTeams`, `noVictoryOrDefeat`, `observers`, `practice`, `randomRaces`, `teamsTogether`, `userDifficulty`) is **not extracted in this step** — the fields `competitive`, `observers`, `practice`, `randomRaces` may be relevant for filtering non-competitive replays in 01_04. Document as a deferred finding in the research log entry.
+
+Note: `initData.gameDescription.mapAuthorName` (VARCHAR) and `initData.gameDescription.mapFileSyncChecksum` (BIGINT) are also **not extracted in this step** — neither is expected to have predictive value for outcome prediction.
 
 DuckDB SQL sketch:
 ```sql
@@ -76,7 +85,8 @@ Data-quality cross-checks between duplicate fields (e.g., `details.gameSpeed` vs
 
 ### B. Full NULL census of `replay_players_raw`
 
-01_02_02 checked only 7 of 25 columns. This step covers all 25, including both count and percentage (EDA Manual Section 3.1 requires both):
+01_02_02 checked only 7 of 25 columns. This step covers all 25, including both count and percentage (EDA Manual Section 3.1 requires both). The confirmed 25-column schema (from `data/db/schemas/raw/replay_players_raw.yaml`, produced by step 01_02_03) is: `filename` (VARCHAR, NOT NULL), `toon_id` (VARCHAR, NOT NULL), `nickname` (VARCHAR), `playerID` (INTEGER), `userID` (BIGINT), `isInClan` (BOOLEAN), `clanTag` (VARCHAR), `MMR` (INTEGER), `race` (VARCHAR), `selectedRace` (VARCHAR), `handicap` (INTEGER), `region` (VARCHAR), `realm` (VARCHAR), `highestLeague` (VARCHAR), `result` (VARCHAR), `APM` (INTEGER), `SQ` (INTEGER), `supplyCappedPercent` (INTEGER), `startDir` (INTEGER), `startLocX` (INTEGER), `startLocY` (INTEGER), `color_a` (INTEGER), `color_b` (INTEGER), `color_g` (INTEGER), `color_r` (INTEGER).
+
 ```sql
 SELECT
     COUNT(*) AS total_rows,
@@ -216,10 +226,10 @@ For all 25 `replay_players_raw` columns plus all extracted STRUCT fields, comput
 
 | Artifact | Path |
 |----------|------|
-| JSON report | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.json` |
-| Markdown summary | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.md` |
-| Notebook (py) | `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.py` |
-| Notebook (ipynb) | `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.ipynb` |
+| JSON report | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.json` |
+| Markdown summary | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.md` |
+| Notebook (py) | `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.py` |
+| Notebook (ipynb) | `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.ipynb` |
 
 The markdown artifact must contain every SQL query verbatim (Invariant #6).
 
@@ -229,17 +239,18 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 
 ### T00 — Add step to ROADMAP
 
-**Objective:** Register 01_02_03 in ROADMAP.md before STEP_STATUS.yaml is updated. STEP_STATUS.yaml is derived from the ROADMAP — writing STEP_STATUS without a ROADMAP entry violates the project's derivation chain.
+**Objective:** Register 01_02_04 in ROADMAP.md before STEP_STATUS.yaml is updated. STEP_STATUS.yaml is derived from the ROADMAP — writing STEP_STATUS without a ROADMAP entry violates the project's derivation chain.
 
 **Instructions:**
 1. Read `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` to locate the existing step schema.
-2. Append a step definition block for `01_02_03` after the `01_02_02` block, using the same YAML schema (step_number, name, description, phase, pipeline_section, predecessors, notebook_path, inputs, outputs, gate, thesis_mapping, research_log_entry).
+2. Append a step definition block for `01_02_04` after the `01_02_03` block, using the same YAML schema (step_number, name, description, phase, pipeline_section, predecessors, notebook_path, inputs, outputs, gate, thesis_mapping, research_log_entry).
    - `question`: "What are the value distributions, cardinality, and NULL rates across all fields in the raw DuckDB tables, including fields embedded in STRUCT columns, and what is the class balance of the target variable?"
    - `manual_reference`: `docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Sections 2.1, 3.1, 3.2, 3.3`
-   - `predecessors`: `[01_02_02]`
+   - `predecessors`: `[01_02_03]`
 
 **Verification:**
-- ROADMAP.md contains a valid `01_02_03` step block with all required fields.
+- ROADMAP.md contains a valid `01_02_04` step block with all required fields.
+- The `predecessors` field lists `01_02_03`.
 
 **File scope:**
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
@@ -251,8 +262,8 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 **Objective:** Create the jupytext-paired notebook implementing analyses A–H.
 
 **Instructions:**
-1. Create `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.py` with jupytext `percent` format header.
-2. Section 1: STRUCT field extraction — flatten all four metadata STRUCTs into scalar columns via DuckDB SQL. Store result as `struct_flat` DataFrame. Print shape and first 5 rows.
+1. Create `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.py` with jupytext `percent` format header.
+2. Section 1: STRUCT field extraction — flatten all four metadata STRUCTs into scalar columns via DuckDB SQL. Store result as `struct_flat` DataFrame. Print shape and first 5 rows. Cross-reference field paths against `data/db/schemas/raw/replays_meta_raw.yaml` (produced by step 01_02_03) to confirm STRUCT types match.
 3. Section 2: Full NULL census — query all 25 columns of `replay_players_raw` with both count and percentage (see Section B SQL above). Also query NULL counts for extracted STRUCT fields. Pull to pandas `.df()`, reshape into a tidy `(column, null_count, null_pct)` table for display.
 4. Section 3: Target variable analysis — `result` value distribution with counts and percentages. Print table.
 5. Section 4: Categorical field profiles — distinct value counts for `race`, `selectedRace`, `highestLeague`, `region`, `realm`, `game_speed`, `game_speed_init`, `map_name`, `game_version_meta`, `base_build`, `data_build`. **Use loop-based cells** iterating over column lists to stay within the 50-line cell cap. End with the `game_speed` assertion cell (see Section D above) — execution must stop here if assertion fails.
@@ -265,16 +276,16 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 12. No `def`, `class`, or lambda in any cell (sandbox hard rule #1). No cell exceeds 50 lines (sandbox hard rule #2).
 
 **Verification:**
-- Notebook runs to completion: `source .venv/bin/activate && poetry run jupyter execute sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.ipynb`
+- Notebook runs to completion: `source .venv/bin/activate && poetry run jupyter execute sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.ipynb`
 - Both `.py` and `.ipynb` files exist and are paired.
 - JSON artifact exists and is valid JSON.
 - Markdown artifact exists and contains inline SQL for every result table.
 
 **File scope:**
-- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.py`
-- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.ipynb`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.json`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.md`
+- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.py`
+- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.ipynb`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.json`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.md`
 
 ---
 
@@ -283,14 +294,14 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 **Objective:** Record step completion in `STEP_STATUS.yaml` and `research_log.md`. Depends on T00 (ROADMAP entry must exist) and T01 (artifact must exist).
 
 **Instructions:**
-1. Add `01_02_03` to `STEP_STATUS.yaml` with status `complete` and `completed_at` set to execution date.
-2. Add a research log entry at the top of `research_log.md` (reverse chronological) following existing entry format. Include: What, Why, How, Findings (with key numbers from the artifact), Decisions taken, Decisions deferred, Thesis mapping, Open questions.
+1. Add `01_02_03` to `STEP_STATUS.yaml` with status `complete` and `completed_at` set to `2026-04-14` (the date of its research log entry), if not already present. Then add `01_02_04` with status `complete` and `completed_at` set to execution date. Note: STEP_STATUS.yaml currently lists steps through `01_02_02` only — step `01_02_03` is defined in the ROADMAP and has a research log entry dated 2026-04-14, but was never added to STEP_STATUS.yaml.
+2. Add a research log entry for step `01_02_04` at the top of `research_log.md` (reverse chronological) following existing entry format. Include: What, Why, How, Findings (with key numbers from the artifact), Decisions taken, Decisions deferred, Thesis mapping, Open questions.
 3. Findings section must reference specific numbers from the JSON artifact — no fabricated values.
-4. Decisions deferred must include: "`initData.gameDescription.gameOptions` sub-fields (`competitive`, `observers`, `practice`, `randomRaces`) were not extracted — defer to 01_04 cleaning step as potential filters for non-competitive replays."
+4. Decisions deferred must include: "`initData.gameDescription.gameOptions` sub-fields (`competitive`, `observers`, `practice`, `randomRaces`, and 11 additional fields including `advancedSharedControl`, `amm`, `battleNet`, `clientDebugFlags`, `cooperative`, `fog`, `heroDuplicatesAllowed`, `lockTeams`, `noVictoryOrDefeat`, `teamsTogether`, `userDifficulty`) were not extracted — defer to 01_04 cleaning step as potential filters for non-competitive replays."
 
 **Verification:**
-- `STEP_STATUS.yaml` lists `01_02_03` with status `complete`.
-- `research_log.md` has a new entry at the top referencing step `01_02_03`.
+- `STEP_STATUS.yaml` lists both `01_02_03` and `01_02_04` with status `complete`.
+- `research_log.md` has a new entry at the top referencing step `01_02_04`.
 - Research log entry mentions `gameOptions` deferral.
 
 **File scope:**
@@ -298,7 +309,7 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
 
 **Read scope (depends on T01):**
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.json`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.json`
 
 ---
 
@@ -307,10 +318,10 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 | File | Action |
 |------|--------|
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` | Update (T00) |
-| `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.py` | Create (T01) |
-| `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_03_struct_eda.ipynb` | Create (T01) |
-| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.json` | Create (T01) |
-| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_03_struct_eda.md` | Create (T01) |
+| `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.py` | Create (T01) |
+| `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_struct_eda.ipynb` | Create (T01) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.json` | Create (T01) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_04_struct_eda.md` | Create (T01) |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` | Update (T02) |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` | Update (T02) |
 
@@ -320,13 +331,13 @@ The markdown artifact must contain every SQL query verbatim (Invariant #6).
 
 All of the following must be true before this step is marked complete:
 
-1. JSON artifact `01_02_03_struct_eda.json` exists and is valid JSON.
-2. Markdown artifact `01_02_03_struct_eda.md` contains inline SQL for every reported result (Invariant #6).
+1. JSON artifact `01_02_04_struct_eda.json` exists and is valid JSON.
+2. Markdown artifact `01_02_04_struct_eda.md` contains inline SQL for every reported result (Invariant #6).
 3. JSON artifact contains: NULL counts and percentages for all 25 `replay_players_raw` columns, `result` value distribution with at least Win and Loss counts, temporal range with earliest and latest dates, error column counts, descriptive statistics for at least `MMR`, `APM`, `elapsed_game_loops`.
 4. At least 3 extracted STRUCT fields have non-NULL rate > 0% in the JSON artifact (guards against wrong STRUCT paths silently producing all-NULL results).
-5. `STEP_STATUS.yaml` lists `01_02_03` as `complete`.
-6. `research_log.md` has a dated entry for step `01_02_03` that mentions `gameOptions` deferral.
-7. ROADMAP.md contains a valid `01_02_03` step block.
+5. `STEP_STATUS.yaml` lists `01_02_04` as `complete`.
+6. `research_log.md` has a dated entry for step `01_02_04` that mentions `gameOptions` deferral.
+7. ROADMAP.md contains a valid `01_02_04` step block with `predecessors: [01_02_03]`.
 8. No numbers in artifacts were fabricated — all derive from SQL executed in the notebook.
 
 ---
@@ -348,7 +359,8 @@ All of the following must be true before this step is marked complete:
 - **Identity resolution** (toon_id canonicalisation) — deferred to Phase 02 per Invariant #2.
 - **Temporal analysis** (stationarity, drift, panel structure) — deferred to section 01_05.
 - **Full timestamp parsing** — deferred to 01_05; `timeUTC` 7-digit fractional-second format requires special handling not needed for this step.
-- **`gameOptions` sub-fields** (`competitive`, `observers`, `practice`, `randomRaces`) — deferred to 01_04 cleaning.
+- **`gameOptions` sub-fields** (`competitive`, `observers`, `practice`, `randomRaces`, and 11 additional fields) — deferred to 01_04 cleaning.
+- **`mapAuthorName` and `mapFileSyncChecksum`** from `initData.gameDescription` — not extracted; neither is expected to have predictive value.
 - **Full Section 3.1/3.2 profiling** (zero counts, skewness, kurtosis, IQR outlier detection, duplicate detection, correlation matrices, completeness matrix) — deferred to 01_03 (Systematic Data Profiling).
 - **Visualization** (histograms, boxplots) — deferred to a subsequent step.
 
@@ -367,3 +379,7 @@ All of the following must be true before this step is marked complete:
 
 1. **STRUCT access performance.** Extracting nested fields from ~22k rows should be fast in DuckDB. Mitigation: test Section A query with `LIMIT 100` first.
 2. **Game speed not uniformly Faster.** If the Section D assertion fails, Section E cannot run — this is by design. The finding must be reported and the conversion formula updated before proceeding.
+
+---
+
+**Critique gate:** For Category A, adversarial critique is required before execution begins. Dispatch reviewer-adversarial to produce `planning/current_plan.critique.md`.
