@@ -73,6 +73,26 @@ SELECT * FROM read_parquet('{path}', filename = true, binary_as_string = true)
 
 _COUNT_QUERY = "SELECT count(*) FROM {table}"
 
+# Strips the raw_dir prefix from DuckDB's absolute filename column (I10).
+# prefix_len = len(str(raw_dir)) + 2  (+1 for 1-based substr, +1 for trailing /)
+_RELATIVIZE_FILENAME_QUERY = (
+    "UPDATE {table} SET filename = substr(filename, {prefix_len})"
+)
+
+
+def _relativize_filenames(
+    con: duckdb.DuckDBPyConnection, table: str, raw_dir: Path
+) -> None:
+    """Strip raw_dir prefix from the filename column to make paths relative (I10).
+
+    Args:
+        con: Active DuckDB connection.
+        table: Table whose filename column to update.
+        raw_dir: The raw data directory whose path to strip.
+    """
+    prefix_len = len(str(raw_dir)) + 2
+    con.execute(_RELATIVIZE_FILENAME_QUERY.format(table=table, prefix_len=prefix_len))
+
 
 def _count_rows(con: duckdb.DuckDBPyConnection, table: str) -> int:
     """Return the row count for a table.
@@ -111,6 +131,7 @@ def load_matches_raw(
 
     glob = str(raw_dir / "matches" / "match-*.parquet")
     con.execute(_MATCHES_RAW_QUERY.format(glob=glob))
+    _relativize_filenames(con, "matches_raw", raw_dir)
     n = _count_rows(con, "matches_raw")
     logger.info("matches_raw: %d rows from %s", n, glob)
     return n
@@ -159,6 +180,7 @@ def load_ratings_raw(
     else:
         raise ValueError(f"Unknown dtype strategy: {decision.strategy!r}")
 
+    _relativize_filenames(con, "ratings_raw", raw_dir)
     n = _count_rows(con, "ratings_raw")
     logger.info("ratings_raw: %d rows from %s (strategy=%s)", n, glob, decision.strategy)
     return n
@@ -186,6 +208,7 @@ def load_leaderboards_raw(
 
     path = str(raw_dir / "leaderboards" / "leaderboard.parquet")
     con.execute(_LEADERBOARDS_RAW_QUERY.format(path=path))
+    _relativize_filenames(con, "leaderboards_raw", raw_dir)
     n = _count_rows(con, "leaderboards_raw")
     logger.info("leaderboards_raw: %d rows", n)
     return n
@@ -213,6 +236,7 @@ def load_profiles_raw(
 
     path = str(raw_dir / "profiles" / "profile.parquet")
     con.execute(_PROFILES_RAW_QUERY.format(path=path))
+    _relativize_filenames(con, "profiles_raw", raw_dir)
     n = _count_rows(con, "profiles_raw")
     logger.info("profiles_raw: %d rows", n)
     return n
