@@ -8,6 +8,66 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-14 — [Phase 01 / Step 01_02_03] Raw schema DESCRIBE
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json`
+- `src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/raw/matches_raw.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/raw/players_raw.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/raw/overviews_raw.yaml`
+
+### What
+
+Captured the exact DuckDB column names and types for all three aoestats `*_raw` tables by connecting read-only to the persistent DuckDB and running `DESCRIBE` on each table.
+
+### Why
+
+Establish the source-of-truth bronze-layer schema for downstream steps. The `data/db/schemas/raw/*.yaml` files are consumed by feature engineering and documentation steps. Invariant #6 — DESCRIBE SQL embedded in artifact.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoestats/01_exploration/02_eda/01_02_03_raw_schema_describe.py`
+
+Read-only connection to `data/db/db.duckdb`. `DESCRIBE <table>` for each of the three `*_raw` tables.
+
+### Findings
+
+| Table | Columns | Notable types |
+|-------|---------|---------------|
+| matches_raw | 18 | `started_timestamp` TIMESTAMP WITH TIME ZONE; `duration`/`irl_duration` BIGINT (nanoseconds); `raw_match_type` DOUBLE |
+| players_raw | 14 | `winner` BOOLEAN (prediction target); `profile_id` DOUBLE; age uptimes DOUBLE; `opening` VARCHAR |
+| overviews_raw | 9 | `civs`/`openings`/`patches`/`groupings`/`changelog` are STRUCT arrays; `tournament_stages` VARCHAR[] |
+
+Key observations:
+- `winner` (BOOLEAN, nullable) in `players_raw` confirmed as prediction target
+- `profile_id` remains DOUBLE (promoted from int64/double variant source) — precision-loss risk flagged in 01_02_01 still open
+- `duration`/`irl_duration` are BIGINT nanoseconds (Arrow `duration[ns]` promoted) — requires `/1e9` conversion for seconds in downstream queries
+- `overviews_raw` has deeply nested STRUCT columns — reference metadata only, not a feature source
+- All three schema YAMLs populated in `data/db/schemas/raw/`
+
+### Decisions taken
+
+- Schema YAMLs populated from this DESCRIBE output — source-of-truth for all downstream steps
+- No schema modifications — read-only step
+
+### Decisions deferred
+
+- `profile_id` DOUBLE→BIGINT cast precision check — deferred to Step 01_04 (data cleaning)
+- Column descriptions (`TODO: fill`) in `*.yaml` — deferred to 01_03
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 dataset: bronze-layer schema catalog
+
+### Open questions / follow-ups
+
+- Does `profile_id` DOUBLE cause precision loss for any actual ID values in this dataset? (deferred to 01_04)
+
+---
+
 ## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB pre-ingestion investigation
 
 **Category:** A (science)

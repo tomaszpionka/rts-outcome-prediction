@@ -239,6 +239,58 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_02_03 — Raw Schema DESCRIBE
+
+```yaml
+step_number: "01_02_03"
+name: "Raw Schema DESCRIBE"
+description: "Establish the definitive column-name and column-type snapshot for every aoestats *_raw table. Connects read-only to the persistent DuckDB populated by 01_02_02 and runs DESCRIBE on all three tables. Output feeds the data/db/schemas/raw/*.yaml source-of-truth files consumed by all downstream steps."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "aoestats"
+question: "What are the exact column names and DuckDB types for matches_raw, players_raw, and overviews_raw as materialised in the persistent DuckDB?"
+method: "Connect read-only to persistent DuckDB. DESCRIBE each *_raw table. Write JSON artifact. Populate data/db/schemas/raw/*.yaml schema files."
+stratification: "By table (matches_raw, players_raw, overviews_raw)."
+predecessors:
+  - "01_02_02"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/02_eda/01_02_03_raw_schema_describe.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+    - "overviews_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json"
+  schema_files:
+    - "data/db/schemas/raw/matches_raw.yaml"
+    - "data/db/schemas/raw/players_raw.yaml"
+    - "data/db/schemas/raw/overviews_raw.yaml"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All DESCRIBE SQL embedded in notebook; JSON artifact records exact schema seen."
+  - number: "7"
+    how_upheld: "Column types and nullability taken from DESCRIBE output, not assumed."
+  - number: "9"
+    how_upheld: "Read-only step — no tables modified."
+  - number: "10"
+    how_upheld: "filename column confirmed present in all three tables."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json exists and non-empty. data/db/schemas/raw/*.yaml files populated for all three tables."
+  continue_predicate: "Column counts confirmed: matches_raw=18, players_raw=14, overviews_raw=9."
+  halt_predicate: "Any table cannot be described or column count is zero."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

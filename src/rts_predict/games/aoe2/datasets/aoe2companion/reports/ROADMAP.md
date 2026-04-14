@@ -240,6 +240,56 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_02_03 — Raw Schema DESCRIBE
+
+```yaml
+step_number: "01_02_03"
+name: "Raw Schema DESCRIBE"
+description: "Establish the definitive column-name and column-type snapshot for every aoe2companion raw source. Uses in-memory DuckDB with the same read parameters planned for 01_02_02 (binary_as_string=true, union_by_name=true, filename=true for Parquet; explicit dtypes for CSV) and LIMIT 0 to avoid loading any row data. Output feeds the data/db/schemas/raw/*.yaml source-of-truth files consumed by all downstream steps. When 01_02_02 has been executed, this step can instead connect read-only to the persistent DuckDB."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "aoe2companion"
+question: "What are the exact column names and DuckDB types for each aoe2companion raw source — matches, ratings, leaderboards, profiles — as they will appear after ingestion?"
+method: "Connect to in-memory DuckDB. DESCRIBE SELECT * FROM read_parquet/read_csv(...) LIMIT 0 for each of the four sources using the same read options as 01_02_02. Write JSON artifact. Populate data/db/schemas/raw/*.yaml schema files."
+stratification: "By source (matches, ratings, leaderboards, profiles)."
+predecessors:
+  - "01_02_01"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_raw_schema_describe.py"
+inputs:
+  duckdb_tables: "none — in-memory DuckDB, reads files directly with LIMIT 0"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json"
+  schema_files:
+    - "data/db/schemas/raw/matches_raw.yaml"
+    - "data/db/schemas/raw/ratings_raw.yaml"
+    - "data/db/schemas/raw/leaderboards_raw.yaml"
+    - "data/db/schemas/raw/profiles_raw.yaml"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All DESCRIBE SQL embedded in notebook; JSON artifact records exact schema seen."
+  - number: "7"
+    how_upheld: "Column types and nullability taken from DESCRIBE output, not assumed."
+  - number: "9"
+    how_upheld: "Read-only step — no DuckDB tables created, no files modified."
+  - number: "10"
+    how_upheld: "filename column confirmed present across all four sources."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json exists and non-empty. data/db/schemas/raw/*.yaml files populated for all four tables."
+  continue_predicate: "Column counts confirmed: matches=55, ratings=8, leaderboards=19, profiles=14."
+  halt_predicate: "Any source cannot be read or DESCRIBE returns zero columns."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)
