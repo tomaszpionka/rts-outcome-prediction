@@ -19,6 +19,13 @@ merged to `master`.
 
 ### Removed
 
+## [3.5.1] — 2026-04-13 (PR #TBD: fix/sc2egset-single-pass-event-extraction)
+
+### Changed
+- `sc2egset/ingestion.py`: refactored `extract_events_to_parquet` to single-pass
+  (read each JSON file once, route events to all three type accumulators per batch)
+  reducing I/O by ~3× on the full 22,390-file corpus
+
 ## [3.5.0] — 2026-04-14 (PR #TBD: chore/aoe2companion-ingestion-fix)
 
 ### Changed
