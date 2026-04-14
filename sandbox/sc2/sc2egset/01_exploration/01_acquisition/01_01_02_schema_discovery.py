@@ -40,7 +40,7 @@ from rts_predict.common.json_utils import classify_value, discover_json_schema, 
 from rts_predict.common.notebook_utils import get_reports_dir
 from rts_predict.games.sc2.config import REPLAYS_SOURCE_DIR
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 RAW_DIR: Path = REPLAYS_SOURCE_DIR

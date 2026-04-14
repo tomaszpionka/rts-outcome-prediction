@@ -47,7 +47,7 @@ from rts_predict.games.aoe2.config import (
     AOE2COMPANION_RAW_RATINGS_DIR,
 )
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 ARTIFACTS_DIR: Path = (

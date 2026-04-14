@@ -38,7 +38,7 @@ from rts_predict.games.aoe2.datasets.aoe2companion.ingestion import (
 )
 from rts_predict.games.aoe2.datasets.aoe2companion.types import DtypeDecision
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 
 # %% [markdown]
 # ## 1. Configure dtype decision

@@ -36,7 +36,7 @@ from rts_predict.games.aoe2.datasets.aoestats.ingestion import (
     load_all_raw_tables,
 )
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 
 # %% [markdown]
 # ## 1. Ingest all DuckDB tables

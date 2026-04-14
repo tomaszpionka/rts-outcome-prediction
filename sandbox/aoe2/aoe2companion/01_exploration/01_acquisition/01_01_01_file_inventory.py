@@ -42,7 +42,7 @@ from rts_predict.common.filename_patterns import summarize_filename_patterns
 from rts_predict.common.inventory import inventory_directory
 from rts_predict.common.notebook_utils import get_reports_dir
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 # %%

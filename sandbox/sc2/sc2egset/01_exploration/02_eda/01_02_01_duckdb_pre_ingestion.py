@@ -45,7 +45,7 @@ from rts_predict.games.sc2.datasets.sc2egset.pre_ingestion import (
     probe_mapping_read_json_auto,
 )
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 # %% [markdown]

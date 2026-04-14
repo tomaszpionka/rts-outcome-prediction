@@ -37,7 +37,7 @@ from rts_predict.games.aoe2.datasets.aoe2companion.pre_ingestion import (
     run_smoke_test,
 )
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 # %% [markdown]

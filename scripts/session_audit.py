@@ -36,11 +36,15 @@ AGENT_LOG = os.path.expanduser(
     "~/Projects/tp-claude-logs/agent-audit.log"
 )
 
-# Era boundaries (hardcoded at PR #107)
+# Era boundaries
+# PR #107  = DAG orchestration infrastructure introduced
+# PR #120  = DAG decommissioned (chore/dag-decommission-and-cleanup)
 ERA_BOUNDARIES = [
-    (1, 106, "pre-DAG"),
+    (1,   106, "pre-DAG"),
     (107, 107, "DAG impl"),
-    (108, 99999, "post-DAG"),
+    (108, 119, "post-DAG (w/ DAG)"),
+    (120, 120, "DAG decomm"),
+    (121, 99999, "post-decomm"),
 ]
 
 # ---------------------------------------------------------------------------
