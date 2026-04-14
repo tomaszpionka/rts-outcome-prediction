@@ -99,14 +99,19 @@ Row counts:
 Row counts match the 01_02_01 initial ingestion, confirming data integrity.
 
 Ingestion strategy:
-- `matches_raw` / `players_raw`: `read_parquet` with `union_by_name=true`, `filename=true`
+- `matches_raw` / `players_raw`: `read_parquet` with `union_by_name=true`, `filename=true`, loaded in file-level batches (default 10 files per batch) — `CREATE TABLE ... AS SELECT` for the first batch, `INSERT INTO ... BY NAME SELECT` for subsequent batches. Batching avoids OOM on the full 171-file / 107.6M-row `players_raw` set.
 - `overviews_raw`: `read_json_auto` on singleton `overview.json`, `filename=true`
-- Filename relativization: `UPDATE ... SET filename = substr(filename, prefix_len)` applied after each CTAS
+- Invariant I10 (relative filenames): enforced inline via `SELECT * REPLACE (substr(filename, {prefix_len}) AS filename)` in every CTAS and INSERT query. Post-load `UPDATE SET filename = substr(...)` was removed because it caused OOM on the 107.6M-row `players_raw` table. Only `overviews_raw` (1 row) uses post-load UPDATE.
 
 ### Decisions taken
 
 - Tables named with `*_raw` suffix convention — consistent with sc2egset and aoe2companion
-- Invariant I10-compliant relative filenames stored in `filename` column
+- File-level batched loading (CREATE + INSERT BY NAME) for `matches_raw` and `players_raw` to avoid OOM; default `batch_size=10` files per batch
+- Invariant I10 via inline `SELECT * REPLACE` — no post-load UPDATE on large tables
+
+### Artifact note
+
+The `.json` artifact (`01_02_02_duckdb_ingestion.json`) is a minimal stub containing only row counts — no SQL, schema, NULL rates, or I10 verification. Both artifacts should be regenerated from a fresh notebook run. The discrepancy is tracked here.
 
 ### Decisions deferred
 

@@ -70,6 +70,76 @@ Key observations:
 
 ---
 
+## 2026-04-14 — [Phase 01 / Step 01_02_02] DuckDB ingestion
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** ingest
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.md`
+
+### What
+
+Materialised four `*_raw` DuckDB tables from the full aoe2companion corpus (2,073 daily match Parquets, 2,072 daily rating CSVs, 1 leaderboard Parquet, 1 profile Parquet) into the persistent database at `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/db.duckdb`.
+
+### Why
+
+Enable SQL-based EDA for subsequent profiling (01_03) and cleaning (01_04). Invariants #6 (reproducibility), #9 (step scope), #10 (relative filenames) upheld.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_02_duckdb_ingestion.py`
+Module: `src/rts_predict/games/aoe2/datasets/aoe2companion/ingestion.py`
+
+### Findings
+
+**Table row counts:**
+| Table | Rows |
+|-------|------|
+| `matches_raw` | 277,099,059 |
+| `ratings_raw` | 58,317,433 |
+| `leaderboards_raw` | 2,381,227 |
+| `profiles_raw` | 3,609,686 |
+
+**Dtype strategy for `ratings_raw`:** Explicit `dtypes=` map (BIGINT/TIMESTAMP) required — `read_csv_auto` infers all 7 columns as VARCHAR at scale (2,072 files). Strategy established in Step 01_02_01.
+
+**NULL rates (key fields):**
+- `matches_raw.won`: 12,985,561 NULLs / 277,099,059 rows (4.69%) — root cause established in 01_02_01 won=NULL investigation
+- `matches_raw.matchId`: 0 NULLs
+- `matches_raw.filename`: 0 NULLs
+- `ratings_raw.profile_id`: 0 NULLs
+- `ratings_raw.filename`: 0 NULLs
+
+**Invariant I10 (relative filenames):** All four tables pass — filenames stored relative to `raw_dir`. Enforced inline via `SELECT * REPLACE (substr(filename, {prefix_len}) AS filename)` in every CTAS. No post-load UPDATE (would OOM on 277M-row `matches_raw`).
+
+**Parquet binary columns:** All Parquet reads use `binary_as_string=true` for the unannotated BYTE_ARRAY columns in matches/leaderboards/profiles. Established in 01_02_01.
+
+### Decisions taken
+
+- All tables use `*_raw` suffix convention (bronze layer)
+- Inline `SELECT * REPLACE` for I10 relativization — never post-load UPDATE
+- Explicit dtype map for ratings CSV ingestion — never `read_csv_auto` at scale
+- `binary_as_string=true` for all Parquet sources
+
+### Decisions deferred
+
+- Handling of 12.99M NULL `won` values — deferred to Step 01_04 (data cleaning)
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 dataset: four-table ingestion, dtype strategy, I10 compliance
+
+### Artifact note
+
+The `.json` artifact `sql` key records pre-fix SQL (`SELECT * FROM read_parquet(...)` without `REPLACE`). The actual ingestion code uses `SELECT * REPLACE (substr(filename, {prefix_len}) AS filename)`. The DuckDB on disk is correct; the artifact should be regenerated from a fresh notebook run to reflect the inline I10 pattern.
+
+### Open questions / follow-ups
+
+- Full NULL profiles for all 55 `matches_raw` columns — deferred to 01_03 (systematic profiling)
+
+---
+
 ## 2026-04-14 — [Phase 01 / Step 01_02_01] won=NULL root-cause investigation
 
 **Category:** A (science)
