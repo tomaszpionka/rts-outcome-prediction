@@ -19,6 +19,36 @@ merged to `master`.
 
 ### Removed
 
+## [3.6.1] — 2026-04-14 (PR #TBD: chore/sandbox-logging-timestamp)
+
+### Added
+- `notebook_utils.py`: `setup_notebook_logging()` — centralised logging setup;
+  configures root logger at INFO with `HH:MM:SS` timestamp format, returns a
+  named `logging.Logger`; collapses two-line boilerplate to one call in all notebooks
+- `test_notebook_utils.py`: tests for `setup_notebook_logging()` (default name,
+  custom name, root-logger level, idempotency)
+- `aoe2companion/01_02_01`: section 8 (Q1–Q4) won=NULL root-cause investigation —
+  `parquet_schema()` type scan across all 2,073 files, per-type value census without
+  type promotion, type-promotion NULL injection test, per-file NULL distribution;
+  extends artifact with `won_null_root_cause` key (H1 rejected: single BOOLEAN type;
+  H2 supported: 12,985,561 genuine NULLs spanning full 5.7-year corpus history)
+- `sc2egset/research_log.md`: 01_02_02 DuckDB ingestion findings entry
+- `aoe2companion/research_log.md`: won-NULL root-cause findings entry; corrected
+  01_02_01 entry (was describing full ingestion; artifact shows pre-ingestion
+  investigation)
+
+### Changed
+- All 12 sandbox notebooks (`sc2egset`, `aoe2companion`, `aoestats`): two-line
+  `logging.basicConfig` + `logging.getLogger` boilerplate replaced with single
+  `setup_notebook_logging()` call; all notebook output now shows `HH:MM:SS` timestamps
+- All three 01_02_01 notebooks: artifact writing restored (code had been lost when
+  notebooks were reworked from full-ingestion to pre-ingestion format)
+- `docs/templates/notebook_template.yaml`: updated logging setup section
+
+### Fixed
+- `test_notebook_utils.py`: removed unused `import logging` inside
+  `test_setup_notebook_logging_default_name` that caused ruff E401 failure
+
 ## [3.6.0] — 2026-04-14 (PR #TBD: feat/sc2egset-event-views)
 
 ### Added
