@@ -50,23 +50,41 @@ their date range under `union_by_name=true`.
 
 ### Findings
 
-The investigation was added as a diagnostic section to the notebook. Results
-will be populated when the notebook is executed against the full corpus. The
-`won_null_root_cause` key in the artifact JSON captures Q1 parquet type
-distribution, Q4 file/NULL counts, date range of affected files, and the H1/H2
-verdicts.
+**H1 REJECTED.** `parquet_schema()` scan across all 2,073 match files found a
+single `won` Parquet type: `BOOLEAN`. There is no schema heterogeneity. DuckDB
+type promotion under `union_by_name=true` is not the cause of NULLs.
+
+**H2 SUPPORTED.** 12,985,561 genuine NULL `won` values exist in the source
+files. Every single file (2,073 of 2,073) contributes NULLs — the date range
+of affected files is 2020-08-01 to 2026-04-04, i.e., the entire corpus
+history. There is no temporal step-change or isolated bad period: NULLs are
+a structural property of the dataset from day one.
+
+Additional context from the existing artifact:
+- `avg_rows_per_match = 3.71` — the dataset contains substantial team-game
+  data beyond 1v1 (expected avg would be 2.0 for pure 1v1). This means
+  `won=NULL` cannot be attributed to a single-player record issue.
+- NULL rate: 4.69% of 277,099,059 total rows = 12,985,561 NULL `won` values.
+- The aoe2companion API simply does not record a winner for some matches — the
+  root cause is upstream (API-level recording gap), not a data engineering
+  artefact.
 
 ### Decisions taken
 
+- H1 definitively rejected: no INT64-to-BOOLEAN cast recovery needed.
+- H2 confirmed: NULLs are genuine and uniformly distributed across the entire
+  dataset history — not concentrated in a time window that could be excluded.
 - Investigation scope limited to diagnosis only — no cleaning decisions made
-- Section 8 uses a dedicated `con8 = duckdb.connect(":memory:")` connection to
-  avoid interference with the existing `con` connection in the notebook
+  at this step.
 
 ### Decisions deferred
 
-- Actual H1/H2 verdict pending notebook execution on full corpus
-- Recovery strategy for NULL `won` values (explicit cast, row drop, or date
-  filter) deferred to a future cleaning step
+- Handling strategy for NULL `won` rows (row-level drop, match-level drop,
+  or leaderboard-filtered subset) deferred to Step 01_04 (data cleaning).
+- Impact on thesis scope: whether to restrict analysis to the 95.31% of rows
+  with recorded winners, or characterise the NULL population separately.
+- Whether `avg_rows_per_match = 3.71` implies a leaderboard filter is needed
+  to isolate 1v1 matches before the prediction task is scoped.
 
 ### Thesis mapping
 
@@ -75,10 +93,10 @@ verdicts.
 
 ### Open questions / follow-ups
 
-- If H1 is confirmed: can INT64-encoded `won` values (1/0) be recovered by
-  reading affected files with their native type and casting explicitly?
-- If both H1 and H2 are confirmed: what fraction of NULLs is attributable to
-  each cause?
+- What leaderboard value(s) correspond to ranked 1v1 in aoe2companion? Does
+  filtering to that leaderboard reduce the NULL rate?
+- Is `avg_rows_per_match = 3.71` driven by FFA/team-game leaderboards only,
+  or does it affect the ranked 1v1 population too?
 
 ---
 
