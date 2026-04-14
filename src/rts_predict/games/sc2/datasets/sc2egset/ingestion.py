@@ -398,57 +398,58 @@ def extract_events_to_parquet(
     total_files = len(replay_files)
     logger.info("extract_events_to_parquet: found %d replay files", total_files)
 
-    for et in event_types:
-        et_dir = output_dir / et
+    # Single-pass: read each file once and route events to all three accumulators.
+    for batch_start in range(0, total_files, batch_size):
+        batch_files = replay_files[batch_start:batch_start + batch_size]
+        batch_rows: dict[str, list[dict[str, Any]]] = {et: [] for et in event_types}
 
-        for batch_start in range(0, total_files, batch_size):
-            batch_files = replay_files[batch_start:batch_start + batch_size]
-            batch_rows: list[dict[str, Any]] = []
+        for fpath in batch_files:
+            try:
+                with open(fpath) as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, OSError) as e:
+                logger.warning("Skipping %s: %s", fpath.name, e)
+                continue
 
-            for fpath in batch_files:
-                try:
-                    with open(fpath) as f:
-                        data = json.load(f)
-                except (json.JSONDecodeError, OSError) as e:
-                    logger.warning("Skipping %s: %s", fpath.name, e)
-                    continue
-
-                events = data.get(et) or []
-                fname = str(fpath.relative_to(raw_dir))
-                for evt in events:
-                    batch_rows.append({
+            fname = str(fpath.relative_to(raw_dir))
+            for et in event_types:
+                for evt in (data.get(et) or []):
+                    batch_rows[et].append({
                         "filename": fname,
                         "loop": evt.get("loop", 0),
                         "evtTypeName": evt.get("evtTypeName", ""),
                         "event_data": json.dumps(evt),
                     })
 
-            if batch_rows:
+        for et in event_types:
+            rows = batch_rows[et]
+            if rows:
                 table = pa.table({
                     "filename": pa.array(
-                        [r["filename"] for r in batch_rows], type=pa.string()
+                        [r["filename"] for r in rows], type=pa.string()
                     ),
                     "loop": pa.array(
-                        [r["loop"] for r in batch_rows], type=pa.int64()
+                        [r["loop"] for r in rows], type=pa.int64()
                     ),
                     "evtTypeName": pa.array(
-                        [r["evtTypeName"] for r in batch_rows], type=pa.string()
+                        [r["evtTypeName"] for r in rows], type=pa.string()
                     ),
                     "event_data": pa.array(
-                        [r["event_data"] for r in batch_rows], type=pa.string()
+                        [r["event_data"] for r in rows], type=pa.string()
                     ),
                 })
-                batch_path = et_dir / f"batch_{batch_start:06d}.parquet"
+                batch_path = output_dir / et / f"batch_{batch_start:06d}.parquet"
                 pq.write_table(table, batch_path, compression="zstd")
-                counts[et] += len(batch_rows)
+                counts[et] += len(rows)
 
-            if batch_start % (batch_size * 10) == 0 and batch_start > 0:
-                logger.info(
-                    "%s: processed %d/%d files, %d rows so far",
-                    et, batch_start, total_files, counts[et],
-                )
+        if batch_start % (batch_size * 10) == 0 and batch_start > 0:
+            logger.info(
+                "batch %d/%d processed, cumulative counts: %s",
+                batch_start, total_files, counts,
+            )
 
-        logger.info("%s: %d total rows -> %s/", et, counts[et], et_dir)
+    for et in event_types:
+        logger.info("%s: %d total rows -> %s/", et, counts[et], output_dir / et)
 
     return counts
 
