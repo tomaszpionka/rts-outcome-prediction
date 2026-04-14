@@ -1,12 +1,12 @@
-# Category A Plan: Step 01_02_03 — Univariate Census & Target Variable EDA
+# Category A Plan: Step 01_02_04 — Univariate Census & Target Variable EDA
 
 ## Phase/Step Reference
 
 - **Phase:** 01 — Data Exploration
 - **Pipeline Section:** 01_02 — Exploratory Data Analysis (Tukey-style)
-- **Step:** 01_02_03
+- **Step:** 01_02_04
 - **Dataset:** aoestats
-- **Branch:** `feat/aoestats-01-02-03-univariate-eda`
+- **Branch:** `feat/step-01-02-04`
 
 ---
 

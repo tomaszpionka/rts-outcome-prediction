@@ -1,12 +1,12 @@
-# Category A Plan: Step 01_02_03 — Metadata STRUCT Extraction & Replay-Level EDA
+# Category A Plan: Step 01_02_04 — Metadata STRUCT Extraction & Replay-Level EDA
 
 ## Phase/Step Reference
 
 - **Phase:** 01 — Data Exploration
 - **Pipeline Section:** 01_02 — Exploratory Data Analysis (Tukey-style)
-- **Step:** 01_02_03
+- **Step:** 01_02_04
 - **Dataset:** sc2egset
-- **Branch:** `feat/sc2egset-01-02-03-struct-eda`
+- **Branch:** `feat/step-01-02-04`
 
 ---
 
