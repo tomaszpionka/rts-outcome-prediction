@@ -33,18 +33,16 @@
 
 # %%
 import json
-import logging
 import re
 import statistics
 from datetime import date
 from pathlib import Path
 
 from rts_predict.common.inventory import inventory_directory
-from rts_predict.common.notebook_utils import get_reports_dir
+from rts_predict.common.notebook_utils import get_reports_dir, setup_notebook_logging
 from rts_predict.common.filename_patterns import summarize_filename_patterns
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = setup_notebook_logging()
 
 # %%
 from rts_predict.games.aoe2.config import AOESTATS_RAW_DIR

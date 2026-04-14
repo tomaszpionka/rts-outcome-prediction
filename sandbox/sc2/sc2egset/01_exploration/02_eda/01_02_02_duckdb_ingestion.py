@@ -28,16 +28,16 @@
 
 # %%
 import json
-import logging
 from pathlib import Path
 
-from rts_predict.common.notebook_utils import get_notebook_db, get_reports_dir
+from rts_predict.common.notebook_utils import get_notebook_db, get_reports_dir, setup_notebook_logging
 from rts_predict.games.sc2.config import REPLAYS_SOURCE_DIR
 from rts_predict.games.sc2.datasets.sc2egset.ingestion import (
     load_all_raw_tables,
 )
 
-logging.basicConfig(level=logging.INFO)
+logger = setup_notebook_logging()
+logger.info("Source: %s", REPLAYS_SOURCE_DIR)
 
 # %% [markdown]
 # ## 1. Ingest all DuckDB tables
@@ -54,23 +54,23 @@ db = get_notebook_db("sc2", "sc2egset", read_only=False)
 # Reduce threads for the 209 GB read_json_auto CTAS to limit memory pressure.
 # DuckDB default is 4 threads; 2 halves the peak concurrent file-buffer RSS.
 # Restored to default after ingestion completes.
-# db.con.execute("SET threads = 2")
-# counts = load_all_raw_tables(db.con, REPLAYS_SOURCE_DIR)
-db.con.execute("SET threads = 4")
-# print("Ingestion counts:")
-# for table, n in counts.items():
-#     print(f"  {table}: {n:,} rows")
+db.con.execute("SET threads = 2")
+counts = load_all_raw_tables(db.con, REPLAYS_SOURCE_DIR)
+db.con.execute("SET threads = 8")
+print("Ingestion counts:")
+for table, n in counts.items():
+    print(f"  {table}: {n:,} rows")
 
 # %% [markdown]
 # ## 2. Post-ingestion validation: DESCRIBE tables
 
 # %%
-# describe_results = {}
-# for table in counts:
-#     print(f"\n=== DESCRIBE {table} ===")
-#     desc_df = db.fetch_df(f'DESCRIBE "{table}"')
-#     print(desc_df.to_string(index=False))
-#     describe_results[table] = desc_df.to_dict(orient="records")
+describe_results = {}
+for table in counts:
+    print(f"\n=== DESCRIBE {table} ===")
+    desc_df = db.fetch_df(f'DESCRIBE "{table}"')
+    print(desc_df.to_string(index=False))
+    describe_results[table] = desc_df.to_dict(orient="records")
 
 # %% [markdown]
 # ## 3. NULL rates on key fields
@@ -375,7 +375,7 @@ artifact_data = {
 
 artifact_path = artifacts_dir / "01_02_02_duckdb_ingestion.json"
 artifact_path.write_text(json.dumps(artifact_data, indent=2, default=str))
-print(f"Artifact written: {artifact_path}")
+logger.info("Artifact written: %s", artifact_path)
 
 # %%
 md_lines = [
@@ -546,7 +546,7 @@ for view_name in view_counts:
 
 md_path = artifacts_dir / "01_02_02_duckdb_ingestion.md"
 md_path.write_text("\n".join(md_lines))
-print(f"Report written: {md_path}")
+logger.info("Report written: %s", md_path)
 
 # %%
 db.close()

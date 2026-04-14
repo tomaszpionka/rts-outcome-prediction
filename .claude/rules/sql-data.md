@@ -1,6 +1,7 @@
 ---
 paths:
   - "src/rts_predict/games/*/datasets/*/data/**/*.py"
+  - "sandbox/**/*.py"
 ---
 
 # SQL & Data Pipeline Constraints
@@ -30,6 +31,12 @@ pending re-validation in Phase 01 Step 01_01_02. Must be persistent column on `r
 - Features for game at time T use ONLY `match_time < T`
 - NEVER `.shift()` on unsorted data
 - Filter by sequence number or timestamp, NEVER by row position
+
+## Notebook Query Pattern
+- DuckDB SQL is the primary query layer — aggregations, NULL census, GROUP BY, STRUCT access
+- Pull results to pandas with `.df()` for display and light analysis helpers (`.describe()`, `.value_counts()`, etc.)
+- NEVER load full raw tables into pandas (`SELECT * FROM large_table` → `.df()` is prohibited)
+- All SQL that produces a reported result must appear verbatim in the markdown artifact (Invariant #6)
 
 ## Data Handling
 - NEVER silently drop rows — log count and reason

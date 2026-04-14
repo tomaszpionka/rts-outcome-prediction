@@ -20,6 +20,7 @@ from rts_predict.common.notebook_utils import (
     _resolve_dataset_config,
     get_notebook_db,
     get_reports_dir,
+    setup_notebook_logging,
 )
 
 # ---------------------------------------------------------------------------
@@ -56,6 +57,54 @@ def _make_fake_config_module(
 # ---------------------------------------------------------------------------
 # _load_game_config
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# setup_notebook_logging
+# ---------------------------------------------------------------------------
+
+
+def test_setup_notebook_logging_returns_logger() -> None:
+    """setup_notebook_logging must return a Logger instance."""
+    import logging
+    result = setup_notebook_logging()
+    assert isinstance(result, logging.Logger)
+
+
+def test_setup_notebook_logging_default_name() -> None:
+    """Default logger name must be 'notebook'."""
+    result = setup_notebook_logging()
+    assert result.name == "notebook"
+
+
+def test_setup_notebook_logging_custom_name() -> None:
+    """Custom name is passed through to the returned logger."""
+    import logging
+    result = setup_notebook_logging("my_nb")
+    assert isinstance(result, logging.Logger)
+    assert result.name == "my_nb"
+
+
+def test_setup_notebook_logging_configures_root_logger() -> None:
+    """setup_notebook_logging must set the root logger level to INFO."""
+    import logging
+    root = logging.getLogger()
+    original_level = root.level
+    original_handlers = root.handlers[:]
+    root.handlers.clear()
+    try:
+        setup_notebook_logging()
+        assert root.level == logging.INFO
+    finally:
+        root.handlers.clear()
+        root.handlers.extend(original_handlers)
+        root.setLevel(original_level)
+
+
+def test_setup_notebook_logging_is_idempotent() -> None:
+    """Calling setup_notebook_logging twice must not raise."""
+    setup_notebook_logging()
+    setup_notebook_logging()  # second call is a no-op; must not raise
 
 
 def test_load_game_config_unknown_game_raises() -> None:

@@ -77,6 +77,34 @@ def _resolve_dataset_config(config_module: ModuleType, game: str, dataset: str) 
     return datasets[dataset]
 
 
+def setup_notebook_logging(name: str = "notebook") -> logging.Logger:
+    """Configure the root logger and return a named logger for notebook use.
+
+    Sets level=INFO and formats lines as ``HH:MM:SS LEVEL name: message``.
+    Safe to call multiple times — ``logging.basicConfig`` is a no-op when
+    handlers are already configured, so re-running a cell is harmless.
+
+    Call once in the imports cell of every notebook::
+
+        from rts_predict.common.notebook_utils import setup_notebook_logging
+        logger = setup_notebook_logging()
+
+    Args:
+        name: Logger name. Defaults to ``"notebook"`` which is sufficient
+            for all sandbox notebooks. Pass a custom name only if log output
+            needs to be filtered by notebook identity.
+
+    Returns:
+        A configured :class:`logging.Logger` instance ready to use.
+    """
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    return logging.getLogger(name)
+
+
 def get_notebook_db(
     game: str,
     dataset: str,

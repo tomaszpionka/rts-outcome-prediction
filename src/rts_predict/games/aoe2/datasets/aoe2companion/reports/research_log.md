@@ -8,6 +8,98 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-14 — [Phase 01 / Step 01_02_01] won=NULL root-cause investigation
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query (amendment to 01_02_01)
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json` (extended with `won_null_root_cause` key)
+
+### What
+
+Diagnosed why 12,985,561 rows (4.69%) have `won=NULL` in the full matches
+corpus. Added section 8 (Q1–Q4) to the 01_02_01 pre-ingestion notebook to
+distinguish between two hypotheses: H1 (Parquet schema heterogeneity causing
+DuckDB type promotion to inject NULLs) and H2 (genuine NULL values in source
+files).
+
+### Why
+
+The `won` column is the prediction target for this thesis. Before any cleaning
+decisions can be made in later steps, the root cause of NULLs must be
+understood. Invariant #6 (reproducibility) — all diagnostic queries embedded
+in the artifact.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.py`
+
+Q1: `parquet_schema()` metadata-only scan — counts distinct `won` Parquet types
+across all 2,073 files without loading row data.
+
+Q2: Per-type-group value census without `union_by_name` — reads each type group
+independently to observe native values and genuine NULLs.
+
+Q3: Type promotion NULL injection test — compares per-file NULL counts before
+and after `union_by_name=true` on a mixed-type sample (runs only if Q1 finds
+multiple types).
+
+Q4: Per-file NULL distribution — identifies which files contribute NULLs and
+their date range under `union_by_name=true`.
+
+### Findings
+
+**H1 REJECTED.** `parquet_schema()` scan across all 2,073 match files found a
+single `won` Parquet type: `BOOLEAN`. There is no schema heterogeneity. DuckDB
+type promotion under `union_by_name=true` is not the cause of NULLs.
+
+**H2 SUPPORTED.** 12,985,561 genuine NULL `won` values exist in the source
+files. Every single file (2,073 of 2,073) contributes NULLs — the date range
+of affected files is 2020-08-01 to 2026-04-04, i.e., the entire corpus
+history. There is no temporal step-change or isolated bad period: NULLs are
+a structural property of the dataset from day one.
+
+Additional context from the existing artifact:
+- `avg_rows_per_match = 3.71` — the dataset contains substantial team-game
+  data beyond 1v1 (expected avg would be 2.0 for pure 1v1). This means
+  `won=NULL` cannot be attributed to a single-player record issue.
+- NULL rate: 4.69% of 277,099,059 total rows = 12,985,561 NULL `won` values.
+- The aoe2companion API simply does not record a winner for some matches — the
+  root cause is upstream (API-level recording gap), not a data engineering
+  artefact.
+
+### Decisions taken
+
+- H1 definitively rejected: no INT64-to-BOOLEAN cast recovery needed.
+- H2 confirmed: NULLs are genuine and uniformly distributed across the entire
+  dataset history — not concentrated in a time window that could be excluded.
+- Investigation scope limited to diagnosis only — no cleaning decisions made
+  at this step.
+
+### Decisions deferred
+
+- Handling strategy for NULL `won` rows (row-level drop, match-level drop,
+  or leaderboard-filtered subset) deferred to Step 01_04 (data cleaning).
+- Impact on thesis scope: whether to restrict analysis to the 95.31% of rows
+  with recorded winners, or characterise the NULL population separately.
+- Whether `avg_rows_per_match = 3.71` implies a leaderboard filter is needed
+  to isolate 1v1 matches before the prediction task is scoped.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 data quality: won column NULL analysis
+- Chapter 4, §4.2.1 — Ingestion validation methodology
+
+### Open questions / follow-ups
+
+- What leaderboard value(s) correspond to ranked 1v1 in aoe2companion? Does
+  filtering to that leaderboard reduce the NULL rate?
+- Is `avg_rows_per_match = 3.71` driven by FFA/team-game leaderboards only,
+  or does it affect the ranked 1v1 population too?
+
+---
+
 ## 2026-04-13 — [Phase 01 / Step 01_02_01] DuckDB pre-ingestion investigation
 
 **Category:** A (science)
@@ -18,14 +110,18 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ### What
 
-Ingested all four raw data sources into DuckDB (`matches_raw`, `ratings_raw`,
-`leaderboards_raw`, `profiles_raw`) and validated column counts, types, and
-null rates against 01_01_02 schema discovery findings.
+Pre-ingestion investigation using in-memory DuckDB and direct Parquet/CSV
+queries to characterise the four aoe2companion data sources before committing
+to a DuckDB ingestion design. Binary column inspection, smoke test, full-corpus
+NULL rate census, and match_id uniqueness check. No DuckDB tables were created
+at this step — that is step 01_02_02.
 
 ### Why
 
-Materialise the bronze layer for queryable exploration. Invariant #7 (type
-fidelity) — verify DuckDB type inference matches Parquet/CSV source types.
+Determine ingestion strategy before materialising 277M rows. Invariants #7
+(type fidelity) and #9 (step scope) — pre-ingestion characterisation is a
+distinct step from ingest. The binary column issue (unannotated BYTE_ARRAY)
+and the CSV type inference pitfall at scale must be resolved before 01_02_02.
 
 ### How (reproducibility)
 
@@ -33,35 +129,56 @@ Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_01_duckdb_pre_
 
 ### Findings
 
-- `matches_raw`: 277M rows, 55 columns (54 source + filename). `binary_as_string=true` resolved all 22 unannotated BYTE_ARRAY columns to VARCHAR
-- `ratings_raw`: 58.3M rows, 8 columns. `read_csv_auto` inferred all 7 columns as VARCHAR at scale — required explicit `types=` parameter to get correct BIGINT/TIMESTAMP types
-- `leaderboards_raw`: 2.38M rows, 19 columns (singleton Parquet)
-- `profiles_raw`: 3.61M rows, 14 columns (singleton Parquet)
-- Column counts match 01_01_02 expectations plus filename column in all tables
-- `won` column: 12.99M NULLs out of 277M rows (4.7%) — matches without a recorded winner
-- File count gap: 2,073 match files vs 2,072 rating files — `rating-2025-07-11.csv` is missing
+**Binary column inspection** (metadata read on `match-2020-08-01.parquet` sample):
+- matches: 22 of 54 columns are BYTE_ARRAY with no logical type annotation
+  (no UTF-8 annotation) — strings stored without Parquet STRING annotation
+- leaderboards: 4 of 18 columns BYTE_ARRAY unannotated
+- profiles: 11 of 13 columns BYTE_ARRAY unannotated
+- All require `binary_as_string=true` at ingestion to resolve to VARCHAR
+
+**Smoke test** (sampled subset of files):
+- matches sample: 491,099 rows × 55 columns
+- ratings sample: 266,508 rows × 8 columns
+
+**Full-corpus NULL rates** (direct Parquet queries on all 2,073 match files):
+- Total rows: 277,099,059; `matchId` and `profileId` 100% populated
+- `won` column: 12,985,561 NULLs (4.69%) — see 2026-04-14 won-NULL root-cause entry
+
+**Match_id uniqueness** (full corpus):
+- 74,788,989 distinct `matchId` values; avg 3.71 rows per match
+- avg > 2.0 indicates substantial team-game data beyond 1v1
+
+**CSV ratings at scale:**
+- `read_csv_auto` infers all 7 columns as VARCHAR when scanning all 2,072 files
+  simultaneously — explicit `types=` required for correct BIGINT/TIMESTAMP types
+- Missing file: `rating-2025-07-11.csv` — 2,073 match files vs 2,072 rating files
 
 ### Decisions taken
 
-- All Parquet reads use `binary_as_string=true` — Parquet files have unannotated BYTE_ARRAY columns that are actually UTF-8 strings
-- CSV ratings use explicit type specification (never rely on `read_csv_auto` at scale for this dataset)
-- Raw layer uses `SELECT *` with `filename=true` — no explicit DDL at this stage
+- All Parquet reads require `binary_as_string=true`
+- CSV ratings require explicit column type map — never `read_csv_auto` at scale
+- Raw layer uses `SELECT *` with `filename=true`; no explicit DDL at this step
+- Full row counts for ratings/leaderboards/profiles deferred to 01_02_02
 
 ### Decisions deferred
 
-- Handling of 12.99M NULL `won` values — cleaning step decision
-- Whether the missing rating file for 2025-07-11 is recoverable or should be documented as a gap
-- Profile ID join strategy between matches and ratings (different column names: `profileId` vs `profile_id`)
+- Handling of 12.99M NULL `won` values — see 2026-04-14 root-cause entry;
+  cleaning decision deferred to Step 01_04
+- Whether missing `rating-2025-07-11.csv` is recoverable or a permanent gap
+- `profileId` vs `profile_id` naming inconsistency across tables — deferred
+  to Phase 02 join design
 
 ### Thesis mapping
 
-- Chapter 4, §4.1.2 — AoE2 match data ingestion, binary column handling, CSV type pitfall
+- Chapter 4, §4.1.2 — AoE2 dataset: binary column handling, CSV type pitfall
 - Chapter 4, §4.2.1 — Ingestion validation methodology
 
 ### Open questions / follow-ups
 
-- What fraction of NULL `won` values are draws vs incomplete records?
-- Does the `profileId`/`profile_id` naming inconsistency across tables indicate different source APIs?
+- Full row counts for ratings_raw, leaderboards_raw, profiles_raw — confirmed
+  in 01_02_02 artifact
+- Does restricting to ranked 1v1 leaderboard reduce the won=NULL rate and
+  bring avg_rows_per_match close to 2.0? — investigate in 01_03 or 01_04
 
 ---
 
