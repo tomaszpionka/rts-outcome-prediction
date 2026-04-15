@@ -217,10 +217,19 @@ def profile_column(
             )
 
         temporal_clause = ""
+        _is_tz_type = col_dtype.upper().strip() in (
+            "TIMESTAMP WITH TIME ZONE", "TIMESTAMPTZ",
+        )
         if is_timestamp:
+            # For TZ-aware types, cast to TIMESTAMP to avoid pytz requirement
+            # when DuckDB returns values to Python (DuckDB ^1.5).
+            _ts_expr = (
+                f'CAST("{col_name}" AS TIMESTAMP)' if _is_tz_type
+                else f'"{col_name}"'
+            )
             temporal_clause = (
-                f',\n    MIN("{col_name}") AS temporal_min,\n'
-                f'    MAX("{col_name}") AS temporal_max'
+                f',\n    MIN({_ts_expr}) AS temporal_min,\n'
+                f'    MAX({_ts_expr}) AS temporal_max'
             )
 
         sql_null = (
@@ -266,9 +275,15 @@ def profile_column(
                 f"(skip_topn=True — high-cardinality or semantically opaque)."
             )
         else:
+            # For TZ-aware timestamps, cast value to TIMESTAMP in SELECT/GROUP BY
+            # so DuckDB returns naive datetimes to Python (no pytz needed).
+            _val_expr = (
+                f'CAST("{col_name}" AS TIMESTAMP)' if _is_tz_type
+                else f'"{col_name}"'
+            )
             sql_top = (
                 f'SELECT\n'
-                f'    "{col_name}" AS value,\n'
+                f'    {_val_expr} AS value,\n'
                 f'    COUNT(*) AS cnt,\n'
                 f'    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\n'
                 f'FROM {table_name}\n'
@@ -290,7 +305,7 @@ def profile_column(
             # Bottom-N least frequent (non-NULL values only)
             sql_bottom = (
                 f'SELECT\n'
-                f'    "{col_name}" AS value,\n'
+                f'    {_val_expr} AS value,\n'
                 f'    COUNT(*) AS cnt,\n'
                 f'    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\n'
                 f'FROM {table_name}\n'

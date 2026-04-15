@@ -254,6 +254,44 @@ class TestProfileColumnTimestamp:
         assert p["zero_count"] is None
 
 
+class TestProfileColumnTimestampTZ:
+    """TIMESTAMP WITH TIME ZONE must not require pytz (DuckDB ^1.5 regression guard)."""
+
+    @pytest.fixture
+    def tz_db(self):
+        con = duckdb.connect(":memory:")
+        con.execute("""
+            CREATE TABLE tz_table (
+                ts TIMESTAMPTZ
+            )
+        """)
+        con.execute("""
+            INSERT INTO tz_table VALUES
+                (TIMESTAMPTZ '2024-01-01 10:00:00+00'),
+                (TIMESTAMPTZ '2024-06-15 14:30:00+00'),
+                (TIMESTAMPTZ '2024-01-01 10:00:00+00')
+        """)
+        yield con
+        con.close()
+
+    def test_temporal_range_no_pytz(self, tz_db: duckdb.DuckDBPyConnection) -> None:
+        p = profile_column(tz_db, "tz_table", "ts", "TIMESTAMP WITH TIME ZONE")
+        assert p["temporal_range"] is not None
+        assert p["temporal_range"]["min"] is not None
+        assert p["temporal_range"]["max"] is not None
+
+    def test_top_n_no_pytz(self, tz_db: duckdb.DuckDBPyConnection) -> None:
+        p = profile_column(tz_db, "tz_table", "ts", "TIMESTAMP WITH TIME ZONE")
+        assert p["top_n"] is not None
+        assert len(p["top_n"]) == 2  # two distinct values
+        assert p["top_n"][0]["count"] == 2  # most frequent first
+
+    def test_timestamptz_alias(self, tz_db: duckdb.DuckDBPyConnection) -> None:
+        p = profile_column(tz_db, "tz_table", "ts", "TIMESTAMPTZ")
+        assert p["temporal_range"] is not None
+        assert p["top_n"] is not None
+
+
 class TestProfileColumnComplex:
     def test_varchar_array_cardinality_none(self, census_db):
         p = profile_column(census_db, "test_table", "tags", "VARCHAR[]")
