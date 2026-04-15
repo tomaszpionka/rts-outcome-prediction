@@ -239,6 +239,165 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_02_03 — Raw Schema DESCRIBE
+
+```yaml
+step_number: "01_02_03"
+name: "Raw Schema DESCRIBE"
+description: "Establish the definitive column-name and column-type snapshot for every aoestats *_raw table. Connects read-only to the persistent DuckDB populated by 01_02_02 and runs DESCRIBE on all three tables. Output feeds the data/db/schemas/raw/*.yaml source-of-truth files consumed by all downstream steps."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "aoestats"
+question: "What are the exact column names and DuckDB types for matches_raw, players_raw, and overviews_raw as materialised in the persistent DuckDB?"
+method: "Connect read-only to persistent DuckDB. DESCRIBE each *_raw table. Write JSON artifact. Populate data/db/schemas/raw/*.yaml schema files."
+stratification: "By table (matches_raw, players_raw, overviews_raw)."
+predecessors:
+  - "01_02_02"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/02_eda/01_02_03_raw_schema_describe.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+    - "overviews_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json"
+  schema_files:
+    - "data/db/schemas/raw/matches_raw.yaml"
+    - "data/db/schemas/raw/players_raw.yaml"
+    - "data/db/schemas/raw/overviews_raw.yaml"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All DESCRIBE SQL embedded in notebook; JSON artifact records exact schema seen."
+  - number: "7"
+    how_upheld: "Column types and nullability taken from DESCRIBE output, not assumed."
+  - number: "9"
+    how_upheld: "Read-only step — no tables modified."
+  - number: "10"
+    how_upheld: "filename column confirmed present in all three tables."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json exists and non-empty. data/db/schemas/raw/*.yaml files populated for all three tables."
+  continue_predicate: "Column counts confirmed: matches_raw=18, players_raw=14, overviews_raw=9."
+  halt_predicate: "Any table cannot be described or column count is zero."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_04 — Univariate Census
+
+```yaml
+step_number: "01_02_04"
+name: "Univariate Census"
+description: "Compute a comprehensive univariate census for all 32 columns across matches_raw (18 cols) and players_raw (14 cols). Cover target variable class balance, NULL rates, cardinality, numeric descriptive statistics (mean, median, stddev, p05/p25/p75/p95), IQR outlier counts, skewness/kurtosis, ELO sentinel detection, opening strategy non-NULL distribution, and temporal range. Output a JSON artifact consumed by Step 01_02_05 for visualization."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
+dataset: "aoestats"
+question: "What are the univariate distributions, NULL rates, and value profiles for every column in matches_raw and players_raw? What is the target variable class balance? What fraction is 1v1?"
+method: "Full-table aggregations using DuckDB SQL. NULL census, cardinality, numeric stats (percentiles via PERCENTILE_CONT), IQR outlier counts, skewness/kurtosis, sentinel detection, opening strategy non-NULL distribution. No sampling."
+stratification: "By table (matches_raw, players_raw)."
+predecessors:
+  - "01_02_03"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/02_eda/01_02_04_univariate_census.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  report: "artifacts/01_exploration/02_eda/01_02_04_univariate_census.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All SQL queries that produce reported statistics appear verbatim in the markdown artifact."
+  - number: "7"
+    how_upheld: "All bin widths, thresholds, and annotation values derived from query results — no magic numbers."
+  - number: "9"
+    how_upheld: "Read-only step — no DuckDB writes, no new tables, no schema changes."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json and .md exist and are non-empty."
+  continue_predicate: "Census artifact contains all expected keys including skew_kurtosis_matches, elo_sentinel_counts, opening_nonnull_distribution, outlier_counts_matches, outlier_counts_players, temporal_range."
+  halt_predicate: "Any SQL query fails or census artifact is missing required keys."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_05 — Univariate Visualizations
+
+```yaml
+step_number: "01_02_05"
+name: "Univariate Visualizations"
+description: "Produce all EDA plots based on quantitative findings from Step 01_02_04. Fourteen visualization groups: winner distribution, match size distribution, map top-20, civ top-20, leaderboard distribution, duration dual-panel histogram, ELO 1x3 panel (sentinel excluded), old_rating histogram, match_rating_diff histogram, age uptime histograms (variable bin widths), opening non-NULL distribution, IQR outlier summary, NULL rate bar chart, and monthly match volume time series. Every plot cell preceded by a verification cell. All SQL queries stored in sql_queries dict and written to markdown artifact per Invariant #6."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
+dataset: "aoestats"
+question: "What do the univariate distributions look like visually? Are there visual patterns not captured by summary statistics alone?"
+method: "Matplotlib visualizations. Bar charts for categorical variables. Dual-panel histograms for skewed distributions. Sentinel exclusion for ELO. Variable bin widths for age uptimes. Log scale for full-range duration. All values derived from census artifact at runtime — no hardcoded numbers."
+stratification: "By column and table (matches_raw, players_raw)."
+predecessors:
+  - "01_02_04"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/02_eda/01_02_05_visualizations.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_winner_distribution.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_num_players_distribution.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_map_top20.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_civ_top20.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_leaderboard_distribution.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_duration_histogram.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_elo_distributions.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_old_rating_histogram.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_match_rating_diff_histogram.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_age_uptime_histograms.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_opening_nonnull.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_iqr_outlier_summary.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_null_rate_bar.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_monthly_match_count.png"
+  report: "artifacts/01_exploration/02_eda/01_02_05_visualizations.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All SQL queries that produce plotted data stored in sql_queries dict and appear verbatim in the markdown artifact."
+  - number: "7"
+    how_upheld: "All bin widths, clip boundaries, and annotation values derived from census artifact at runtime — no hardcoded numbers."
+  - number: "9"
+    how_upheld: "Read-only step — visualization only; no analytical computation beyond what is needed for plotting."
+gate:
+  artifact_check: "All 14 PNG files and 01_02_05_visualizations.md exist and are non-empty."
+  continue_predicate: "All 14 PNG files exist. Markdown artifact contains plot index table and all SQL queries. Notebook executes end-to-end without errors."
+  halt_predicate: "Any PNG file is missing or notebook execution fails."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+---
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

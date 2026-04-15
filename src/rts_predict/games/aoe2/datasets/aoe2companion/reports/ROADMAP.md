@@ -240,6 +240,112 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_02_03 — Raw Schema DESCRIBE
+
+```yaml
+step_number: "01_02_03"
+name: "Raw Schema DESCRIBE"
+description: "Establish the definitive column-name and column-type snapshot for every aoe2companion raw source. Uses in-memory DuckDB with the same read parameters planned for 01_02_02 (binary_as_string=true, union_by_name=true, filename=true for Parquet; explicit dtypes for CSV) and LIMIT 0 to avoid loading any row data. Output feeds the data/db/schemas/raw/*.yaml source-of-truth files consumed by all downstream steps. When 01_02_02 has been executed, this step can instead connect read-only to the persistent DuckDB."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2"
+dataset: "aoe2companion"
+question: "What are the exact column names and DuckDB types for each aoe2companion raw source — matches, ratings, leaderboards, profiles — as they will appear after ingestion?"
+method: "Connect to in-memory DuckDB. DESCRIBE SELECT * FROM read_parquet/read_csv(...) LIMIT 0 for each of the four sources using the same read options as 01_02_02. Write JSON artifact. Populate data/db/schemas/raw/*.yaml schema files."
+stratification: "By source (matches, ratings, leaderboards, profiles)."
+predecessors:
+  - "01_02_01"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_raw_schema_describe.py"
+inputs:
+  duckdb_tables: "none — in-memory DuckDB, reads files directly with LIMIT 0"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_01_duckdb_pre_ingestion.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "DuckDB 1.5.1 (pinned in pyproject.toml)"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json"
+  schema_files:
+    - "data/db/schemas/raw/matches_raw.yaml"
+    - "data/db/schemas/raw/ratings_raw.yaml"
+    - "data/db/schemas/raw/leaderboards_raw.yaml"
+    - "data/db/schemas/raw/profiles_raw.yaml"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All DESCRIBE SQL embedded in notebook; JSON artifact records exact schema seen."
+  - number: "7"
+    how_upheld: "Column types and nullability taken from DESCRIBE output, not assumed."
+  - number: "9"
+    how_upheld: "Read-only step — no DuckDB tables created, no files modified."
+  - number: "10"
+    how_upheld: "filename column confirmed present across all four sources."
+gate:
+  artifact_check: "artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json exists and non-empty. data/db/schemas/raw/*.yaml files populated for all four tables."
+  continue_predicate: "Column counts confirmed: matches=55, ratings=8, leaderboards=19, profiles=14."
+  halt_predicate: "Any source cannot be read or DESCRIBE returns zero columns."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+
+### Step 01_02_04 -- Univariate Census
+
+```yaml
+step_number: "01_02_04"
+name: "Univariate Census"
+description: "Full univariate profiling of all four aoe2companion raw tables. NULL census (55 columns for matches_raw), cardinality, value distributions, descriptive statistics, target variable analysis (won), skewness/kurtosis, boolean column census, and categorical top-k profiles."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "aoe2companion"
+question: "What are the NULL rates, cardinality, value distributions, and descriptive statistics for all columns? What is the target variable (won) distribution and class balance?"
+method: "Single-pass SUMMARIZE over matches_raw (277M rows). Targeted aggregation queries for NULL rates, categorical top-k, boolean census, skewness/kurtosis, intra-match consistency. Results saved to JSON artifact."
+predecessors:
+  - "01_02_02"
+  - "01_02_03"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  report: "artifacts/01_exploration/02_eda/01_02_04_univariate_census.md"
+gate:
+  artifact_check: "01_02_04_univariate_census.json and .md exist and are non-empty."
+  continue_predicate: "JSON artifact contains all required keys including won_distribution, won_consistency_2row, categorical_profiles, boolean_census, matches_raw_null_census."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_05 -- Univariate Census Visualizations
+
+```yaml
+step_number: "01_02_05"
+name: "Univariate Census Visualizations"
+description: "13 visualization plots for the aoe2companion univariate census findings from 01_02_04. Reads the 01_02_04 JSON artifact and queries DuckDB for histogram bin data. All plots saved to artifacts/01_exploration/02_eda/plots/."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3.4"
+dataset: "aoe2companion"
+question: "What do the univariate distributions from 01_02_04 look like visually?"
+method: "Read 01_02_04 JSON artifact. Query DuckDB for histogram bins (rating, ratingDiff). Produce 13 plots: won distribution, won consistency, leaderboard/civ/map top-k bars, rating/ratingDiff histograms, leaderboards_raw boxplots, NULL-rate completeness matrix, profiles_raw NULL rates, leaderboards_raw leaderboard bar, boolean stacked bar, monthly volume line chart."
+predecessors:
+  - "01_02_04"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_05_visualizations.py"
+outputs:
+  plots:
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_*.png (13 files)"
+  report: "artifacts/01_exploration/02_eda/01_02_05_visualizations.md"
+gate:
+  artifact_check: "All 13 PNG files exist. 01_02_05_visualizations.md exists with SQL queries (Invariant #6)."
+  continue_predicate: "Notebook executes end-to-end without errors."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

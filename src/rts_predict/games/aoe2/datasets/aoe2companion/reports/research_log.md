@@ -8,6 +8,250 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### What
+
+Full univariate profiling of all four raw tables (NULL census, cardinality, numeric descriptive statistics, skewness/kurtosis, categorical frequency distributions, boolean census, temporal ranges, duplicate detection, NULL co-occurrence analysis), plus target variable analysis and preliminary temporal field classification per Invariant #3. All SQL embedded in the .md artifact (Invariant #6).
+
+### Tables profiled
+
+| Table | Rows | Columns |
+|-------|------|---------|
+| `matches_raw` | 277,099,059 | 55 |
+| `ratings_raw` | 58,317,433 | 8 |
+| `leaderboards_raw` | 2,381,227 | 19 |
+| `profiles_raw` | 3,609,686 | 14 |
+
+### NULL landscape
+
+**matches_raw — high-NULL columns (>5%):**
+- `server`: 97.99% NULL — populated for only ~2% of matches; near-dead for feature use
+- `modDataset`: 99.72% NULL — scenario-specific, effectively dead
+- `scenario`: 98.27% NULL — custom scenario matches only
+- `password`: 82.90% NULL — password-protected lobby indicator
+- `antiquityMode`: 68.66% NULL — recently added setting, absent from older matches
+- `hideCivs`: 49.30% NULL — similarly phased in over time
+- `rating` and `ratingDiff`: both 42.46% NULL — identical null rate confirms co-occurrence; NULLs = unranked matches
+- `country`: 12.60% NULL; `regicideMode`: 7.39% NULL
+- `team`: 4.90% NULL; `won` (target): 4.69% NULL (12,985,561 rows)
+
+**NULL co-occurrence clusters:**
+- Cluster A (8 boolean game-setting columns: allowCheats, lockSpeed, lockTeams, recordGame, sharedExploration, teamPositions, teamTogether, turboMode): 426,472 rows all eight NULL simultaneously — API schema change
+- Cluster B (fullTechTree, population): 431,288 rows jointly NULL; cross-cluster overlap 428,321 rows — single underlying cause
+
+**profiles_raw — 7 completely dead columns (100% NULL):** sharedHistory, twitchChannel, youtubeChannel, youtubeChannelName, discordId, discordName, discordInvitation — deprecated API fields, exclude from all feature engineering.
+
+**leaderboards_raw — block NULL at 25.61%:** rank, wins, losses, streak, drops, active, rankLevel all co-NULL (unranked entries lack these fields).
+
+**ratings_raw:** Zero NULLs except `rating_diff` (1.85% NULL, 1,078,873 rows).
+
+### Target variable (`won`)
+
+Near-perfectly balanced: 47.69% false (132.15M), 47.62% true (131.96M), 4.69% NULL (12.99M). All ranked queues show exact 50/50 balance. NULLs concentrated in `unranked` (15.74% NULL) and `unknown` (17.21% NULL) leaderboards.
+
+Intra-match consistency check (2-row matches): 88.6% have proper complementary outcomes. However, 6.2% have `both_true` and 4.7% have `both_false` — internally inconsistent; flagged for Phase 02 investigation.
+
+Primary prediction scope: rm_1v1 (26.8M matches) + qp_rm_1v1 (3.7M matches) = 30.5M 1v1 matches.
+
+### Cardinality highlights
+
+- `civ`: 68 distinct — full AoE2:DE roster. Top: Franks 5.68%, Mongols 4.45%, Britons 4.26%
+- `map`: 261 distinct — Arabia 19.53%, Arena 16.80%, Black Forest 12.42% (top 3 = 49%)
+- `name`: ~2.47M distinct player names
+
+**Near-constant / dead fields:** `season` constant -1 across ratings_raw and leaderboards_raw; `rankLevel` constant 1; `treatyLength` 96.56% zero; `status` only 2 values (player/ai).
+
+### Temporal leakage audit (Invariant #3)
+
+**Confirmed post_game:** `ratingDiff` (range [-174, 319], direct leakage); `finished`; `won` (target).
+
+**Critical ambiguity — `matches_raw.rating`:** Classified `ambiguous_pre_or_post`. Identical 42.46% NULL rate for `rating` and `ratingDiff` suggests simultaneous population. If `rating` is post-match snapshot, it encodes the outcome via `rating = pre_rating + ratingDiff`. Row-level co-occurrence check required in Phase 02 — this is the single most important open question for aoe2companion feature engineering.
+
+**ratings_raw:** Time-series ratings safe only with strict temporal join (`rating.date < match.started`).
+
+**leaderboards_raw cumulative stats** (wins, losses, games, streak, drops): Singleton snapshots, not a time series — usable only as static context features, not dynamic features.
+
+### Sentinel and anomaly values
+
+- `matches_raw.rating`: min -1 (sentinel), max 5,001
+- `ratings_raw.games`: max 1,775,260,795 — obvious data error; p95 is 4,736
+- `matches_raw.population`: min 0, max 9,999 — sentinels at extremes; median 200
+- `matches_raw.team`: max 255 — sentinel given median 2, p95 5
+- **8,812,005 duplicate (matchId, profileId) pairs** (3.18%) — deduplication required in Phase 02
+
+### Histogram findings
+
+- **Match duration:** median 1,678s (28 min), mean 1,815s, p05 145s, p95 3,789s, max 3.28M s (38 days — bugged). Right-skewed.
+- **matches_raw.rating** (non-NULL): mean 1,120, median 1,093, std 290 — bell-shaped around Elo anchor.
+- **leaderboards_raw.games**: mean 174, median 45, skewness 8.51 — heavy right tail of active players.
+
+### Decisions taken
+
+- 7 dead columns in profiles_raw identified for exclusion
+- 10 constant/dead fields catalogued across all tables
+- `matches_raw.rating` flagged as ambiguous; resolution deferred to Phase 02
+- 4,398,727 internally inconsistent 2-row matches flagged for investigation
+
+### Decisions deferred
+
+- Row-level `rating`/`ratingDiff` co-occurrence check — Phase 02 (verify: does `rating - ratingDiff` = prior rating in time series?)
+- Deduplication of 8.8M duplicate (matchId, profileId) pairs
+- Root cause of internally inconsistent won values (both_true, both_false)
+- `ratings_raw.games` max outlier capping/exclusion strategy
+
+### Thesis mapping
+
+- Chapter 4, section 4.1.2 — AoE2 univariate profiles, NULL landscape, target balance, temporal classification
+- Chapter 4, section 4.2.2 — Data quality: duplicates, sentinels, inconsistent outcomes
+
+### Open questions / follow-ups
+
+- Is `matches_raw.rating` pre-match or post-match Elo? Answering this gates the entire aoe2companion feature set.
+- Root cause of 4.4M internally inconsistent 2-row matches?
+- The 428K NULL co-occurrence cluster — early data before API fields existed?
+
+---
+
+## 2026-04-14 — [Phase 01 / Step 01_02_03] Raw schema DESCRIBE
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_03_raw_schema_describe.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/matches_raw.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/ratings_raw.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/leaderboards_raw.yaml`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/profiles_raw.yaml`
+
+### What
+
+Captured the exact DuckDB column names and types for all four aoe2companion raw sources. Since step 01_02_02 had not yet been executed, no persistent DuckDB exists; the notebook uses in-memory DuckDB and reads source files directly with `LIMIT 0` to obtain schema without loading row data. Same read parameters as planned for 01_02_02 ingestion (`binary_as_string=true`, `union_by_name=true`, `filename=true` for Parquet; explicit `dtypes=` for CSV).
+
+### Why
+
+Establish the source-of-truth bronze-layer schema before full ingestion runs. The `data/db/schemas/raw/*.yaml` files are consumed by all downstream steps (feature engineering, cleaning, documentation). Invariant #6 — all DESCRIBE SQL embedded in artifact.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_03_raw_schema_describe.py`
+
+- matches: `read_parquet(glob, binary_as_string=true, union_by_name=true, filename=true) LIMIT 0`
+- ratings: `read_csv(glob, dtypes={profile_id: BIGINT, games: BIGINT, rating: BIGINT, date: TIMESTAMP, leaderboard_id: BIGINT, rating_diff: BIGINT, season: BIGINT}, union_by_name=true, filename=true) LIMIT 0`
+- leaderboards, profiles: `read_parquet(singleton, binary_as_string=true, filename=true) LIMIT 0`
+
+### Findings
+
+| Source | Columns | Notable types |
+|--------|---------|---------------|
+| matches | 55 | `won` BOOLEAN (prediction target); `matchId`/`profileId` INTEGER; `started`/`finished` TIMESTAMP; `speedFactor` FLOAT |
+| ratings | 8 | `profile_id` BIGINT; `date` TIMESTAMP; all numerics BIGINT |
+| leaderboards | 19 | `profileId` INTEGER; `lastMatchTime`/`updatedAt` TIMESTAMP |
+| profiles | 14 | `profileId` INTEGER; all string columns VARCHAR |
+
+Key observations:
+- `won` (BOOLEAN, nullable) confirmed as prediction target column
+- Naming inconsistency cross-confirmed: `profileId` (camelCase, INTEGER) in matches and leaderboards vs `profile_id` (snake_case, BIGINT) in ratings — noted for Phase 02 join design
+- `speedFactor` is FLOAT (only non-integer numeric in matches)
+- All four schema YAMLs populated in `data/db/schemas/raw/`
+
+### Decisions taken
+
+- Schema YAMLs populated from this DESCRIBE output — source-of-truth for all downstream steps
+- No ingestion or schema changes at this step — read-only
+
+### Decisions deferred
+
+- Column descriptions (`TODO: fill`) in `*.yaml` files — deferred to systematic profiling (01_03)
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 dataset: bronze-layer schema catalog
+
+### Open questions / follow-ups
+
+- None — schema fully captured
+
+---
+
+## 2026-04-14 — [Phase 01 / Step 01_02_02] DuckDB ingestion
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** ingest
+**Artifacts produced:**
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.json`
+- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_02_duckdb_ingestion.md`
+
+### What
+
+Materialised four `*_raw` DuckDB tables from the full aoe2companion corpus (2,073 daily match Parquets, 2,072 daily rating CSVs, 1 leaderboard Parquet, 1 profile Parquet) into the persistent database at `src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/db.duckdb`.
+
+### Why
+
+Enable SQL-based EDA for subsequent profiling (01_03) and cleaning (01_04). Invariants #6 (reproducibility), #9 (step scope), #10 (relative filenames) upheld.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_02_duckdb_ingestion.py`
+Module: `src/rts_predict/games/aoe2/datasets/aoe2companion/ingestion.py`
+
+### Findings
+
+**Table row counts:**
+| Table | Rows |
+|-------|------|
+| `matches_raw` | 277,099,059 |
+| `ratings_raw` | 58,317,433 |
+| `leaderboards_raw` | 2,381,227 |
+| `profiles_raw` | 3,609,686 |
+
+**Dtype strategy for `ratings_raw`:** Explicit `dtypes=` map (BIGINT/TIMESTAMP) required — `read_csv_auto` infers all 7 columns as VARCHAR at scale (2,072 files). Strategy established in Step 01_02_01.
+
+**NULL rates (key fields):**
+- `matches_raw.won`: 12,985,561 NULLs / 277,099,059 rows (4.69%) — root cause established in 01_02_01 won=NULL investigation
+- `matches_raw.matchId`: 0 NULLs
+- `matches_raw.filename`: 0 NULLs
+- `ratings_raw.profile_id`: 0 NULLs
+- `ratings_raw.filename`: 0 NULLs
+
+**Invariant I10 (relative filenames):** All four tables pass — filenames stored relative to `raw_dir`. Enforced inline via `SELECT * REPLACE (substr(filename, {prefix_len}) AS filename)` in every CTAS. No post-load UPDATE (would OOM on 277M-row `matches_raw`).
+
+**Parquet binary columns:** All Parquet reads use `binary_as_string=true` for the unannotated BYTE_ARRAY columns in matches/leaderboards/profiles. Established in 01_02_01.
+
+### Decisions taken
+
+- All tables use `*_raw` suffix convention (bronze layer)
+- Inline `SELECT * REPLACE` for I10 relativization — never post-load UPDATE
+- Explicit dtype map for ratings CSV ingestion — never `read_csv_auto` at scale
+- `binary_as_string=true` for all Parquet sources
+
+### Decisions deferred
+
+- Handling of 12.99M NULL `won` values — deferred to Step 01_04 (data cleaning)
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 — AoE2 dataset: four-table ingestion, dtype strategy, I10 compliance
+
+### Artifact note
+
+The `.json` artifact `sql` key records pre-fix SQL (`SELECT * FROM read_parquet(...)` without `REPLACE`). The actual ingestion code uses `SELECT * REPLACE (substr(filename, {prefix_len}) AS filename)`. The DuckDB on disk is correct; the artifact should be regenerated from a fresh notebook run to reflect the inline I10 pattern.
+
+### Open questions / follow-ups
+
+- Full NULL profiles for all 55 `matches_raw` columns — deferred to 01_03 (systematic profiling)
+
+---
+
 ## 2026-04-14 — [Phase 01 / Step 01_02_01] won=NULL root-cause investigation
 
 **Category:** A (science)
