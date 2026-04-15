@@ -30,12 +30,14 @@
 # **Predecessor:** 01_02_06 (Bivariate EDA -- complete, artifacts on disk)
 # **Step scope:** multivariate EDA only -- visualization + dimensionality assessment.
 # No cleaning decisions, no feature engineering, no model fitting.
+# **ROADMAP reference:** `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md` Step 01_02_07
+# **Commit:** 59fa781
+# **Date:** 2026-04-15
 
 # %%
 import json
 from pathlib import Path
 
-import duckdb
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,14 +48,13 @@ from scipy.spatial.distance import squareform
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from rts_predict.common.notebook_utils import get_reports_dir, setup_notebook_logging
-from rts_predict.games.aoe2.config import AOESTATS_DB_FILE
+from rts_predict.common.notebook_utils import get_notebook_db, get_reports_dir, setup_notebook_logging
 
 matplotlib.use("Agg")
 logger = setup_notebook_logging(__name__)
 
 # %%
-conn = duckdb.connect(str(AOESTATS_DB_FILE), read_only=True)
+conn = get_notebook_db("aoe2", "aoestats")
 
 # %%
 reports_dir = get_reports_dir("aoe2", "aoestats")
@@ -136,7 +137,7 @@ USING SAMPLE RESERVOIR({TARGET_SAMPLE_ROWS})
 sql_queries["spearman_cross_table_sample"] = sql_spearman_sample
 
 # %%
-df_spearman = conn.execute(sql_spearman_sample).fetchdf()
+df_spearman = conn.con.execute(sql_spearman_sample).fetchdf()
 print(f"Spearman sample: {len(df_spearman)} rows, {df_spearman.shape[1]} columns")
 print(f"Non-null counts:\n{df_spearman.notna().sum()}")
 
@@ -281,7 +282,7 @@ USING SAMPLE RESERVOIR({TARGET_SAMPLE_ROWS})
 sql_queries["pca_cross_table_sample"] = sql_pca_sample
 
 # %%
-df_pca = conn.execute(sql_pca_sample).fetchdf()
+df_pca = conn.con.execute(sql_pca_sample).fetchdf()
 print(f"PCA sample: {len(df_pca)} rows")
 print(f"Null counts:\n{df_pca[PCA_FEATURES].isna().sum()}")
 assert df_pca[PCA_FEATURES].isna().sum().sum() == 0, "PCA features must have no NULLs"
@@ -497,6 +498,40 @@ md_lines.append("- Bivariate artifact: `01_02_06_bivariate_eda.json`")
 md_path = artifacts_dir / "01_02_07_multivariate_analysis.md"
 md_path.write_text("\n".join(md_lines))
 print(f"Markdown artifact written: {md_path}")
+
+# %% [markdown]
+# ## Conclusion
+#
+# ### Key scientific findings
+#
+# - **ELO cluster near-perfect collinearity:** avg_elo, team_0_elo, team_1_elo, old_rating,
+#   and new_rating cluster together with pairwise Spearman rho of 0.977--0.998. This confirms
+#   massive ELO feature redundancy across the players_raw / matches_raw join.
+# - **match_rating_diff near-orthogonal to ELO cluster:** rho near zero with all ELO features.
+#   Confirmed PRE-GAME by 01_02_06 bivariate leakage test; represents an independent dimension
+#   of variation (PC2) not captured by the ELO axis.
+# - **PCA effectively 2-dimensional:** PC1 explains 79.21% of variance (shared ELO axis);
+#   PC2 explains 20.11% (match_rating_diff axis). Together they account for 99.33% of
+#   total variance. PC3-5 are numerical noise (<0.4% each).
+# - **Retention decisions deferred to Phase 02:** No feature engineering or column dropping
+#   decisions are made here (Invariant #9). The near-perfect collinearity of the four ELO
+#   features informs Phase 02 dimensionality reduction choices.
+#
+# ### Artifacts produced
+# - `reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.json` -- structured results (rho matrix, PCA loadings)
+# - `reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.md` -- human-readable report with embedded SQL
+# - `reports/artifacts/01_exploration/02_eda/plots/01_02_07_spearman_heatmap_all.png` -- cluster-ordered Spearman heatmap
+# - `reports/artifacts/01_exploration/02_eda/plots/01_02_07_pca_scree.png` -- PCA scree plot
+# - `reports/artifacts/01_exploration/02_eda/plots/01_02_07_pca_biplot.png` -- PCA biplot coloured by winner
+#
+# ### Thesis mapping
+# - Chapter 3 (Data & Features): multivariate structure section; supports ELO redundancy
+#   discussion and dimensionality analysis for pre-game feature set.
+#
+# ### Follow-ups
+# - Phase 02 Feature Engineering: decide which ELO features to retain vs drop/combine.
+# - Consider whether match_rating_diff and old_rating are sufficient to represent
+#   the pre-game rating information without avg_elo / team_0_elo / team_1_elo.
 
 # %%
 expected_plots = [

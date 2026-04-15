@@ -81,7 +81,7 @@ Features: old_rating, match_rating_diff, avg_elo, team_0_elo, team_1_elo (N=20,0
 
 ### Decisions / Column Classification Confirmed
 
-All column classifications are now finalized for the thesis methodology chapter:
+All column classifications are documented and ready for thesis draft; `old_rating` is classified as PRE-GAME by schema inference (pre-match rating), not by bivariate temporal test:
 
 | Column | Temporal Class | PCA | Notes |
 |--------|---------------|-----|-------|

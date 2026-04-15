@@ -30,12 +30,14 @@
 # **Predecessor:** 01_02_06 (Bivariate EDA)
 # **Step scope:** Multivariate EDA. No DuckDB writes. No new tables.
 # **Outputs:** 2-3 PNG plots + 01_02_07_multivariate_analysis.md
+# **ROADMAP reference:** `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md` Step 01_02_07
+# **Commit:** 59fa781
+# **Date:** 2026-04-15
 
 # %% -- Cell 2: imports
 import json
 from pathlib import Path
 
-import duckdb
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,15 +48,19 @@ from scipy.stats import spearmanr
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from rts_predict.common.notebook_utils import get_reports_dir, setup_notebook_logging
-from rts_predict.games.aoe2.config import AOE2COMPANION_DB_FILE
+from rts_predict.common.notebook_utils import (
+    get_notebook_db,
+    get_reports_dir,
+    setup_notebook_logging,
+)
 
 logger = setup_notebook_logging()
 matplotlib.use("Agg")
 
 # %% -- Cell 3: DuckDB connection (read-only)
-con = duckdb.connect(str(AOE2COMPANION_DB_FILE), read_only=True)
-print(f"Connected to: {AOE2COMPANION_DB_FILE}")
+db = get_notebook_db("aoe2", "aoe2companion")
+con = db.con
+print(f"Connected via get_notebook_db: aoe2 / aoe2companion")
 
 # %% -- Cell 4: census JSON load and path setup
 reports_dir = get_reports_dir("aoe2", "aoe2companion")
@@ -156,7 +162,16 @@ SELECT
     treatyLength,
     internalLeaderboardId
 FROM (
-    SELECT *
+    SELECT
+        rating,
+        ratingDiff,
+        finished,
+        started,
+        population,
+        speedFactor,
+        treatyLength,
+        internalLeaderboardId,
+        leaderboard
     FROM matches_raw
     TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)
 ) sub
@@ -285,12 +300,24 @@ if not PCA_DEGENERATE:
     if "duration_min" in pca_viable_cols:
         null_filters += " AND finished > started"
 
+    # Build the raw column list for the subquery.
+    # For duration_min the outer expression uses finished and started;
+    # all other viable cols are stored directly.
+    pca_raw_cols = []
+    for col in pca_viable_cols:
+        if col == "duration_min":
+            pca_raw_cols.extend(["finished", "started"])
+        else:
+            pca_raw_cols.append(col)
+    pca_raw_cols.extend(["won", "leaderboard"])
+    pca_subq_cols = ",\n        ".join(dict.fromkeys(pca_raw_cols))
     pca_sql = f"""
 SELECT
     {pca_col_sql},
     won
 FROM (
-    SELECT *
+    SELECT
+        {pca_subq_cols}
     FROM matches_raw
     TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)
 ) sub
@@ -436,7 +463,11 @@ if PCA_DEGENERATE:
         col = pca_viable_cols[0]
         scatter_sql = f"""
 SELECT {col}, won
-FROM (SELECT * FROM matches_raw TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)) sub
+FROM (
+    SELECT {col}, won, leaderboard
+    FROM matches_raw
+    TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)
+) sub
 WHERE won IS NOT NULL AND {col} IS NOT NULL AND {LEADERBOARD_1V1_FILTER}
 """
         sql_queries["degenerate_scatter"] = scatter_sql
@@ -460,7 +491,11 @@ WHERE won IS NOT NULL AND {col} IS NOT NULL AND {LEADERBOARD_1V1_FILTER}
         col1, col2 = pca_viable_cols[0], pca_viable_cols[1]
         scatter_sql = f"""
 SELECT {col1}, {col2}, won
-FROM (SELECT * FROM matches_raw TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)) sub
+FROM (
+    SELECT {col1}, {col2}, won, leaderboard
+    FROM matches_raw
+    TABLESAMPLE BERNOULLI({sample_pct:.6f} PERCENT)
+) sub
 WHERE won IS NOT NULL AND {col1} IS NOT NULL AND {col2} IS NOT NULL
   AND {LEADERBOARD_1V1_FILTER}
 """
@@ -593,7 +628,77 @@ with open(md_path, "w") as f:
     f.write(md_text)
 print(f"Saved: {md_path}")
 
-# %% -- Cell 19: gate verification
+# %% -- Cell 19: write JSON artifact
+# Mirror schema used by aoestats and sc2egset for cross-dataset consistency.
+pca_decision: dict = {
+    "degenerate": PCA_DEGENERATE,
+    "viable_features": len(pca_viable_cols),
+    "reason": (
+        "All pre-game numeric features have IQR=0 (near-constant)"
+        if PCA_DEGENERATE
+        else "PCA viable"
+    ),
+}
+
+json_artifact: dict = {
+    "step": "01_02_07",
+    "dataset": "aoe2companion",
+    "spearman_matrix": {
+        col: {
+            other: round(float(rho_df_clean.loc[col, other]), 4)
+            for other in HEATMAP_COLUMNS
+        }
+        for col in HEATMAP_COLUMNS
+    },
+    "pca_decision": pca_decision,
+    "column_classification": I3_CLASSIFICATION,
+}
+
+json_path = artifacts_dir / "01_02_07_multivariate_analysis.json"
+with open(json_path, "w") as f:
+    json.dump(json_artifact, f, indent=2)
+print(f"Saved: {json_path}")
+
+# %% [markdown]
+# ## Conclusion
+#
+# ### Key scientific findings
+#
+# **PCA is degenerate for aoe2companion.** All pre-game numeric candidates
+# (population, speedFactor, treatyLength) have IQR=0 in 1v1 ranked play —
+# they are near-constant across matches. Zero viable features remain after
+# excluding POST-GAME (ratingDiff, duration_min), AMBIGUOUS (rating),
+# NOT-A-FEATURE (slot, color, team), and near-constant columns. No scree
+# plot or biplot is produced; a text-summary fallback PNG documents the
+# degeneracy finding.
+#
+# **Spearman heatmap findings.** The cluster-ordered heatmap shows weak
+# pairwise correlations among all seven numeric columns in 1v1 ranked play.
+# speedFactor and treatyLength yield NaN Spearman coefficients (filled with
+# 0 = uncorrelated) because their near-zero rank variance makes the
+# denominator degenerate. ratingDiff is confirmed POST-GAME. rating is
+# AMBIGUOUS (deferred to Phase 02).
+#
+# **Phase 02 implications.** aoe2companion's raw numeric pre-game feature
+# space is effectively empty. Phase 02 must engineer features from temporal
+# match history — rolling win rates, Elo trajectories, head-to-head stats,
+# and civilisation matchup statistics — to build a useful prediction feature
+# set.
+#
+# ### Artifacts produced
+# - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_07_spearman_heatmap_all.png` — cluster-ordered Spearman heatmap (all numeric columns, I3-labelled)
+# - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/plots/01_02_07_pca_biplot.png` — degenerate PCA fallback summary (text plot)
+# - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.md` — full analysis markdown (SQL embedded per I6)
+# - `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.json` — machine-readable summary (step, dataset, spearman_matrix, pca_decision, column_classification)
+#
+# ### Thesis mapping
+# - thesis/chapters/02_data_exploration.md — Section: Pre-game Feature Space Assessment
+#
+# ### Follow-ups
+# - Phase 02: engineer temporal features (Elo, win rates, civ matchup stats) — raw numeric space is insufficient
+# - Phase 02: revisit `rating` AMBIGUOUS classification; resolve with temporal analysis of rating changes around match time
+
+# %% -- Cell 21: gate verification
 expected_plots = ["01_02_07_spearman_heatmap_all.png"]
 if not PCA_DEGENERATE:
     expected_plots.append("01_02_07_pca_scree.png")
@@ -616,7 +721,18 @@ for qname in sql_queries:
 assert "I3 Classification" in md_content, "Feature classification table missing"
 print("  OK: Feature classification table present")
 
+assert json_path.exists(), f"Missing JSON artifact: {json_path}"
+assert json_path.stat().st_size > 0, f"Empty JSON artifact: {json_path}"
+with open(json_path) as _f:
+    _j = json.load(_f)
+assert _j["step"] == "01_02_07", "JSON step field mismatch"
+assert _j["dataset"] == "aoe2companion", "JSON dataset field mismatch"
+assert "spearman_matrix" in _j, "JSON missing spearman_matrix"
+assert "pca_decision" in _j, "JSON missing pca_decision"
+assert "column_classification" in _j, "JSON missing column_classification"
+print(f"  OK: 01_02_07_multivariate_analysis.json ({json_path.stat().st_size:,} bytes)")
+
 print("\nAll gate checks passed.")
 
-# %% -- Cell 20: close connection
-con.close()
+# %% -- Cell 22: close connection
+db.close()

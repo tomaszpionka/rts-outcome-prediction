@@ -42,7 +42,16 @@ SELECT
     treatyLength,
     internalLeaderboardId
 FROM (
-    SELECT *
+    SELECT
+        rating,
+        ratingDiff,
+        finished,
+        started,
+        population,
+        speedFactor,
+        treatyLength,
+        internalLeaderboardId,
+        leaderboard
     FROM matches_raw
     TABLESAMPLE BERNOULLI(0.036088 PERCENT)
 ) sub

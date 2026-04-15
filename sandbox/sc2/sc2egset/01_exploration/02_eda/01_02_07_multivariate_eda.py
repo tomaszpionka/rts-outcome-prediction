@@ -28,6 +28,9 @@
 # #9 (visualization only, no new feature computation)
 # **Predecessor:** 01_02_06 (Bivariate EDA -- complete)
 # **Type:** Read-only -- no DuckDB writes
+# **ROADMAP reference:** `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` Step 01_02_07
+# **Commit:** 59fa781
+# **Date:** 2026-04-15
 
 # %% [markdown]
 # ## Cell 2 -- Imports
@@ -36,7 +39,6 @@
 import json
 from pathlib import Path
 
-import duckdb
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,8 +47,7 @@ from scipy import stats
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import squareform
 
-from rts_predict.common.notebook_utils import get_reports_dir, setup_notebook_logging
-from rts_predict.games.sc2.config import DB_FILE
+from rts_predict.common.notebook_utils import get_notebook_db, get_reports_dir, setup_notebook_logging
 
 matplotlib.use("Agg")
 logger = setup_notebook_logging()
@@ -55,7 +56,7 @@ logger = setup_notebook_logging()
 # ## Cell 3 -- DuckDB Connection
 
 # %%
-conn = duckdb.connect(str(DB_FILE), read_only=True)
+conn = get_notebook_db("sc2", "sc2egset")
 
 # %% [markdown]
 # ## Cell 4 -- Census Load
@@ -151,10 +152,10 @@ WHERE result IN ('Win', 'Loss')
 # ## Cell 7 -- Fetch Data
 
 # %%
-df_all = conn.execute(sql_queries["spearman_all"]).fetchdf()
+df_all = conn.fetch_df(sql_queries["spearman_all"])
 print(f"All rows (SQ sentinel excluded): {len(df_all)}")
 
-df_rated = conn.execute(sql_queries["spearman_rated"]).fetchdf()
+df_rated = conn.fetch_df(sql_queries["spearman_rated"])
 print(f"Rated players (MMR > 0): {len(df_rated)}")
 
 # %% [markdown]
@@ -252,7 +253,7 @@ print(f"Saved: {heatmap_path}")
 # ## Cell 11 -- Fetch Faceted Data
 
 # %%
-df_pregame = conn.execute(sql_queries["pregame_faceted"]).fetchdf()
+df_pregame = conn.fetch_df(sql_queries["pregame_faceted"])
 print(f"Pre-game faceted rows: {len(df_pregame)}")
 print(f"Races: {sorted(df_pregame['selectedRace'].unique())}")
 print(f"Leagues: {sorted(df_pregame['highestLeague'].unique())}")
@@ -467,6 +468,56 @@ json_path = artifact_dir / "01_02_07_multivariate_analysis.json"
 with open(json_path, "w") as f:
     json.dump(artifact_data, f, indent=2)
 print(f"Saved: {json_path}")
+
+# %% [markdown]
+# ## Conclusion
+#
+# ### Key scientific findings
+#
+# **All-rows panel (SQ sentinel excluded, MMR includes zero):**
+# - The APM-SQ correlation block (rho=0.405) is the dominant structure: the
+#   two in-game efficiency metrics cluster tightly together.
+# - MMR is effectively decorrelated from all in-game features in this panel
+#   because 83.65% of MMR values are the zero sentinel (unranked players).
+#   This contamination suppresses any true skill-signal in the full dataset.
+#
+# **Rated-only panel (MMR > 0):**
+# - With the zero sentinel removed, the skill-ranking relationship is exposed:
+#   MMR-APM rho=0.206 and MMR-SQ rho=0.159 — moderate positive associations
+#   confirming that higher-rated players have higher efficiency metrics.
+#
+# **PCA decision:**
+# - PCA was skipped because the sc2egset pre-game numeric feature space contains
+#   exactly p=1 column (MMR). With a single numeric feature, PCA is trivially
+#   PC1=100% variance explained and the scree plot is uninformative.
+# - Alternative produced: MMR distribution faceted by selectedRace x
+#   highestLeague, exposing the joint structure of all three pre-game features
+#   (1 numeric, 2 categorical).
+#
+# **Deferred decisions:**
+# - Retention decisions (whether to keep MMR as a pre-game feature given the
+#   83.65% zero contamination) and feature selection are deferred to Phase 02.
+# - The faceted plot confirms MMR separates clearly across league tiers;
+#   race shows minimal effect on MMR distribution within leagues.
+#
+# ### Artifacts produced
+# - `reports/artifacts/01_exploration/02_eda/plots/01_02_07_spearman_heatmap_all.png`
+#   -- cluster-ordered Spearman heatmap (two-panel: all rows vs. rated only)
+# - `reports/artifacts/01_exploration/02_eda/plots/01_02_07_pregame_multivariate_faceted.png`
+#   -- MMR distribution by selectedRace x highestLeague (pre-game features only)
+# - `reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.md`
+#   -- full analysis summary with embedded SQL queries (I6)
+# - `reports/artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.json`
+#   -- machine-readable artifact with Spearman matrices and metadata
+#
+# ### Thesis mapping
+# - Chapter 3 (Data), Section 3.3 Exploratory Data Analysis -- Multivariate structure
+#
+# ### Follow-ups
+# - Phase 02: decide on MMR handling strategy (exclude zero-sentinel rows,
+#   impute with league-median, or treat as a separate binary "is_ranked" feature)
+# - Phase 02: with only 1 numeric pre-game feature, feature engineering focus
+#   shifts to categorical encoding of selectedRace and highestLeague
 
 # %% [markdown]
 # ## Cell 17 -- Gate Verification and Connection Close
