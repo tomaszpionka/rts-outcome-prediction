@@ -1357,6 +1357,1534 @@ SELECT
 FROM players_raw
 ```
 
+### census.matches_raw.map.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("map") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("map")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "map") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.map.top_n
+
+```sql
+SELECT
+    "map" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "map"
+ORDER BY cnt DESC, "map" ASC
+LIMIT 5
+```
+
+### census.matches_raw.map.bottom_n
+
+```sql
+SELECT
+    "map" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "map" IS NOT NULL
+GROUP BY "map"
+ORDER BY cnt ASC, "map" ASC
+LIMIT 5
+```
+
+### census.matches_raw.started_timestamp.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("started_timestamp") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("started_timestamp")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "started_timestamp") AS cardinality,
+    MIN(CAST("started_timestamp" AS TIMESTAMP)) AS temporal_min,
+    MAX(CAST("started_timestamp" AS TIMESTAMP)) AS temporal_max
+FROM matches_raw
+```
+
+### census.matches_raw.started_timestamp.top_n
+
+```sql
+SELECT
+    CAST("started_timestamp" AS TIMESTAMP) AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "started_timestamp"
+ORDER BY cnt DESC, "started_timestamp" ASC
+LIMIT 5
+```
+
+### census.matches_raw.started_timestamp.bottom_n
+
+```sql
+SELECT
+    CAST("started_timestamp" AS TIMESTAMP) AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "started_timestamp" IS NOT NULL
+GROUP BY "started_timestamp"
+ORDER BY cnt ASC, "started_timestamp" ASC
+LIMIT 5
+```
+
+### census.matches_raw.duration.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("duration") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("duration")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "duration") AS cardinality,
+    COUNT(*) FILTER (WHERE "duration" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "duration" = 0) / NULLIF(COUNT(*) FILTER (WHERE "duration" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.duration.top_n
+
+```sql
+SELECT
+    "duration" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "duration"
+ORDER BY cnt DESC, "duration" ASC
+LIMIT 5
+```
+
+### census.matches_raw.duration.bottom_n
+
+```sql
+SELECT
+    "duration" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "duration" IS NOT NULL
+GROUP BY "duration"
+ORDER BY cnt ASC, "duration" ASC
+LIMIT 5
+```
+
+### census.matches_raw.irl_duration.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("irl_duration") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("irl_duration")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "irl_duration") AS cardinality,
+    COUNT(*) FILTER (WHERE "irl_duration" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "irl_duration" = 0) / NULLIF(COUNT(*) FILTER (WHERE "irl_duration" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.irl_duration.top_n
+
+```sql
+SELECT
+    "irl_duration" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "irl_duration"
+ORDER BY cnt DESC, "irl_duration" ASC
+LIMIT 5
+```
+
+### census.matches_raw.irl_duration.bottom_n
+
+```sql
+SELECT
+    "irl_duration" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "irl_duration" IS NOT NULL
+GROUP BY "irl_duration"
+ORDER BY cnt ASC, "irl_duration" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_id.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("game_id") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("game_id")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "game_id") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.game_id.top_n
+
+```sql
+SELECT
+    "game_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "game_id"
+ORDER BY cnt DESC, "game_id" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_id.bottom_n
+
+```sql
+SELECT
+    "game_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "game_id" IS NOT NULL
+GROUP BY "game_id"
+ORDER BY cnt ASC, "game_id" ASC
+LIMIT 5
+```
+
+### census.matches_raw.avg_elo.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("avg_elo") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("avg_elo")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "avg_elo") AS cardinality,
+    COUNT(*) FILTER (WHERE "avg_elo" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "avg_elo" = 0) / NULLIF(COUNT(*) FILTER (WHERE "avg_elo" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.avg_elo.top_n
+
+```sql
+SELECT
+    "avg_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "avg_elo"
+ORDER BY cnt DESC, "avg_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.avg_elo.bottom_n
+
+```sql
+SELECT
+    "avg_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "avg_elo" IS NOT NULL
+GROUP BY "avg_elo"
+ORDER BY cnt ASC, "avg_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.num_players.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("num_players") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("num_players")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "num_players") AS cardinality,
+    COUNT(*) FILTER (WHERE "num_players" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "num_players" = 0) / NULLIF(COUNT(*) FILTER (WHERE "num_players" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.num_players.top_n
+
+```sql
+SELECT
+    "num_players" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "num_players"
+ORDER BY cnt DESC, "num_players" ASC
+LIMIT 5
+```
+
+### census.matches_raw.num_players.bottom_n
+
+```sql
+SELECT
+    "num_players" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "num_players" IS NOT NULL
+GROUP BY "num_players"
+ORDER BY cnt ASC, "num_players" ASC
+LIMIT 5
+```
+
+### census.matches_raw.team_0_elo.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("team_0_elo") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("team_0_elo")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "team_0_elo") AS cardinality,
+    COUNT(*) FILTER (WHERE "team_0_elo" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "team_0_elo" = 0) / NULLIF(COUNT(*) FILTER (WHERE "team_0_elo" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.team_0_elo.top_n
+
+```sql
+SELECT
+    "team_0_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "team_0_elo"
+ORDER BY cnt DESC, "team_0_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.team_0_elo.bottom_n
+
+```sql
+SELECT
+    "team_0_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "team_0_elo" IS NOT NULL
+GROUP BY "team_0_elo"
+ORDER BY cnt ASC, "team_0_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.team_1_elo.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("team_1_elo") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("team_1_elo")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "team_1_elo") AS cardinality,
+    COUNT(*) FILTER (WHERE "team_1_elo" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "team_1_elo" = 0) / NULLIF(COUNT(*) FILTER (WHERE "team_1_elo" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.team_1_elo.top_n
+
+```sql
+SELECT
+    "team_1_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "team_1_elo"
+ORDER BY cnt DESC, "team_1_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.team_1_elo.bottom_n
+
+```sql
+SELECT
+    "team_1_elo" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "team_1_elo" IS NOT NULL
+GROUP BY "team_1_elo"
+ORDER BY cnt ASC, "team_1_elo" ASC
+LIMIT 5
+```
+
+### census.matches_raw.replay_enhanced.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("replay_enhanced") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("replay_enhanced")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "replay_enhanced") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.replay_enhanced.top_n
+
+```sql
+SELECT
+    "replay_enhanced" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "replay_enhanced"
+ORDER BY cnt DESC, "replay_enhanced" ASC
+LIMIT 5
+```
+
+### census.matches_raw.replay_enhanced.bottom_n
+
+```sql
+SELECT
+    "replay_enhanced" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "replay_enhanced" IS NOT NULL
+GROUP BY "replay_enhanced"
+ORDER BY cnt ASC, "replay_enhanced" ASC
+LIMIT 5
+```
+
+### census.matches_raw.leaderboard.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("leaderboard") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("leaderboard")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "leaderboard") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.leaderboard.top_n
+
+```sql
+SELECT
+    "leaderboard" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "leaderboard"
+ORDER BY cnt DESC, "leaderboard" ASC
+LIMIT 5
+```
+
+### census.matches_raw.leaderboard.bottom_n
+
+```sql
+SELECT
+    "leaderboard" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "leaderboard" IS NOT NULL
+GROUP BY "leaderboard"
+ORDER BY cnt ASC, "leaderboard" ASC
+LIMIT 5
+```
+
+### census.matches_raw.mirror.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("mirror") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("mirror")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "mirror") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.mirror.top_n
+
+```sql
+SELECT
+    "mirror" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "mirror"
+ORDER BY cnt DESC, "mirror" ASC
+LIMIT 5
+```
+
+### census.matches_raw.mirror.bottom_n
+
+```sql
+SELECT
+    "mirror" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "mirror" IS NOT NULL
+GROUP BY "mirror"
+ORDER BY cnt ASC, "mirror" ASC
+LIMIT 5
+```
+
+### census.matches_raw.patch.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("patch") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("patch")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "patch") AS cardinality,
+    COUNT(*) FILTER (WHERE "patch" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "patch" = 0) / NULLIF(COUNT(*) FILTER (WHERE "patch" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.patch.top_n
+
+```sql
+SELECT
+    "patch" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "patch"
+ORDER BY cnt DESC, "patch" ASC
+LIMIT 5
+```
+
+### census.matches_raw.patch.bottom_n
+
+```sql
+SELECT
+    "patch" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "patch" IS NOT NULL
+GROUP BY "patch"
+ORDER BY cnt ASC, "patch" ASC
+LIMIT 5
+```
+
+### census.matches_raw.raw_match_type.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("raw_match_type") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("raw_match_type")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "raw_match_type") AS cardinality,
+    COUNT(*) FILTER (WHERE "raw_match_type" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "raw_match_type" = 0) / NULLIF(COUNT(*) FILTER (WHERE "raw_match_type" IS NOT NULL), 0), 4) AS zero_pct
+FROM matches_raw
+```
+
+### census.matches_raw.raw_match_type.top_n
+
+```sql
+SELECT
+    "raw_match_type" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "raw_match_type"
+ORDER BY cnt DESC, "raw_match_type" ASC
+LIMIT 5
+```
+
+### census.matches_raw.raw_match_type.bottom_n
+
+```sql
+SELECT
+    "raw_match_type" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "raw_match_type" IS NOT NULL
+GROUP BY "raw_match_type"
+ORDER BY cnt ASC, "raw_match_type" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_type.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("game_type") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("game_type")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "game_type") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.game_type.top_n
+
+```sql
+SELECT
+    "game_type" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "game_type"
+ORDER BY cnt DESC, "game_type" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_type.bottom_n
+
+```sql
+SELECT
+    "game_type" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "game_type" IS NOT NULL
+GROUP BY "game_type"
+ORDER BY cnt ASC, "game_type" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_speed.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("game_speed") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("game_speed")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "game_speed") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.game_speed.top_n
+
+```sql
+SELECT
+    "game_speed" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "game_speed"
+ORDER BY cnt DESC, "game_speed" ASC
+LIMIT 5
+```
+
+### census.matches_raw.game_speed.bottom_n
+
+```sql
+SELECT
+    "game_speed" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "game_speed" IS NOT NULL
+GROUP BY "game_speed"
+ORDER BY cnt ASC, "game_speed" ASC
+LIMIT 5
+```
+
+### census.matches_raw.starting_age.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("starting_age") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("starting_age")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "starting_age") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.starting_age.top_n
+
+```sql
+SELECT
+    "starting_age" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "starting_age"
+ORDER BY cnt DESC, "starting_age" ASC
+LIMIT 5
+```
+
+### census.matches_raw.starting_age.bottom_n
+
+```sql
+SELECT
+    "starting_age" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "starting_age" IS NOT NULL
+GROUP BY "starting_age"
+ORDER BY cnt ASC, "starting_age" ASC
+LIMIT 5
+```
+
+### census.matches_raw.filename.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("filename") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("filename")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "filename") AS cardinality
+FROM matches_raw
+```
+
+### census.matches_raw.filename.top_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+GROUP BY "filename"
+ORDER BY cnt DESC, "filename" ASC
+LIMIT 5
+```
+
+### census.matches_raw.filename.bottom_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM matches_raw
+WHERE "filename" IS NOT NULL
+GROUP BY "filename"
+ORDER BY cnt ASC, "filename" ASC
+LIMIT 5
+```
+
+### census.players_raw.winner.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("winner") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("winner")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "winner") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.winner.top_n
+
+```sql
+SELECT
+    "winner" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "winner"
+ORDER BY cnt DESC, "winner" ASC
+LIMIT 5
+```
+
+### census.players_raw.winner.bottom_n
+
+```sql
+SELECT
+    "winner" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "winner" IS NOT NULL
+GROUP BY "winner"
+ORDER BY cnt ASC, "winner" ASC
+LIMIT 5
+```
+
+### census.players_raw.game_id.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("game_id") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("game_id")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "game_id") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.game_id.top_n
+
+```sql
+SELECT
+    "game_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "game_id"
+ORDER BY cnt DESC, "game_id" ASC
+LIMIT 5
+```
+
+### census.players_raw.game_id.bottom_n
+
+```sql
+SELECT
+    "game_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "game_id" IS NOT NULL
+GROUP BY "game_id"
+ORDER BY cnt ASC, "game_id" ASC
+LIMIT 5
+```
+
+### census.players_raw.team.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("team") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("team")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "team") AS cardinality,
+    COUNT(*) FILTER (WHERE "team" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "team" = 0) / NULLIF(COUNT(*) FILTER (WHERE "team" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.team.top_n
+
+```sql
+SELECT
+    "team" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "team"
+ORDER BY cnt DESC, "team" ASC
+LIMIT 5
+```
+
+### census.players_raw.team.bottom_n
+
+```sql
+SELECT
+    "team" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "team" IS NOT NULL
+GROUP BY "team"
+ORDER BY cnt ASC, "team" ASC
+LIMIT 5
+```
+
+### census.players_raw.feudal_age_uptime.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("feudal_age_uptime") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("feudal_age_uptime")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "feudal_age_uptime") AS cardinality,
+    COUNT(*) FILTER (WHERE "feudal_age_uptime" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "feudal_age_uptime" = 0) / NULLIF(COUNT(*) FILTER (WHERE "feudal_age_uptime" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.feudal_age_uptime.top_n
+
+```sql
+SELECT
+    "feudal_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "feudal_age_uptime"
+ORDER BY cnt DESC, "feudal_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.feudal_age_uptime.bottom_n
+
+```sql
+SELECT
+    "feudal_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "feudal_age_uptime" IS NOT NULL
+GROUP BY "feudal_age_uptime"
+ORDER BY cnt ASC, "feudal_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.castle_age_uptime.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("castle_age_uptime") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("castle_age_uptime")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "castle_age_uptime") AS cardinality,
+    COUNT(*) FILTER (WHERE "castle_age_uptime" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "castle_age_uptime" = 0) / NULLIF(COUNT(*) FILTER (WHERE "castle_age_uptime" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.castle_age_uptime.top_n
+
+```sql
+SELECT
+    "castle_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "castle_age_uptime"
+ORDER BY cnt DESC, "castle_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.castle_age_uptime.bottom_n
+
+```sql
+SELECT
+    "castle_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "castle_age_uptime" IS NOT NULL
+GROUP BY "castle_age_uptime"
+ORDER BY cnt ASC, "castle_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.imperial_age_uptime.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("imperial_age_uptime") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("imperial_age_uptime")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "imperial_age_uptime") AS cardinality,
+    COUNT(*) FILTER (WHERE "imperial_age_uptime" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "imperial_age_uptime" = 0) / NULLIF(COUNT(*) FILTER (WHERE "imperial_age_uptime" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.imperial_age_uptime.top_n
+
+```sql
+SELECT
+    "imperial_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "imperial_age_uptime"
+ORDER BY cnt DESC, "imperial_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.imperial_age_uptime.bottom_n
+
+```sql
+SELECT
+    "imperial_age_uptime" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "imperial_age_uptime" IS NOT NULL
+GROUP BY "imperial_age_uptime"
+ORDER BY cnt ASC, "imperial_age_uptime" ASC
+LIMIT 5
+```
+
+### census.players_raw.old_rating.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("old_rating") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("old_rating")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "old_rating") AS cardinality,
+    COUNT(*) FILTER (WHERE "old_rating" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "old_rating" = 0) / NULLIF(COUNT(*) FILTER (WHERE "old_rating" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.old_rating.top_n
+
+```sql
+SELECT
+    "old_rating" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "old_rating"
+ORDER BY cnt DESC, "old_rating" ASC
+LIMIT 5
+```
+
+### census.players_raw.old_rating.bottom_n
+
+```sql
+SELECT
+    "old_rating" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "old_rating" IS NOT NULL
+GROUP BY "old_rating"
+ORDER BY cnt ASC, "old_rating" ASC
+LIMIT 5
+```
+
+### census.players_raw.new_rating.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("new_rating") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("new_rating")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "new_rating") AS cardinality,
+    COUNT(*) FILTER (WHERE "new_rating" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "new_rating" = 0) / NULLIF(COUNT(*) FILTER (WHERE "new_rating" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.new_rating.top_n
+
+```sql
+SELECT
+    "new_rating" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "new_rating"
+ORDER BY cnt DESC, "new_rating" ASC
+LIMIT 5
+```
+
+### census.players_raw.new_rating.bottom_n
+
+```sql
+SELECT
+    "new_rating" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "new_rating" IS NOT NULL
+GROUP BY "new_rating"
+ORDER BY cnt ASC, "new_rating" ASC
+LIMIT 5
+```
+
+### census.players_raw.match_rating_diff.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("match_rating_diff") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("match_rating_diff")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "match_rating_diff") AS cardinality,
+    COUNT(*) FILTER (WHERE "match_rating_diff" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "match_rating_diff" = 0) / NULLIF(COUNT(*) FILTER (WHERE "match_rating_diff" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.match_rating_diff.top_n
+
+```sql
+SELECT
+    "match_rating_diff" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "match_rating_diff"
+ORDER BY cnt DESC, "match_rating_diff" ASC
+LIMIT 5
+```
+
+### census.players_raw.match_rating_diff.bottom_n
+
+```sql
+SELECT
+    "match_rating_diff" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "match_rating_diff" IS NOT NULL
+GROUP BY "match_rating_diff"
+ORDER BY cnt ASC, "match_rating_diff" ASC
+LIMIT 5
+```
+
+### census.players_raw.replay_summary_raw.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("replay_summary_raw") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("replay_summary_raw")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "replay_summary_raw") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.replay_summary_raw.top_n
+
+```sql
+SELECT
+    "replay_summary_raw" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "replay_summary_raw"
+ORDER BY cnt DESC, "replay_summary_raw" ASC
+LIMIT 5
+```
+
+### census.players_raw.replay_summary_raw.bottom_n
+
+```sql
+SELECT
+    "replay_summary_raw" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "replay_summary_raw" IS NOT NULL
+GROUP BY "replay_summary_raw"
+ORDER BY cnt ASC, "replay_summary_raw" ASC
+LIMIT 5
+```
+
+### census.players_raw.profile_id.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("profile_id") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("profile_id")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "profile_id") AS cardinality,
+    COUNT(*) FILTER (WHERE "profile_id" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "profile_id" = 0) / NULLIF(COUNT(*) FILTER (WHERE "profile_id" IS NOT NULL), 0), 4) AS zero_pct
+FROM players_raw
+```
+
+### census.players_raw.profile_id.top_n
+
+```sql
+SELECT
+    "profile_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "profile_id"
+ORDER BY cnt DESC, "profile_id" ASC
+LIMIT 5
+```
+
+### census.players_raw.profile_id.bottom_n
+
+```sql
+SELECT
+    "profile_id" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "profile_id" IS NOT NULL
+GROUP BY "profile_id"
+ORDER BY cnt ASC, "profile_id" ASC
+LIMIT 5
+```
+
+### census.players_raw.civ.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("civ") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("civ")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "civ") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.civ.top_n
+
+```sql
+SELECT
+    "civ" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "civ"
+ORDER BY cnt DESC, "civ" ASC
+LIMIT 5
+```
+
+### census.players_raw.civ.bottom_n
+
+```sql
+SELECT
+    "civ" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "civ" IS NOT NULL
+GROUP BY "civ"
+ORDER BY cnt ASC, "civ" ASC
+LIMIT 5
+```
+
+### census.players_raw.opening.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("opening") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("opening")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "opening") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.opening.top_n
+
+```sql
+SELECT
+    "opening" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "opening"
+ORDER BY cnt DESC, "opening" ASC
+LIMIT 5
+```
+
+### census.players_raw.opening.bottom_n
+
+```sql
+SELECT
+    "opening" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "opening" IS NOT NULL
+GROUP BY "opening"
+ORDER BY cnt ASC, "opening" ASC
+LIMIT 5
+```
+
+### census.players_raw.filename.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("filename") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("filename")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "filename") AS cardinality
+FROM players_raw
+```
+
+### census.players_raw.filename.top_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+GROUP BY "filename"
+ORDER BY cnt DESC, "filename" ASC
+LIMIT 5
+```
+
+### census.players_raw.filename.bottom_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM players_raw
+WHERE "filename" IS NOT NULL
+GROUP BY "filename"
+ORDER BY cnt ASC, "filename" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.last_updated.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("last_updated") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("last_updated")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "last_updated") AS cardinality
+FROM overviews_raw
+```
+
+### census.overviews_raw.last_updated.top_n
+
+```sql
+SELECT
+    "last_updated" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+GROUP BY "last_updated"
+ORDER BY cnt DESC, "last_updated" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.last_updated.bottom_n
+
+```sql
+SELECT
+    "last_updated" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+WHERE "last_updated" IS NOT NULL
+GROUP BY "last_updated"
+ORDER BY cnt ASC, "last_updated" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.total_match_count.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("total_match_count") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("total_match_count")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "total_match_count") AS cardinality,
+    COUNT(*) FILTER (WHERE "total_match_count" = 0) AS zero_count,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE "total_match_count" = 0) / NULLIF(COUNT(*) FILTER (WHERE "total_match_count" IS NOT NULL), 0), 4) AS zero_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.total_match_count.top_n
+
+```sql
+SELECT
+    "total_match_count" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+GROUP BY "total_match_count"
+ORDER BY cnt DESC, "total_match_count" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.total_match_count.bottom_n
+
+```sql
+SELECT
+    "total_match_count" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+WHERE "total_match_count" IS NOT NULL
+GROUP BY "total_match_count"
+ORDER BY cnt ASC, "total_match_count" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.civs.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("civs") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("civs")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.civs.top_n
+
+```sql
+SELECT
+    MIN(LEN("civs")) AS min_len,
+    MAX(LEN("civs")) AS max_len,
+    ROUND(AVG(LEN("civs")), 2) AS avg_len
+FROM overviews_raw
+WHERE "civs" IS NOT NULL
+```
+
+### census.overviews_raw.civs.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.openings.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("openings") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("openings")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.openings.top_n
+
+```sql
+SELECT
+    MIN(LEN("openings")) AS min_len,
+    MAX(LEN("openings")) AS max_len,
+    ROUND(AVG(LEN("openings")), 2) AS avg_len
+FROM overviews_raw
+WHERE "openings" IS NOT NULL
+```
+
+### census.overviews_raw.openings.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.patches.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("patches") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("patches")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.patches.top_n
+
+```sql
+SELECT
+    MIN(LEN("patches")) AS min_len,
+    MAX(LEN("patches")) AS max_len,
+    ROUND(AVG(LEN("patches")), 2) AS avg_len
+FROM overviews_raw
+WHERE "patches" IS NOT NULL
+```
+
+### census.overviews_raw.patches.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.groupings.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("groupings") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("groupings")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.groupings.top_n
+
+```sql
+SELECT
+    MIN(LEN("groupings")) AS min_len,
+    MAX(LEN("groupings")) AS max_len,
+    ROUND(AVG(LEN("groupings")), 2) AS avg_len
+FROM overviews_raw
+WHERE "groupings" IS NOT NULL
+```
+
+### census.overviews_raw.groupings.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.changelog.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("changelog") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("changelog")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.changelog.top_n
+
+```sql
+SELECT
+    MIN(LEN("changelog")) AS min_len,
+    MAX(LEN("changelog")) AS max_len,
+    ROUND(AVG(LEN("changelog")), 2) AS avg_len
+FROM overviews_raw
+WHERE "changelog" IS NOT NULL
+```
+
+### census.overviews_raw.changelog.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.tournament_stages.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("tournament_stages") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("tournament_stages")) / NULLIF(COUNT(*), 0), 4) AS null_pct
+FROM overviews_raw
+```
+
+### census.overviews_raw.tournament_stages.top_n
+
+```sql
+SELECT
+    MIN(LEN("tournament_stages")) AS min_len,
+    MAX(LEN("tournament_stages")) AS max_len,
+    ROUND(AVG(LEN("tournament_stages")), 2) AS avg_len
+FROM overviews_raw
+WHERE "tournament_stages" IS NOT NULL
+```
+
+### census.overviews_raw.tournament_stages.bottom_n
+
+```sql
+-- Skipped: array type; see array_length
+```
+
+### census.overviews_raw.filename.null
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT("filename") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("filename")) / NULLIF(COUNT(*), 0), 4) AS null_pct,
+    COUNT(DISTINCT "filename") AS cardinality
+FROM overviews_raw
+```
+
+### census.overviews_raw.filename.top_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+GROUP BY "filename"
+ORDER BY cnt DESC, "filename" ASC
+LIMIT 5
+```
+
+### census.overviews_raw.filename.bottom_n
+
+```sql
+SELECT
+    "filename" AS value,
+    COUNT(*) AS cnt,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct
+FROM overviews_raw
+WHERE "filename" IS NOT NULL
+GROUP BY "filename"
+ORDER BY cnt ASC, "filename" ASC
+LIMIT 5
+```
+
 ## Key Findings
 
 - matches_raw total rows: 30,690,651

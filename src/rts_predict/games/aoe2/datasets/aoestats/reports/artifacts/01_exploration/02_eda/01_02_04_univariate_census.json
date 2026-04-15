@@ -2312,5 +2312,2423 @@
   "z_score_outliers_deferred": {
     "reason": "Deferred to Pipeline Section 01_03",
     "note": "z-score outliers require mean/stddev; for highly skewed distributions (duration, age uptimes), z-scores are less informative than IQR fences. Full z-score profiling deferred to 01_03."
+  },
+  "matches_raw_census": {
+    "map": {
+      "column": "map",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 93,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "arabia",
+          "count": 10722310,
+          "pct": 34.9367
+        },
+        {
+          "value": "arena",
+          "count": 5838677,
+          "pct": 19.0243
+        },
+        {
+          "value": "nomad",
+          "count": 2130289,
+          "pct": 6.9412
+        },
+        {
+          "value": "black_forest",
+          "count": 1969451,
+          "pct": 6.4171
+        },
+        {
+          "value": "megarandom",
+          "count": 1894927,
+          "pct": 6.1743
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "hillfort",
+          "count": 2,
+          "pct": 0.0
+        },
+        {
+          "value": "rivers",
+          "count": 1603,
+          "pct": 0.0052
+        },
+        {
+          "value": "alpine_lakes",
+          "count": 1810,
+          "pct": 0.0059
+        },
+        {
+          "value": "city_of_lakes",
+          "count": 2436,
+          "pct": 0.0079
+        },
+        {
+          "value": "aftermath",
+          "count": 3691,
+          "pct": 0.012
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"map\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"map\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"map\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"map\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"map\"\nORDER BY cnt DESC, \"map\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"map\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"map\" IS NOT NULL\nGROUP BY \"map\"\nORDER BY cnt ASC, \"map\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "started_timestamp": {
+      "column": "started_timestamp",
+      "dtype": "TIMESTAMP WITH TIME ZONE",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 24385989,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "2024-12-13T23:27:22",
+          "count": 16,
+          "pct": 0.0001
+        },
+        {
+          "value": "2024-12-15T21:00:06",
+          "count": 15,
+          "pct": 0.0
+        },
+        {
+          "value": "2024-01-16T00:40:25",
+          "count": 13,
+          "pct": 0.0
+        },
+        {
+          "value": "2024-07-14T23:46:28",
+          "count": 13,
+          "pct": 0.0
+        },
+        {
+          "value": "2024-12-08T20:43:53",
+          "count": 13,
+          "pct": 0.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "2022-08-29T02:00:34",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "2022-08-29T02:01:19",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "2022-08-29T02:01:47",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "2022-08-29T02:03:35",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "2022-08-29T02:04:05",
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": {
+        "min": "2022-08-29 02:00:34",
+        "max": "2026-02-06 07:32:24"
+      },
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"started_timestamp\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"started_timestamp\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"started_timestamp\") AS cardinality,\n    MIN(CAST(\"started_timestamp\" AS TIMESTAMP)) AS temporal_min,\n    MAX(CAST(\"started_timestamp\" AS TIMESTAMP)) AS temporal_max\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    CAST(\"started_timestamp\" AS TIMESTAMP) AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"started_timestamp\"\nORDER BY cnt DESC, \"started_timestamp\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    CAST(\"started_timestamp\" AS TIMESTAMP) AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"started_timestamp\" IS NOT NULL\nGROUP BY \"started_timestamp\"\nORDER BY cnt ASC, \"started_timestamp\" ASC\nLIMIT 5",
+      "elapsed_seconds": 1.98
+    },
+    "duration": {
+      "column": "duration",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 13164,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 15300000000,
+          "count": 45210,
+          "pct": 0.1473
+        },
+        {
+          "value": 17000000000,
+          "count": 43537,
+          "pct": 0.1419
+        },
+        {
+          "value": 13600000000,
+          "count": 42054,
+          "pct": 0.137
+        },
+        {
+          "value": 18700000000,
+          "count": 40646,
+          "pct": 0.1324
+        },
+        {
+          "value": 20400000000,
+          "count": 37152,
+          "pct": 0.1211
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 3400000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 12581700000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 12656500000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 12712600000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 12734700000000,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"duration\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"duration\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"duration\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"duration\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"duration\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"duration\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"duration\"\nORDER BY cnt DESC, \"duration\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"duration\" IS NOT NULL\nGROUP BY \"duration\"\nORDER BY cnt ASC, \"duration\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.06
+    },
+    "irl_duration": {
+      "column": "irl_duration",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 13164,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 9000000000,
+          "count": 45210,
+          "pct": 0.1473
+        },
+        {
+          "value": 10000000000,
+          "count": 43537,
+          "pct": 0.1419
+        },
+        {
+          "value": 8000000000,
+          "count": 42054,
+          "pct": 0.137
+        },
+        {
+          "value": 11000000000,
+          "count": 40646,
+          "pct": 0.1324
+        },
+        {
+          "value": 12000000000,
+          "count": 37152,
+          "pct": 0.1211
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 2000000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 7401000000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 7445000000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 7478000000000,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 7491000000000,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"irl_duration\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"irl_duration\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"irl_duration\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"irl_duration\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"irl_duration\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"irl_duration\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"irl_duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"irl_duration\"\nORDER BY cnt DESC, \"irl_duration\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"irl_duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"irl_duration\" IS NOT NULL\nGROUP BY \"irl_duration\"\nORDER BY cnt ASC, \"irl_duration\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.07
+    },
+    "game_id": {
+      "column": "game_id",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 30690651,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "177738259",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738347",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738395",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738597",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738752",
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "177738259",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738347",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738395",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738597",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "177738752",
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_id\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_id\"\nORDER BY cnt DESC, \"game_id\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_id\" IS NOT NULL\nGROUP BY \"game_id\"\nORDER BY cnt ASC, \"game_id\" ASC\nLIMIT 5",
+      "elapsed_seconds": 1.45
+    },
+    "avg_elo": {
+      "column": "avg_elo",
+      "dtype": "DOUBLE",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 22432,
+      "zero_count": 121,
+      "zero_pct": 0.0004,
+      "top_n": [
+        {
+          "value": 1000.0,
+          "count": 20678,
+          "pct": 0.0674
+        },
+        {
+          "value": 1000.5,
+          "count": 19074,
+          "pct": 0.0621
+        },
+        {
+          "value": 999.5,
+          "count": 19068,
+          "pct": 0.0621
+        },
+        {
+          "value": 1001.0,
+          "count": 19004,
+          "pct": 0.0619
+        },
+        {
+          "value": 999.0,
+          "count": 18915,
+          "pct": 0.0616
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 228.25,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 252.75,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 255.25,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 257.75,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 261.25,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"avg_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"avg_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"avg_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"avg_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"avg_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"avg_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"avg_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"avg_elo\"\nORDER BY cnt DESC, \"avg_elo\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"avg_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"avg_elo\" IS NOT NULL\nGROUP BY \"avg_elo\"\nORDER BY cnt ASC, \"avg_elo\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.09
+    },
+    "num_players": {
+      "column": "num_players",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 8,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 2,
+          "count": 18586063,
+          "pct": 60.5594
+        },
+        {
+          "value": 4,
+          "count": 5057269,
+          "pct": 16.4782
+        },
+        {
+          "value": 8,
+          "count": 4309749,
+          "pct": 14.0425
+        },
+        {
+          "value": 6,
+          "count": 2736203,
+          "pct": 8.9154
+        },
+        {
+          "value": 7,
+          "count": 651,
+          "pct": 0.0021
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 1,
+          "count": 39,
+          "pct": 0.0001
+        },
+        {
+          "value": 5,
+          "count": 327,
+          "pct": 0.0011
+        },
+        {
+          "value": 3,
+          "count": 350,
+          "pct": 0.0011
+        },
+        {
+          "value": 7,
+          "count": 651,
+          "pct": 0.0021
+        },
+        {
+          "value": 6,
+          "count": 2736203,
+          "pct": 8.9154
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"num_players\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"num_players\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"num_players\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"num_players\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"num_players\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"num_players\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"num_players\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"num_players\"\nORDER BY cnt DESC, \"num_players\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"num_players\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"num_players\" IS NOT NULL\nGROUP BY \"num_players\"\nORDER BY cnt ASC, \"num_players\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.03
+    },
+    "team_0_elo": {
+      "column": "team_0_elo",
+      "dtype": "DOUBLE",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 12037,
+      "zero_count": 4824,
+      "zero_pct": 0.0157,
+      "top_n": [
+        {
+          "value": 1000.0,
+          "count": 92707,
+          "pct": 0.3021
+        },
+        {
+          "value": 800.0,
+          "count": 49759,
+          "pct": 0.1621
+        },
+        {
+          "value": 952.0,
+          "count": 40355,
+          "pct": 0.1315
+        },
+        {
+          "value": 953.0,
+          "count": 38893,
+          "pct": 0.1267
+        },
+        {
+          "value": 951.0,
+          "count": 38282,
+          "pct": 0.1247
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 126.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 128.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 130.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 139.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 147.5,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team_0_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team_0_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team_0_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team_0_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team_0_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team_0_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"team_0_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"team_0_elo\"\nORDER BY cnt DESC, \"team_0_elo\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"team_0_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"team_0_elo\" IS NOT NULL\nGROUP BY \"team_0_elo\"\nORDER BY cnt ASC, \"team_0_elo\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.08
+    },
+    "team_1_elo": {
+      "column": "team_1_elo",
+      "dtype": "DOUBLE",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 11587,
+      "zero_count": 192,
+      "zero_pct": 0.0006,
+      "top_n": [
+        {
+          "value": 1000.0,
+          "count": 90623,
+          "pct": 0.2953
+        },
+        {
+          "value": 800.0,
+          "count": 47073,
+          "pct": 0.1534
+        },
+        {
+          "value": 952.0,
+          "count": 40058,
+          "pct": 0.1305
+        },
+        {
+          "value": 953.0,
+          "count": 38558,
+          "pct": 0.1256
+        },
+        {
+          "value": 954.0,
+          "count": 37240,
+          "pct": 0.1213
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 167.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 173.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 180.66666666666666,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 185.5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 185.66666666666666,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team_1_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team_1_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team_1_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team_1_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team_1_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team_1_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"team_1_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"team_1_elo\"\nORDER BY cnt DESC, \"team_1_elo\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"team_1_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"team_1_elo\" IS NOT NULL\nGROUP BY \"team_1_elo\"\nORDER BY cnt ASC, \"team_1_elo\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.08
+    },
+    "replay_enhanced": {
+      "column": "replay_enhanced",
+      "dtype": "BOOLEAN",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 2,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": false,
+          "count": 26359887,
+          "pct": 85.889
+        },
+        {
+          "value": true,
+          "count": 4330764,
+          "pct": 14.111
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": true,
+          "count": 4330764,
+          "pct": 14.111
+        },
+        {
+          "value": false,
+          "count": 26359887,
+          "pct": 85.889
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"replay_enhanced\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"replay_enhanced\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"replay_enhanced\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"replay_enhanced\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"replay_enhanced\"\nORDER BY cnt DESC, \"replay_enhanced\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"replay_enhanced\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"replay_enhanced\" IS NOT NULL\nGROUP BY \"replay_enhanced\"\nORDER BY cnt ASC, \"replay_enhanced\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "leaderboard": {
+      "column": "leaderboard",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 4,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "random_map",
+          "count": 17959543,
+          "pct": 58.518
+        },
+        {
+          "value": "team_random_map",
+          "count": 11518477,
+          "pct": 37.5309
+        },
+        {
+          "value": "co_random_map",
+          "count": 626542,
+          "pct": 2.0415
+        },
+        {
+          "value": "co_team_random_map",
+          "count": 586089,
+          "pct": 1.9097
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "co_team_random_map",
+          "count": 586089,
+          "pct": 1.9097
+        },
+        {
+          "value": "co_random_map",
+          "count": 626542,
+          "pct": 2.0415
+        },
+        {
+          "value": "team_random_map",
+          "count": 11518477,
+          "pct": 37.5309
+        },
+        {
+          "value": "random_map",
+          "count": 17959543,
+          "pct": 58.518
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"leaderboard\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"leaderboard\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"leaderboard\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"leaderboard\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"leaderboard\"\nORDER BY cnt DESC, \"leaderboard\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"leaderboard\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"leaderboard\" IS NOT NULL\nGROUP BY \"leaderboard\"\nORDER BY cnt ASC, \"leaderboard\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "mirror": {
+      "column": "mirror",
+      "dtype": "BOOLEAN",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 2,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": false,
+          "count": 29977520,
+          "pct": 97.6764
+        },
+        {
+          "value": true,
+          "count": 713131,
+          "pct": 2.3236
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": true,
+          "count": 713131,
+          "pct": 2.3236
+        },
+        {
+          "value": false,
+          "count": 29977520,
+          "pct": 97.6764
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"mirror\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"mirror\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"mirror\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"mirror\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"mirror\"\nORDER BY cnt DESC, \"mirror\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"mirror\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"mirror\" IS NOT NULL\nGROUP BY \"mirror\"\nORDER BY cnt ASC, \"mirror\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.04
+    },
+    "patch": {
+      "column": "patch",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 19,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 125283,
+          "count": 5472044,
+          "pct": 17.8297
+        },
+        {
+          "value": 111772,
+          "count": 3061976,
+          "pct": 9.9769
+        },
+        {
+          "value": 147949,
+          "count": 2398071,
+          "pct": 7.8137
+        },
+        {
+          "value": 99311,
+          "count": 2351108,
+          "pct": 7.6607
+        },
+        {
+          "value": 143421,
+          "count": 2041784,
+          "pct": 6.6528
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 66692,
+          "count": 241981,
+          "pct": 0.7885
+        },
+        {
+          "value": 81058,
+          "count": 566157,
+          "pct": 1.8447
+        },
+        {
+          "value": 82587,
+          "count": 654798,
+          "pct": 2.1335
+        },
+        {
+          "value": 104954,
+          "count": 659000,
+          "pct": 2.1472
+        },
+        {
+          "value": 73855,
+          "count": 683221,
+          "pct": 2.2262
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"patch\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"patch\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"patch\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"patch\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"patch\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"patch\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"patch\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"patch\"\nORDER BY cnt DESC, \"patch\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"patch\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"patch\" IS NOT NULL\nGROUP BY \"patch\"\nORDER BY cnt ASC, \"patch\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.01
+    },
+    "raw_match_type": {
+      "column": "raw_match_type",
+      "dtype": "DOUBLE",
+      "null_count": 12504,
+      "null_pct": 0.0407,
+      "cardinality": 8,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 6.0,
+          "count": 17952488,
+          "pct": 58.495
+        },
+        {
+          "value": 7.0,
+          "count": 4667830,
+          "pct": 15.2093
+        },
+        {
+          "value": 9.0,
+          "count": 4258413,
+          "pct": 13.8753
+        },
+        {
+          "value": 8.0,
+          "count": 2587688,
+          "pct": 8.4315
+        },
+        {
+          "value": 66.0,
+          "count": 626112,
+          "pct": 2.0401
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 69.0,
+          "count": 50688,
+          "pct": 0.1652
+        },
+        {
+          "value": 68.0,
+          "count": 147570,
+          "pct": 0.481
+        },
+        {
+          "value": 67.0,
+          "count": 387358,
+          "pct": 1.2627
+        },
+        {
+          "value": 66.0,
+          "count": 626112,
+          "pct": 2.0409
+        },
+        {
+          "value": 8.0,
+          "count": 2587688,
+          "pct": 8.435
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"raw_match_type\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"raw_match_type\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"raw_match_type\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"raw_match_type\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"raw_match_type\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"raw_match_type\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"raw_match_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"raw_match_type\"\nORDER BY cnt DESC, \"raw_match_type\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"raw_match_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"raw_match_type\" IS NOT NULL\nGROUP BY \"raw_match_type\"\nORDER BY cnt ASC, \"raw_match_type\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.07
+    },
+    "game_type": {
+      "column": "game_type",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 1,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "random_map",
+          "count": 30690651,
+          "pct": 100.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "random_map",
+          "count": 30690651,
+          "pct": 100.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_type\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_type\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_type\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"game_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_type\"\nORDER BY cnt DESC, \"game_type\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"game_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_type\" IS NOT NULL\nGROUP BY \"game_type\"\nORDER BY cnt ASC, \"game_type\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "game_speed": {
+      "column": "game_speed",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 1,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "normal",
+          "count": 30690651,
+          "pct": 100.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "normal",
+          "count": 30690651,
+          "pct": 100.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_speed\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_speed\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_speed\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"game_speed\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_speed\"\nORDER BY cnt DESC, \"game_speed\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"game_speed\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_speed\" IS NOT NULL\nGROUP BY \"game_speed\"\nORDER BY cnt ASC, \"game_speed\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "starting_age": {
+      "column": "starting_age",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 2,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "dark",
+          "count": 30690632,
+          "pct": 99.9999
+        },
+        {
+          "value": "standard",
+          "count": 19,
+          "pct": 0.0001
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "standard",
+          "count": 19,
+          "pct": 0.0001
+        },
+        {
+          "value": "dark",
+          "count": 30690632,
+          "pct": 99.9999
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"starting_age\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"starting_age\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"starting_age\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"starting_age\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"starting_age\"\nORDER BY cnt DESC, \"starting_age\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"starting_age\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"starting_age\" IS NOT NULL\nGROUP BY \"starting_age\"\nORDER BY cnt ASC, \"starting_age\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.02
+    },
+    "filename": {
+      "column": "filename",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 172,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "matches/2023-04-02_2023-04-08_matches.parquet",
+          "count": 264843,
+          "pct": 0.8629
+        },
+        {
+          "value": "matches/2023-04-09_2023-04-15_matches.parquet",
+          "count": 254265,
+          "pct": 0.8285
+        },
+        {
+          "value": "matches/2024-03-24_2024-03-30_matches.parquet",
+          "count": 253893,
+          "pct": 0.8273
+        },
+        {
+          "value": "matches/2023-04-30_2023-05-06_matches.parquet",
+          "count": 252322,
+          "pct": 0.8221
+        },
+        {
+          "value": "matches/2023-03-26_2023-04-01_matches.parquet",
+          "count": 250604,
+          "pct": 0.8165
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "matches/2022-08-28_2022-09-03_matches.parquet",
+          "count": 11615,
+          "pct": 0.0378
+        },
+        {
+          "value": "matches/2022-09-04_2022-09-10_matches.parquet",
+          "count": 13793,
+          "pct": 0.0449
+        },
+        {
+          "value": "matches/2022-09-11_2022-09-17_matches.parquet",
+          "count": 13836,
+          "pct": 0.0451
+        },
+        {
+          "value": "matches/2022-09-18_2022-09-24_matches.parquet",
+          "count": 14355,
+          "pct": 0.0468
+        },
+        {
+          "value": "matches/2022-09-25_2022-10-01_matches.parquet",
+          "count": 14828,
+          "pct": 0.0483
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM matches_raw",
+      "sql_top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.01
+    }
+  },
+  "players_raw_census": {
+    "winner": {
+      "column": "winner",
+      "dtype": "BOOLEAN",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 2,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": false,
+          "count": 53816397,
+          "pct": 50.0024
+        },
+        {
+          "value": true,
+          "count": 53811187,
+          "pct": 49.9976
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": true,
+          "count": 53811187,
+          "pct": 49.9976
+        },
+        {
+          "value": false,
+          "count": 53816397,
+          "pct": 50.0024
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"winner\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"winner\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"winner\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"winner\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"winner\"\nORDER BY cnt DESC, \"winner\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"winner\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"winner\" IS NOT NULL\nGROUP BY \"winner\"\nORDER BY cnt ASC, \"winner\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.11
+    },
+    "game_id": {
+      "column": "game_id",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 30477761,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "177738347",
+          "count": 8,
+          "pct": 0.0
+        },
+        {
+          "value": "177739351",
+          "count": 8,
+          "pct": 0.0
+        },
+        {
+          "value": "177740254",
+          "count": 8,
+          "pct": 0.0
+        },
+        {
+          "value": "177740593",
+          "count": 8,
+          "pct": 0.0
+        },
+        {
+          "value": "177741780",
+          "count": 8,
+          "pct": 0.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "188100145",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "191973372",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "196260218",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "204267510",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "208566590",
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_id\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"game_id\"\nORDER BY cnt DESC, \"game_id\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"game_id\" IS NOT NULL\nGROUP BY \"game_id\"\nORDER BY cnt ASC, \"game_id\" ASC\nLIMIT 5",
+      "elapsed_seconds": 1.82
+    },
+    "team": {
+      "column": "team",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 2,
+      "zero_count": 53814014,
+      "zero_pct": 50.0002,
+      "top_n": [
+        {
+          "value": 0,
+          "count": 53814014,
+          "pct": 50.0002
+        },
+        {
+          "value": 1,
+          "count": 53813570,
+          "pct": 49.9998
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 1,
+          "count": 53813570,
+          "pct": 49.9998
+        },
+        {
+          "value": 0,
+          "count": 53814014,
+          "pct": 50.0002
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"team\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"team\"\nORDER BY cnt DESC, \"team\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"team\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"team\" IS NOT NULL\nGROUP BY \"team\"\nORDER BY cnt ASC, \"team\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.1
+    },
+    "feudal_age_uptime": {
+      "column": "feudal_age_uptime",
+      "dtype": "DOUBLE",
+      "null_count": 93726448,
+      "null_pct": 87.084,
+      "cardinality": 978519,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": null,
+          "count": 93726448,
+          "pct": 87.084
+        },
+        {
+          "value": 558.077,
+          "count": 2944,
+          "pct": 0.0027
+        },
+        {
+          "value": 558.688,
+          "count": 2937,
+          "pct": 0.0027
+        },
+        {
+          "value": 559.091,
+          "count": 2901,
+          "pct": 0.0027
+        },
+        {
+          "value": 557.466,
+          "count": 2833,
+          "pct": 0.0026
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 104.318329,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 109.305329,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 120.41032899999999,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 122.900329,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 130.104,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"feudal_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"feudal_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"feudal_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"feudal_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"feudal_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"feudal_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"feudal_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"feudal_age_uptime\"\nORDER BY cnt DESC, \"feudal_age_uptime\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"feudal_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"feudal_age_uptime\" IS NOT NULL\nGROUP BY \"feudal_age_uptime\"\nORDER BY cnt ASC, \"feudal_age_uptime\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.42
+    },
+    "castle_age_uptime": {
+      "column": "castle_age_uptime",
+      "dtype": "DOUBLE",
+      "null_count": 94641831,
+      "null_pct": 87.9345,
+      "cardinality": 1564065,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": null,
+          "count": 94641831,
+          "pct": 87.9345
+        },
+        {
+          "value": 1282.563,
+          "count": 606,
+          "pct": 0.0006
+        },
+        {
+          "value": 1283.577,
+          "count": 605,
+          "pct": 0.0006
+        },
+        {
+          "value": 1278.299,
+          "count": 604,
+          "pct": 0.0006
+        },
+        {
+          "value": 1260.827,
+          "count": 596,
+          "pct": 0.0006
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 301.254328,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 344.399,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 345.169,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 350.247,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 350.827,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"castle_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"castle_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"castle_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"castle_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"castle_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"castle_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"castle_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"castle_age_uptime\"\nORDER BY cnt DESC, \"castle_age_uptime\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"castle_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"castle_age_uptime\" IS NOT NULL\nGROUP BY \"castle_age_uptime\"\nORDER BY cnt ASC, \"castle_age_uptime\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.43
+    },
+    "imperial_age_uptime": {
+      "column": "imperial_age_uptime",
+      "dtype": "DOUBLE",
+      "null_count": 98468904,
+      "null_pct": 91.4904,
+      "cardinality": 1924964,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": null,
+          "count": 98468904,
+          "pct": 91.4904
+        },
+        {
+          "value": 2221.341,
+          "count": 111,
+          "pct": 0.0001
+        },
+        {
+          "value": 2230.688,
+          "count": 108,
+          "pct": 0.0001
+        },
+        {
+          "value": 2239.216,
+          "count": 108,
+          "pct": 0.0001
+        },
+        {
+          "value": 2191.688,
+          "count": 105,
+          "pct": 0.0001
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 769.3973269999999,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 790.8483269999999,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 792.957,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 799.271,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 800.125,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"imperial_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"imperial_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"imperial_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"imperial_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"imperial_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"imperial_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"imperial_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"imperial_age_uptime\"\nORDER BY cnt DESC, \"imperial_age_uptime\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"imperial_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"imperial_age_uptime\" IS NOT NULL\nGROUP BY \"imperial_age_uptime\"\nORDER BY cnt ASC, \"imperial_age_uptime\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.35
+    },
+    "old_rating": {
+      "column": "old_rating",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 3032,
+      "zero_count": 5937,
+      "zero_pct": 0.0055,
+      "top_n": [
+        {
+          "value": 1000,
+          "count": 396277,
+          "pct": 0.3682
+        },
+        {
+          "value": 800,
+          "count": 242527,
+          "pct": 0.2253
+        },
+        {
+          "value": 952,
+          "count": 176618,
+          "pct": 0.1641
+        },
+        {
+          "value": 953,
+          "count": 172932,
+          "pct": 0.1607
+        },
+        {
+          "value": 1048,
+          "count": 171443,
+          "pct": 0.1593
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 2970,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2979,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2981,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2982,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2986,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"old_rating\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"old_rating\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"old_rating\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"old_rating\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"old_rating\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"old_rating\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"old_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"old_rating\"\nORDER BY cnt DESC, \"old_rating\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"old_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"old_rating\" IS NOT NULL\nGROUP BY \"old_rating\"\nORDER BY cnt ASC, \"old_rating\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.1
+    },
+    "new_rating": {
+      "column": "new_rating",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 3039,
+      "zero_count": 5187,
+      "zero_pct": 0.0048,
+      "top_n": [
+        {
+          "value": 952,
+          "count": 179724,
+          "pct": 0.167
+        },
+        {
+          "value": 953,
+          "count": 176648,
+          "pct": 0.1641
+        },
+        {
+          "value": 951,
+          "count": 173738,
+          "pct": 0.1614
+        },
+        {
+          "value": 954,
+          "count": 171520,
+          "pct": 0.1594
+        },
+        {
+          "value": 950,
+          "count": 170233,
+          "pct": 0.1582
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": -5,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2975,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2977,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2979,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 2981,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"new_rating\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"new_rating\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"new_rating\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"new_rating\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"new_rating\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"new_rating\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"new_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"new_rating\"\nORDER BY cnt DESC, \"new_rating\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"new_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"new_rating\" IS NOT NULL\nGROUP BY \"new_rating\"\nORDER BY cnt ASC, \"new_rating\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.11
+    },
+    "match_rating_diff": {
+      "column": "match_rating_diff",
+      "dtype": "DOUBLE",
+      "null_count": 39,
+      "null_pct": 0.0,
+      "cardinality": 24919,
+      "zero_count": 1117846,
+      "zero_pct": 1.0386,
+      "top_n": [
+        {
+          "value": 0.0,
+          "count": 1117846,
+          "pct": 1.0386
+        },
+        {
+          "value": -1.0,
+          "count": 1099414,
+          "pct": 1.0215
+        },
+        {
+          "value": 1.0,
+          "count": 1099413,
+          "pct": 1.0215
+        },
+        {
+          "value": -2.0,
+          "count": 1082304,
+          "pct": 1.0056
+        },
+        {
+          "value": 2.0,
+          "count": 1082302,
+          "pct": 1.0056
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": -2185.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": -2144.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": -2053.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": -1980.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": -1959.0,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"match_rating_diff\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"match_rating_diff\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"match_rating_diff\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"match_rating_diff\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"match_rating_diff\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"match_rating_diff\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"match_rating_diff\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"match_rating_diff\"\nORDER BY cnt DESC, \"match_rating_diff\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"match_rating_diff\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"match_rating_diff\" IS NOT NULL\nGROUP BY \"match_rating_diff\"\nORDER BY cnt ASC, \"match_rating_diff\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.29
+    },
+    "replay_summary_raw": {
+      "column": "replay_summary_raw",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 13983149,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "{}",
+          "count": 92616290,
+          "pct": 86.0526
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': [], 'unit_counts': {}, 'age_researched': True, 'building_counts': {}}, 'castle': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'feudal': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'imperial': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}}, 'opening_name': 'unknown'}",
+          "count": 240647,
+          "pct": 0.2236
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': [], 'unit_counts': {'villager': 4}, 'age_researched': True, 'building_counts': {'house': 2}}, 'castle': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'feudal': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'imperial': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}}, 'opening_name': 'unknown'}",
+          "count": 51187,
+          "pct": 0.0476
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': [], 'unit_counts': {'villager': 5}, 'age_researched': True, 'building_counts': {'house': 2}}, 'castle': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'feudal': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'imperial': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}}, 'opening_name': 'unknown'}",
+          "count": 38308,
+          "pct": 0.0356
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': [], 'unit_counts': {}, 'age_researched': True, 'building_counts': {'town center': 1}}, 'castle': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'feudal': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}, 'imperial': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}}, 'opening_name': 'unknown'}",
+          "count": 18324,
+          "pct": 0.017
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': ['double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age', 'feudal age'], 'unit_counts': {'villager': 54}, 'age_researched': True, 'building_counts': {'farm': 4, 'mill': 1, 'house': 7, 'lumber camp': 1, 'mining camp': 1}}, 'castle': {'uptime': 995.264, 'research': ['wheelbarrow', 'wheelbarrow', 'wheelbarrow', 'hand cart', 'hand cart', 'burgundian vineyards', 'town watch', 'crop rotation', 'crop rotation', 'two-man saw', 'loom', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'imperial age', 'scale barding armor', 'forging', 'gold mining', 'stone mining', 'chain barding armor', 'iron casting', 'fletching'], 'unit_counts': {'villager': 147, 'coustillier': 5}, 'age_researched': True, 'building_counts': {'farm': 41, 'mill': 1, 'house': 23, 'castle': 3, 'stable': 5, 'outpost': 1, 'barracks': 1, 'lumber camp': 2, 'mining camp': 3, 'town center': 2}}, 'feudal': {'uptime': 728.728, 'research': ['castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'castle age', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw'], 'unit_counts': {'villager': 5}, 'age_researched': True, 'building_counts': {'market': 1, 'blacksmith': 1}}, 'imperial': {'uptime': 1892.386, 'research': ['conscription', 'conscription', 'gold shaft mining', 'plate barding armor', 'husbandry', 'light cavalry', 'blast furnace', 'blast furnace', 'padded archer armor', 'padded archer armor', 'hussar', 'bodkin arrow', 'bodkin arrow', 'elite coustillier', 'elite coustillier', 'capped ram', 'capped ram', 'caravan', 'bracer', 'ballistics', 'chemistry', 'chemistry', 'scale mail armor', 'leather archer armor', 'pikeman', 'squires', 'squires', 'chain mail armor', 'halberdier', 'halberdier', 'arson', 'plate mail armor', 'masonry', 'elite skirmisher', 'elite skirmisher', 'architecture', 'treadmill crane'], 'unit_counts': {'spearman': 13, 'villager': 25, 'trebuchet': 2, 'skirmisher': 13, 'trade cart': 12, 'coustillier': 84, 'battering ram': 9, 'scout cavalry': 30, 'bombard cannon': 3, 'hand cannoneer': 2}, 'age_researched': True, 'building_counts': {'farm': 13, 'mill': 2, 'castle': 3, 'market': 1, 'outpost': 1, 'barracks': 5, 'university': 1, 'lumber camp': 6, 'mining camp': 2, 'watch tower': 1, 'archery range': 7, 'palisade gate': 1, 'siege workshop': 10}}}, 'opening_name': 'fast_castle'}",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': ['double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'horse collar', 'loom', 'loom', 'feudal age', 'feudal age'], 'unit_counts': {'villager': 24}, 'age_researched': True, 'building_counts': {'farm': 4, 'mill': 1, 'house': 1, 'barracks': 1, 'lumber camp': 1, 'town center': 1}}, 'castle': {'uptime': 1333.548, 'research': ['husbandry', 'wheelbarrow', 'two-man saw', 'heavy plow', 'cavalier', 'chain barding armor', 'chain barding armor', 'light cavalry', 'hand cart', 'iron casting', 'burgundian vineyards', 'burgundian vineyards', 'imperial age', 'squires', 'pikeman', 'arson', 'fletching', 'padded archer armor', 'scale mail armor'], 'unit_counts': {'monk': 3, 'knight': 62, 'spearman': 16, 'villager': 85}, 'age_researched': True, 'building_counts': {'farm': 38, 'mill': 3, 'house': 23, 'castle': 2, 'barracks': 3, 'monastery': 1, 'university': 1, 'lumber camp': 6, 'mining camp': 2, 'town center': 2, 'archery range': 4}}, 'feudal': {'uptime': 639.61, 'research': ['bow saw', 'forging', 'scale barding armor', 'castle age'], 'unit_counts': {'villager': 20, 'scout cavalry': 12}, 'age_researched': True, 'building_counts': {'farm': 17, 'mill': 1, 'house': 10, 'market': 1, 'stable': 2, 'blacksmith': 1, 'lumber camp': 3, 'mining camp': 2, 'watch tower': 1, 'palisade gate': 1}}, 'imperial': {'uptime': 2388.992, 'research': ['paladin', 'chemistry', 'halberdier', 'conscription', 'masonry', 'murder holes', 'blast furnace', 'plate barding armor', 'plate barding armor', 'plate barding armor', 'fletching', 'elite skirmisher'], 'unit_counts': {'knight': 2, 'spearman': 12, 'villager': 12, 'trebuchet': 3, 'skirmisher': 2, 'cavalry archer': 2, 'hand cannoneer': 4}, 'age_researched': True, 'building_counts': {'farm': 8, 'castle': 1, 'barracks': 2, 'mining camp': 4, 'archery range': 1}}}, 'opening_name': 'scouts'}",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': ['double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'loom', 'feudal age'], 'unit_counts': {'villager': 16}, 'age_researched': True, 'building_counts': {'house': 8, 'barracks': 1, 'lumber camp': 2, 'mining camp': 1}}, 'castle': {'uptime': 1556.234, 'research': ['crossbowman', 'bodkin arrow'], 'unit_counts': {}, 'age_researched': True, 'building_counts': {}}, 'feudal': {'uptime': 594.046, 'research': ['fletching', 'horse collar', 'padded archer armor', 'gold mining', 'wheelbarrow', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'castle age', 'stone mining', 'gold shaft mining', 'heavy plow'], 'unit_counts': {'archer': 43, 'villager': 27}, 'age_researched': True, 'building_counts': {'farm': 15, 'mill': 1, 'house': 18, 'market': 1, 'blacksmith': 1, 'lumber camp': 2, 'mining camp': 1, 'archery range': 3}}, 'imperial': {'uptime': -1, 'research': [], 'unit_counts': {}, 'age_researched': False, 'building_counts': {}}}, 'opening_name': 'archers'}",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': ['double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'loom', 'feudal age'], 'unit_counts': {'villager': 25}, 'age_researched': True, 'building_counts': {'mill': 1, 'house': 4, 'barracks': 1, 'lumber camp': 2}}, 'castle': {'uptime': 1092.633, 'research': ['light cavalry', 'husbandry', 'husbandry', 'wheelbarrow', 'wheelbarrow', 'town watch', 'stone mining', 'stone mining', 'stone mining', 'stone mining', 'stone mining', 'stone mining', 'hand cart', 'imperial age', 'imperial age', 'fletching', 'fletching', 'bodkin arrow', 'cavalier', 'cavalier', 'scale barding armor', 'scale barding armor', 'stone shaft mining', 'stone shaft mining', 'stone shaft mining', 'stone shaft mining', 'stone shaft mining', 'two-man saw', 'two-man saw'], 'unit_counts': {'monk': 6, 'petard': 12, 'villager': 96, 'coustillier': 3, 'battering ram': 2, 'scout cavalry': 2}, 'age_researched': True, 'building_counts': {'farm': 35, 'house': 9, 'castle': 2, 'stable': 3, 'monastery': 1, 'lumber camp': 2, 'mining camp': 3, 'town center': 4, 'siege workshop': 2}}, 'feudal': {'uptime': 591.591, 'research': ['bow saw', 'bow saw', 'bow saw', 'bow saw', 'bow saw', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'horse collar', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'heavy plow', 'castle age', 'castle age', 'gold mining', 'stone mining', 'stone mining', 'stone mining', 'gold shaft mining', 'gold shaft mining', 'gold shaft mining', 'wheelbarrow'], 'unit_counts': {'villager': 14, 'scout cavalry': 1}, 'age_researched': True, 'building_counts': {'farm': 14, 'house': 11, 'market': 1, 'stable': 2, 'blacksmith': 1, 'mining camp': 1}}, 'imperial': {'uptime': 1912.99, 'research': ['chain barding armor', 'plate barding armor', 'paladin', 'paladin', 'forging', 'forging', 'ballistics', 'masonry'], 'unit_counts': {'knight': 8, 'villager': 10, 'trebuchet': 4, 'coustillier': 2, 'battering ram': 3}, 'age_researched': True, 'building_counts': {'farm': 19, 'mill': 1, 'house': 13, 'university': 1, 'lumber camp': 1, 'mining camp': 1}}}, 'opening_name': 'fast_castle'}",
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": "{'age_stats': {'dark': {'uptime': 0, 'research': ['double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'double-bit axe', 'horse collar', 'feudal age', 'feudal age'], 'unit_counts': {'villager': 21}, 'age_researched': True, 'building_counts': {'farm': 4, 'mill': 1, 'house': 6, 'lumber camp': 1, 'mining camp': 1}}, 'castle': {'uptime': 886.581, 'research': ['wheelbarrow', 'town watch', 'heavy plow', 'hand cart', 'guilds', 'gold mining', 'imperial age', 'imperial age', 'forging', 'burgundian vineyards', 'two-man saw', 'two-man saw', 'crop rotation', 'gold shaft mining', 'stone mining', 'scale barding armor', 'husbandry'], 'unit_counts': {'monk': 4, 'villager': 74, 'coustillier': 8}, 'age_researched': True, 'building_counts': {'farm': 36, 'house': 5, 'castle': 3, 'stable': 1, 'barracks': 1, 'monastery': 1, 'lumber camp': 2, 'mining camp': 2, 'town center': 2, 'palisade gate': 2}}, 'feudal': {'uptime': 642.7, 'research': ['castle age', 'castle age', 'bow saw', 'bow saw', 'bow saw', 'wheelbarrow', 'loom'], 'unit_counts': {'villager': 1}, 'age_researched': True, 'building_counts': {'house': 5, 'market': 1, 'blacksmith': 1}}, 'imperial': {'uptime': 1672.934, 'research': ['conscription', 'stone shaft mining', 'chemistry', 'chain barding armor', 'treadmill crane', 'masonry', 'hoardings', 'padded archer armor', 'fletching', 'leather archer armor', 'bodkin arrow', 'architecture', 'ballistics', 'bracer', 'scale mail armor', 'squires', 'elite skirmisher', 'chain mail armor', 'iron casting', 'flemish revolution', 'flemish revolution', 'plate mail armor', 'iron casting'], 'unit_counts': {'monk': 1, 'mangonel': 1, 'villager': 117, 'trebuchet': 7, 'skirmisher': 4, 'coustillier': 7, 'bombard cannon': 4, 'hand cannoneer': 44}, 'age_researched': True, 'building_counts': {'farm': 16, 'house': 38, 'castle': 6, 'monastery': 1, 'university': 1, 'lumber camp': 2, 'mining camp': 10, 'town center': 2, 'archery range': 15, 'palisade gate': 2, 'siege workshop': 3}}}, 'opening_name': 'fast_castle'}",
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"replay_summary_raw\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"replay_summary_raw\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"replay_summary_raw\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"replay_summary_raw\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"replay_summary_raw\"\nORDER BY cnt DESC, \"replay_summary_raw\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"replay_summary_raw\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"replay_summary_raw\" IS NOT NULL\nGROUP BY \"replay_summary_raw\"\nORDER BY cnt ASC, \"replay_summary_raw\" ASC\nLIMIT 5",
+      "elapsed_seconds": 61.71
+    },
+    "profile_id": {
+      "column": "profile_id",
+      "dtype": "DOUBLE",
+      "null_count": 1185,
+      "null_pct": 0.0011,
+      "cardinality": 641662,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 3288518.0,
+          "count": 15075,
+          "pct": 0.014
+        },
+        {
+          "value": 4216671.0,
+          "count": 11230,
+          "pct": 0.0104
+        },
+        {
+          "value": 14527552.0,
+          "count": 10949,
+          "pct": 0.0102
+        },
+        {
+          "value": 15369793.0,
+          "count": 10205,
+          "pct": 0.0095
+        },
+        {
+          "value": 5600740.0,
+          "count": 10199,
+          "pct": 0.0095
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 20.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 100.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 107.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 249.0,
+          "count": 1,
+          "pct": 0.0
+        },
+        {
+          "value": 253.0,
+          "count": 1,
+          "pct": 0.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"profile_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"profile_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"profile_id\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"profile_id\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"profile_id\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"profile_id\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"profile_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"profile_id\"\nORDER BY cnt DESC, \"profile_id\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"profile_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"profile_id\" IS NOT NULL\nGROUP BY \"profile_id\"\nORDER BY cnt ASC, \"profile_id\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.92
+    },
+    "civ": {
+      "column": "civ",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 50,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "franks",
+          "count": 6018585,
+          "pct": 5.592
+        },
+        {
+          "value": "mongols",
+          "count": 5638014,
+          "pct": 5.2384
+        },
+        {
+          "value": "persians",
+          "count": 4619647,
+          "pct": 4.2923
+        },
+        {
+          "value": "britons",
+          "count": 4341837,
+          "pct": 4.0341
+        },
+        {
+          "value": "spanish",
+          "count": 4177105,
+          "pct": 3.8811
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "jurchens",
+          "count": 130848,
+          "pct": 0.1216
+        },
+        {
+          "value": "shu",
+          "count": 225878,
+          "pct": 0.2099
+        },
+        {
+          "value": "wei",
+          "count": 264869,
+          "pct": 0.2461
+        },
+        {
+          "value": "wu",
+          "count": 279310,
+          "pct": 0.2595
+        },
+        {
+          "value": "khitans",
+          "count": 293392,
+          "pct": 0.2726
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"civ\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"civ\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"civ\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"civ\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"civ\"\nORDER BY cnt DESC, \"civ\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"civ\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"civ\" IS NOT NULL\nGROUP BY \"civ\"\nORDER BY cnt ASC, \"civ\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.11
+    },
+    "opening": {
+      "column": "opening",
+      "dtype": "VARCHAR",
+      "null_count": 92616290,
+      "null_pct": 86.0526,
+      "cardinality": 10,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": null,
+          "count": 92616290,
+          "pct": 86.0526
+        },
+        {
+          "value": "fast_castle",
+          "count": 4200028,
+          "pct": 3.9024
+        },
+        {
+          "value": "unknown",
+          "count": 3589615,
+          "pct": 3.3352
+        },
+        {
+          "value": "scouts",
+          "count": 2117251,
+          "pct": 1.9672
+        },
+        {
+          "value": "archers",
+          "count": 1974622,
+          "pct": 1.8347
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "towers",
+          "count": 158365,
+          "pct": 1.055
+        },
+        {
+          "value": "galleys",
+          "count": 179940,
+          "pct": 1.1987
+        },
+        {
+          "value": "drush",
+          "count": 238173,
+          "pct": 1.5866
+        },
+        {
+          "value": "fires",
+          "count": 360897,
+          "pct": 2.4042
+        },
+        {
+          "value": "man_at_arms",
+          "count": 1092885,
+          "pct": 7.2804
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"opening\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"opening\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"opening\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"opening\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"opening\"\nORDER BY cnt DESC, \"opening\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"opening\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"opening\" IS NOT NULL\nGROUP BY \"opening\"\nORDER BY cnt ASC, \"opening\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.22
+    },
+    "filename": {
+      "column": "filename",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 171,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "players/2023-04-02_2023-04-08_players.parquet",
+          "count": 930677,
+          "pct": 0.8647
+        },
+        {
+          "value": "players/2023-03-26_2023-04-01_players.parquet",
+          "count": 898970,
+          "pct": 0.8353
+        },
+        {
+          "value": "players/2023-04-09_2023-04-15_players.parquet",
+          "count": 891226,
+          "pct": 0.8281
+        },
+        {
+          "value": "players/2023-04-30_2023-05-06_players.parquet",
+          "count": 883796,
+          "pct": 0.8212
+        },
+        {
+          "value": "players/2024-03-24_2024-03-30_players.parquet",
+          "count": 882440,
+          "pct": 0.8199
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "players/2022-08-28_2022-09-03_players.parquet",
+          "count": 53556,
+          "pct": 0.0498
+        },
+        {
+          "value": "players/2022-09-04_2022-09-10_players.parquet",
+          "count": 63764,
+          "pct": 0.0592
+        },
+        {
+          "value": "players/2022-09-11_2022-09-17_players.parquet",
+          "count": 64698,
+          "pct": 0.0601
+        },
+        {
+          "value": "players/2022-09-18_2022-09-24_players.parquet",
+          "count": 66956,
+          "pct": 0.0622
+        },
+        {
+          "value": "players/2022-09-25_2022-10-01_players.parquet",
+          "count": 69736,
+          "pct": 0.0648
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM players_raw",
+      "sql_top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.05
+    }
+  },
+  "overviews_raw_census": {
+    "last_updated": {
+      "column": "last_updated",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 1,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "2026-04-09T11:12:40.159034Z",
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "2026-04-09T11:12:40.159034Z",
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"last_updated\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"last_updated\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"last_updated\") AS cardinality\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    \"last_updated\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"last_updated\"\nORDER BY cnt DESC, \"last_updated\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"last_updated\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"last_updated\" IS NOT NULL\nGROUP BY \"last_updated\"\nORDER BY cnt ASC, \"last_updated\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.0
+    },
+    "total_match_count": {
+      "column": "total_match_count",
+      "dtype": "BIGINT",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 1,
+      "zero_count": 0,
+      "zero_pct": 0.0,
+      "top_n": [
+        {
+          "value": 32979710,
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": 32979710,
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"total_match_count\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"total_match_count\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"total_match_count\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"total_match_count\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"total_match_count\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"total_match_count\" IS NOT NULL), 0), 4) AS zero_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    \"total_match_count\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"total_match_count\"\nORDER BY cnt DESC, \"total_match_count\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"total_match_count\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"total_match_count\" IS NOT NULL\nGROUP BY \"total_match_count\"\nORDER BY cnt ASC, \"total_match_count\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.0
+    },
+    "civs": {
+      "column": "civs",
+      "dtype": "STRUCT(\"name\" VARCHAR, \"value\" BIGINT)[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (STRUCT(\"name\" VARCHAR, \"value\" BIGINT)[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"civs\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"civs\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"civs\")) AS min_len,\n    MAX(LEN(\"civs\")) AS max_len,\n    ROUND(AVG(LEN(\"civs\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"civs\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 50,
+        "max": 50,
+        "avg": 50.0
+      }
+    },
+    "openings": {
+      "column": "openings",
+      "dtype": "STRUCT(\"name\" VARCHAR, \"value\" BIGINT)[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (STRUCT(\"name\" VARCHAR, \"value\" BIGINT)[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"openings\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"openings\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"openings\")) AS min_len,\n    MAX(LEN(\"openings\")) AS max_len,\n    ROUND(AVG(LEN(\"openings\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"openings\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 10,
+        "max": 10,
+        "avg": 10.0
+      }
+    },
+    "patches": {
+      "column": "patches",
+      "dtype": "STRUCT(number BIGINT, \"label\" VARCHAR, release_date DATE, published BOOLEAN, url VARCHAR, description VARCHAR, total_games HUGEINT)[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (STRUCT(number BIGINT, \"label\" VARCHAR, release_date DATE, published BOOLEAN, url VARCHAR, description VARCHAR, total_games HUGEINT)[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"patches\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"patches\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"patches\")) AS min_len,\n    MAX(LEN(\"patches\")) AS max_len,\n    ROUND(AVG(LEN(\"patches\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"patches\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 19,
+        "max": 19,
+        "avg": 19.0
+      }
+    },
+    "groupings": {
+      "column": "groupings",
+      "dtype": "STRUCT(\"name\" VARCHAR, \"label\" VARCHAR, elo_groupings STRUCT(\"label\" VARCHAR, \"name\" VARCHAR)[])[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (STRUCT(\"name\" VARCHAR, \"label\" VARCHAR, elo_groupings STRUCT(\"label\" VARCHAR, \"name\" VARCHAR)[])[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"groupings\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"groupings\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"groupings\")) AS min_len,\n    MAX(LEN(\"groupings\")) AS max_len,\n    ROUND(AVG(LEN(\"groupings\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"groupings\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0
+      }
+    },
+    "changelog": {
+      "column": "changelog",
+      "dtype": "STRUCT(change_time TIMESTAMP, changes VARCHAR[], \"version\" VARCHAR)[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (STRUCT(change_time TIMESTAMP, changes VARCHAR[], \"version\" VARCHAR)[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"changelog\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"changelog\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"changelog\")) AS min_len,\n    MAX(LEN(\"changelog\")) AS max_len,\n    ROUND(AVG(LEN(\"changelog\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"changelog\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 41,
+        "max": 41,
+        "avg": 41.0
+      }
+    },
+    "tournament_stages": {
+      "column": "tournament_stages",
+      "dtype": "VARCHAR[]",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": null,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": null,
+      "bottom_n": null,
+      "temporal_range": null,
+      "analytical_note": "Array/LIST type (VARCHAR[]): COUNT(DISTINCT) and GROUP BY unsupported. Array element count (LEN) reported instead of top/bottom-N.",
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"tournament_stages\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"tournament_stages\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    MIN(LEN(\"tournament_stages\")) AS min_len,\n    MAX(LEN(\"tournament_stages\")) AS max_len,\n    ROUND(AVG(LEN(\"tournament_stages\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"tournament_stages\" IS NOT NULL",
+      "sql_bottom_n": "-- Skipped: array type; see array_length",
+      "elapsed_seconds": 0.0,
+      "array_length": {
+        "min": 3,
+        "max": 3,
+        "avg": 3.0
+      }
+    },
+    "filename": {
+      "column": "filename",
+      "dtype": "VARCHAR",
+      "null_count": 0,
+      "null_pct": 0.0,
+      "cardinality": 1,
+      "zero_count": null,
+      "zero_pct": null,
+      "top_n": [
+        {
+          "value": "overview/overview.json",
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "bottom_n": [
+        {
+          "value": "overview/overview.json",
+          "count": 1,
+          "pct": 100.0
+        }
+      ],
+      "temporal_range": null,
+      "analytical_note": null,
+      "sql_null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM overviews_raw",
+      "sql_top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+      "sql_bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5",
+      "elapsed_seconds": 0.0
+    }
+  },
+  "sql_queries": {
+    "matches_null_census": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(map) AS map_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(map)) / COUNT(*), 2) AS map_null_pct,\n    COUNT(*) - COUNT(started_timestamp) AS started_timestamp_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(started_timestamp)) / COUNT(*), 2) AS started_timestamp_null_pct,\n    COUNT(*) - COUNT(duration) AS duration_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(duration)) / COUNT(*), 2) AS duration_null_pct,\n    COUNT(*) - COUNT(irl_duration) AS irl_duration_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(irl_duration)) / COUNT(*), 2) AS irl_duration_null_pct,\n    COUNT(*) - COUNT(game_id) AS game_id_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(game_id)) / COUNT(*), 2) AS game_id_null_pct,\n    COUNT(*) - COUNT(avg_elo) AS avg_elo_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(avg_elo)) / COUNT(*), 2) AS avg_elo_null_pct,\n    COUNT(*) - COUNT(num_players) AS num_players_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(num_players)) / COUNT(*), 2) AS num_players_null_pct,\n    COUNT(*) - COUNT(team_0_elo) AS team_0_elo_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(team_0_elo)) / COUNT(*), 2) AS team_0_elo_null_pct,\n    COUNT(*) - COUNT(team_1_elo) AS team_1_elo_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(team_1_elo)) / COUNT(*), 2) AS team_1_elo_null_pct,\n    COUNT(*) - COUNT(replay_enhanced) AS replay_enhanced_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(replay_enhanced)) / COUNT(*), 2) AS replay_enhanced_null_pct,\n    COUNT(*) - COUNT(leaderboard) AS leaderboard_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(leaderboard)) / COUNT(*), 2) AS leaderboard_null_pct,\n    COUNT(*) - COUNT(mirror) AS mirror_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(mirror)) / COUNT(*), 2) AS mirror_null_pct,\n    COUNT(*) - COUNT(patch) AS patch_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(patch)) / COUNT(*), 2) AS patch_null_pct,\n    COUNT(*) - COUNT(raw_match_type) AS raw_match_type_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(raw_match_type)) / COUNT(*), 2) AS raw_match_type_null_pct,\n    COUNT(*) - COUNT(game_type) AS game_type_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(game_type)) / COUNT(*), 2) AS game_type_null_pct,\n    COUNT(*) - COUNT(game_speed) AS game_speed_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(game_speed)) / COUNT(*), 2) AS game_speed_null_pct,\n    COUNT(*) - COUNT(starting_age) AS starting_age_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(starting_age)) / COUNT(*), 2) AS starting_age_null_pct,\n    COUNT(*) - COUNT(filename) AS filename_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(filename)) / COUNT(*), 2) AS filename_null_pct\nFROM matches_raw\n",
+    "players_null_census": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(winner) AS winner_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(winner)) / COUNT(*), 2) AS winner_null_pct,\n    COUNT(*) - COUNT(game_id) AS game_id_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(game_id)) / COUNT(*), 2) AS game_id_null_pct,\n    COUNT(*) - COUNT(team) AS team_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(team)) / COUNT(*), 2) AS team_null_pct,\n    COUNT(*) - COUNT(feudal_age_uptime) AS feudal_age_uptime_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(feudal_age_uptime)) / COUNT(*), 2) AS feudal_age_uptime_null_pct,\n    COUNT(*) - COUNT(castle_age_uptime) AS castle_age_uptime_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(castle_age_uptime)) / COUNT(*), 2) AS castle_age_uptime_null_pct,\n    COUNT(*) - COUNT(imperial_age_uptime) AS imperial_age_uptime_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(imperial_age_uptime)) / COUNT(*), 2) AS imperial_age_uptime_null_pct,\n    COUNT(*) - COUNT(old_rating) AS old_rating_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(old_rating)) / COUNT(*), 2) AS old_rating_null_pct,\n    COUNT(*) - COUNT(new_rating) AS new_rating_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(new_rating)) / COUNT(*), 2) AS new_rating_null_pct,\n    COUNT(*) - COUNT(match_rating_diff) AS match_rating_diff_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(match_rating_diff)) / COUNT(*), 2) AS match_rating_diff_null_pct,\n    COUNT(*) - COUNT(replay_summary_raw) AS replay_summary_raw_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(replay_summary_raw)) / COUNT(*), 2) AS replay_summary_raw_null_pct,\n    COUNT(*) - COUNT(profile_id) AS profile_id_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(profile_id)) / COUNT(*), 2) AS profile_id_null_pct,\n    COUNT(*) - COUNT(civ) AS civ_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(civ)) / COUNT(*), 2) AS civ_null_pct,\n    COUNT(*) - COUNT(opening) AS opening_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(opening)) / COUNT(*), 2) AS opening_null_pct,\n    COUNT(*) - COUNT(filename) AS filename_null,\n    ROUND(100.0 * (COUNT(*) - COUNT(filename)) / COUNT(*), 2) AS filename_null_pct\nFROM players_raw\n",
+    "players_raw_null_cooccurrence": "\nSELECT\n    COUNT(*) FILTER (WHERE feudal_age_uptime IS NULL\n        AND castle_age_uptime IS NULL\n        AND imperial_age_uptime IS NULL\n        AND opening IS NULL) AS all_four_null,\n    COUNT(*) FILTER (WHERE feudal_age_uptime IS NOT NULL\n        OR castle_age_uptime IS NOT NULL\n        OR imperial_age_uptime IS NOT NULL\n        OR opening IS NOT NULL) AS at_least_one_not_null,\n    COUNT(*) AS total_rows\nFROM players_raw\n",
+    "winner_distribution": "\nSELECT\n    winner,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM players_raw\nGROUP BY winner\nORDER BY cnt DESC\n",
+    "num_players_distribution": "\nSELECT\n    num_players,\n    COUNT(*) AS row_count,\n    COUNT(DISTINCT game_id) AS distinct_match_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct,\n    ROUND(\n        100.0 * COUNT(DISTINCT game_id)\n        / SUM(COUNT(DISTINCT game_id)) OVER(), 2\n    ) AS distinct_match_pct\nFROM matches_raw\nGROUP BY num_players\nORDER BY num_players\n",
+    "cat_matches_raw_map": "SELECT map, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY map\nORDER BY cnt DESC\nLIMIT 20",
+    "cat_matches_raw_leaderboard": "SELECT leaderboard, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY leaderboard\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_matches_raw_game_type": "SELECT game_type, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY game_type\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_matches_raw_game_speed": "SELECT game_speed, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY game_speed\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_matches_raw_starting_age": "SELECT starting_age, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY starting_age\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_matches_raw_replay_enhanced": "SELECT replay_enhanced, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY replay_enhanced\nORDER BY cnt DESC\nLIMIT 10",
+    "cat_matches_raw_mirror": "SELECT mirror, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY mirror\nORDER BY cnt DESC\nLIMIT 10",
+    "cat_matches_raw_patch": "SELECT patch, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY patch\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_matches_raw_raw_match_type": "SELECT raw_match_type, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM matches_raw\nGROUP BY raw_match_type\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_players_raw_civ": "SELECT civ, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM players_raw\nGROUP BY civ\nORDER BY cnt DESC\nLIMIT 50",
+    "cat_players_raw_opening": "SELECT opening, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM players_raw\nGROUP BY opening\nORDER BY cnt DESC\nLIMIT 30",
+    "cat_players_raw_team": "SELECT team, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM players_raw\nGROUP BY team\nORDER BY cnt DESC\nLIMIT 20",
+    "cat_players_raw_replay_summary_raw": "SELECT replay_summary_raw, COUNT(*) AS cnt,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM players_raw\nGROUP BY replay_summary_raw\nORDER BY cnt DESC\nLIMIT 20",
+    "opening_nonnull_distribution": "\nSELECT\n    opening,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct_of_nonnull\nFROM players_raw\nWHERE opening IS NOT NULL\nGROUP BY opening\nORDER BY cnt DESC\n",
+    "numeric_matches_raw_duration_sec": "SELECT\n    COUNT(duration / 1e9) AS n_nonnull,\n    COUNT(*) - COUNT(duration / 1e9) AS n_null,\n    SUM(CASE WHEN duration / 1e9 = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(duration / 1e9) AS min_val,\n    MAX(duration / 1e9) AS max_val,\n    ROUND(AVG(duration / 1e9), 2) AS mean_val,\n    ROUND(MEDIAN(duration / 1e9), 2) AS median_val,\n    ROUND(STDDEV(duration / 1e9), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY duration / 1e9), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY duration / 1e9), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration / 1e9), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY duration / 1e9), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration / 1e9), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_irl_duration_sec": "SELECT\n    COUNT(irl_duration / 1e9) AS n_nonnull,\n    COUNT(*) - COUNT(irl_duration / 1e9) AS n_null,\n    SUM(CASE WHEN irl_duration / 1e9 = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(irl_duration / 1e9) AS min_val,\n    MAX(irl_duration / 1e9) AS max_val,\n    ROUND(AVG(irl_duration / 1e9), 2) AS mean_val,\n    ROUND(MEDIAN(irl_duration / 1e9), 2) AS median_val,\n    ROUND(STDDEV(irl_duration / 1e9), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY irl_duration / 1e9), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY irl_duration / 1e9), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY irl_duration / 1e9), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY irl_duration / 1e9), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY irl_duration / 1e9), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_avg_elo": "SELECT\n    COUNT(avg_elo) AS n_nonnull,\n    COUNT(*) - COUNT(avg_elo) AS n_null,\n    SUM(CASE WHEN avg_elo = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(avg_elo) AS min_val,\n    MAX(avg_elo) AS max_val,\n    ROUND(AVG(avg_elo), 2) AS mean_val,\n    ROUND(MEDIAN(avg_elo), 2) AS median_val,\n    ROUND(STDDEV(avg_elo), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY avg_elo), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY avg_elo), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY avg_elo), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY avg_elo), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY avg_elo), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_team_0_elo": "SELECT\n    COUNT(team_0_elo) AS n_nonnull,\n    COUNT(*) - COUNT(team_0_elo) AS n_null,\n    SUM(CASE WHEN team_0_elo = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(team_0_elo) AS min_val,\n    MAX(team_0_elo) AS max_val,\n    ROUND(AVG(team_0_elo), 2) AS mean_val,\n    ROUND(MEDIAN(team_0_elo), 2) AS median_val,\n    ROUND(STDDEV(team_0_elo), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_team_1_elo": "SELECT\n    COUNT(team_1_elo) AS n_nonnull,\n    COUNT(*) - COUNT(team_1_elo) AS n_null,\n    SUM(CASE WHEN team_1_elo = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(team_1_elo) AS min_val,\n    MAX(team_1_elo) AS max_val,\n    ROUND(AVG(team_1_elo), 2) AS mean_val,\n    ROUND(MEDIAN(team_1_elo), 2) AS median_val,\n    ROUND(STDDEV(team_1_elo), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_raw_match_type": "SELECT\n    COUNT(raw_match_type) AS n_nonnull,\n    COUNT(*) - COUNT(raw_match_type) AS n_null,\n    SUM(CASE WHEN raw_match_type = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(raw_match_type) AS min_val,\n    MAX(raw_match_type) AS max_val,\n    ROUND(AVG(raw_match_type), 2) AS mean_val,\n    ROUND(MEDIAN(raw_match_type), 2) AS median_val,\n    ROUND(STDDEV(raw_match_type), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY raw_match_type), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY raw_match_type), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY raw_match_type), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY raw_match_type), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY raw_match_type), 2) AS p95\nFROM matches_raw",
+    "numeric_matches_raw_patch": "SELECT\n    COUNT(patch) AS n_nonnull,\n    COUNT(*) - COUNT(patch) AS n_null,\n    SUM(CASE WHEN patch = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(patch) AS min_val,\n    MAX(patch) AS max_val,\n    ROUND(AVG(patch), 2) AS mean_val,\n    ROUND(MEDIAN(patch), 2) AS median_val,\n    ROUND(STDDEV(patch), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY patch), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY patch), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY patch), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY patch), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY patch), 2) AS p95\nFROM matches_raw",
+    "numeric_players_raw_old_rating": "SELECT\n    COUNT(old_rating) AS n_nonnull,\n    COUNT(*) - COUNT(old_rating) AS n_null,\n    SUM(CASE WHEN old_rating = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(old_rating) AS min_val,\n    MAX(old_rating) AS max_val,\n    ROUND(AVG(old_rating), 2) AS mean_val,\n    ROUND(MEDIAN(old_rating), 2) AS median_val,\n    ROUND(STDDEV(old_rating), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY old_rating), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY old_rating), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY old_rating), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY old_rating), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY old_rating), 2) AS p95\nFROM players_raw",
+    "numeric_players_raw_new_rating": "SELECT\n    COUNT(new_rating) AS n_nonnull,\n    COUNT(*) - COUNT(new_rating) AS n_null,\n    SUM(CASE WHEN new_rating = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(new_rating) AS min_val,\n    MAX(new_rating) AS max_val,\n    ROUND(AVG(new_rating), 2) AS mean_val,\n    ROUND(MEDIAN(new_rating), 2) AS median_val,\n    ROUND(STDDEV(new_rating), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY new_rating), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY new_rating), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY new_rating), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY new_rating), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY new_rating), 2) AS p95\nFROM players_raw",
+    "numeric_players_raw_match_rating_diff": "SELECT\n    COUNT(match_rating_diff) AS n_nonnull,\n    COUNT(*) - COUNT(match_rating_diff) AS n_null,\n    SUM(CASE WHEN match_rating_diff = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(match_rating_diff) AS min_val,\n    MAX(match_rating_diff) AS max_val,\n    ROUND(AVG(match_rating_diff), 2) AS mean_val,\n    ROUND(MEDIAN(match_rating_diff), 2) AS median_val,\n    ROUND(STDDEV(match_rating_diff), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY match_rating_diff), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY match_rating_diff), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY match_rating_diff), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY match_rating_diff), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY match_rating_diff), 2) AS p95\nFROM players_raw",
+    "numeric_players_raw_feudal_age_uptime": "SELECT\n    COUNT(feudal_age_uptime) AS n_nonnull,\n    COUNT(*) - COUNT(feudal_age_uptime) AS n_null,\n    SUM(CASE WHEN feudal_age_uptime = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(feudal_age_uptime) AS min_val,\n    MAX(feudal_age_uptime) AS max_val,\n    ROUND(AVG(feudal_age_uptime), 2) AS mean_val,\n    ROUND(MEDIAN(feudal_age_uptime), 2) AS median_val,\n    ROUND(STDDEV(feudal_age_uptime), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY feudal_age_uptime), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY feudal_age_uptime), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY feudal_age_uptime), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY feudal_age_uptime), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY feudal_age_uptime), 2) AS p95\nFROM players_raw",
+    "numeric_players_raw_castle_age_uptime": "SELECT\n    COUNT(castle_age_uptime) AS n_nonnull,\n    COUNT(*) - COUNT(castle_age_uptime) AS n_null,\n    SUM(CASE WHEN castle_age_uptime = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(castle_age_uptime) AS min_val,\n    MAX(castle_age_uptime) AS max_val,\n    ROUND(AVG(castle_age_uptime), 2) AS mean_val,\n    ROUND(MEDIAN(castle_age_uptime), 2) AS median_val,\n    ROUND(STDDEV(castle_age_uptime), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY castle_age_uptime), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY castle_age_uptime), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY castle_age_uptime), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY castle_age_uptime), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY castle_age_uptime), 2) AS p95\nFROM players_raw",
+    "numeric_players_raw_imperial_age_uptime": "SELECT\n    COUNT(imperial_age_uptime) AS n_nonnull,\n    COUNT(*) - COUNT(imperial_age_uptime) AS n_null,\n    SUM(CASE WHEN imperial_age_uptime = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(imperial_age_uptime) AS min_val,\n    MAX(imperial_age_uptime) AS max_val,\n    ROUND(AVG(imperial_age_uptime), 2) AS mean_val,\n    ROUND(MEDIAN(imperial_age_uptime), 2) AS median_val,\n    ROUND(STDDEV(imperial_age_uptime), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY imperial_age_uptime), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY imperial_age_uptime), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY imperial_age_uptime), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY imperial_age_uptime), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY imperial_age_uptime), 2) AS p95\nFROM players_raw",
+    "skew_kurt_matches_duration_sec": "SELECT\n    ROUND(SKEWNESS(duration / 1e9), 4) AS skewness,\n    ROUND(KURTOSIS(duration / 1e9), 4) AS kurtosis,\n    COUNT(duration / 1e9) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_irl_duration_sec": "SELECT\n    ROUND(SKEWNESS(irl_duration / 1e9), 4) AS skewness,\n    ROUND(KURTOSIS(irl_duration / 1e9), 4) AS kurtosis,\n    COUNT(irl_duration / 1e9) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_avg_elo": "SELECT\n    ROUND(SKEWNESS(avg_elo), 4) AS skewness,\n    ROUND(KURTOSIS(avg_elo), 4) AS kurtosis,\n    COUNT(avg_elo) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_team_0_elo": "SELECT\n    ROUND(SKEWNESS(team_0_elo), 4) AS skewness,\n    ROUND(KURTOSIS(team_0_elo), 4) AS kurtosis,\n    COUNT(team_0_elo) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_team_1_elo": "SELECT\n    ROUND(SKEWNESS(team_1_elo), 4) AS skewness,\n    ROUND(KURTOSIS(team_1_elo), 4) AS kurtosis,\n    COUNT(team_1_elo) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_raw_match_type": "SELECT\n    ROUND(SKEWNESS(raw_match_type), 4) AS skewness,\n    ROUND(KURTOSIS(raw_match_type), 4) AS kurtosis,\n    COUNT(raw_match_type) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_matches_patch": "SELECT\n    ROUND(SKEWNESS(patch), 4) AS skewness,\n    ROUND(KURTOSIS(patch), 4) AS kurtosis,\n    COUNT(patch) AS n_nonnull\nFROM matches_raw",
+    "skew_kurt_players_old_rating": "SELECT\n    ROUND(SKEWNESS(old_rating), 4) AS skewness,\n    ROUND(KURTOSIS(old_rating), 4) AS kurtosis,\n    COUNT(old_rating) AS n_nonnull\nFROM players_raw",
+    "skew_kurt_players_new_rating": "SELECT\n    ROUND(SKEWNESS(new_rating), 4) AS skewness,\n    ROUND(KURTOSIS(new_rating), 4) AS kurtosis,\n    COUNT(new_rating) AS n_nonnull\nFROM players_raw",
+    "skew_kurt_players_match_rating_diff": "SELECT\n    ROUND(SKEWNESS(match_rating_diff), 4) AS skewness,\n    ROUND(KURTOSIS(match_rating_diff), 4) AS kurtosis,\n    COUNT(match_rating_diff) AS n_nonnull\nFROM players_raw",
+    "skew_kurt_players_feudal_age_uptime": "SELECT\n    ROUND(SKEWNESS(feudal_age_uptime), 4) AS skewness,\n    ROUND(KURTOSIS(feudal_age_uptime), 4) AS kurtosis,\n    COUNT(feudal_age_uptime) AS n_nonnull\nFROM players_raw",
+    "skew_kurt_players_castle_age_uptime": "SELECT\n    ROUND(SKEWNESS(castle_age_uptime), 4) AS skewness,\n    ROUND(KURTOSIS(castle_age_uptime), 4) AS kurtosis,\n    COUNT(castle_age_uptime) AS n_nonnull\nFROM players_raw",
+    "skew_kurt_players_imperial_age_uptime": "SELECT\n    ROUND(SKEWNESS(imperial_age_uptime), 4) AS skewness,\n    ROUND(KURTOSIS(imperial_age_uptime), 4) AS kurtosis,\n    COUNT(imperial_age_uptime) AS n_nonnull\nFROM players_raw",
+    "profile_id_range": "\nSELECT\n    COUNT(profile_id) AS n_nonnull,\n    COUNT(*) - COUNT(profile_id) AS n_null,\n    MIN(profile_id) AS min_val,\n    MAX(profile_id) AS max_val\nFROM players_raw\n",
+    "hist_duration_sec": "SELECT\n    FLOOR(duration / 1e9 / 60) * 60 AS bin,\n    COUNT(*) AS cnt\nFROM matches_raw\nWHERE duration / 1e9 IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_irl_duration_sec": "SELECT\n    FLOOR(irl_duration / 1e9 / 60) * 60 AS bin,\n    COUNT(*) AS cnt\nFROM matches_raw\nWHERE irl_duration / 1e9 IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_avg_elo": "SELECT\n    FLOOR(avg_elo / 50) * 50 AS bin,\n    COUNT(*) AS cnt\nFROM matches_raw\nWHERE avg_elo IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_old_rating": "SELECT\n    FLOOR(old_rating / 50) * 50 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE old_rating IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_new_rating": "SELECT\n    FLOOR(new_rating / 50) * 50 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE new_rating IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_match_rating_diff": "SELECT\n    FLOOR(match_rating_diff / 5) * 5 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE match_rating_diff IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_feudal_age_uptime": "SELECT\n    FLOOR(feudal_age_uptime / 10) * 10 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE feudal_age_uptime IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_castle_age_uptime": "SELECT\n    FLOOR(castle_age_uptime / 10) * 10 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE castle_age_uptime IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "hist_imperial_age_uptime": "SELECT\n    FLOOR(imperial_age_uptime / 10) * 10 AS bin,\n    COUNT(*) AS cnt\nFROM players_raw\nWHERE imperial_age_uptime IS NOT NULL\nGROUP BY bin\nORDER BY bin",
+    "elo_sentinel_counts": "SELECT\n    COUNT(*) FILTER (WHERE team_0_elo < 0)   AS team_0_elo_neg,\n    COUNT(*) FILTER (WHERE team_1_elo < 0)   AS team_1_elo_neg,\n    COUNT(*)                                  AS total_rows\nFROM matches_raw",
+    "elo_neg_distinct_values": "SELECT DISTINCT team_0_elo AS elo_val FROM matches_raw WHERE team_0_elo < 0\nUNION\nSELECT DISTINCT team_1_elo AS elo_val FROM matches_raw WHERE team_1_elo < 0\nORDER BY elo_val",
+    "numeric_matches_team_0_elo_no_sentinel": "SELECT\n    COUNT(team_0_elo) AS n_nonnull,\n    COUNT(*) - COUNT(team_0_elo) AS n_null,\n    SUM(CASE WHEN team_0_elo = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(team_0_elo) AS min_val,\n    MAX(team_0_elo) AS max_val,\n    ROUND(AVG(team_0_elo), 2) AS mean_val,\n    ROUND(MEDIAN(team_0_elo), 2) AS median_val,\n    ROUND(STDDEV(team_0_elo), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY team_0_elo), 2) AS p95\nFROM matches_raw\nWHERE team_0_elo != -1.0\n-- Note: ELO=0 rows (4,824 for team_0_elo, 192 for team_1_elo) are NOT excluded here;\n-- only the -1.0 sentinel (unranked marker) is excluded. ELO=0 may represent valid\n-- entries and requires separate investigation if needed.",
+    "numeric_matches_team_1_elo_no_sentinel": "SELECT\n    COUNT(team_1_elo) AS n_nonnull,\n    COUNT(*) - COUNT(team_1_elo) AS n_null,\n    SUM(CASE WHEN team_1_elo = 0 THEN 1 ELSE 0 END) AS n_zero,\n    MIN(team_1_elo) AS min_val,\n    MAX(team_1_elo) AS max_val,\n    ROUND(AVG(team_1_elo), 2) AS mean_val,\n    ROUND(MEDIAN(team_1_elo), 2) AS median_val,\n    ROUND(STDDEV(team_1_elo), 2) AS stddev_val,\n    ROUND(PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p05,\n    ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p25,\n    ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p50,\n    ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p75,\n    ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY team_1_elo), 2) AS p95\nFROM matches_raw\nWHERE team_1_elo != -1.0\n-- Note: ELO=0 rows (4,824 for team_0_elo, 192 for team_1_elo) are NOT excluded here;\n-- only the -1.0 sentinel (unranked marker) is excluded. ELO=0 may represent valid\n-- entries and requires separate investigation if needed.",
+    "temporal_range": "\nSELECT\n    MIN(started_timestamp) AS earliest,\n    MAX(started_timestamp) AS latest,\n    COUNT(DISTINCT DATE_TRUNC('month', started_timestamp)) AS distinct_months,\n    COUNT(DISTINCT DATE_TRUNC('week', started_timestamp)) AS distinct_weeks\nFROM matches_raw\n",
+    "monthly_match_counts": "\nSELECT\n    DATE_TRUNC('month', started_timestamp) AS month,\n    COUNT(*) AS match_count\nFROM matches_raw\nWHERE started_timestamp IS NOT NULL\nGROUP BY month\nORDER BY month\n",
+    "orphan_detection": "\nSELECT\n    'players_without_match' AS check_name,\n    COUNT(DISTINCT p.game_id) AS cnt\nFROM players_raw p\nLEFT JOIN matches_raw m ON p.game_id = m.game_id\nWHERE m.game_id IS NULL\nUNION ALL\nSELECT\n    'matches_without_players' AS check_name,\n    COUNT(DISTINCT m.game_id) AS cnt\nFROM matches_raw m\nLEFT JOIN players_raw p ON m.game_id = p.game_id\nWHERE p.game_id IS NULL\n",
+    "players_per_match": "\nSELECT\n    player_count,\n    COUNT(*) AS match_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 2) AS pct\nFROM (\n    SELECT game_id, COUNT(*) AS player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nGROUP BY player_count\nORDER BY player_count\n",
+    "duplicate_check_matches": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT CAST(game_id AS VARCHAR)) AS distinct_game_ids,\n    COUNT(*) - COUNT(DISTINCT CAST(game_id AS VARCHAR)) AS duplicate_rows\nFROM matches_raw\n",
+    "duplicate_check_players": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT CAST(game_id AS VARCHAR) || '_' || COALESCE(CAST(profile_id AS VARCHAR), '__NULL__'))\n        AS distinct_game_player_pairs,\n    COUNT(*) - COUNT(DISTINCT CAST(game_id AS VARCHAR) || '_' || COALESCE(CAST(profile_id AS VARCHAR), '__NULL__'))\n        AS duplicate_rows\nFROM players_raw\n",
+    "uniqueness_matches_map": "SELECT\n    'map' AS column_name,\n    COUNT(DISTINCT map) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(map) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT map)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT map)::DOUBLE / NULLIF(COUNT(map), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_started_timestamp": "SELECT\n    'started_timestamp' AS column_name,\n    COUNT(DISTINCT started_timestamp) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(started_timestamp) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT started_timestamp)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT started_timestamp)::DOUBLE / NULLIF(COUNT(started_timestamp), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_duration": "SELECT\n    'duration' AS column_name,\n    COUNT(DISTINCT duration) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(duration) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT duration)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT duration)::DOUBLE / NULLIF(COUNT(duration), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_irl_duration": "SELECT\n    'irl_duration' AS column_name,\n    COUNT(DISTINCT irl_duration) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(irl_duration) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT irl_duration)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT irl_duration)::DOUBLE / NULLIF(COUNT(irl_duration), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_game_id": "SELECT\n    'game_id' AS column_name,\n    COUNT(DISTINCT game_id) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(game_id) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT game_id)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT game_id)::DOUBLE / NULLIF(COUNT(game_id), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_avg_elo": "SELECT\n    'avg_elo' AS column_name,\n    COUNT(DISTINCT avg_elo) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(avg_elo) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT avg_elo)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT avg_elo)::DOUBLE / NULLIF(COUNT(avg_elo), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_num_players": "SELECT\n    'num_players' AS column_name,\n    COUNT(DISTINCT num_players) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(num_players) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT num_players)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT num_players)::DOUBLE / NULLIF(COUNT(num_players), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_team_0_elo": "SELECT\n    'team_0_elo' AS column_name,\n    COUNT(DISTINCT team_0_elo) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(team_0_elo) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT team_0_elo)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT team_0_elo)::DOUBLE / NULLIF(COUNT(team_0_elo), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_team_1_elo": "SELECT\n    'team_1_elo' AS column_name,\n    COUNT(DISTINCT team_1_elo) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(team_1_elo) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT team_1_elo)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT team_1_elo)::DOUBLE / NULLIF(COUNT(team_1_elo), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_replay_enhanced": "SELECT\n    'replay_enhanced' AS column_name,\n    COUNT(DISTINCT replay_enhanced) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(replay_enhanced) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT replay_enhanced)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT replay_enhanced)::DOUBLE / NULLIF(COUNT(replay_enhanced), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_leaderboard": "SELECT\n    'leaderboard' AS column_name,\n    COUNT(DISTINCT leaderboard) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(leaderboard) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT leaderboard)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT leaderboard)::DOUBLE / NULLIF(COUNT(leaderboard), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_mirror": "SELECT\n    'mirror' AS column_name,\n    COUNT(DISTINCT mirror) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(mirror) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT mirror)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT mirror)::DOUBLE / NULLIF(COUNT(mirror), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_patch": "SELECT\n    'patch' AS column_name,\n    COUNT(DISTINCT patch) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(patch) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT patch)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT patch)::DOUBLE / NULLIF(COUNT(patch), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_raw_match_type": "SELECT\n    'raw_match_type' AS column_name,\n    COUNT(DISTINCT raw_match_type) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(raw_match_type) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT raw_match_type)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT raw_match_type)::DOUBLE / NULLIF(COUNT(raw_match_type), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_game_type": "SELECT\n    'game_type' AS column_name,\n    COUNT(DISTINCT game_type) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(game_type) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT game_type)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT game_type)::DOUBLE / NULLIF(COUNT(game_type), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_game_speed": "SELECT\n    'game_speed' AS column_name,\n    COUNT(DISTINCT game_speed) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(game_speed) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT game_speed)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT game_speed)::DOUBLE / NULLIF(COUNT(game_speed), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_starting_age": "SELECT\n    'starting_age' AS column_name,\n    COUNT(DISTINCT starting_age) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(starting_age) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT starting_age)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT starting_age)::DOUBLE / NULLIF(COUNT(starting_age), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_matches_filename": "SELECT\n    'filename' AS column_name,\n    COUNT(DISTINCT filename) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(filename) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT filename)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT filename)::DOUBLE / NULLIF(COUNT(filename), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM matches_raw",
+    "uniqueness_players_winner": "SELECT\n    'winner' AS column_name,\n    COUNT(DISTINCT winner) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(winner) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT winner)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT winner)::DOUBLE / NULLIF(COUNT(winner), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_game_id": "SELECT\n    'game_id' AS column_name,\n    COUNT(DISTINCT game_id) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(game_id) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT game_id)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT game_id)::DOUBLE / NULLIF(COUNT(game_id), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_team": "SELECT\n    'team' AS column_name,\n    COUNT(DISTINCT team) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(team) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT team)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT team)::DOUBLE / NULLIF(COUNT(team), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_feudal_age_uptime": "SELECT\n    'feudal_age_uptime' AS column_name,\n    COUNT(DISTINCT feudal_age_uptime) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(feudal_age_uptime) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT feudal_age_uptime)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT feudal_age_uptime)::DOUBLE / NULLIF(COUNT(feudal_age_uptime), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_castle_age_uptime": "SELECT\n    'castle_age_uptime' AS column_name,\n    COUNT(DISTINCT castle_age_uptime) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(castle_age_uptime) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT castle_age_uptime)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT castle_age_uptime)::DOUBLE / NULLIF(COUNT(castle_age_uptime), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_imperial_age_uptime": "SELECT\n    'imperial_age_uptime' AS column_name,\n    COUNT(DISTINCT imperial_age_uptime) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(imperial_age_uptime) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT imperial_age_uptime)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT imperial_age_uptime)::DOUBLE / NULLIF(COUNT(imperial_age_uptime), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_old_rating": "SELECT\n    'old_rating' AS column_name,\n    COUNT(DISTINCT old_rating) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(old_rating) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT old_rating)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT old_rating)::DOUBLE / NULLIF(COUNT(old_rating), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_new_rating": "SELECT\n    'new_rating' AS column_name,\n    COUNT(DISTINCT new_rating) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(new_rating) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT new_rating)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT new_rating)::DOUBLE / NULLIF(COUNT(new_rating), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_match_rating_diff": "SELECT\n    'match_rating_diff' AS column_name,\n    COUNT(DISTINCT match_rating_diff) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(match_rating_diff) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT match_rating_diff)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT match_rating_diff)::DOUBLE / NULLIF(COUNT(match_rating_diff), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_replay_summary_raw": "SELECT\n    'replay_summary_raw' AS column_name,\n    COUNT(DISTINCT replay_summary_raw) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(replay_summary_raw) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT replay_summary_raw)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT replay_summary_raw)::DOUBLE / NULLIF(COUNT(replay_summary_raw), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_profile_id": "SELECT\n    'profile_id' AS column_name,\n    COUNT(DISTINCT profile_id) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(profile_id) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT profile_id)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT profile_id)::DOUBLE / NULLIF(COUNT(profile_id), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_civ": "SELECT\n    'civ' AS column_name,\n    COUNT(DISTINCT civ) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(civ) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT civ)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT civ)::DOUBLE / NULLIF(COUNT(civ), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_opening": "SELECT\n    'opening' AS column_name,\n    COUNT(DISTINCT opening) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(opening) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT opening)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT opening)::DOUBLE / NULLIF(COUNT(opening), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "uniqueness_players_filename": "SELECT\n    'filename' AS column_name,\n    COUNT(DISTINCT filename) AS cardinality,\n    COUNT(*) AS total_rows,\n    COUNT(filename) AS nonnull_rows,\n    ROUND(COUNT(DISTINCT filename)::DOUBLE / COUNT(*)::DOUBLE, 6) AS uniqueness_ratio,\n    ROUND(COUNT(DISTINCT filename)::DOUBLE / NULLIF(COUNT(filename), 0)::DOUBLE, 6) AS nonnull_uniqueness_ratio\nFROM players_raw",
+    "census.matches_raw.map.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"map\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"map\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"map\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.map.top_n": "SELECT\n    \"map\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"map\"\nORDER BY cnt DESC, \"map\" ASC\nLIMIT 5",
+    "census.matches_raw.map.bottom_n": "SELECT\n    \"map\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"map\" IS NOT NULL\nGROUP BY \"map\"\nORDER BY cnt ASC, \"map\" ASC\nLIMIT 5",
+    "census.matches_raw.started_timestamp.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"started_timestamp\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"started_timestamp\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"started_timestamp\") AS cardinality,\n    MIN(CAST(\"started_timestamp\" AS TIMESTAMP)) AS temporal_min,\n    MAX(CAST(\"started_timestamp\" AS TIMESTAMP)) AS temporal_max\nFROM matches_raw",
+    "census.matches_raw.started_timestamp.top_n": "SELECT\n    CAST(\"started_timestamp\" AS TIMESTAMP) AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"started_timestamp\"\nORDER BY cnt DESC, \"started_timestamp\" ASC\nLIMIT 5",
+    "census.matches_raw.started_timestamp.bottom_n": "SELECT\n    CAST(\"started_timestamp\" AS TIMESTAMP) AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"started_timestamp\" IS NOT NULL\nGROUP BY \"started_timestamp\"\nORDER BY cnt ASC, \"started_timestamp\" ASC\nLIMIT 5",
+    "census.matches_raw.duration.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"duration\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"duration\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"duration\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"duration\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"duration\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"duration\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.duration.top_n": "SELECT\n    \"duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"duration\"\nORDER BY cnt DESC, \"duration\" ASC\nLIMIT 5",
+    "census.matches_raw.duration.bottom_n": "SELECT\n    \"duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"duration\" IS NOT NULL\nGROUP BY \"duration\"\nORDER BY cnt ASC, \"duration\" ASC\nLIMIT 5",
+    "census.matches_raw.irl_duration.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"irl_duration\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"irl_duration\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"irl_duration\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"irl_duration\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"irl_duration\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"irl_duration\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.irl_duration.top_n": "SELECT\n    \"irl_duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"irl_duration\"\nORDER BY cnt DESC, \"irl_duration\" ASC\nLIMIT 5",
+    "census.matches_raw.irl_duration.bottom_n": "SELECT\n    \"irl_duration\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"irl_duration\" IS NOT NULL\nGROUP BY \"irl_duration\"\nORDER BY cnt ASC, \"irl_duration\" ASC\nLIMIT 5",
+    "census.matches_raw.game_id.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_id\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.game_id.top_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_id\"\nORDER BY cnt DESC, \"game_id\" ASC\nLIMIT 5",
+    "census.matches_raw.game_id.bottom_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_id\" IS NOT NULL\nGROUP BY \"game_id\"\nORDER BY cnt ASC, \"game_id\" ASC\nLIMIT 5",
+    "census.matches_raw.avg_elo.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"avg_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"avg_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"avg_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"avg_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"avg_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"avg_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.avg_elo.top_n": "SELECT\n    \"avg_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"avg_elo\"\nORDER BY cnt DESC, \"avg_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.avg_elo.bottom_n": "SELECT\n    \"avg_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"avg_elo\" IS NOT NULL\nGROUP BY \"avg_elo\"\nORDER BY cnt ASC, \"avg_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.num_players.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"num_players\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"num_players\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"num_players\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"num_players\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"num_players\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"num_players\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.num_players.top_n": "SELECT\n    \"num_players\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"num_players\"\nORDER BY cnt DESC, \"num_players\" ASC\nLIMIT 5",
+    "census.matches_raw.num_players.bottom_n": "SELECT\n    \"num_players\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"num_players\" IS NOT NULL\nGROUP BY \"num_players\"\nORDER BY cnt ASC, \"num_players\" ASC\nLIMIT 5",
+    "census.matches_raw.team_0_elo.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team_0_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team_0_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team_0_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team_0_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team_0_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team_0_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.team_0_elo.top_n": "SELECT\n    \"team_0_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"team_0_elo\"\nORDER BY cnt DESC, \"team_0_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.team_0_elo.bottom_n": "SELECT\n    \"team_0_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"team_0_elo\" IS NOT NULL\nGROUP BY \"team_0_elo\"\nORDER BY cnt ASC, \"team_0_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.team_1_elo.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team_1_elo\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team_1_elo\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team_1_elo\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team_1_elo\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team_1_elo\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team_1_elo\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.team_1_elo.top_n": "SELECT\n    \"team_1_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"team_1_elo\"\nORDER BY cnt DESC, \"team_1_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.team_1_elo.bottom_n": "SELECT\n    \"team_1_elo\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"team_1_elo\" IS NOT NULL\nGROUP BY \"team_1_elo\"\nORDER BY cnt ASC, \"team_1_elo\" ASC\nLIMIT 5",
+    "census.matches_raw.replay_enhanced.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"replay_enhanced\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"replay_enhanced\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"replay_enhanced\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.replay_enhanced.top_n": "SELECT\n    \"replay_enhanced\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"replay_enhanced\"\nORDER BY cnt DESC, \"replay_enhanced\" ASC\nLIMIT 5",
+    "census.matches_raw.replay_enhanced.bottom_n": "SELECT\n    \"replay_enhanced\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"replay_enhanced\" IS NOT NULL\nGROUP BY \"replay_enhanced\"\nORDER BY cnt ASC, \"replay_enhanced\" ASC\nLIMIT 5",
+    "census.matches_raw.leaderboard.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"leaderboard\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"leaderboard\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"leaderboard\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.leaderboard.top_n": "SELECT\n    \"leaderboard\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"leaderboard\"\nORDER BY cnt DESC, \"leaderboard\" ASC\nLIMIT 5",
+    "census.matches_raw.leaderboard.bottom_n": "SELECT\n    \"leaderboard\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"leaderboard\" IS NOT NULL\nGROUP BY \"leaderboard\"\nORDER BY cnt ASC, \"leaderboard\" ASC\nLIMIT 5",
+    "census.matches_raw.mirror.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"mirror\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"mirror\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"mirror\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.mirror.top_n": "SELECT\n    \"mirror\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"mirror\"\nORDER BY cnt DESC, \"mirror\" ASC\nLIMIT 5",
+    "census.matches_raw.mirror.bottom_n": "SELECT\n    \"mirror\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"mirror\" IS NOT NULL\nGROUP BY \"mirror\"\nORDER BY cnt ASC, \"mirror\" ASC\nLIMIT 5",
+    "census.matches_raw.patch.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"patch\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"patch\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"patch\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"patch\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"patch\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"patch\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.patch.top_n": "SELECT\n    \"patch\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"patch\"\nORDER BY cnt DESC, \"patch\" ASC\nLIMIT 5",
+    "census.matches_raw.patch.bottom_n": "SELECT\n    \"patch\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"patch\" IS NOT NULL\nGROUP BY \"patch\"\nORDER BY cnt ASC, \"patch\" ASC\nLIMIT 5",
+    "census.matches_raw.raw_match_type.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"raw_match_type\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"raw_match_type\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"raw_match_type\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"raw_match_type\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"raw_match_type\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"raw_match_type\" IS NOT NULL), 0), 4) AS zero_pct\nFROM matches_raw",
+    "census.matches_raw.raw_match_type.top_n": "SELECT\n    \"raw_match_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"raw_match_type\"\nORDER BY cnt DESC, \"raw_match_type\" ASC\nLIMIT 5",
+    "census.matches_raw.raw_match_type.bottom_n": "SELECT\n    \"raw_match_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"raw_match_type\" IS NOT NULL\nGROUP BY \"raw_match_type\"\nORDER BY cnt ASC, \"raw_match_type\" ASC\nLIMIT 5",
+    "census.matches_raw.game_type.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_type\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_type\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_type\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.game_type.top_n": "SELECT\n    \"game_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_type\"\nORDER BY cnt DESC, \"game_type\" ASC\nLIMIT 5",
+    "census.matches_raw.game_type.bottom_n": "SELECT\n    \"game_type\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_type\" IS NOT NULL\nGROUP BY \"game_type\"\nORDER BY cnt ASC, \"game_type\" ASC\nLIMIT 5",
+    "census.matches_raw.game_speed.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_speed\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_speed\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_speed\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.game_speed.top_n": "SELECT\n    \"game_speed\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"game_speed\"\nORDER BY cnt DESC, \"game_speed\" ASC\nLIMIT 5",
+    "census.matches_raw.game_speed.bottom_n": "SELECT\n    \"game_speed\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"game_speed\" IS NOT NULL\nGROUP BY \"game_speed\"\nORDER BY cnt ASC, \"game_speed\" ASC\nLIMIT 5",
+    "census.matches_raw.starting_age.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"starting_age\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"starting_age\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"starting_age\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.starting_age.top_n": "SELECT\n    \"starting_age\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"starting_age\"\nORDER BY cnt DESC, \"starting_age\" ASC\nLIMIT 5",
+    "census.matches_raw.starting_age.bottom_n": "SELECT\n    \"starting_age\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"starting_age\" IS NOT NULL\nGROUP BY \"starting_age\"\nORDER BY cnt ASC, \"starting_age\" ASC\nLIMIT 5",
+    "census.matches_raw.filename.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM matches_raw",
+    "census.matches_raw.filename.top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+    "census.matches_raw.filename.bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5",
+    "census.players_raw.winner.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"winner\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"winner\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"winner\") AS cardinality\nFROM players_raw",
+    "census.players_raw.winner.top_n": "SELECT\n    \"winner\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"winner\"\nORDER BY cnt DESC, \"winner\" ASC\nLIMIT 5",
+    "census.players_raw.winner.bottom_n": "SELECT\n    \"winner\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"winner\" IS NOT NULL\nGROUP BY \"winner\"\nORDER BY cnt ASC, \"winner\" ASC\nLIMIT 5",
+    "census.players_raw.game_id.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"game_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"game_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"game_id\") AS cardinality\nFROM players_raw",
+    "census.players_raw.game_id.top_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"game_id\"\nORDER BY cnt DESC, \"game_id\" ASC\nLIMIT 5",
+    "census.players_raw.game_id.bottom_n": "SELECT\n    \"game_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"game_id\" IS NOT NULL\nGROUP BY \"game_id\"\nORDER BY cnt ASC, \"game_id\" ASC\nLIMIT 5",
+    "census.players_raw.team.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"team\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"team\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"team\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"team\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"team\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"team\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.team.top_n": "SELECT\n    \"team\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"team\"\nORDER BY cnt DESC, \"team\" ASC\nLIMIT 5",
+    "census.players_raw.team.bottom_n": "SELECT\n    \"team\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"team\" IS NOT NULL\nGROUP BY \"team\"\nORDER BY cnt ASC, \"team\" ASC\nLIMIT 5",
+    "census.players_raw.feudal_age_uptime.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"feudal_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"feudal_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"feudal_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"feudal_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"feudal_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"feudal_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.feudal_age_uptime.top_n": "SELECT\n    \"feudal_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"feudal_age_uptime\"\nORDER BY cnt DESC, \"feudal_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.feudal_age_uptime.bottom_n": "SELECT\n    \"feudal_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"feudal_age_uptime\" IS NOT NULL\nGROUP BY \"feudal_age_uptime\"\nORDER BY cnt ASC, \"feudal_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.castle_age_uptime.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"castle_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"castle_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"castle_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"castle_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"castle_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"castle_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.castle_age_uptime.top_n": "SELECT\n    \"castle_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"castle_age_uptime\"\nORDER BY cnt DESC, \"castle_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.castle_age_uptime.bottom_n": "SELECT\n    \"castle_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"castle_age_uptime\" IS NOT NULL\nGROUP BY \"castle_age_uptime\"\nORDER BY cnt ASC, \"castle_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.imperial_age_uptime.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"imperial_age_uptime\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"imperial_age_uptime\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"imperial_age_uptime\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"imperial_age_uptime\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"imperial_age_uptime\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"imperial_age_uptime\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.imperial_age_uptime.top_n": "SELECT\n    \"imperial_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"imperial_age_uptime\"\nORDER BY cnt DESC, \"imperial_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.imperial_age_uptime.bottom_n": "SELECT\n    \"imperial_age_uptime\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"imperial_age_uptime\" IS NOT NULL\nGROUP BY \"imperial_age_uptime\"\nORDER BY cnt ASC, \"imperial_age_uptime\" ASC\nLIMIT 5",
+    "census.players_raw.old_rating.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"old_rating\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"old_rating\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"old_rating\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"old_rating\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"old_rating\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"old_rating\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.old_rating.top_n": "SELECT\n    \"old_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"old_rating\"\nORDER BY cnt DESC, \"old_rating\" ASC\nLIMIT 5",
+    "census.players_raw.old_rating.bottom_n": "SELECT\n    \"old_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"old_rating\" IS NOT NULL\nGROUP BY \"old_rating\"\nORDER BY cnt ASC, \"old_rating\" ASC\nLIMIT 5",
+    "census.players_raw.new_rating.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"new_rating\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"new_rating\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"new_rating\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"new_rating\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"new_rating\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"new_rating\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.new_rating.top_n": "SELECT\n    \"new_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"new_rating\"\nORDER BY cnt DESC, \"new_rating\" ASC\nLIMIT 5",
+    "census.players_raw.new_rating.bottom_n": "SELECT\n    \"new_rating\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"new_rating\" IS NOT NULL\nGROUP BY \"new_rating\"\nORDER BY cnt ASC, \"new_rating\" ASC\nLIMIT 5",
+    "census.players_raw.match_rating_diff.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"match_rating_diff\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"match_rating_diff\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"match_rating_diff\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"match_rating_diff\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"match_rating_diff\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"match_rating_diff\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.match_rating_diff.top_n": "SELECT\n    \"match_rating_diff\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"match_rating_diff\"\nORDER BY cnt DESC, \"match_rating_diff\" ASC\nLIMIT 5",
+    "census.players_raw.match_rating_diff.bottom_n": "SELECT\n    \"match_rating_diff\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"match_rating_diff\" IS NOT NULL\nGROUP BY \"match_rating_diff\"\nORDER BY cnt ASC, \"match_rating_diff\" ASC\nLIMIT 5",
+    "census.players_raw.replay_summary_raw.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"replay_summary_raw\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"replay_summary_raw\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"replay_summary_raw\") AS cardinality\nFROM players_raw",
+    "census.players_raw.replay_summary_raw.top_n": "SELECT\n    \"replay_summary_raw\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"replay_summary_raw\"\nORDER BY cnt DESC, \"replay_summary_raw\" ASC\nLIMIT 5",
+    "census.players_raw.replay_summary_raw.bottom_n": "SELECT\n    \"replay_summary_raw\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"replay_summary_raw\" IS NOT NULL\nGROUP BY \"replay_summary_raw\"\nORDER BY cnt ASC, \"replay_summary_raw\" ASC\nLIMIT 5",
+    "census.players_raw.profile_id.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"profile_id\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"profile_id\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"profile_id\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"profile_id\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"profile_id\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"profile_id\" IS NOT NULL), 0), 4) AS zero_pct\nFROM players_raw",
+    "census.players_raw.profile_id.top_n": "SELECT\n    \"profile_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"profile_id\"\nORDER BY cnt DESC, \"profile_id\" ASC\nLIMIT 5",
+    "census.players_raw.profile_id.bottom_n": "SELECT\n    \"profile_id\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"profile_id\" IS NOT NULL\nGROUP BY \"profile_id\"\nORDER BY cnt ASC, \"profile_id\" ASC\nLIMIT 5",
+    "census.players_raw.civ.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"civ\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"civ\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"civ\") AS cardinality\nFROM players_raw",
+    "census.players_raw.civ.top_n": "SELECT\n    \"civ\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"civ\"\nORDER BY cnt DESC, \"civ\" ASC\nLIMIT 5",
+    "census.players_raw.civ.bottom_n": "SELECT\n    \"civ\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"civ\" IS NOT NULL\nGROUP BY \"civ\"\nORDER BY cnt ASC, \"civ\" ASC\nLIMIT 5",
+    "census.players_raw.opening.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"opening\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"opening\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"opening\") AS cardinality\nFROM players_raw",
+    "census.players_raw.opening.top_n": "SELECT\n    \"opening\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"opening\"\nORDER BY cnt DESC, \"opening\" ASC\nLIMIT 5",
+    "census.players_raw.opening.bottom_n": "SELECT\n    \"opening\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"opening\" IS NOT NULL\nGROUP BY \"opening\"\nORDER BY cnt ASC, \"opening\" ASC\nLIMIT 5",
+    "census.players_raw.filename.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM players_raw",
+    "census.players_raw.filename.top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+    "census.players_raw.filename.bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM players_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5",
+    "census.overviews_raw.last_updated.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"last_updated\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"last_updated\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"last_updated\") AS cardinality\nFROM overviews_raw",
+    "census.overviews_raw.last_updated.top_n": "SELECT\n    \"last_updated\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"last_updated\"\nORDER BY cnt DESC, \"last_updated\" ASC\nLIMIT 5",
+    "census.overviews_raw.last_updated.bottom_n": "SELECT\n    \"last_updated\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"last_updated\" IS NOT NULL\nGROUP BY \"last_updated\"\nORDER BY cnt ASC, \"last_updated\" ASC\nLIMIT 5",
+    "census.overviews_raw.total_match_count.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"total_match_count\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"total_match_count\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"total_match_count\") AS cardinality,\n    COUNT(*) FILTER (WHERE \"total_match_count\" = 0) AS zero_count,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE \"total_match_count\" = 0) / NULLIF(COUNT(*) FILTER (WHERE \"total_match_count\" IS NOT NULL), 0), 4) AS zero_pct\nFROM overviews_raw",
+    "census.overviews_raw.total_match_count.top_n": "SELECT\n    \"total_match_count\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"total_match_count\"\nORDER BY cnt DESC, \"total_match_count\" ASC\nLIMIT 5",
+    "census.overviews_raw.total_match_count.bottom_n": "SELECT\n    \"total_match_count\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"total_match_count\" IS NOT NULL\nGROUP BY \"total_match_count\"\nORDER BY cnt ASC, \"total_match_count\" ASC\nLIMIT 5",
+    "census.overviews_raw.civs.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"civs\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"civs\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.civs.top_n": "SELECT\n    MIN(LEN(\"civs\")) AS min_len,\n    MAX(LEN(\"civs\")) AS max_len,\n    ROUND(AVG(LEN(\"civs\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"civs\" IS NOT NULL",
+    "census.overviews_raw.civs.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.openings.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"openings\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"openings\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.openings.top_n": "SELECT\n    MIN(LEN(\"openings\")) AS min_len,\n    MAX(LEN(\"openings\")) AS max_len,\n    ROUND(AVG(LEN(\"openings\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"openings\" IS NOT NULL",
+    "census.overviews_raw.openings.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.patches.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"patches\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"patches\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.patches.top_n": "SELECT\n    MIN(LEN(\"patches\")) AS min_len,\n    MAX(LEN(\"patches\")) AS max_len,\n    ROUND(AVG(LEN(\"patches\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"patches\" IS NOT NULL",
+    "census.overviews_raw.patches.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.groupings.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"groupings\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"groupings\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.groupings.top_n": "SELECT\n    MIN(LEN(\"groupings\")) AS min_len,\n    MAX(LEN(\"groupings\")) AS max_len,\n    ROUND(AVG(LEN(\"groupings\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"groupings\" IS NOT NULL",
+    "census.overviews_raw.groupings.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.changelog.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"changelog\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"changelog\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.changelog.top_n": "SELECT\n    MIN(LEN(\"changelog\")) AS min_len,\n    MAX(LEN(\"changelog\")) AS max_len,\n    ROUND(AVG(LEN(\"changelog\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"changelog\" IS NOT NULL",
+    "census.overviews_raw.changelog.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.tournament_stages.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"tournament_stages\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"tournament_stages\")) / NULLIF(COUNT(*), 0), 4) AS null_pct\nFROM overviews_raw",
+    "census.overviews_raw.tournament_stages.top_n": "SELECT\n    MIN(LEN(\"tournament_stages\")) AS min_len,\n    MAX(LEN(\"tournament_stages\")) AS max_len,\n    ROUND(AVG(LEN(\"tournament_stages\")), 2) AS avg_len\nFROM overviews_raw\nWHERE \"tournament_stages\" IS NOT NULL",
+    "census.overviews_raw.tournament_stages.bottom_n": "-- Skipped: array type; see array_length",
+    "census.overviews_raw.filename.null": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) - COUNT(\"filename\") AS null_count,\n    ROUND(100.0 * (COUNT(*) - COUNT(\"filename\")) / NULLIF(COUNT(*), 0), 4) AS null_pct,\n    COUNT(DISTINCT \"filename\") AS cardinality\nFROM overviews_raw",
+    "census.overviews_raw.filename.top_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nGROUP BY \"filename\"\nORDER BY cnt DESC, \"filename\" ASC\nLIMIT 5",
+    "census.overviews_raw.filename.bottom_n": "SELECT\n    \"filename\" AS value,\n    COUNT(*) AS cnt,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM overviews_raw\nWHERE \"filename\" IS NOT NULL\nGROUP BY \"filename\"\nORDER BY cnt ASC, \"filename\" ASC\nLIMIT 5"
   }
 }

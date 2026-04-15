@@ -944,8 +944,8 @@ RP_ALL_COLS = [
     "filename", "toon_id", "nickname", "playerID", "userID",
     "isInClan", "clanTag", "MMR", "race", "selectedRace",
     "handicap", "region", "realm", "highestLeague", "result",
-    "APM", "SQ", "supplyCappedPercent", "startDir",
-    "startLocX", "startLocY", "color_a", "color_b", "color_g", "color_r",
+    "APM", "SQ", "supplyCappedPercent", "startDir", "startLocX",
+    "startLocY", "color_a", "color_b", "color_g", "color_r",
 ]
 
 rp_card_records = []
