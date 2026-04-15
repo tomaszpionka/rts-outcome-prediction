@@ -38,6 +38,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from rts_predict.common.eda_census import profile_table
 from rts_predict.common.notebook_utils import (
     get_notebook_db,
     get_reports_dir,
@@ -67,6 +68,7 @@ print(f"Artifacts dir: {artifacts_dir}")
 # %%
 # Collector for JSON artifact
 findings: dict = {}
+sql_queries: dict = {}
 findings["db_memory_footprint_bytes"] = db_size_bytes
 
 # %% [markdown]
@@ -1436,12 +1438,35 @@ findings["near_constant_low_cardinality"] = near_constant_low_card.to_dict(orien
 findings["near_constant_ratio_flagged"] = near_constant_ratio_flagged.to_dict(orient="records")
 
 # %% [markdown]
+# ## Systematic Column Profile (Top-5 / Bottom-5)
+#
+# EDA Manual Section 3.1: top-5 most frequent and bottom-5 least frequent
+# values for every column in every raw table. Uses shared profile_table()
+# utility. n_top=5 per Tukey (1977) exploratory convention.
+# Invariant #6: all SQL captured in sql_queries for artifact emission.
+
+# %%
+for _tbl in ["matches_raw", "ratings_raw", "leaderboards_raw", "profiles_raw"]:
+    _specs = [
+        {"name": r["column_name"], "dtype": r["column_type"]}
+        for _, r in con.execute(f"DESCRIBE {_tbl}").df().iterrows()
+    ]
+    _census = profile_table(con, _tbl, _specs)
+    findings[f"{_tbl}_census"] = _census["profiles"]
+    for _col, _sqls in _census["sql_registry"].items():
+        sql_queries[f"census.{_tbl}.{_col}.null"] = _sqls["sql_null"]
+        sql_queries[f"census.{_tbl}.{_col}.top_n"] = _sqls["sql_top_n"]
+        sql_queries[f"census.{_tbl}.{_col}.bottom_n"] = _sqls["sql_bottom_n"]
+    print(f"census complete: {_tbl} ({len(_census['profiles'])} columns)")
+
+# %% [markdown]
 # ## J. Write artifacts
 #
 # Write JSON and markdown artifacts with all findings and SQL.
 
 # %%
 # Serialization helper -- convert non-serializable types
+findings["sql_queries"] = sql_queries
 json_str = json.dumps(findings, indent=2, default=str)
 json_path = artifacts_dir / "01_02_04_univariate_census.json"
 Path(json_path).write_text(json_str)
