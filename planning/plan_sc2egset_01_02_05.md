@@ -44,13 +44,24 @@ separation provides two benefits: (1) 01_02_04 is a clean analytics reference
 document; (2) 01_02_05 is a visual reference where every chart is
 data-grounded via a preceding verification cell.
 
-The chart selection is informed by 01_02_04's findings:
-- MMR: 83.6% zero-spike requires a split-view histogram (all vs. >0 only)
-- SQ: 2 INT32_MIN sentinels require a split-view (all vs. sentinel-excluded)
+The chart selection is informed by 01_02_04 findings:
+- MMR: 83.6% zero-spike (N=37,489) requires a split-view histogram (all vs.
+  MMR>0 only). min=-36,400 means negative-MMR rows also need accounting.
+- SQ: 2 INT32_MIN sentinels require a split-view (all vs. sentinel-excluded).
+  Sentinel-excluded range is -51 to 187 (not 0-187).
+- APM: near-symmetric (skewness=-0.20), 1,132 zeros (2.5%).
+- supplyCappedPercent: skewness=2.25, 95th percentile at 16.
+- selectedRace: 8 categories including 1,110 empty strings (2.48%) and
+  10 Rand picks (0.02%). Must be visualized separately from race.
+- elapsed_game_loops: skewness=2.03, classified as in_game in field
+  classification. Needs dual-panel histogram (full + clipped).
 - Categorical fields: known cardinality from JSON artifact determines
-  horizontal bar chart layout
-- Temporal coverage: monthly counts line plot
-- MMR zero-spike cross-tabulation: bar charts for sentinel hypothesis testing
+  horizontal bar chart layout.
+- Temporal coverage: monthly counts line plot with proper datetime parsing
+  to reveal gaps (e.g., 2016-04 through 2016-06 missing).
+- MMR zero-spike cross-tabulation: bar charts for sentinel hypothesis testing.
+- handicap: near-constant (skewness=-149.69, 99.996% = 100, 2 rows = 0);
+  same degenerate pattern as error columns. Excluded from visualization.
 
 ## Assumptions & unknowns
 
@@ -62,6 +73,8 @@ The chart selection is informed by 01_02_04's findings:
   will automatically create the `.ipynb` counterpart on sync.
 - **Unknown:** Whether the MMR>0 distribution is unimodal or multimodal. The
   visualization will reveal this. No assumption is made in advance.
+- **Unknown:** How many negative-MMR rows exist (MMR min=-36,400 per artifact).
+  The notebook will compute this dynamically and annotate accordingly.
 
 ## Literature context
 
@@ -78,6 +91,12 @@ EDA Manual Section 3.2 specifies dataset-level profiling should include
 temporal coverage visualization. Section 7 ("Seven Pitfalls") warns against
 cherry-picking visualizations -- this notebook covers all numeric and
 categorical fields comprehensively.
+
+Histogram bin count rationale (Invariant #7): Sturges rule yields
+ceil(1 + log2(44817)) = 16 bins minimum for the replay_players_raw table.
+50 bins provides finer resolution for shape assessment, following Tukey (1977)
+emphasis on visual consistency across all histograms in a single exploratory
+notebook. This is the project-wide first-pass EDA resolution standard.
 
 ## Execution Steps
 
@@ -107,7 +126,8 @@ connection, JSON artifact loading, and artifact directory setup.
    ```
 4. Import cell: json, pathlib.Path, duckdb, matplotlib, matplotlib.pyplot,
    pandas. Also import notebook_utils and sc2 config.
-5. Connection cell: read-only DuckDB connection.
+5. Connection cell: read-only DuckDB connection using `DB_FILE` from
+   `rts_predict.games.sc2.config`.
 6. Load 01_02_04 JSON artifact:
    ```python
    census_json_path = (
@@ -128,28 +148,32 @@ connection, JSON artifact loading, and artifact directory setup.
    plots_dir = artifacts_dir / "plots"
    plots_dir.mkdir(parents=True, exist_ok=True)
    ```
-8. **Prerequisite gate** — verify that the 01_02_04 pass-2 JSON artifact
-   contains all keys required by this notebook. Add an assertion cell
-   immediately after the JSON load:
+8. **Prerequisite gate** -- verify that the 01_02_04 JSON artifact contains
+   ALL keys consumed by this notebook. Add an assertion cell immediately
+   after the JSON load:
    ```python
-   REQUIRED_PASS2_KEYS = [
+   REQUIRED_KEYS = [
+       "result_distribution",
+       "categorical_profiles",
+       "monthly_counts",
        "mmr_zero_interpretation",
        "isInClan_distribution",
        "clanTag_top20",
    ]
-   missing = [k for k in REQUIRED_PASS2_KEYS if k not in census]
+   missing = [k for k in REQUIRED_KEYS if k not in census]
    assert not missing, (
-       f"BLOCKER: 01_02_04 pass-2 not yet executed. Missing keys: {missing}. "
+       f"BLOCKER: 01_02_04 artifact incomplete. Missing keys: {missing}. "
        "Execute plan_sc2egset_01_02_04_pass2 before running this notebook."
    )
-   print(f"Pass-2 prerequisite check PASSED. {len(census)} keys loaded.")
+   print(f"Prerequisite check PASSED. All {len(REQUIRED_KEYS)} required keys present.")
    ```
-   Do NOT load struct_flat SQL here — no plot in this notebook uses struct_flat.
+   Do NOT load struct_flat SQL here -- the DuckDB connection provides access
+   to replays_meta_raw for elapsed_game_loops queries directly.
 
 **Verification:**
 - File exists and is valid jupytext percent-format Python.
 - JSON artifact loads successfully with expected keys.
-- Prerequisite gate assertion passes (all 3 pass-2 keys present).
+- Prerequisite gate assertion passes (all 6 required keys present).
 
 **File scope:**
 - `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py`
@@ -171,7 +195,8 @@ pandas verification cell.
    ```
 3. Plot cell: vertical bar chart with count annotations. Reading from the
    JSON artifact rather than re-querying.
-   Save as `plots_dir / "01_02_05_result_bar.png"`.
+   figsize=(10, 6). Save as `plots_dir / "01_02_05_result_bar.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved to artifacts/plots/.
@@ -190,13 +215,20 @@ can be long (e.g., "Grandmaster").
 
 **Instructions:**
 1. Add markdown cell: `## Plot 2: Categorical Distributions`.
-2. Create a 1x3 subplot figure (figsize 18x5).
+2. Create a 1x3 subplot figure (figsize=(18, 5)).
 3. For each of `race`, `highestLeague`, `region`:
    a. Verification cell: load from `census["categorical_profiles"][col]`,
       convert to DataFrame, print.
-   b. Plot as horizontal bar chart (barh). Sort by count descending (largest
+   b. Note on column name heterogeneity: each profile's label column is
+      named after the field itself (e.g., the `race` profile has a column
+      named `"race"`, the `highestLeague` profile has a column named
+      `"highestLeague"`, etc.). The barh y-axis must reference `col` as the
+      column name in the DataFrame, not a generic name like `"label"` or
+      `"category"`. Use `df[col]` for labels and `df["cnt"]` for values.
+   c. Plot as horizontal bar chart (barh). Sort by count descending (largest
       at top). Annotate bars with count values.
 4. Save as `plots_dir / "01_02_05_categorical_bars.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved.
@@ -207,7 +239,39 @@ can be long (e.g., "Grandmaster").
 
 ---
 
-### T04 -- MMR distribution split view
+### T04 -- selectedRace horizontal bar chart
+
+**Objective:** Visualize the selectedRace distribution separately from race,
+highlighting the 1,110 empty-string entries and 10 Rand picks that do not
+appear in the race column.
+
+**Instructions:**
+1. Add markdown cell: `## Plot 3: selectedRace Distribution`.
+2. Verification cell:
+   ```python
+   sel_race_data = pd.DataFrame(census["categorical_profiles"]["selectedRace"])
+   print("=== selectedRace data for plot ===")
+   print(sel_race_data.to_string(index=False))
+   ```
+3. Plot cell: horizontal bar chart (barh), sorted descending by count.
+   figsize=(10, 6). Highlight the empty-string bar with a distinct color
+   (e.g., red or orange) to flag it as anomalous. All other bars use the
+   default color.
+4. Add annotation note on the plot or as a print statement:
+   `"Compare with race: 1,110 empty strings (2.48%), 10 Rand picks (0.02%)"`
+5. Save as `plots_dir / "01_02_05_selectedrace_bar.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
+
+**Verification:**
+- Plot file saved. Verification cell prints 8 rows.
+- Empty-string bar is visually distinct.
+
+**File scope:**
+- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py`
+
+---
+
+### T05 -- MMR distribution split view
 
 **Objective:** Create a two-subplot figure showing (a) the full MMR
 distribution including the zero-spike and (b) the MMR>0 distribution only,
@@ -215,66 +279,78 @@ revealing the actual rating distribution hidden behind the spike.
 
 **Instructions:**
 1. Add markdown cell:
-   `## Plot 3: MMR Distribution (Split View)`.
+   `## Plot 4: MMR Distribution (Split View)`.
 2. Verification cell 1 -- full MMR:
    ```python
    mmr_data = con.execute(
        "SELECT MMR FROM replay_players_raw WHERE MMR IS NOT NULL"
    ).df()
-   print(f"=== Full MMR data for plot ({len(mmr_data)} rows) ===")
+   print(f"=== Full MMR data for plot ({len(mmr_data):,} rows) ===")
    print(mmr_data["MMR"].describe().to_string())
    ```
-3. Verification cell 2 -- MMR > 0:
+3. Verification cell 2 -- MMR breakdown (zero, negative, positive):
+   ```python
+   n_zero = (mmr_data["MMR"] == 0).sum()
+   n_negative = (mmr_data["MMR"] < 0).sum()
+   n_positive = (mmr_data["MMR"] > 0).sum()
+   print(f"MMR=0: {n_zero:,}, MMR<0: {n_negative:,}, MMR>0: {n_positive:,}")
+   mmr_annotation = (
+       f"N={n_zero + n_negative:,} rows with MMR<=0 excluded"
+       f" (incl. {n_negative:,} negative-MMR)"
+   )
+   print(f"Annotation: {mmr_annotation}")
+   ```
+   Do NOT hardcode 37,489 or 83.6% -- derive from live query data.
+4. Verification cell 3 -- MMR > 0:
    ```python
    mmr_positive = mmr_data[mmr_data["MMR"] > 0]
-   print(f"=== MMR > 0 data for plot ({len(mmr_positive)} rows) ===")
+   print(f"=== MMR > 0 data for plot ({len(mmr_positive):,} rows) ===")
    print(mmr_positive["MMR"].describe().to_string())
    ```
-4. Compute the annotation text dynamically from census before the plot cell:
-   ```python
-   n_mmr_zero = sum(
-       r["mmr_zero_cnt"] for r in census["mmr_zero_interpretation"]["by_result"]
-   )
-   total_mmr = len(mmr_data)
-   mmr_zero_pct = 100.0 * n_mmr_zero / total_mmr
-   mmr_annotation = f"N={n_mmr_zero:,} MMR=0 ({mmr_zero_pct:.1f}%) excluded"
-   ```
-   Do NOT hardcode "N=37,489" or "83.6%" — derive from loaded census data.
-5. Plot cell: 1x2 subplots, figsize (14, 5).
-   - Subplot (a): histogram of all MMR, bins=50 (50 bins used throughout as consistent
-     first-pass EDA resolution). Title: "MMR (all rows)".
+5. Plot cell: 1x2 subplots, figsize=(14, 5).
+   - Subplot (a): histogram of all MMR, bins=50. Title: "MMR (all rows)".
+     # I7: Sturges rule: ceil(1+log2(44817))=16 bins minimum; 50 bins provides
+     # finer resolution for shape assessment per Tukey (1977) visual consistency
+     # recommendation for exploratory work
    - Subplot (b): histogram of MMR > 0, bins=50. Title: "MMR (excluding zero)".
-     Add annotation using `mmr_annotation` variable computed in step 4.
+     # I7: same justification as subplot (a)
+     Add annotation using `mmr_annotation` variable computed in step 3.
 6. Save as `plots_dir / "01_02_05_mmr_split.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved.
-- Both verification cells print describe output.
-- Subplot (b) annotation reflects the correct N and percentage.
+- All verification cells print their respective outputs.
+- Subplot (b) annotation dynamically reflects the correct N and breakdown.
 
 **File scope:**
 - `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py`
 
 ---
 
-### T05 -- APM distribution histogram
+### T06 -- APM distribution histogram
 
 **Objective:** Histogram of APM values with annotation of any outlier region.
 
 **Instructions:**
-1. Add markdown cell: `## Plot 4: APM Distribution`.
+1. Add markdown cell: `## Plot 5: APM Distribution`.
 2. Verification cell:
    ```python
    apm_data = con.execute(
        "SELECT APM FROM replay_players_raw WHERE APM IS NOT NULL"
    ).df()
-   print(f"=== APM data for plot ({len(apm_data)} rows) ===")
+   print(f"=== APM data for plot ({len(apm_data):,} rows) ===")
    print(apm_data["APM"].describe().to_string())
    ```
-3. Plot cell: single histogram, bins=50. Mark the median with a vertical
-   dashed line. Annotate if max APM (1248 per JSON) is visually far from
-   the main mass.
+3. Plot cell: single histogram, bins=50, figsize=(10, 6).
+   # I7: Sturges rule: ceil(1+log2(44817))=16 bins minimum; 50 bins provides
+   # finer resolution for shape assessment per Tukey (1977) visual consistency
+   # recommendation for exploratory work
+   Mark the median with a vertical dashed line. Derive max APM dynamically
+   from the data (do NOT hardcode 1248). Annotate if max APM is visually far
+   from the main mass.
 4. Save as `plots_dir / "01_02_05_apm_hist.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Verification cell prints describe.
@@ -284,34 +360,40 @@ revealing the actual rating distribution hidden behind the spike.
 
 ---
 
-### T06 -- SQ distribution split view
+### T07 -- SQ distribution split view
 
 **Objective:** Two-subplot figure: (a) full SQ including the INT32_MIN
 sentinel and (b) SQ excluding sentinel rows, revealing the actual SQ
-distribution (0-187 range).
+distribution (-51 to 187 range).
 
 **Instructions:**
-1. Add markdown cell: `## Plot 5: SQ Distribution (Split View)`.
+1. Add markdown cell: `## Plot 6: SQ Distribution (Split View)`.
 2. Verification cell 1 -- full SQ:
    ```python
    sq_data = con.execute(
        "SELECT SQ FROM replay_players_raw WHERE SQ IS NOT NULL"
    ).df()
-   print(f"=== Full SQ data for plot ({len(sq_data)} rows) ===")
+   print(f"=== Full SQ data for plot ({len(sq_data):,} rows) ===")
    print(sq_data["SQ"].describe().to_string())
    ```
 3. Verification cell 2 -- SQ excluding sentinel:
    ```python
    sq_clean = sq_data[sq_data["SQ"] != -2147483648]
-   print(f"=== SQ excluding sentinel ({len(sq_clean)} rows) ===")
+   print(f"=== SQ excluding sentinel ({len(sq_clean):,} rows) ===")
    print(sq_clean["SQ"].describe().to_string())
    ```
-4. Plot cell: 1x2 subplots, figsize (14, 5).
+4. Plot cell: 1x2 subplots, figsize=(14, 5).
    - Subplot (a): histogram of all SQ, bins=50. Title:
      "SQ (all rows, sentinel visible)".
+     # I7: Sturges rule: ceil(1+log2(44817))=16 bins minimum; 50 bins provides
+     # finer resolution for shape assessment per Tukey (1977) visual consistency
+     # recommendation for exploratory work
    - Subplot (b): histogram of SQ excluding sentinel, bins=50. Title:
-     "SQ (sentinel excluded)". Annotation: "2 sentinel rows excluded".
+     "SQ (sentinel excluded, range -51 to 187)". Annotation:
+     "2 sentinel rows excluded (INT32_MIN = -2,147,483,648)".
+     # I7: same justification as subplot (a)
 5. Save as `plots_dir / "01_02_05_sq_split.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Both verification cells print describe.
@@ -322,22 +404,30 @@ distribution (0-187 range).
 
 ---
 
-### T07 -- supplyCappedPercent distribution histogram
+### T08 -- supplyCappedPercent distribution histogram
 
-**Objective:** Histogram of supplyCappedPercent (expected 0-100 range).
+**Objective:** Histogram of supplyCappedPercent (expected 0-100 range,
+skewness=2.25, 95th percentile at 16).
 
 **Instructions:**
-1. Add markdown cell: `## Plot 6: supplyCappedPercent Distribution`.
+1. Add markdown cell: `## Plot 7: supplyCappedPercent Distribution`.
 2. Verification cell:
    ```python
    sc_data = con.execute(
-       "SELECT supplyCappedPercent FROM replay_players_raw WHERE supplyCappedPercent IS NOT NULL"
+       "SELECT supplyCappedPercent"
+       " FROM replay_players_raw"
+       " WHERE supplyCappedPercent IS NOT NULL"
    ).df()
-   print(f"=== supplyCappedPercent data ({len(sc_data)} rows) ===")
+   print(f"=== supplyCappedPercent data ({len(sc_data):,} rows) ===")
    print(sc_data["supplyCappedPercent"].describe().to_string())
    ```
-3. Plot cell: single histogram, bins=50. Mark median with vertical dashed line.
+3. Plot cell: single histogram, bins=50, figsize=(10, 6). Mark median with
+   vertical dashed line.
+   # I7: Sturges rule: ceil(1+log2(44817))=16 bins minimum; 50 bins provides
+   # finer resolution for shape assessment per Tukey (1977) visual consistency
+   # recommendation for exploratory work
 4. Save as `plots_dir / "01_02_05_supplycapped_hist.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Verification cell prints describe.
@@ -347,7 +437,66 @@ distribution (0-187 range).
 
 ---
 
-### T08 -- MMR zero-spike by result and by highestLeague
+### T09 -- elapsed_game_loops duration histogram
+
+**Objective:** Visualize replay duration distribution via elapsed_game_loops
+from replays_meta_raw, converted to seconds. Dual-panel histogram: (a) full
+range, (b) clipped at 2400 seconds (40 minutes) for detail view. Census
+shows skewness=2.03, max=136,028 loops (6,073s / 101min), indicating
+right-tail outliers that compress the main distribution when plotted at
+full range.
+
+**Instructions:**
+1. Add markdown cell: `## Plot 8: Game Duration (elapsed_game_loops)`.
+2. Verification cell:
+   ```python
+   duration_data = con.execute(
+       "SELECT header.elapsedGameLoops AS elapsed_game_loops"
+       " FROM replays_meta_raw"
+       " WHERE header.elapsedGameLoops IS NOT NULL"
+   ).df()
+   # Convert game loops to seconds: SC2 Faster speed = 22.4 loops/second
+   LOOPS_PER_SECOND = 22.4  # I7: SC2 engine constant for Faster speed
+   duration_data["duration_sec"] = (
+       duration_data["elapsed_game_loops"] / LOOPS_PER_SECOND
+   )
+   print(f"=== Duration data ({len(duration_data):,} replays) ===")
+   print(duration_data["duration_sec"].describe().to_string())
+   ```
+3. Plot cell: 1x2 subplots, figsize=(14, 5).
+   - Subplot (a): histogram of duration_sec full range, bins=50.
+     Title: "Game Duration (full range)".
+     # I7: Sturges rule: ceil(1+log2(22390))=15 bins minimum; 50 bins provides
+     # finer resolution for shape assessment per Tukey (1977) visual consistency
+     # recommendation for exploratory work
+   - Subplot (b): histogram of duration_sec clipped at 2400s, bins=50.
+     # I7: same justification as subplot (a)
+     Title: "Game Duration (clipped at 40 min)".
+     Dynamically compute and annotate the number of replays exceeding 40 min:
+     ```python
+     CLIP_SECONDS = 2400  # I7: 40 minutes = standard "long game" boundary
+     n_over_40min = (duration_data["duration_sec"] > CLIP_SECONDS).sum()
+     # annotation on subplot (b)
+     ax_b.annotate(
+         f"N={n_over_40min:,} replays > 40 min (not shown)",
+         xy=(0.95, 0.95), xycoords="axes fraction",
+         ha="right", va="top", fontsize=9,
+         bbox=dict(boxstyle="round,pad=0.3", fc="lightyellow"),
+     )
+     ```
+4. Save as `plots_dir / "01_02_05_duration_hist.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
+
+**Verification:**
+- Plot file saved. Verification cell prints describe of duration_sec.
+- Both panels render. Subplot (b) annotation shows dynamic count.
+
+**File scope:**
+- `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py`
+
+---
+
+### T10 -- MMR zero-spike by result and by highestLeague
 
 **Objective:** Visualize the MMR zero-spike cross-tabulation from the JSON
 artifact's `mmr_zero_interpretation` key, answering the sentinel hypothesis
@@ -355,7 +504,7 @@ visually.
 
 **Instructions:**
 1. Add markdown cell:
-   `## Plot 7: MMR Zero-Spike by Result and by highestLeague`.
+   `## Plot 9: MMR Zero-Spike by Result and by highestLeague`.
 2. Verification cell 1:
    ```python
    mmr_by_result = pd.DataFrame(
@@ -372,19 +521,22 @@ visually.
    print("=== MMR=0 by highestLeague ===")
    print(mmr_by_league.to_string(index=False))
    ```
-4. Plot cell: 1x2 subplots, figsize (14, 5).
+4. Plot cell: 1x2 subplots, figsize=(14, 5).
    - Subplot (a): bar chart of mmr_zero_pct per result category.
    - Subplot (b): bar chart of mmr_zero_pct per highestLeague.
    - Add a horizontal dashed line at the overall MMR=0 rate derived from census:
      ```python
      overall_mmr_zero_pct = 100.0 * sum(
-         r["mmr_zero_cnt"] for r in census["mmr_zero_interpretation"]["by_result"]
+         r["mmr_zero_cnt"]
+         for r in census["mmr_zero_interpretation"]["by_result"]
      ) / sum(
-         r["total_cnt"] for r in census["mmr_zero_interpretation"]["by_result"]
+         r["total_cnt"]
+         for r in census["mmr_zero_interpretation"]["by_result"]
      )
      ```
      Do NOT hardcode "83.6%".
 5. Save as `plots_dir / "01_02_05_mmr_zero_interpretation.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Both verification cells print the data.
@@ -395,47 +547,58 @@ visually.
 
 ---
 
-### T09 -- Temporal coverage line plot
+### T11 -- Temporal coverage line plot
 
 **Objective:** Monthly replay count line plot showing the temporal coverage of
-the dataset.
+the dataset, with proper datetime parsing to reveal gaps.
 
 **Instructions:**
-1. Add markdown cell: `## Plot 8: Temporal Coverage`.
+1. Add markdown cell: `## Plot 10: Temporal Coverage`.
 2. Verification cell:
    ```python
    monthly = pd.DataFrame(census["monthly_counts"])
    print(f"=== Monthly counts ({len(monthly)} months) ===")
    print(monthly.to_string(index=False))
    ```
-3. Plot cell: line plot (not bar -- the temporal axis is continuous). X-axis
-   is month (string), Y-axis is count. Rotate x labels 90 degrees. Mark any
-   months with count < 50 or gaps with annotations if practical.
+3. Plot cell: line plot (not bar -- the temporal axis is continuous),
+   figsize=(12, 6).
+   Parse month strings to datetime for proper temporal axis spacing:
+   ```python
+   monthly["month"] = pd.to_datetime(monthly["month"])
+   ```
+   This ensures temporal gaps (e.g., 2016-04 through 2016-06 missing) are
+   displayed as actual gaps rather than appearing as adjacent equidistant
+   points on a string-based x-axis.
+   Y-axis is count. Use `fig.autofmt_xdate()` for readable date labels.
+   Mark any months with count < 50 with annotations if practical.
 4. Save as `plots_dir / "01_02_05_temporal_coverage.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Verification cell prints all months.
+- Gaps in temporal coverage are visually apparent on the plot.
 
 **File scope:**
 - `sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py`
 
 ---
 
-### T10 -- isInClan distribution bar chart
+### T12 -- isInClan distribution bar chart
 
 **Objective:** Simple bar chart of isInClan TRUE/FALSE distribution.
 
 **Instructions:**
-1. Add markdown cell: `## Plot 9: isInClan Distribution`.
+1. Add markdown cell: `## Plot 11: isInClan Distribution`.
 2. Verification cell:
    ```python
    clan_dist = pd.DataFrame(census["isInClan_distribution"])
    print("=== isInClan distribution ===")
    print(clan_dist.to_string(index=False))
    ```
-3. Plot cell: vertical bar chart with two bars (True/False). Annotate with
-   counts and percentages.
+3. Plot cell: vertical bar chart with two bars (True/False), figsize=(10, 6).
+   Annotate with counts and percentages.
 4. Save as `plots_dir / "01_02_05_isinclan_bar.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Verification cell prints 2 rows.
@@ -445,21 +608,22 @@ the dataset.
 
 ---
 
-### T11 -- clanTag top-20 horizontal bar chart
+### T13 -- clanTag top-20 horizontal bar chart
 
 **Objective:** Horizontal bar chart of the 20 most frequent clan tags.
 
 **Instructions:**
-1. Add markdown cell: `## Plot 10: clanTag Top-20`.
+1. Add markdown cell: `## Plot 12: clanTag Top-20`.
 2. Verification cell:
    ```python
    clan_top20 = pd.DataFrame(census["clanTag_top20"])
    print("=== clanTag top-20 ===")
    print(clan_top20.to_string(index=False))
    ```
-3. Plot cell: horizontal bar chart (barh). Bars sorted by count descending
-   (largest at top). Annotate with count values.
+3. Plot cell: horizontal bar chart (barh), figsize=(12, 8). Bars sorted by
+   count descending (largest at top). Annotate with count values.
 4. Save as `plots_dir / "01_02_05_clantag_top20.png"`.
+   Add `plt.close()` after `plt.savefig(...)`.
 
 **Verification:**
 - Plot file saved. Verification cell prints 20 rows.
@@ -469,25 +633,37 @@ the dataset.
 
 ---
 
-### T12 -- Write summary markdown artifact and close connection
+### T14 -- Write summary markdown artifact and close connection
 
 **Objective:** Write a summary markdown artifact listing all plots produced,
-their data sources, and key observations. Close the DuckDB connection.
+their data sources, key observations, and all DuckDB SQL queries used in this
+notebook. Close the DuckDB connection.
 
 **Instructions:**
-1. Build a markdown string listing all 10 plots with:
+1. Build a markdown string listing all 12 plots with:
    - Plot number and title
    - Filename
    - One-sentence observation (written by executor based on what the plot
      shows when executed)
-2. Write to:
+2. Add a **SQL Queries** section (Invariant #6: all analytical results must
+   be reported alongside the query that produced them) listing ALL DuckDB
+   SQL queries used in this notebook verbatim:
+   - T05 (MMR): `SELECT MMR FROM replay_players_raw WHERE MMR IS NOT NULL`
+   - T06 (APM): `SELECT APM FROM replay_players_raw WHERE APM IS NOT NULL`
+   - T07 (SQ): `SELECT SQ FROM replay_players_raw WHERE SQ IS NOT NULL`
+   - T08 (supplyCappedPercent):
+     `SELECT supplyCappedPercent FROM replay_players_raw WHERE supplyCappedPercent IS NOT NULL`
+   - T09 (duration):
+     `SELECT header.elapsedGameLoops AS elapsed_game_loops FROM replays_meta_raw WHERE header.elapsedGameLoops IS NOT NULL`
+3. Write to:
    `artifacts_dir / "01_02_05_visualizations.md"`
-3. Close DuckDB connection.
-4. Print summary of all plot files produced.
+4. Close DuckDB connection.
+5. Print summary of all plot files produced and verify all 12 exist.
 
 **Verification:**
 - Markdown artifact exists at the expected path.
-- All 10 plot PNG files exist in the plots directory.
+- All 12 plot PNG files exist in the plots directory.
+- SQL Queries section is present and lists all 5 queries.
 - Notebook executes end-to-end without error.
 
 **File scope:**
@@ -498,7 +674,7 @@ their data sources, and key observations. Close the DuckDB connection.
 
 ---
 
-### T13 -- Add step to ROADMAP.md and STEP_STATUS.yaml
+### T15 -- Add step to ROADMAP.md and STEP_STATUS.yaml
 
 **Objective:** Register step 01_02_05 in the dataset's ROADMAP and
 STEP_STATUS so it is tracked alongside other steps.
@@ -546,10 +722,12 @@ STEP_STATUS so it is tracked alongside other steps.
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/01_02_05_visualizations.md` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_result_bar.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_categorical_bars.png` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_selectedrace_bar.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_mmr_split.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_apm_hist.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_sq_split.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_supplycapped_hist.png` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_duration_hist.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_mmr_zero_interpretation.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_temporal_coverage.png` | Create |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/01_02_05_isinclan_bar.png` | Create |
@@ -560,11 +738,14 @@ STEP_STATUS so it is tracked alongside other steps.
 ## Gate Condition
 
 - Notebook executes end-to-end without error.
-- All 10 PNG plot files exist under `reports/artifacts/.../plots/`.
+- All 12 PNG plot files exist under
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/02_eda/plots/`.
 - Summary markdown artifact `01_02_05_visualizations.md` exists and lists all
-  10 plots.
+  12 plots with a SQL Queries section.
 - Every plot cell is preceded by a verification cell that prints the data.
 - ROADMAP.md and STEP_STATUS.yaml are updated.
+- Adversarial critique gate: `planning/plan_sc2egset_01_02_05.critique.md`
+  must exist with no unresolved BLOCKER items before execution.
 
 ## Out of scope
 
@@ -576,11 +757,12 @@ STEP_STATUS so it is tracked alongside other steps.
 - **KDE and QQ plots** -- deferred to bivariate EDA.
 - **Completeness heatmap** -- given that both replay_players_raw and struct_flat
   have 0% NULLs, a heatmap of all-zero missingness is uninformative.
-- **Duration histogram (struct_flat.elapsed_game_loops)** -- struct_flat SQL is
-  not loaded in this notebook (no other plot uses it). Duration distribution
-  deferred to bivariate EDA where it can be compared across race/result groups.
-- **selectedRace** -- not a column in replay_players_raw schema; intentionally
-  excluded from coverage.
+- **handicap** -- near-constant column (skewness=-149.69, 99.996% = 100,
+  only 2 rows = 0). Same degenerate distribution pattern as error columns
+  (gameEventsErr, messageEventsErr, trackerEvtsErr). A histogram would show
+  a single spike at 100 with no informative structure. Excluded from
+  visualization; revisit only if handicap variation is discovered in a
+  future dataset or subset.
 
 ## Open questions
 
@@ -596,3 +778,4 @@ STEP_STATUS so it is tracked alongside other steps.
 | Bivariate plots (MMR by race, APM by result) | 01_02_06+ | Bivariate analysis belongs to next EDA layer |
 | KDE / QQ plots | 01_02_06+ | More informative when comparing groups |
 | Completeness heatmap (visual) | 01_03 | Both tables are 0% NULL; heatmap uninformative |
+| handicap visualization | 01_02_06+ | Near-constant; revisit if variation found |

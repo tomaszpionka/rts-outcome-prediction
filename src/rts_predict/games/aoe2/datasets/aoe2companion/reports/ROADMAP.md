@@ -290,6 +290,62 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+
+### Step 01_02_04 -- Univariate Census
+
+```yaml
+step_number: "01_02_04"
+name: "Univariate Census"
+description: "Full univariate profiling of all four aoe2companion raw tables. NULL census (55 columns for matches_raw), cardinality, value distributions, descriptive statistics, target variable analysis (won), skewness/kurtosis, boolean column census, and categorical top-k profiles."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "aoe2companion"
+question: "What are the NULL rates, cardinality, value distributions, and descriptive statistics for all columns? What is the target variable (won) distribution and class balance?"
+method: "Single-pass SUMMARIZE over matches_raw (277M rows). Targeted aggregation queries for NULL rates, categorical top-k, boolean census, skewness/kurtosis, intra-match consistency. Results saved to JSON artifact."
+predecessors:
+  - "01_02_02"
+  - "01_02_03"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_04_univariate_census.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  report: "artifacts/01_exploration/02_eda/01_02_04_univariate_census.md"
+gate:
+  artifact_check: "01_02_04_univariate_census.json and .md exist and are non-empty."
+  continue_predicate: "JSON artifact contains all required keys including won_distribution, won_consistency_2row, categorical_profiles, boolean_census, matches_raw_null_census."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
+### Step 01_02_05 -- Univariate Census Visualizations
+
+```yaml
+step_number: "01_02_05"
+name: "Univariate Census Visualizations"
+description: "13 visualization plots for the aoe2companion univariate census findings from 01_02_04. Reads the 01_02_04 JSON artifact and queries DuckDB for histogram bin data. All plots saved to artifacts/01_exploration/02_eda/plots/."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3.4"
+dataset: "aoe2companion"
+question: "What do the univariate distributions from 01_02_04 look like visually?"
+method: "Read 01_02_04 JSON artifact. Query DuckDB for histogram bins (rating, ratingDiff). Produce 13 plots: won distribution, won consistency, leaderboard/civ/map top-k bars, rating/ratingDiff histograms, leaderboards_raw boxplots, NULL-rate completeness matrix, profiles_raw NULL rates, leaderboards_raw leaderboard bar, boolean stacked bar, monthly volume line chart."
+predecessors:
+  - "01_02_04"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/02_eda/01_02_05_visualizations.py"
+outputs:
+  plots:
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_*.png (13 files)"
+  report: "artifacts/01_exploration/02_eda/01_02_05_visualizations.md"
+gate:
+  artifact_check: "All 13 PNG files exist. 01_02_05_visualizations.md exists with SQL queries (Invariant #6)."
+  continue_predicate: "Notebook executes end-to-end without errors."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

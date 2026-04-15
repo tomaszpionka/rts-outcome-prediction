@@ -295,6 +295,40 @@ research_log_entry: "Required on completion."
 
 ---
 
+### Step 01_02_04 -- Metadata STRUCT Extraction & Univariate Census
+
+```yaml
+step_number: "01_02_04"
+name: "Metadata STRUCT Extraction & Univariate Census"
+description: "Flatten the four STRUCT columns from replays_meta_raw into scalar fields, run a full NULL census across all raw columns, and produce univariate statistical profiles (descriptive stats, zero counts, categorical distributions, skewness/kurtosis, sentinel detection) for all sc2egset raw fields."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Sections 2.1, 3.4"
+dataset: "sc2egset"
+question: "What are the distributions of all raw fields, what NULLs and sentinels exist, and what is the temporal coverage of the dataset?"
+method: "DuckDB SQL aggregations: NULL census, GROUP BY counts, descriptive statistics, skewness/kurtosis. Categorical cardinality via value_counts. Sentinel detection via range checks (INT32_MIN for SQ). Temporal coverage via monthly GROUP BY."
+predecessors: "01_02_03"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_univariate_census.py"
+```
+
+### Step 01_02_05 -- Univariate EDA Visualizations
+
+```yaml
+step_number: "01_02_05"
+name: "Univariate EDA Visualizations"
+description: "Dedicated visualization notebook for all univariate distributions profiled in 01_02_04."
+phase: "01 — Data Exploration"
+pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Sections 2.1, 3.4"
+dataset: "sc2egset"
+question: "What do the distributions from 01_02_04 look like visually?"
+method: "Histograms for numeric, bar charts for categorical, line plot for temporal."
+predecessors: "01_02_04"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py"
+```
+
+---
+
 ## Phase 02 — Feature Engineering (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.
