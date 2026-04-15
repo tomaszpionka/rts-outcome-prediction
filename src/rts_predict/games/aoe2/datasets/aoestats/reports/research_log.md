@@ -8,6 +8,122 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** query
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### What
+
+Full univariate census of matches_raw (30,690,651 rows, 18 cols) and players_raw (107,627,584 rows, 14 cols). Covers NULL landscape, cardinality, categorical frequency distributions, numeric descriptive statistics with skewness/kurtosis, ELO sentinel analysis, join integrity, duplicate detection, and preliminary temporal-leakage field classification per Invariant #3. All SQL embedded in .md artifact (Invariant #6). Note: overviews_raw (1 row, 9 cols) was documented in 01_02_01/01_02_03 and is not a per-match profiling target.
+
+### Tables profiled
+
+| Table | Rows | Columns |
+|-------|------|---------|
+| `matches_raw` | 30,690,651 | 18 |
+| `players_raw` | 107,627,584 | 14 |
+
+### NULL landscape
+
+**matches_raw:** Near-zero nulls. Only `raw_match_type` has any nulls (12,504 rows, 0.04%). All other 17 columns fully populated.
+
+**players_raw — four columns with extreme null rates (co-occurring on ~86% of rows):**
+- `feudal_age_uptime`: 87.08% NULL (93.7M rows)
+- `castle_age_uptime`: 87.93% NULL (94.6M rows)
+- `imperial_age_uptime`: 91.49% NULL (98.5M rows)
+- `opening`: 86.05% NULL (92.6M rows)
+
+Co-occurrence confirmed: exactly 92,616,290 rows have all four NULL simultaneously — this is the pre-schema-change population (earlier weekly files lacking these columns), not individual missing values. Imputation is not meaningful for these columns.
+
+### Target variable (`winner`)
+
+Zero nulls across all 107.6M rows. Near-perfect 50/50 balance: 53,811,187 true (50.00%) vs 53,816,397 false (50.00%). No class imbalance mitigation required.
+
+### Match size distribution
+
+- 1v1 (num_players=2): 60.56% of rows — primary modelling scope
+- 4-player: 16.48%; 8-player: 14.04%; 6-player: 8.92%
+- Odd player counts (1, 3, 5, 7): 1,067 rows — data quality anomalies, filter in cleaning
+
+### ELO / rating analysis
+
+- `avg_elo` in matches_raw: mean 1,087.6, median 1,055.0, std 309.5. 121 rows with avg_elo=0 (unrated matches; not sentinel -1). Sentinel -1 affects < 0.001% of team_0/team_1_elo rows.
+- `old_rating` in players_raw: mean 1,091.1, median 1,066.0, std 286.9 — **the authoritative pre-game rating column.** 5,937 zero-valued rows.
+- `new_rating`: mean 1,090.8 — post-game column (must never be used as a feature, Invariant #3).
+- `match_rating_diff`: mean 0.0, symmetric, but extreme kurtosis (65.7); range [-2,185, +2,185]. Leakage status unresolved: could be (new_rating - old_rating) = post-game, or (player_elo - opponent_elo) = pre-game. Verification query documented but not yet executed.
+- Usable ELO fraction: effectively 100%. Sentinel -1 affects < 0.001% of matches.
+
+### Categorical distributions
+
+**matches_raw:**
+- `map`: 93 distinct values. Top: arabia 34.94%, arena 19.02%, nomad 6.94%, black_forest 6.42%
+- `leaderboard`: random_map 58.52%, team_random_map 37.53%
+- `game_type`: constant "random_map" (100%) — dead column
+- `game_speed`: constant "normal" (100%) — dead column
+- `starting_age`: 99.99%+ "dark" (19 non-"dark" rows) — dead column
+- `patch`: 19 distinct values; largest patch_125283 at 17.83%
+- `mirror` (same-civ matchup): 2.32%
+
+**players_raw:**
+- `civ`: 50 distinct civilizations. Top: franks 5.59%, mongols 5.24%, persians 4.29%, britons 4.03%
+- `opening` (non-null only, 15M rows): fast_castle 27.98%, unknown 23.91%, scouts 14.10%, archers 13.15%
+- `team`: perfectly balanced at 50/50
+
+### Temporal leakage audit (Invariant #3)
+
+**Post-game (must exclude):** `duration`, `irl_duration`, `new_rating`
+
+**In-game (unavailable at prediction time):** `opening`, `feudal_age_uptime`, `castle_age_uptime`, `imperial_age_uptime`, `replay_summary_raw`
+
+**Deferred — leakage unknown:** `match_rating_diff` — requires empirical verification before Phase 02 feature engineering
+
+**Safe pre-game features:** `map`, `started_timestamp`, `num_players`, `avg_elo`, `team_0_elo`, `team_1_elo`, `leaderboard`, `patch`, `raw_match_type`, `mirror`, `starting_age` (matches_raw); `team`, `civ`, `old_rating` (players_raw)
+
+### Duration distribution
+
+Mean 2,613.7s (~43.6 min), median 2,619.7s. Extreme right skew (skewness 1,032.6) from outliers up to 5,574,815s (~64 days). 2.33% IQR outliers above 5,496s. IRL duration mean 1,537.5s (~25.6 min).
+
+### Data quality flags
+
+- **Orphans:** 0 player rows without a match; **212,890 match rows without any players** (0.69%) — corresponds to the 1-week file gap identified in 01_01_01
+- **Duplicates:** matches_raw has 0 on game_id (30,690,651 distinct). players_raw has 489 duplicate (game_id, profile_id) pairs — negligible
+- **profile_id** range: min 18, max 24,853,897 — below 2^53, no precision loss from DOUBLE promotion
+
+### Decisions taken
+
+- `new_rating` classified post-game and flagged for exclusion
+- `game_type`, `game_speed`, `starting_age` classified as dead constant columns — will be dropped
+- `opening` and age uptimes classified as in-game features (available for only ~14% of player rows)
+- `match_rating_diff` leakage test deferred to a targeted verification query before Phase 02
+
+### Decisions deferred
+
+- `match_rating_diff` verification: `SELECT COUNT(*) FROM players_raw WHERE ABS(match_rating_diff - (new_rating - old_rating)) < 0.01` — must execute before Phase 02
+- ELO=0 interpretation (0 = valid unrated or sentinel?) — low priority given 4,824 occurrences
+- Imputation strategy for `opening`/age uptimes (86-91% NULL) — likely not imputable; schema change pattern
+- Handling of 212,890 orphan matches without player data
+- Whether to restrict modelling scope to 1v1 (60.56%) vs including team games
+
+### Thesis mapping
+
+- Chapter 4, section 4.1.2 — AoE2 dataset: target distribution, ELO landscape, field classification
+- Chapter 4, section 4.2 — Pre-processing: post-game column exclusion, dead column identification
+- Chapter 5, section 5.1 — Feature catalogue: pre-game candidates enumerated
+
+### Open questions / follow-ups
+
+- Is `match_rating_diff` the pre-match ELO gap (high-value pre-game feature) or the post-match rating change (leakage)? This is the critical open question. Verification query is ready.
+- Should 1v1 only or all team sizes be included in the modelling scope?
+- Can overviews_raw civs/openings/patches reference arrays decode numeric IDs or enrich civ metadata?
+- The 86% null rate on opening/age uptimes — exclude entirely, or use for the 14% subset?
+
+---
+
 ## 2026-04-14 — [Phase 01 / Step 01_02_03] Raw schema DESCRIBE
 
 **Category:** A (science)

@@ -8,6 +8,118 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** query
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### What
+
+Full univariate profiling of all four raw tables (NULL census, cardinality, numeric descriptive statistics, skewness/kurtosis, categorical frequency distributions, boolean census, temporal ranges, duplicate detection, NULL co-occurrence analysis), plus target variable analysis and preliminary temporal field classification per Invariant #3. All SQL embedded in the .md artifact (Invariant #6).
+
+### Tables profiled
+
+| Table | Rows | Columns |
+|-------|------|---------|
+| `matches_raw` | 277,099,059 | 55 |
+| `ratings_raw` | 58,317,433 | 8 |
+| `leaderboards_raw` | 2,381,227 | 19 |
+| `profiles_raw` | 3,609,686 | 14 |
+
+### NULL landscape
+
+**matches_raw — high-NULL columns (>5%):**
+- `server`: 97.99% NULL — populated for only ~2% of matches; near-dead for feature use
+- `modDataset`: 99.72% NULL — scenario-specific, effectively dead
+- `scenario`: 98.27% NULL — custom scenario matches only
+- `password`: 82.90% NULL — password-protected lobby indicator
+- `antiquityMode`: 68.66% NULL — recently added setting, absent from older matches
+- `hideCivs`: 49.30% NULL — similarly phased in over time
+- `rating` and `ratingDiff`: both 42.46% NULL — identical null rate confirms co-occurrence; NULLs = unranked matches
+- `country`: 12.60% NULL; `regicideMode`: 7.39% NULL
+- `team`: 4.90% NULL; `won` (target): 4.69% NULL (12,985,561 rows)
+
+**NULL co-occurrence clusters:**
+- Cluster A (8 boolean game-setting columns: allowCheats, lockSpeed, lockTeams, recordGame, sharedExploration, teamPositions, teamTogether, turboMode): 426,472 rows all eight NULL simultaneously — API schema change
+- Cluster B (fullTechTree, population): 431,288 rows jointly NULL; cross-cluster overlap 428,321 rows — single underlying cause
+
+**profiles_raw — 7 completely dead columns (100% NULL):** sharedHistory, twitchChannel, youtubeChannel, youtubeChannelName, discordId, discordName, discordInvitation — deprecated API fields, exclude from all feature engineering.
+
+**leaderboards_raw — block NULL at 25.61%:** rank, wins, losses, streak, drops, active, rankLevel all co-NULL (unranked entries lack these fields).
+
+**ratings_raw:** Zero NULLs except `rating_diff` (1.85% NULL, 1,078,873 rows).
+
+### Target variable (`won`)
+
+Near-perfectly balanced: 47.69% false (132.15M), 47.62% true (131.96M), 4.69% NULL (12.99M). All ranked queues show exact 50/50 balance. NULLs concentrated in `unranked` (15.74% NULL) and `unknown` (17.21% NULL) leaderboards.
+
+Intra-match consistency check (2-row matches): 88.6% have proper complementary outcomes. However, 6.2% have `both_true` and 4.7% have `both_false` — internally inconsistent; flagged for Phase 02 investigation.
+
+Primary prediction scope: rm_1v1 (26.8M matches) + qp_rm_1v1 (3.7M matches) = 30.5M 1v1 matches.
+
+### Cardinality highlights
+
+- `civ`: 68 distinct — full AoE2:DE roster. Top: Franks 5.68%, Mongols 4.45%, Britons 4.26%
+- `map`: 261 distinct — Arabia 19.53%, Arena 16.80%, Black Forest 12.42% (top 3 = 49%)
+- `name`: ~2.47M distinct player names
+
+**Near-constant / dead fields:** `season` constant -1 across ratings_raw and leaderboards_raw; `rankLevel` constant 1; `treatyLength` 96.56% zero; `status` only 2 values (player/ai).
+
+### Temporal leakage audit (Invariant #3)
+
+**Confirmed post_game:** `ratingDiff` (range [-174, 319], direct leakage); `finished`; `won` (target).
+
+**Critical ambiguity — `matches_raw.rating`:** Classified `ambiguous_pre_or_post`. Identical 42.46% NULL rate for `rating` and `ratingDiff` suggests simultaneous population. If `rating` is post-match snapshot, it encodes the outcome via `rating = pre_rating + ratingDiff`. Row-level co-occurrence check required in Phase 02 — this is the single most important open question for aoe2companion feature engineering.
+
+**ratings_raw:** Time-series ratings safe only with strict temporal join (`rating.date < match.started`).
+
+**leaderboards_raw cumulative stats** (wins, losses, games, streak, drops): Singleton snapshots, not a time series — usable only as static context features, not dynamic features.
+
+### Sentinel and anomaly values
+
+- `matches_raw.rating`: min -1 (sentinel), max 5,001
+- `ratings_raw.games`: max 1,775,260,795 — obvious data error; p95 is 4,736
+- `matches_raw.population`: min 0, max 9,999 — sentinels at extremes; median 200
+- `matches_raw.team`: max 255 — sentinel given median 2, p95 5
+- **8,812,005 duplicate (matchId, profileId) pairs** (3.18%) — deduplication required in Phase 02
+
+### Histogram findings
+
+- **Match duration:** median 1,678s (28 min), mean 1,815s, p05 145s, p95 3,789s, max 3.28M s (38 days — bugged). Right-skewed.
+- **matches_raw.rating** (non-NULL): mean 1,120, median 1,093, std 290 — bell-shaped around Elo anchor.
+- **leaderboards_raw.games**: mean 174, median 45, skewness 8.51 — heavy right tail of active players.
+
+### Decisions taken
+
+- 7 dead columns in profiles_raw identified for exclusion
+- 10 constant/dead fields catalogued across all tables
+- `matches_raw.rating` flagged as ambiguous; resolution deferred to Phase 02
+- 4,398,727 internally inconsistent 2-row matches flagged for investigation
+
+### Decisions deferred
+
+- Row-level `rating`/`ratingDiff` co-occurrence check — Phase 02 (verify: does `rating - ratingDiff` = prior rating in time series?)
+- Deduplication of 8.8M duplicate (matchId, profileId) pairs
+- Root cause of internally inconsistent won values (both_true, both_false)
+- `ratings_raw.games` max outlier capping/exclusion strategy
+
+### Thesis mapping
+
+- Chapter 4, section 4.1.2 — AoE2 univariate profiles, NULL landscape, target balance, temporal classification
+- Chapter 4, section 4.2.2 — Data quality: duplicates, sentinels, inconsistent outcomes
+
+### Open questions / follow-ups
+
+- Is `matches_raw.rating` pre-match or post-match Elo? Answering this gates the entire aoe2companion feature set.
+- Root cause of 4.4M internally inconsistent 2-row matches?
+- The 428K NULL co-occurrence cluster — early data before API fields existed?
+
+---
+
 ## 2026-04-14 — [Phase 01 / Step 01_02_03] Raw schema DESCRIBE
 
 **Category:** A (science)

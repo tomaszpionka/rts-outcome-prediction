@@ -8,6 +8,122 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** query
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
+- `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### What
+
+Extracted 17 fields from the STRUCT columns in `replays_meta_raw` (details, header, initData, metadata) into a flat `struct_flat` working table, then ran a full univariate census across all six sc2egset data objects: NULL rates, cardinality, numeric descriptive statistics, sentinel detection, value distributions, temporal range, duplicate detection, and field-level pre-game/in-game/identifier/target/constant classification per Invariant #3. All SQL embedded in .md artifact (Invariant #6).
+
+### Tables profiled
+
+| Object | Type | Rows | Columns |
+|--------|------|------|---------|
+| `replay_players_raw` | table | 44,817 | 25 |
+| `struct_flat` (from replays_meta_raw) | derived | 22,390 | 18 |
+| `map_aliases_raw` | table | 104,160 | 4 |
+| `game_events_raw` | view | 608,618,823 | 4 |
+| `tracker_events_raw` | view | 62,003,411 | 4 |
+| `message_events_raw` | view | 52,167 | 4 |
+
+### NULL landscape
+
+Remarkably clean: **0% NULLs across all columns in every table and view.** This includes replay_players_raw (all 25 cols), struct_flat (all 18 extracted fields), map_aliases_raw, and all three event views. Zero-NULL data requires sentinel detection rather than NULL-based imputation strategies.
+
+### Target variable (`result`)
+
+- 4 distinct values: **Loss 50.00%** (22,409 rows), **Win 49.94%** (22,382 rows), Undecided 0.05% (24 rows), Tie 0.00% (2 rows)
+- Near-perfect 50/50 balance is structural: each game produces one Win and one Loss row. No class imbalance mitigation needed.
+- All 26 Undecided/Tie rows come from standard 2-player replays — these 13 replays lack a definitive outcome and must be excluded in cleaning (01_04).
+- Zero duplicate rows on the `filename || '|' || toon_id` composite key.
+
+### MMR analysis
+
+- **83.65% of rows have MMR=0** (37,489 / 44,817). MMR=0 rate is uniform across Win (84.34%) and Loss (82.99%) — confirming zero is "not reported" not outcome-correlated.
+- MMR=0 by league: Unknown 93.13%, Unranked 100%, even Master 57.96% and Grandmaster 60.27% majority zero. Consistent with SC2EGSet being tournament replays where MMR is often not exposed.
+- Among the **7,328 non-zero rows (16.35%):** range -36,400 to 7,464. The negative minimum may represent another sentinel convention.
+- MMR is a **pre-game feature** (ladder-rating snapshot at game time) — no leakage risk. The zero-MMR issue is a data-availability problem, not temporal leakage.
+- Feature engineering options: (a) use MMR only for the 16% valid subset, (b) impute from historical player averages, (c) add binary missing-MMR indicator. Strategy deferred to Phase 02.
+
+### SQ (Spending Quotient)
+
+- 2 rows contain the INT32_MIN sentinel (-2,147,483,648), destroying raw statistics (raw mean: -95,711). Sentinel-excluded (N=44,815): **median 123, mean 122.38, std 18.91, range [-51, 187], IQR [110, 136].**
+- SQ measures macro-economic efficiency (resource spending relative to income) computed from in-game actions — **post-game metric**, classified as `in_game`. Cannot be used as a pre-game feature.
+
+### APM (Actions Per Minute)
+
+- No sentinel issues. 1,132 rows (2.53%) with APM=0 (very short games or parse artifacts). **Median 349, mean 355.57, std 104.87, range [0, 1,248].**
+- Post-game metric computed from full replay — classified as `in_game`.
+
+### supplyCappedPercent
+
+- **Median 6%, mean 7.24%, range [0, 100]**, 298 rows (0.67%) at zero. Right-skewed (skewness 2.25). Post-game metric — classified as `in_game`.
+
+### game_events_raw scale
+
+- 608.6M rows across 22,390 replays. **23 distinct evtTypeNames.** CameraUpdate alone: 387.5M rows (63.67%).
+- `event_data` column has 528.5M distinct values (extreme cardinality); excluded from top_n/bottom_n profiling to avoid OOM.
+- Histograms deferred for event tables per EDA Manual (608M rows, semantically heterogeneous — univariate histograms on `loop` are not analytically meaningful without event-type stratification).
+
+### Temporal leakage classification (Invariant #3)
+
+**Pre-game** (replay_players_raw): MMR, race, selectedRace, handicap, region, realm, highestLeague, isInClan, clanTag, startDir, startLocX, startLocY, color channels — all available before match start.
+
+**In-game** (replay_players_raw): APM, SQ, supplyCappedPercent — computed from replay actions, post-game only.
+
+**Pre-game** (struct_flat): time_utc, game_version_header/meta, base_build, data_build, map_name, max_players, map_size_x/y, is_blizzard_map.
+
+**In-game** (struct_flat): elapsed_game_loops — game duration, known only after match ends.
+
+**Constant / dead** (no predictive information): game_speed, game_speed_init (always "Faster"); gameEventsErr, messageEventsErr, trackerEvtsErr (always FALSE).
+
+### Categorical highlights
+
+- `race`: Protoss 36.21%, Zerg 35.02%, Terran 28.76%. 3 BW-prefixed anomalous entries.
+- `selectedRace`: 1,110 rows (2.48%) with empty string (Random resolved post-game); 10 explicit "Rand" rows.
+- `highestLeague`: 72.16% "Unknown" — esports replays rarely expose ladder rank.
+- `region`: Europe 46.91%, US 28.34%, Unknown 12.83%, Korea 8.04%.
+- `isInClan`: 25.9% True; 257 distinct clan tags.
+- `handicap`: effectively constant at 100 (only 2 rows at 0) — dead column.
+
+### map_aliases_raw
+
+104,160 rows = 70 tournaments × 1,488 foreign names each. Maps foreign/localized tournament map names to English equivalents. Join key is `map_name` from struct_flat matched against `english_name` or `foreign_name` — **not via `filename`.** All tournaments have identical key sets.
+
+### Decisions taken
+
+- Field classification taxonomy established for all 25 replay_players_raw columns and 18 struct_flat columns; stored in JSON artifact under `field_classification`
+- MMR=0 treated as "not reported" sentinel based on uniform distribution across result categories and league correlation
+- SQ INT32_MIN sentinel identified (2 rows); sentinel-excluded statistics documented
+- Event tables profiled for null/cardinality only; histogram profiling deferred
+
+### Decisions deferred
+
+- MMR imputation or filtering strategy — requires player identity resolution (Phase 02)
+- Whether isInClan/clanTag carry win-rate signal — Phase 02 correlation analysis
+- Cleaning of 13 Undecided/Tie replays, 11 non-2-player replays, 3 BW-prefixed race entries, 2 SQ sentinel rows — deferred to 01_04
+- Whether to include in-game fields (APM, SQ, supplyCappedPercent) for an in-game prediction comparison framing — Phase 02 decision
+
+### Thesis mapping
+
+- Chapter 4, section 4.1.1 — SC2EGSet: data quality profile, target distribution, MMR availability, sentinel conventions
+- Chapter 4, section 4.2.1 — Pre-game vs in-game field classification methodology
+
+### Open questions / follow-ups
+
+- Optimal MMR handling for 84% missing rows: imputation vs. indicator vs. subsetting (Phase 02)
+- Do isInClan and clanTag carry win-rate signal beyond player identity? (Phase 02)
+- The 3 BW-prefixed race entries — merge with SC2 counterparts or exclude? (01_04)
+- 273 replays with map_size_x=0 and map_size_y=0 — parse artifact or real map configuration? (01_04)
+
+---
+
 ## 2026-04-14 — [Phase 01 / Step 01_02_03] Raw schema DESCRIBE
 
 **Category:** A (science)
