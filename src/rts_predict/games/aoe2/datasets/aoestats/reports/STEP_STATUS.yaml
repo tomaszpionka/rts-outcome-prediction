@@ -46,5 +46,4 @@ steps:
   "01_02_05":
     name: "Univariate Visualizations"
     pipeline_section: "01_02"
-    status: complete
-    completed_at: "2026-04-14"
+    status: not_started
