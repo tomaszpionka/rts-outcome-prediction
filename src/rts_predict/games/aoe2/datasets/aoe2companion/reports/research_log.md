@@ -8,6 +8,69 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_05] Univariate Census Visualizations
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** visualization
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_05_visualizations.md`
+- `reports/artifacts/01_exploration/02_eda/plots/01_02_05_*.png` (17 files)
+
+### What
+
+Produced 17 thesis-grade PNG plots visualizing the 01_02_04 census findings.
+All DuckDB queries embedded verbatim in the markdown artifact (Invariant #6).
+All post-game and ambiguous columns annotated on plots (Invariant #3).
+All clip thresholds and bin widths derived from census artifact at runtime (Invariant #7).
+
+### Plots produced
+
+| Plot | Subject |
+|------|---------|
+| `won_distribution` | Target balance — 47.69% false / 47.62% true / 4.69% NULL, visually near-perfectly balanced |
+| `won_consistency` | Per-leaderboard win consistency — intra-match both_true (6.2%) and both_false (4.7%) flagged |
+| `leaderboard_distribution` | 6 leaderboard tiers; rm_1v1 dominant (26.8M), qp_rm_1v1 secondary |
+| `civ_top20` | Top-20 civilizations by pick rate; Franks 5.68% leads |
+| `map_top20` | Top-20 maps; Arabia 19.53%, Arena 16.80%, Black Forest 12.42% |
+| `rating_histogram` | Rating distribution; ambiguous temporal status flagged in subtitle |
+| `ratingdiff_histogram` | ratingDiff distribution — symmetric around 0, range [−174, +319]; POST-GAME annotation |
+| `duration_histogram` | Dual-panel body (0–63.15 min, p95-clipped) + full log-scale; clip derived from census p95 |
+| `null_rate_bar` | 4-tier NULL severity (green/gold/orange/red) across all 55 matches_raw columns |
+| `null_cooccurrence` | 2×2 annotated table: Cluster A (426,472 rows) vs Cluster B (431,288 rows), 428,321 overlap |
+| `leaderboards_numeric_boxplots` | wins/losses/streak/drops box by leaderboard tier |
+| `profiles_null_rate` | profiles_raw column completeness; 7 fully dead (100% NULL) deprecated API fields |
+| `leaderboards_leaderboard_bar` | leaderboards_raw entry counts per tier |
+| `boolean_stacked_bar` | Cluster A boolean settings distribution (trueFalseNull stacked) |
+| `ratings_raw_rating_histogram` | ratings_raw rating distribution — safe for temporal join use |
+| `monthly_volume` | Monthly match volume 2020-08–2026-04; shows stable growth with no major gaps |
+| `rating_null_timeline` | Monthly NULL rate for `rating` and `ratingDiff` — tests schema-change hypothesis (42.46% overall) |
+
+### Decisions taken
+
+- Duration clip: p95 = 3,789s = 63.15 min (derived from census `match_duration_stats[0]["p95_secs"]`). Differs from aoestats (p95 = 78.6 min) — both use p95-derived clipping; subtitle documents cross-dataset difference.
+- NULL co-occurrence: rendered as annotated 2×2 matplotlib table (not imshow) — 4-cell values span 6 orders of magnitude, making any linear colormap uninformative.
+- `rating` histogram: no I3 annotation applied; subtitle flags the ambiguity pending Phase 02 row-level co-occurrence check.
+- `ratingDiff` histogram: POST-GAME annotation applied (range [-174, +319] is outcome-derived).
+
+### Decisions deferred
+
+- Bivariate analysis of `ratingDiff × won` and `rating × won` deferred to Step 01_02_06 (Bivariate EDA).
+- `rating` temporal classification (ambiguous_pre_or_post) resolution deferred to Phase 02.
+- `won` inconsistency (both_true / both_false rows) cleaning strategy deferred to Phase 01_04 (Data Cleaning).
+
+### Thesis mapping
+
+- Chapter 4, §4.1.3 — AoE2 feature landscape, target balance, NULL structure visualized
+- Chapter 4, §4.1.4 — temporal leakage annotation for ratingDiff
+
+### Open questions / follow-ups
+
+- Does `rating_null_timeline` show a step-function (schema change) or gradual missingness? Visual inspection of the artifact determines whether pre-change rows need special handling.
+- Cross-dataset: aoestats duration body at p95 = 78.6 min vs aoe2companion at 63.15 min — difference noted in plot subtitle for thesis comparability.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
 
 **Category:** A (science)

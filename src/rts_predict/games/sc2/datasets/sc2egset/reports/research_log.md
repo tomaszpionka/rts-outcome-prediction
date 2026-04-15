@@ -8,6 +8,77 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_05] Univariate EDA Visualizations
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** visualization
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_05_visualizations.md`
+- `reports/artifacts/01_exploration/02_eda/plots/01_02_05_*.png` (14 files)
+
+### What
+
+Produced 14 thesis-grade PNG plots visualizing the 01_02_04 census findings for
+replay_players_raw (44,817 rows) and replays_meta_raw (22,390 replays). sc2egset
+is unique among the three datasets: zero NULLs, esports-focused (tournament replays
+only), and contains in-game metrics not available in AoE2 datasets. All four in-game
+columns carry identical mandatory annotation (Invariant #3). All thresholds
+data-derived from census (Invariant #7).
+
+### Plots produced
+
+| Plot | Subject |
+|------|---------|
+| `result_bar` | Target balance — Win/Loss/Undecided/Tie; 24 Undecided and 2 Tie rows confirmed from census |
+| `categorical_bars` | 3-panel: highestLeague, region, game_type frequency distributions |
+| `selectedrace_bar` | Race pick rates including empty-string anomaly (8 rows) flagged in tomato red |
+| `mmr_split` | MMR split view (all vs. non-zero); 83.65% sentinel zero confirmed; non-zero body is bell-shaped ~1,500–5,000 |
+| `apm_hist` | APM histogram; right-skewed with professional-level tail; IN-GAME annotated |
+| `sq_split` | SQ split view excluding 2 INT32_MIN sentinels; shows narrow distribution 60–90; IN-GAME annotated |
+| `supplycapped_hist` | supplyCappedPercent histogram; bimodal structure; IN-GAME annotated |
+| `duration_hist` | Dual-panel body (0–22.5 min, p95-derived from `census["duration_stats"]["p95"] / 22.4`) + full log; IN-GAME annotated |
+| `mmr_zero_interpretation` | Cross-tab of MMR=0 vs result and vs highestLeague; shows zero-MMR is not outcome-correlated |
+| `temporal_coverage` | Match count by year/month 2016–2024; shows tournament activity peaks |
+| `isinclan_bar` | Clan membership — majority of tournament players in clans |
+| `clantag_top20` | Top-20 clans by player count |
+| `map_top20` | Top-20 of 188 maps by replay count; top-20 covers 44.7% of all replays |
+| `player_repeat_frequency` | Games per toon_id distribution (log-y); 2,495 unique players over 44,817 rows; heavily right-skewed with a long tail of tournament regulars |
+
+### Key findings
+
+- **MMR sentinel:** 83.65% of rows have MMR=0 (unrated / not tracked in this dataset). The non-zero MMR body is approximately bell-shaped around 2,000–3,000, consistent with professional ladder MMR ranges. Zero-MMR rows are not outcome-correlated (confirmed via cross-tab).
+- **In-game columns:** APM, SQ, and supplyCappedPercent are all in-game metrics unavailable at prediction time. All annotated with mandatory red-bbox warning (Invariant #3). supplyCappedPercent shows bimodal structure suggesting two player behavioral modes.
+- **Player concentration:** `player_repeat_frequency` shows a highly right-skewed distribution — many players appear 1–5 times, but a core of ~50–100 tournament regulars appear 100–500+ times. This means a replay-based train/val split leaks player-level information, confirming that Phase 03 must use player-stratified splitting.
+- **Map concentration:** Top-20 maps (of 188 total) account for only 44.7% of replays — map space is far less concentrated than in AoE2 (where top-3 maps = 49%). Phase 02 map encoding strategy must handle 188 categories.
+- **Duration (game loops):** LOOPS_PER_SECOND = 22.4 (SC2 Faster speed). p95 = 30,270.1 loops = 22.5 min body clip. Full range shows extreme outlier replays (likely paused/abandoned games).
+- **Race balance:** All three races (Terran/Protoss/Zerg) relatively balanced in the tournament pool; selectedRace empty-string anomaly (8 rows) is negligible.
+
+### Decisions taken
+
+- Duration clip: `CLIP_SECONDS = census["duration_stats"]["p95"] / 22.4` — fully data-derived, no hardcoded threshold.
+- SQ INT32_MIN sentinel (2 rows): excluded from main histogram — too few to affect distribution, retained in dataset until Phase 01_04 cleaning decision.
+- `player_repeat_frequency` y-axis: log-scale mandatory — without it, the single-game majority hides all structure in the tail.
+
+### Decisions deferred
+
+- Player-stratified vs replay-stratified split decision deferred to Phase 03. The `player_repeat_frequency` plot provides the visual evidence for the Phase 03 planning session.
+- MMR zero-row treatment (include/exclude/impute) deferred to Phase 01_04 Data Cleaning.
+- Map encoding strategy (top-k grouping vs embedding) deferred to Phase 02 Feature Engineering.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.1 — SC2EGSet dataset description, target balance, feature overview
+- Chapter 4, §4.1.2 — in-game column annotations, MMR sentinel analysis
+- Chapter 5 (methodology) — player-repeat evidence motivating Phase 03 splitting strategy
+
+### Open questions / follow-ups
+
+- Does player-stratified splitting materially change model performance vs replay-stratified? Evidence gathered here; answer deferred to Phase 03.
+- Are the 24 Undecided results from specific tournaments or distributed across the dataset? Visual inspection of temporal coverage may reveal clustering.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
 
 **Category:** A (science)

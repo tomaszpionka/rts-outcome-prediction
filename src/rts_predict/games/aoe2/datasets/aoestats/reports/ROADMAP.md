@@ -342,13 +342,13 @@ research_log_entry: "Required on completion."
 ```yaml
 step_number: "01_02_05"
 name: "Univariate Visualizations"
-description: "Produce all EDA plots based on quantitative findings from Step 01_02_04. Fourteen visualization groups: winner distribution, match size distribution, map top-20, civ top-20, leaderboard distribution, duration dual-panel histogram, ELO 1x3 panel (sentinel excluded), old_rating histogram, match_rating_diff histogram, age uptime histograms (variable bin widths), opening non-NULL distribution, IQR outlier summary, NULL rate bar chart, and monthly match volume time series. Every plot cell preceded by a verification cell. All SQL queries stored in sql_queries dict and written to markdown artifact per Invariant #6."
+description: "15 visualization plots for the aoestats univariate census findings from 01_02_04. Reads the 01_02_04 JSON artifact and queries DuckDB for histogram bin data. All plots saved to artifacts/01_exploration/02_eda/plots/. Temporal annotations on in-game, post-game, and leakage-unresolved columns per Invariant #3."
 phase: "01 — Data Exploration"
 pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
 manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
 dataset: "aoestats"
 question: "What do the univariate distributions look like visually? Are there visual patterns not captured by summary statistics alone?"
-method: "Matplotlib visualizations. Bar charts for categorical variables. Dual-panel histograms for skewed distributions. Sentinel exclusion for ELO. Variable bin widths for age uptimes. Log scale for full-range duration. All values derived from census artifact at runtime — no hardcoded numbers."
+method: "Read 01_02_04 JSON artifact. Query DuckDB for histogram bins (duration, ELO, old_rating, match_rating_diff, monthly volume). Produce 15 plots: winner 2-bar, num_players bar, map top-20 barh, civ top-20 barh, leaderboard bar, duration dual-panel, ELO 1x3 panel (sentinel excluded), old_rating histogram, match_rating_diff histogram (LEAKAGE UNRESOLVED annotated), age uptime 1x3 panel (IN-GAME annotated), opening non-NULL bar (IN-GAME annotated), IQR outlier summary, NULL rate bar (4-tier), schema change temporal boundary (IN-GAME annotated), monthly volume line chart."
 stratification: "By column and table (matches_raw, players_raw)."
 predecessors:
   - "01_02_04"
@@ -363,7 +363,7 @@ inputs:
     - ".claude/scientific-invariants.md"
     - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 2.1"
 outputs:
-  data_artifacts:
+  plots:
     - "artifacts/01_exploration/02_eda/plots/01_02_05_winner_distribution.png"
     - "artifacts/01_exploration/02_eda/plots/01_02_05_num_players_distribution.png"
     - "artifacts/01_exploration/02_eda/plots/01_02_05_map_top20.png"
@@ -377,19 +377,22 @@ outputs:
     - "artifacts/01_exploration/02_eda/plots/01_02_05_opening_nonnull.png"
     - "artifacts/01_exploration/02_eda/plots/01_02_05_iqr_outlier_summary.png"
     - "artifacts/01_exploration/02_eda/plots/01_02_05_null_rate_bar.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_schema_change_boundary.png"
     - "artifacts/01_exploration/02_eda/plots/01_02_05_monthly_match_count.png"
   report: "artifacts/01_exploration/02_eda/01_02_05_visualizations.md"
 reproducibility: "Code and output in the paired notebook."
 scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "duration annotated POST-GAME. opening and age uptimes annotated IN-GAME. match_rating_diff annotated LEAKAGE STATUS UNRESOLVED. new_rating not plotted (post-game, excluded)."
   - number: "6"
-    how_upheld: "All SQL queries that produce plotted data stored in sql_queries dict and appear verbatim in the markdown artifact."
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
   - number: "7"
-    how_upheld: "All bin widths, clip boundaries, and annotation values derived from census artifact at runtime — no hardcoded numbers."
+    how_upheld: "All bin widths, clip boundaries, color thresholds derived from census JSON at runtime. match_rating_diff clip at [-200, +200] is ~3.6sigma editorial choice (stddev=55.23)."
   - number: "9"
-    how_upheld: "Read-only step — visualization only; no analytical computation beyond what is needed for plotting."
+    how_upheld: "Visualization of 01_02_04 findings only. No new analytical computation."
 gate:
-  artifact_check: "All 14 PNG files and 01_02_05_visualizations.md exist and are non-empty."
-  continue_predicate: "All 14 PNG files exist. Markdown artifact contains plot index table and all SQL queries. Notebook executes end-to-end without errors."
+  artifact_check: "All 15 PNG files exist under plots/. 01_02_05_visualizations.md exists with SQL queries (Invariant #6) and plot index table including Temporal Annotation column."
+  continue_predicate: "All 15 PNG files exist. Markdown artifact contains plot index table with Temporal Annotation column and all SQL queries. Notebook executes end-to-end without errors."
   halt_predicate: "Any PNG file is missing or notebook execution fails."
 thesis_mapping:
   - "Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data"

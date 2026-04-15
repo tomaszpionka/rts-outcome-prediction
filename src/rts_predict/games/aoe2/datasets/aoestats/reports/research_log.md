@@ -8,6 +8,67 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-15 — [Phase 01 / Step 01_02_05] Univariate Visualizations
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** visualization
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/02_eda/01_02_05_visualizations.md`
+- `reports/artifacts/01_exploration/02_eda/plots/01_02_05_*.png` (15 files)
+
+### What
+
+Produced 15 thesis-grade PNG plots visualizing the 01_02_04 census findings for
+matches_raw (30.7M rows) and players_raw (107.6M rows). Temporal annotations applied
+to all in-game and post-game columns (Invariant #3). All SQL queries embedded in
+the markdown artifact (Invariant #6). All thresholds derived from census (Invariant #7).
+
+### Plots produced
+
+| Plot | Subject |
+|------|---------|
+| `winner_distribution` | Target balance — winner True/False per match; balanced binary label |
+| `num_players_distribution` | Match size distribution (1v1 dominant); using `distinct_match_count` not `row_count` |
+| `map_top20` | Top-20 maps by match count |
+| `civ_top20` | Top-20 civilizations by player-row count |
+| `leaderboard_distribution` | Match counts per leaderboard tier |
+| `duration_histogram` | Dual-panel body (0–78.6 min, p95-clipped) + full log-scale; duration in BIGINT nanoseconds converted via `/ 1e9` |
+| `elo_distributions` | ELO 3-panel (team_0, team_1, avg); sentinel values (−1.0) excluded from team panels, not from avg_elo |
+| `old_rating_histogram` | Pre-match rating distribution from players_raw |
+| `match_rating_diff_histogram` | match_rating_diff body clipped at ±200 (~3.6σ, editorial); LEAKAGE UNRESOLVED annotation applied |
+| `age_uptime_histograms` | Feudal / Castle / Imperial age-up times; all three IN-GAME annotated; ~87% NULL confirmed visually |
+| `opening_nonnull` | opening strategy frequency among the ~14% of non-NULL rows; IN-GAME annotated |
+| `iqr_outlier_summary` | IQR-fence outlier counts per numeric column |
+| `null_rate_bar` | 4-tier NULL severity across all matches_raw + players_raw columns |
+| `schema_change_boundary` | Weekly NULL rate for 86%-NULL columns in players_raw over time; IN-GAME annotated; column list derived from census `null_pct > 80%` at runtime |
+| `monthly_match_count` | Monthly match volume 2022-08–2026-02 |
+
+### Decisions taken
+
+- Duration clip: p95 = 4,714.1s = 78.6 min (from census `numeric_stats_matches` label `"duration_sec"`). Above p95, log-panel tail shows extreme outliers. Cross-dataset note in subtitle vs aoe2companion (63.15 min).
+- `match_rating_diff` clip: ±200 is an editorial choice (~3.6σ from stddev=55.23) to show leptokurtic shape without [-2185, +2185] range extremes; NOT derived from p05/p95 (which are ±59). I7 comment documents this.
+- `avg_elo` histogram: no sentinel exclusion applied (sentinel impact negligible at 30.7M rows). Documented as asymmetric treatment vs team_0/1_elo in the markdown artifact.
+- `schema_change_boundary`: column list derived at runtime from `census["players_null_census"]["columns"]` filtered by `null_pct > 80.0`. Filename-based temporal join (chars 9-18 of `players/YYYY-MM-DD_...` format) — no cross-table JOIN required.
+
+### Decisions deferred
+
+- `match_rating_diff` leakage resolution (post-game vs. pre-game) deferred to 01_02_06 Bivariate EDA (scatter vs `new_rating − old_rating`). Current I3 annotation: LEAKAGE STATUS UNRESOLVED.
+- Schema change exact breakpoint date deferred — `schema_change_boundary` plot visually identifies the boundary but formal threshold analysis deferred to Phase 01_04 Data Cleaning.
+- `avg_elo` sentinel asymmetry treatment deferred to Phase 01_04.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.3 — AoE2 aoestats feature landscape, target balance, NULL structure
+- Chapter 4, §4.1.4 — in-game column annotations (age uptimes, opening strategy)
+
+### Open questions / follow-ups
+
+- `match_rating_diff` leakage: the 01_02_06 bivariate scatter (`match_rating_diff` vs `new_rating − old_rating`) will resolve this. Feature engineering for Phase 02 blocked on this result.
+- Schema change boundary: visual inspection of `schema_change_boundary` plot will reveal the exact week when age uptime / opening columns transitioned from ~0% to ~100% populated.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_04] Univariate Census & Target Variable EDA
 
 **Category:** A (science)

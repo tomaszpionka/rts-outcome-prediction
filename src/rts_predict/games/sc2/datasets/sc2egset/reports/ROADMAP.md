@@ -316,15 +316,57 @@ notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_04_univariate_c
 ```yaml
 step_number: "01_02_05"
 name: "Univariate EDA Visualizations"
-description: "Dedicated visualization notebook for all univariate distributions profiled in 01_02_04."
+description: "14 visualization plots for the sc2egset univariate census findings from 01_02_04. Reads the 01_02_04 JSON artifact and queries DuckDB for histogram bin data. All plots saved to artifacts/01_exploration/02_eda/plots/. Temporal annotations on in-game columns (APM, SQ, supplyCappedPercent, elapsed_game_loops) per Invariant #3."
 phase: "01 — Data Exploration"
 pipeline_section: "01_02 — Exploratory Data Analysis (Tukey-style)"
 manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Sections 2.1, 3.4"
 dataset: "sc2egset"
-question: "What do the distributions from 01_02_04 look like visually?"
-method: "Histograms for numeric, bar charts for categorical, line plot for temporal."
+question: "What do the distributions from 01_02_04 look like visually, and do the visual patterns confirm or challenge the statistical summaries?"
+method: "Read 01_02_04 JSON artifact. Query DuckDB for histogram bins (MMR, APM, SQ, supplyCappedPercent, duration). Produce 14 plots: result 2-bar, categorical 3-panel (race/highestLeague/region), selectedRace bar, MMR split view, APM histogram (IN-GAME), SQ split view (IN-GAME), supplyCappedPercent histogram (IN-GAME), duration dual-panel (IN-GAME), MMR zero-spike cross-tab, temporal coverage line, isInClan bar, clanTag top-20, map top-20 barh, player repeat frequency. Markdown artifact with SQL queries."
 predecessors: "01_02_04"
 notebook_path: "sandbox/sc2/sc2egset/01_exploration/02_eda/01_02_05_visualizations.py"
+inputs:
+  duckdb_tables:
+    - "replay_players_raw"
+    - "replays_meta_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+outputs:
+  plots:
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_result_bar.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_categorical_bars.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_selectedrace_bar.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_mmr_split.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_apm_hist.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_sq_split.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_supplycapped_hist.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_duration_hist.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_mmr_zero_interpretation.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_temporal_coverage.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_isinclan_bar.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_clantag_top20.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_map_top20.png"
+    - "artifacts/01_exploration/02_eda/plots/01_02_05_player_repeat_frequency.png"
+  report: "artifacts/01_exploration/02_eda/01_02_05_visualizations.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "All four in-game columns (APM, SQ, supplyCappedPercent, elapsed_game_loops) carry a visible annotation: 'IN-GAME — not available at prediction time (Inv. #3)'."
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "All bin widths, clip boundaries, sentinel thresholds derived from census JSON at runtime. No hardcoded numbers."
+  - number: "9"
+    how_upheld: "Visualization of 01_02_04 findings only. No new analytical computation."
+gate:
+  artifact_check: "All 14 PNG files and 01_02_05_visualizations.md exist and are non-empty."
+  continue_predicate: "All 14 PNG files exist. Markdown artifact contains plot index table with Temporal Annotation column and all SQL queries. Notebook executes end-to-end without errors."
+  halt_predicate: "Any PNG file is missing or notebook execution fails."
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet"
+research_log_entry: "Required on completion."
 ```
 
 ---
