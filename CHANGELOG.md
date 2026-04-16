@@ -19,6 +19,25 @@ merged to `master`.
 
 ### Removed
 
+## [3.8.0] — 2026-04-16 (PR #TBD: feat/table-utility-assessment)
+
+### Added
+- **01_03_02 True 1v1 Match Identification** for all three datasets — structural
+  player-count verification vs label-based filtering, true 1v1 population sizing
+- **01_03_03 Table Utility Assessment** for all three datasets — empirical
+  investigation of which raw tables serve the prediction pipeline vs stale snapshots
+- Cross-dataset summary table in all three research logs
+
+### Changed
+- aoe2companion `matches_raw.rating` reclassified from AMBIGUOUS to **PRE-GAME**
+  (99.8% exact match with ratings_raw pre-match entries). This resolves the single
+  most important open question from 01_02_04.
+- aoe2companion `ratings_raw` downgraded to CONDITIONALLY USABLE — leaderboard_id=6
+  (rm_1v1) has zero rows; pre-game rating for rm_1v1 must come from matches_raw.rating
+
+### Fixed
+- aoestats 01_03_02 match type breakdown PNG moved to plots/ subdirectory
+
 ## [3.7.3] — 2026-04-16 (PR #TBD: fix/aoe2-01-03-01-profile-gaps)
 
 ### Fixed
