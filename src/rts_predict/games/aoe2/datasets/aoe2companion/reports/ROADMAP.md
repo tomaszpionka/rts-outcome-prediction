@@ -472,6 +472,57 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_03_01 -- Systematic Data Profiling
+
+```yaml
+step_number: "01_03_01"
+name: "Systematic Data Profiling"
+description: "Systematic profiling of matches_raw per Manual Section 3. Column-level profiling (null, cardinality, descriptive stats, skewness, kurtosis, IQR outliers, top-k). Dataset-level profiling (duplicates, class balance, completeness matrix, memory footprint). Critical detection (dead fields, constant columns, near-constant columns). Distribution analysis (QQ plots, ECDFs on BERNOULLI sample). All columns carry I3 temporal classification."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_03 -- Systematic Data Profiling"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "aoe2companion"
+question: "What is the complete statistical profile of every column in matches_raw? Are there dead fields, constant columns, near-constant columns, or primary key violations? What are the distributional shapes of key numeric columns?"
+method: "DuckDB aggregate queries for exact column-level stats including native SKEWNESS() and KURTOSIS(). BERNOULLI sampled data for QQ plots and ECDFs. Critical detection via programmatic thresholds from census. I3 classification inherited from 01_02_04 field_classification and 01_02_06 bivariate findings."
+stratification: "Full table for aggregate stats. Leaderboard-stratified (rm_1v1 + qp_rm_1v1) for rating analysis."
+predecessors:
+  - "01_02_04"
+  - "01_02_06"
+  - "01_02_07"
+notebook_path: "sandbox/aoe2/aoe2companion/01_exploration/03_profiling/01_03_01_systematic_profiling.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+    - "artifacts/01_exploration/02_eda/01_02_06_bivariate_eda.md"
+    - "artifacts/01_exploration/02_eda/01_02_07_multivariate_analysis.md"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+  plots:
+    - "artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_qq_plot.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png"
+  report: "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md"
+gate:
+  artifact_check: "All 5 artifact files exist and are non-empty. JSON contains critical_findings key. MD contains I3 classification table."
+  continue_predicate: "Notebook executes end-to-end without error. Profile JSON validates against required schema."
+  halt_predicate: "DuckDB queries fail on matches_raw or BERNOULLI sample yields zero rows."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "Every column carries I3 temporal classification in both JSON and MD artifacts. POST-GAME and AMBIGUOUS columns flagged in distribution analysis."
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "Near-constant threshold (uniqueness_ratio < 0.001 or IQR == 0) from Manual 3.3. Sample fraction justified by Cleveland (1993) and Wilk & Gnanadesikan (1968). IQR fences from census percentiles."
+  - number: "9"
+    how_upheld: "Profile consolidates and extends 01_02 findings. No new column discovery or schema changes."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.2 AoE2 Match Data"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

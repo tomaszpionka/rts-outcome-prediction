@@ -8,6 +8,49 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** profiling (column-level + dataset-level)
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_qq_plots.png`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png`
+
+### What
+
+Systematic column-level and dataset-level profiling of all three sc2egset raw tables (replay_players_raw 25 cols / 44,817 rows; replays_meta_raw 17 struct-flat fields / 22,390 rows; map_aliases_raw 4 cols / 104,160 rows). Formal detection of dead fields, constant columns, near-constant columns, IQR outliers (Tukey fence 1.5×IQR). QQ plots and ECDFs for key numeric columns. Cross-table linkage verified via replayId. All SQL stored verbatim (I6).
+
+### Constant columns — exactly 5
+
+`game_speed`, `game_speed_init`, `gameEventsErr`, `messageEventsErr`, `trackerEvtsErr` (all in replays_meta_raw). **Phase 02 action: drop all 5.**
+
+### Near-constant columns — 21 detected programmatically
+
+Includes MMR (IQR=0 for all rows, 83.65% zero-sentinel), color_r/g/b/a, selectedRace, highestLeague, region, realm, result, startDir, handicap, playerID, and others. MMR near-constant detection is technically correct but NOT a drop candidate — requires sentinel-aware handling.
+
+### Sentinel columns
+
+| Column | Sentinel | Count | % | Meaning |
+|--------|----------|-------|---|---------|
+| MMR | 0 | 37,489 | 83.65% | Unrated player |
+| SQ | INT32_MIN | 2 | 0.0045% | Missing SQ |
+
+MMR rated-only IQR (P25=4,203, P75=6,584, IQR=2,381) has 0 Tukey outliers among 7,328 rated players.
+
+### Cross-table linkage
+
+Perfect referential integrity: 22,390 matched replays in both tables, 0 orphans in either direction. 0 duplicate (filename, playerID) rows.
+
+### Class balance
+
+Win 49.94% / Loss 50.00% — no class imbalance. Undecided (24) and Tie (2) excluded from modelling.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_07] Multivariate EDA
 
 **Category:** A (science)

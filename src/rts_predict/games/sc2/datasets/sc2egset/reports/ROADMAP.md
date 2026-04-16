@@ -476,6 +476,60 @@ research_log_entry: "Required on completion."
 
 ---
 
+## Phase 01 — Pipeline Section 01_03: Systematic Data Profiling
+
+### Step 01_03_01 -- Systematic Data Profiling
+
+```yaml
+step_number: "01_03_01"
+name: "Systematic Data Profiling"
+description: "Column-level and dataset-level profiling of all three sc2egset raw tables (replay_players_raw, replays_meta_raw struct-flat fields, map_aliases_raw). Detects dead fields, constant columns, near-constant columns, IQR outliers. Produces QQ plots and ECDFs for key numeric columns. Cross-table linkage check via replayId."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_03 -- Systematic Data Profiling"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "sc2egset"
+question: "What is the full column-level and dataset-level quality profile of all sc2egset raw tables, including dead fields, constant columns, outlier rates, and distribution shapes?"
+method: "DuckDB SQL aggregations: NULL/zero census per column per table, cardinality, descriptive stats, skewness/kurtosis, IQR outlier detection (Tukey fence at 1.5*IQR). QQ plots against normal distribution for 5 key columns. ECDFs for 3 key columns. Cross-table linkage via replayId derived from filename. Completeness heatmap across all tables."
+predecessors: "01_02_05"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/03_profiling/01_03_01_systematic_profiling.py"
+inputs:
+  duckdb_tables:
+    - "replay_players_raw"
+    - "replays_meta_raw"
+    - "map_aliases_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+  plots:
+    - "artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_qq_plots.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png"
+  report: "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "Every column carries I3 temporal classification. elapsed_game_loops annotated as POST-GAME (reclassified 2026-04-15). APM, SQ, supplyCappedPercent annotated as IN-GAME."
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "IQR fence multiplier 1.5 cited to Tukey (1977). All sentinel thresholds derived from census JSON at runtime."
+  - number: "9"
+    how_upheld: "Profiling of existing tables only. No new feature computation. Builds on 01_02_04 census and all 01_02 EDA findings."
+gate:
+  artifact_check: "All 5 artifacts (JSON, 3 PNGs, MD) exist and are non-empty."
+  continue_predicate: "JSON contains critical_findings key with constant_columns list of exactly 5 entries. MD contains I3 classification table. All PNG files exist."
+  halt_predicate: "Any artifact is missing or notebook execution fails."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
+
+---
+
 ## Phase 02 — Feature Engineering (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.

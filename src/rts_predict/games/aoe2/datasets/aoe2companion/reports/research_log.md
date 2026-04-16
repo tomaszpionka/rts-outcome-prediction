@@ -8,6 +8,57 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** profiling (read-only — no DuckDB writes, no new tables)
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_qq_plot.png`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png`
+- `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md`
+
+### What
+
+Systematic profiling of matches_raw (277,099,059 rows, 55 columns) per Manual Section 3. Consolidates and extends 01_02 census findings into a structured, machine-readable profile. All SQL queries written verbatim to artifacts (Invariant #6).
+
+### Column-level profiling
+
+55 columns profiled with: null count/pct, approximate cardinality, uniqueness ratio, zero count for numeric columns, descriptive stats (mean, std, percentiles from census), exact skewness/kurtosis for all 10 numeric columns (9 from census + derived duration_min) via DuckDB native SKEWNESS()/KURTOSIS() aggregation over the full table (no sampling, no listwise deletion), IQR outlier counts via consolidated single-scan query, and top-5 values for 21 categorical columns.
+
+All columns carry I3 temporal classification (Invariant #3). Rating classified as AMBIGUOUS per 01_02_06 finding. Resolution deferred to 01_04.
+
+### Dataset-level profiling
+
+- **Primary key integrity (matchId, profileId):** No duplicates — primary key is clean.
+- **Class balance (won):** False=132,150,323 (47.69%), True=131,963,175 (47.62%), NULL=12,985,561 (4.69%). Balanced binary classification target.
+- **Memory footprint:** Computed via DuckDB `pragma_database_size()`.
+
+### Critical findings
+
+- **Dead fields (0):** None.
+- **Constant columns (0):** None.
+- **Near-constant columns (50):** speedFactor (IQR=0), population (IQR=0), treatyLength (IQR=0) confirmed; many categorical game-setting columns flagged. Inform Phase 02 feature exclusion decisions.
+
+### Distribution analysis
+
+QQ plots (5 columns) and ECDFs (3 columns) from BERNOULLI 0.02% sample (~55,414 rows). Skewness/kurtosis exact over full 277M rows:
+- rating: skew=0.4654, excess kurtosis=0.3047 (slightly right-skewed, near-symmetric)
+- duration_min: right-skewed (long-tail matches)
+
+### Rating stratification
+
+| Scope | N Rows | Rating NULL % | Rating Mean |
+|-------|--------|---------------|-------------|
+| full_table | 277,099,059 | 42.46% | 1120.23 |
+| 1v1_ranked (rm_1v1 + qp_rm_1v1) | 61,071,799 | 26.21% | 1091.65 |
+
+Rating NULL rate notably lower in 1v1 ranked matches. Remaining 26.21% NULL in 1v1 requires 01_04 join with ratings_raw for resolution.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_06] Statistical Tests (pass-3 addition)
 
 **Category:** A (science)

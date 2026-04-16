@@ -511,6 +511,63 @@ research_log_entry: "Required on completion."
 
 ---
 
+### Step 01_03_01 — Systematic Data Profiling
+
+```yaml
+step_number: "01_03_01"
+name: "Systematic Data Profiling"
+description: "Comprehensive column-level and dataset-level profile for matches_raw (18 cols) and players_raw (14 cols). Column-level: null counts, zero counts, cardinality, descriptive stats, skewness, kurtosis, IQR outliers, top-k values. Dataset-level: row counts, duplicate detection, class balance, completeness matrix, linkage integrity, memory footprint. Critical detection: dead fields, constant columns, near-constant columns. Distribution analysis: QQ plots and empirical CDFs with RESERVOIR(50K) sampling. All columns annotated with I3 temporal class. ELO sentinels reported with and without exclusion."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_03 -- Systematic Data Profiling"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "aoestats"
+question: "What is the comprehensive column-level and dataset-level statistical profile for matches_raw and players_raw? What are the dead, constant, and near-constant columns? How do key numeric columns compare to the normal distribution?"
+method: "Full-table DuckDB aggregations for column-level stats. RESERVOIR(50000) sampling for QQ plots and ECDFs. Duplicate detection via census-aligned COALESCE string-concatenation key."
+stratification: "By table (matches_raw, players_raw). ELO columns: with and without sentinel."
+predecessors:
+  - "01_02_07"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/03_profiling/01_03_01_systematic_profiling.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+    - "artifacts/01_exploration/02_eda/01_02_06_bivariate_eda.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 3"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+  plots:
+    - "artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_qq_matches.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_qq_players.png"
+    - "artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png"
+  report: "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "Every column in the profile JSON carries a temporal_class annotation (PRE-GAME, IN-GAME, POST-GAME, TARGET, CONTEXT, IDENTIFIER). Classification derived from 01_02_04/01_02_06 census findings."
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "No magic numbers. Sample size 50K justified by SE of quantile estimates. IQR fence multiplier 1.5 is Tukey (1977) standard. ELO sentinel -1 from census. NEAR_CONSTANT_CARDINALITY_CAP=5 justified by constant-column boundary (cardinality=1) plus buffer. All NULL thresholds from census JSON."
+  - number: "9"
+    how_upheld: "Profiling only. No cleaning decisions, no feature engineering, no model fitting. Critical findings are flagged for 01_04, not acted upon."
+gate:
+  artifact_check: "All 6 artifact files exist under reports/artifacts/01_exploration/03_profiling/ and are non-empty."
+  continue_predicate: "JSON contains critical_findings key. MD contains I3 classification table. All 4 PNG files exist. Notebook executes end-to-end without errors."
+  halt_predicate: "Any SQL query fails or any artifact is missing or empty."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.2 AoE2 Match Data"
+  - "Chapter 4 -- Data and Methodology > 4.2 Pre-processing"
+research_log_entry: "Required on completion."
+```
+
+---
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

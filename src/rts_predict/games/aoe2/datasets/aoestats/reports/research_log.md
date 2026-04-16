@@ -8,6 +8,47 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** Comprehensive column-level and dataset-level profiling for matches_raw (18 cols) and players_raw (14 cols). Profiling only — no cleaning decisions, no feature engineering (I9).
+
+### 01_03_01 — Systematic Data Profiling
+
+**Artifacts produced:**
+- `artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json` (27,260 bytes)
+- `artifacts/01_exploration/03_profiling/01_03_01_completeness_heatmap.png`
+- `artifacts/01_exploration/03_profiling/01_03_01_qq_matches.png`
+- `artifacts/01_exploration/03_profiling/01_03_01_qq_players.png`
+- `artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png`
+- `artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md`
+
+**I3 classification:** All 32 columns (18 matches_raw + 14 players_raw) annotated with temporal class. Classes: CONTEXT, IDENTIFIER, PRE-GAME, POST-GAME, IN-GAME, TARGET. `avg_elo` classified PRE-GAME by convention; formal leakage test deferred to 01_04.
+
+**Critical findings:**
+- Dead fields (100% NULL): none
+- Constant columns (cardinality=1): `game_type` ("random_map"), `game_speed` ("normal") — flagged for 01_04 drop
+- Near-constant columns (cardinality ≤ 5 AND uniqueness_ratio < 0.001): `leaderboard`, `starting_age`, `replay_enhanced`, `mirror`, `team`, `winner`. Cardinality cap of 5 (NEAR_CONSTANT_CARDINALITY_CAP) prevents false-positive flagging of civ (50), map (93), opening (10), patch (19), num_players (8).
+
+**ELO sentinel handling:** `team_0_elo` and `team_1_elo` stats reported both with and without sentinel value −1 (34 and 39 rows respectively). Sentinel-excluded stats use CTE pre-filter pattern (not PERCENTILE_CONT WITHIN GROUP FILTER, which has uncertain DuckDB support for ordered-set aggregates).
+
+**Completeness pattern:** IN-GAME columns are 87–91% NULL: `feudal_age_uptime` (~87% NULL), `castle_age_uptime` (~89% NULL), `imperial_age_uptime` (~91% NULL), `opening` (~67% NULL). All other columns are <1% NULL.
+
+**Distribution findings (QQ plots):** duration, avg_elo, team_0/1_elo show strong non-normality (heavy right tails, leptokurtic). old_rating and new_rating are approximately normal at this scale. match_rating_diff is near-normal with moderate tails. Age uptime columns show distinct bounded non-normal distributions (effective N ~6,500 per panel after dropna; documented in subplot titles per W2 fix).
+
+**ECDF findings:** team_0/1_elo and old_rating show similar bell-shaped cumulative distributions centered near 1000–1200 ELO. match_rating_diff ECDF is near-symmetric around zero with fat tails.
+
+**Duplicate detection:** players_raw uses census-aligned COALESCE string-concatenation key (`CAST(game_id AS VARCHAR) || '_' || COALESCE(CAST(profile_id AS VARCHAR), '__NULL__')`). Result: 489 duplicate rows, matching 01_02_04 census.
+
+**Linkage integrity:** players_without_match = 0, matches_without_players = 212,890.
+
+**Winner class balance:** near-equal split (confirmed from class_balance sub-dict in profile JSON).
+
+**SQL queries:** All embedded verbatim in markdown artifact (I6). Key queries: matches_numeric_profile, elo_no_sentinel (CTE pre-filter), duplicate_players (COALESCE key), match_linkage, qq_matches_sample, qq_players_sample, ecdf_sample.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_02_06] Statistical Tests (pass-3 addition)
 
 **Category:** A (science)
