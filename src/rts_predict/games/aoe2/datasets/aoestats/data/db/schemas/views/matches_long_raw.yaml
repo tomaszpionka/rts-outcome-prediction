@@ -1,0 +1,99 @@
+object_name: matches_long_raw
+object_type: view
+dataset: aoestats
+game: aoe2
+step: "01_04_00"
+row_count: 107626399
+generated_date: "2026-04-16"
+describe_artifact: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json
+description: >
+  Canonical long skeleton -- one row per player per match. JOIN of players_raw
+  (per-player rows) with matches_raw (per-match metadata). Filtered identically
+  to player_history_all (profile_id IS NOT NULL, started_timestamp IS NOT NULL).
+  No further cleaning.
+invariants: [I3, I5, I6, I9]
+columns:
+  - name: match_id
+    type: VARCHAR
+    nullable: true
+    notes: "Dataset-native match identifier (game_id from players_raw / matches_raw)."
+
+  - name: started_timestamp
+    type: TIMESTAMP WITH TIME ZONE
+    nullable: true
+    notes: >
+      I3 temporal anchor (source: m.started_timestamp, TIMESTAMP WITH TIME ZONE).
+      Rows where started_timestamp IS NULL excluded by WHERE clause.
+      Type unification across datasets deferred to Phase 02.
+
+  - name: side
+    type: INTEGER
+    nullable: true
+    notes: >
+      Source slot encoding: CAST(p.team AS INTEGER).
+      Values 0 and 1 for 1v1 matches; team is BIGINT in source, safe CAST.
+      Full dataset is perfectly balanced (side=0: 53,813,160 rows; side=1: 53,813,239 rows).
+
+  - name: player_id
+    type: BIGINT
+    nullable: true
+    notes: >
+      Dataset-native player identifier (CAST(p.profile_id AS BIGINT)).
+      Source type is DOUBLE; max observed value 24,853,897 is safely representable as BIGINT (< 2^53).
+
+  - name: chosen_civ_or_race
+    type: VARCHAR
+    nullable: true
+    notes: "Civilization name (p.civ column)."
+
+  - name: outcome_raw
+    type: INTEGER
+    nullable: true
+    notes: "1=win, 0=loss, NULL=unknown. Derived from p.winner BOOLEAN."
+
+  - name: rating_pre_raw
+    type: BIGINT
+    nullable: true
+    notes: >
+      Pre-match rating (p.old_rating). I3: new_rating and match_rating_diff excluded.
+      The N1 note (match_rating_diff present in player_history_all) does not affect this VIEW.
+
+  - name: map_id_raw
+    type: VARCHAR
+    nullable: true
+    notes: "Raw map identifier (m.map). Not harmonized across datasets."
+
+  - name: patch_raw
+    type: BIGINT
+    nullable: true
+    notes: "Patch/version identifier (m.patch, BIGINT)."
+
+  - name: leaderboard_raw
+    type: VARCHAR
+    nullable: true
+    notes: >
+      Ladder/queue identifier (m.leaderboard, VARCHAR).
+      Value 'random_map' for ranked 1v1 (established in 01_04_01).
+      Allows downstream 1v1 scoping without rejoining matches_raw.
+      Full distribution: team_random_map (67,912,325), random_map (35,631,915),
+      co_team_random_map (2,836,522), co_random_map (1,245,637).
+
+provenance:
+  source_tables: [players_raw, matches_raw]
+  filter: "profile_id IS NOT NULL AND started_timestamp IS NOT NULL (same as player_history_all)"
+  scope: "All game types and leaderboards. Only null profile_id and null timestamp rows excluded."
+  created_by: sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_00_source_normalization.py
+  columns_excluded:
+    - name: new_rating
+      reason: "POST-GAME (rating after match). I3 leakage prevention."
+    - name: match_rating_diff
+      reason: "POST-GAME (rating change). I3 leakage prevention."
+
+lossless_check:
+  total_players_raw: 107627584
+  null_profile_count: 1185
+  orphan_or_null_ts_count: 0
+  expected: 107626399
+  view_count: 107626399
+  anchor_source: "01_04_01 players_raw.yaml artifact (row_count: 107,627,584)"
+  passed: true

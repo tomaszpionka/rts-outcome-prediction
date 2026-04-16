@@ -1,0 +1,60 @@
+{
+  "step": "01_04_00",
+  "name": "Source Normalization to Canonical Long Skeleton",
+  "dataset": "aoe2companion",
+  "view_name": "matches_long_raw",
+  "generated_date": "2026-04-16",
+  "row_count": 277099059,
+  "schema": [
+    {"column_name": "match_id",           "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "started_timestamp",  "column_type": "TIMESTAMP", "null": "YES"},
+    {"column_name": "side",               "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "player_id",          "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "chosen_civ_or_race", "column_type": "VARCHAR",   "null": "YES"},
+    {"column_name": "outcome_raw",        "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "rating_pre_raw",     "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "map_id_raw",         "column_type": "VARCHAR",   "null": "YES"},
+    {"column_name": "patch_raw",          "column_type": "INTEGER",   "null": "YES"},
+    {"column_name": "leaderboard_raw",    "column_type": "INTEGER",   "null": "YES"}
+  ],
+  "lossless_check": {
+    "source_count": 277099059,
+    "view_count": 277099059,
+    "passed": true
+  },
+  "side_encoding_note": "aoe2companion source uses team=1 and team=2 as the two 1v1 sides (team=0 has only 449 rows). Re-encoded 0-based: team=1 -> side=0, team=2 -> side=1. Team-game values (3+) and sentinel (255) become NULL.",
+  "symmetry_audit": {
+    "full_dataset": [
+      {"side": 0, "n_rows": 130369073, "n_wins": 64632796, "win_pct": 49.5768, "n_null_outcome": 1546260},
+      {"side": 1, "n_rows": 113663573, "n_wins": 54040334, "win_pct": 47.5441, "n_null_outcome": 7126413}
+    ],
+    "side_null_rows": 33066413,
+    "side_null_note": "team-game values (3+) and sentinel (255) mapped to NULL side",
+    "scoped_1v1": {
+      "filter": "leaderboard_raw IN (6, 18)",
+      "rows": [
+        {"side": 0, "n_rows": 29921254, "n_wins": 14116649, "win_pct": 47.1793, "n_null_outcome": 1685},
+        {"side": 1, "n_rows": 29920914, "n_wins": 15801511, "win_pct": 52.8109, "n_null_outcome": 2677}
+      ],
+      "finding": "Side=0 wins 47.18%, side=1 wins 52.81% in ranked 1v1 (leaderboard 6/18). Slot asymmetry consistent with aoestats finding (47.73%/52.27%). Source of asymmetry (server-side slot assignment mechanism) is not documented in API schema. I5 concern: documented for downstream Phase 02 symmetric treatment design."
+    }
+  },
+  "leaderboard_raw_distribution": [
+    {"leaderboard_raw": 0,  "n": 78254732},
+    {"leaderboard_raw": 6,  "n": 53694523},
+    {"leaderboard_raw": 9,  "n": 50244434},
+    {"leaderboard_raw": 7,  "n": 28256453},
+    {"leaderboard_raw": 8,  "n": 24210277},
+    {"leaderboard_raw": 18, "n":  7377276},
+    {"leaderboard_raw": 19, "n":  7189856},
+    {"leaderboard_raw": 21, "n":  6532858},
+    {"leaderboard_raw": 20, "n":  5984441},
+    {"leaderboard_raw": 67, "n":  1948418}
+  ],
+  "source_tables": ["matches_raw"],
+  "sql_queries": {
+    "create_view": "\nCREATE OR REPLACE VIEW matches_long_raw AS\nSELECT\n    matchId                                              AS match_id,\n    started                                              AS started_timestamp,\n    CASE WHEN team IN (1, 2) THEN team - 1 ELSE NULL END AS side,\n    profileId                                            AS player_id,\n    civ                                                  AS chosen_civ_or_race,\n    CASE WHEN won = TRUE  THEN 1\n         WHEN won = FALSE THEN 0\n         ELSE NULL END                                   AS outcome_raw,\n    rating                                               AS rating_pre_raw,\n    map                                                  AS map_id_raw,\n    NULL                                                 AS patch_raw,\n    internalLeaderboardId                                AS leaderboard_raw\nFROM matches_raw\n",
+    "symmetry_full": "\nSELECT side, COUNT(*) AS n_rows, SUM(outcome_raw) AS n_wins,\n       ROUND(100.0 * SUM(outcome_raw) / COUNT(*), 4) AS win_pct,\n       COUNT(*) FILTER (WHERE outcome_raw IS NULL) AS n_null_outcome\nFROM matches_long_raw WHERE side IN (0, 1) GROUP BY side ORDER BY side\n",
+    "symmetry_1v1": "\nSELECT side, COUNT(*) AS n_rows, SUM(outcome_raw) AS n_wins,\n       ROUND(100.0 * SUM(outcome_raw) / COUNT(*), 4) AS win_pct,\n       COUNT(*) FILTER (WHERE outcome_raw IS NULL) AS n_null_outcome\nFROM matches_long_raw WHERE side IN (0, 1) AND leaderboard_raw IN (6, 18)\nGROUP BY side ORDER BY side\n"
+  }
+}

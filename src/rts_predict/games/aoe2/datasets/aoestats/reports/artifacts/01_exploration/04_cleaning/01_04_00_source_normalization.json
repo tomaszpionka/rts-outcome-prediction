@@ -1,0 +1,139 @@
+{
+  "step": "01_04_00",
+  "name": "Source Normalization to Canonical Long Skeleton",
+  "dataset": "aoestats",
+  "view_name": "matches_long_raw",
+  "generated_date": "2026-04-16",
+  "row_count": 107626399,
+  "schema": [
+    {
+      "column_name": "match_id",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "started_timestamp",
+      "column_type": "TIMESTAMP WITH TIME ZONE",
+      "null": "YES"
+    },
+    {
+      "column_name": "side",
+      "column_type": "INTEGER",
+      "null": "YES"
+    },
+    {
+      "column_name": "player_id",
+      "column_type": "BIGINT",
+      "null": "YES"
+    },
+    {
+      "column_name": "chosen_civ_or_race",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "outcome_raw",
+      "column_type": "INTEGER",
+      "null": "YES"
+    },
+    {
+      "column_name": "rating_pre_raw",
+      "column_type": "BIGINT",
+      "null": "YES"
+    },
+    {
+      "column_name": "map_id_raw",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "patch_raw",
+      "column_type": "BIGINT",
+      "null": "YES"
+    },
+    {
+      "column_name": "leaderboard_raw",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    }
+  ],
+  "lossless_check": {
+    "total_players_raw": 107627584,
+    "null_profile_count": 1185,
+    "orphan_or_null_ts_count": 0,
+    "expected": 107626399,
+    "view_count": 107626399,
+    "anchor_cross_check": "total_players_raw == 107,627,584 (from 01_04_01 artifact)",
+    "passed": true
+  },
+  "symmetry_audit": {
+    "full_dataset": [
+      {
+        "side": 0,
+        "n_rows": 53813160,
+        "n_wins": 26351008,
+        "win_pct": 48.9676,
+        "n_null_outcome": 0
+      },
+      {
+        "side": 1,
+        "n_rows": 53813239,
+        "n_wins": 27459785,
+        "win_pct": 51.0279,
+        "n_null_outcome": 0
+      }
+    ],
+    "scoped_1v1": {
+      "filter": "leaderboard_raw = 'random_map'",
+      "rows": [
+        {
+          "side": 0,
+          "n_rows": 17815971,
+          "n_wins": 8503784,
+          "win_pct": 47.7312,
+          "n_null_outcome": 0
+        },
+        {
+          "side": 1,
+          "n_rows": 17815944,
+          "n_wins": 9311550,
+          "win_pct": 52.2653,
+          "n_null_outcome": 0
+        }
+      ]
+    }
+  },
+  "leaderboard_raw_distribution": [
+    {
+      "leaderboard_raw": "team_random_map",
+      "n": 67912325
+    },
+    {
+      "leaderboard_raw": "random_map",
+      "n": 35631915
+    },
+    {
+      "leaderboard_raw": "co_team_random_map",
+      "n": 2836522
+    },
+    {
+      "leaderboard_raw": "co_random_map",
+      "n": 1245637
+    }
+  ],
+  "source_tables": [
+    "players_raw",
+    "matches_raw"
+  ],
+  "sql_queries": {
+    "create_view": "\nCREATE OR REPLACE VIEW matches_long_raw AS\nSELECT\n    p.game_id                              AS match_id,\n    m.started_timestamp                    AS started_timestamp,\n    CAST(p.team AS INTEGER)                AS side,\n    CAST(p.profile_id AS BIGINT)           AS player_id,\n    p.civ                                  AS chosen_civ_or_race,\n    CASE WHEN p.winner = TRUE  THEN 1\n         WHEN p.winner = FALSE THEN 0\n         ELSE NULL END                     AS outcome_raw,\n    p.old_rating                           AS rating_pre_raw,\n    m.map                                  AS map_id_raw,\n    m.patch                                AS patch_raw,\n    m.leaderboard                          AS leaderboard_raw\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nWHERE p.profile_id IS NOT NULL\n  AND m.started_timestamp IS NOT NULL\n",
+    "total_players": "SELECT COUNT(*) AS total_players FROM players_raw",
+    "null_profile": "SELECT COUNT(*) AS null_profile FROM players_raw WHERE profile_id IS NULL",
+    "orphan_or_null_ts": "\nSELECT COUNT(*) AS orphan_or_null_ts\nFROM players_raw p\nLEFT JOIN matches_raw m ON p.game_id = m.game_id\nWHERE m.started_timestamp IS NULL OR m.game_id IS NULL\n",
+    "view_count": "SELECT COUNT(*) AS view_count FROM matches_long_raw",
+    "describe": "DESCRIBE matches_long_raw",
+    "symmetry_full": "\nSELECT\n    side,\n    COUNT(*)                                             AS n_rows,\n    SUM(outcome_raw)                                     AS n_wins,\n    ROUND(100.0 * SUM(outcome_raw) / COUNT(*), 4)       AS win_pct,\n    COUNT(*) FILTER (WHERE outcome_raw IS NULL)          AS n_null_outcome\nFROM matches_long_raw\nWHERE side IN (0, 1)\nGROUP BY side\nORDER BY side\n",
+    "symmetry_1v1": "\nSELECT\n    side,\n    COUNT(*)                                             AS n_rows,\n    SUM(outcome_raw)                                     AS n_wins,\n    ROUND(100.0 * SUM(outcome_raw) / COUNT(*), 4)       AS win_pct,\n    COUNT(*) FILTER (WHERE outcome_raw IS NULL)          AS n_null_outcome\nFROM matches_long_raw\nWHERE side IN (0, 1)\n  AND leaderboard_raw = 'random_map'\nGROUP BY side\nORDER BY side\n",
+    "leaderboard_distribution": "\nSELECT leaderboard_raw, COUNT(*) AS n\nFROM matches_long_raw\nGROUP BY leaderboard_raw\nORDER BY n DESC\nLIMIT 10\n"
+  }
+}

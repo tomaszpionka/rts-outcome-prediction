@@ -1,0 +1,108 @@
+{
+  "step": "01_04_00",
+  "name": "Source Normalization to Canonical Long Skeleton",
+  "dataset": "sc2egset",
+  "view_name": "matches_long_raw",
+  "generated_date": "2026-04-16",
+  "row_count": 44817,
+  "schema": [
+    {
+      "column_name": "match_id",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "started_timestamp",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "side",
+      "column_type": "INTEGER",
+      "null": "YES"
+    },
+    {
+      "column_name": "player_id",
+      "column_type": "VARCHAR",
+      "null": "NO"
+    },
+    {
+      "column_name": "chosen_civ_or_race",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "outcome_raw",
+      "column_type": "INTEGER",
+      "null": "YES"
+    },
+    {
+      "column_name": "rating_pre_raw",
+      "column_type": "INTEGER",
+      "null": "YES"
+    },
+    {
+      "column_name": "map_id_raw",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "patch_raw",
+      "column_type": "VARCHAR",
+      "null": "YES"
+    },
+    {
+      "column_name": "leaderboard_raw",
+      "column_type": "INTEGER",
+      "null": "YES"
+    }
+  ],
+  "lossless_check": {
+    "source_join_count": 44817,
+    "view_count": 44817,
+    "passed": true
+  },
+  "symmetry_audit": {
+    "full_dataset": [
+      {
+        "side": 0,
+        "n_rows": 22390,
+        "n_wins": 11634,
+        "win_pct": 51.9607,
+        "n_null_outcome": 13
+      },
+      {
+        "side": 1,
+        "n_rows": 22387,
+        "n_wins": 10740,
+        "win_pct": 47.9743,
+        "n_null_outcome": 13
+      }
+    ],
+    "scoped_1v1": {
+      "note": "sc2egset is tournament data with no matchmaking ladder; leaderboard_raw = NULL for all rows. No scoped 1v1 audit applicable.",
+      "rows": []
+    }
+  },
+  "leaderboard_raw_distribution": [
+    {
+      "leaderboard_raw": null,
+      "n": 44817
+    }
+  ],
+  "source_tables": [
+    "replay_players_raw",
+    "replays_meta_raw"
+  ],
+  "sql_queries": {
+    "create_view": "\nCREATE OR REPLACE VIEW matches_long_raw AS\nSELECT\n    NULLIF(\n        regexp_extract(rp.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1),\n        ''\n    )                                                             AS match_id,\n    rm.details.timeUTC                                            AS started_timestamp,\n    rp.playerID - 1                                               AS side,\n    rp.toon_id                                                    AS player_id,\n    rp.race                                                       AS chosen_civ_or_race,\n    CASE WHEN rp.result = 'Win'  THEN 1\n         WHEN rp.result = 'Loss' THEN 0\n         ELSE NULL END                                            AS outcome_raw,\n    rp.MMR                                                        AS rating_pre_raw,\n    rm.metadata.mapName                                           AS map_id_raw,\n    rm.metadata.gameVersion                                       AS patch_raw,\n    NULL                                                          AS leaderboard_raw\nFROM replay_players_raw rp\nINNER JOIN replays_meta_raw rm\n  ON NULLIF(\n         regexp_extract(rp.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1),\n         ''\n     )\n   = NULLIF(\n         regexp_extract(rm.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1),\n         ''\n     )\n",
+    "count_view": "SELECT COUNT(*) FROM matches_long_raw",
+    "count_join": "\nSELECT COUNT(*) FROM replay_players_raw rp\nINNER JOIN replays_meta_raw rm\n  ON NULLIF(regexp_extract(rp.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1), '')\n   = NULLIF(regexp_extract(rm.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1), '')\n",
+    "describe": "DESCRIBE matches_long_raw",
+    "side_distinct": "SELECT DISTINCT side FROM matches_long_raw ORDER BY side",
+    "side_distribution": "SELECT side, COUNT(*) AS n FROM matches_long_raw GROUP BY side ORDER BY side",
+    "symmetry_full": "\nSELECT\n    side,\n    COUNT(*)                                             AS n_rows,\n    SUM(outcome_raw)                                     AS n_wins,\n    ROUND(100.0 * SUM(outcome_raw) / COUNT(*), 4)       AS win_pct,\n    COUNT(*) FILTER (WHERE outcome_raw IS NULL)          AS n_null_outcome\nFROM matches_long_raw\nWHERE side IN (0, 1)\nGROUP BY side\nORDER BY side\n",
+    "null_match_id": "SELECT COUNT(*) AS null_match_id FROM matches_long_raw WHERE match_id IS NULL",
+    "leaderboard_distribution": "\nSELECT leaderboard_raw, COUNT(*) AS n\nFROM matches_long_raw\nGROUP BY leaderboard_raw\n"
+  }
+}

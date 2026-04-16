@@ -719,6 +719,158 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_04_00 -- Source Normalization to Canonical Long Skeleton
+
+```yaml
+step_number: "01_04_00"
+name: "Source Normalization to Canonical Long Skeleton"
+description: >
+  Creates the matches_long_raw VIEW: a canonical 10-column long skeleton with one row
+  per player per match. Structural INNER JOIN of replay_players_raw x replays_meta_raw
+  using the 32-char hex hash extracted from filename (same key as matches_flat in 01_04_01).
+  NULLIF guard converts empty-string non-matches to NULL. No filtering, no cleaning,
+  no feature computation. leaderboard_raw is NULL for all rows (SC2EGSet is an esports
+  tournament dataset with no matchmaking ladder -- deliberate NULL, not missing data).
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
+dataset: "sc2egset"
+question: >
+  Can replay_players_raw JOIN replays_meta_raw be projected losslessly into the canonical
+  10-column long skeleton that all downstream cleaning steps will operate against?
+method: >
+  INNER JOIN of replay_players_raw x replays_meta_raw on NULLIF-guarded hex-hash regexp
+  key. Lossless check compares VIEW count against the same JOIN computed directly on raw
+  tables. Side derived as playerID - 1 (0-based). started_timestamp taken from
+  rm.details.timeUTC (struct dot notation, VARCHAR). leaderboard_raw = NULL constant.
+predecessors:
+  - "01_04_01"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_00_source_normalization.py"
+outputs:
+  duckdb_views:
+    - "matches_long_raw"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md"
+  schema_yaml: "data/db/schemas/views/matches_long_raw.yaml"
+gate:
+  artifact_check: >
+    JSON artifact exists with row_count, schema, lossless_check, symmetry_audit,
+    and all SQL queries verbatim. matches_long_raw VIEW is queryable and returns 44,817 rows.
+    Distinct side values include 0 and 1 (main players); schema YAML exists.
+  continue_predicate: >
+    Lossless check PASSED (matches_long_raw rows == direct JOIN count).
+    STEP_STATUS.yaml has 01_04_00: complete.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      MMR retained (PRE_GAME per 01_04_01 analysis). APM, SQ, supplyCappedPercent,
+      header_elapsedGameLoops excluded. I3 preserved.
+  - number: "5"
+    how_upheld: >
+      Player-row-oriented VIEW. No slot-based pivoting. Both players in any match
+      are represented with the same 10-column structure.
+  - number: "6"
+    how_upheld: "All SQL queries written verbatim to JSON artifact under sql_queries."
+  - number: "9"
+    how_upheld: >
+      No features computed. No rows filtered beyond INNER JOIN unmatched exclusion.
+      Raw data untouched.
+research_log_entry: "Required on completion."
+```
+
+### Step 01_04_01 -- Data Cleaning
+
+```yaml
+step_number: "01_04_01"
+name: "Data Cleaning"
+description: >
+  Non-destructive cleaning of replay_players_raw and replays_meta_raw. Creates three
+  DuckDB VIEWs: matches_flat (structural JOIN of all replay data via replay_id extracted
+  from filename), matches_flat_clean (prediction targets: 1v1 decisive results only,
+  PRE-GAME features only per temporal discipline), and player_history_all (player history
+  features: all replays including non-1v1 and indecisive, retaining in-game metrics as
+  valid historical signals for prior matches). Resolves the structural blocker from
+  fixes_and_next_steps.md requiring the matches_flat JOIN before any downstream work.
+phase: "01 — Data Exploration"
+pipeline_section: "01_04 — Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
+dataset: "sc2egset"
+question: >
+  Which replays are suitable for binary classification of 1v1 match outcomes? How
+  should pre-game features be separated from in-game features? What player history
+  is valid for feature computation?
+method: >
+  Three VIEWs built in sequence.
+  matches_flat: structural JOIN of replay_players_raw and replays_meta_raw via
+  replay_id extracted from filename using regexp with NULLIF guard (empty-string
+  protection). All 31 struct leaf fields from replays_meta_raw extracted. Constant
+  columns (gameSpeed cardinality=1) and duplicate isBlizzardMap column excluded
+  after empirical verification of zero mismatches.
+  matches_flat_clean (prediction target): filters to true 1v1 decisive replays
+  (exactly 2 players, one Win and one Loss); applies replay-level MMR exclusion
+  (any replay with at least one MMR<0 player excluded entirely, preserving the
+  2-players-per-replay invariant); normalises selectedRace empty string to 'Random';
+  corrects SQ parse-failure sentinel to NULL; flags MMR=0 unrated players, map_size=0
+  anomalies, and handicap=0 anomalies; excludes all in-game metrics (APM, SQ,
+  supplyCappedPercent, elapsed game loops) per temporal discipline.
+  player_history_all (feature history source): all replays in matches_flat, no
+  1v1/decisive filter; retains APM, SQ, supplyCappedPercent as valid historical
+  signals for prior matches (temporal discipline applies at the target match level,
+  not to historical records).
+  CONSORT flow tracks exclusions in replay units (not row units).
+predecessors:
+  - "01_03_04"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_01_data_cleaning.py"
+inputs:
+  duckdb_tables:
+    - "replay_players_raw (44,817 rows)"
+    - "replays_meta_raw (22,390 rows)"
+outputs:
+  duckdb_views:
+    - "matches_flat (44,817 rows / 22,390 replays)"
+    - "matches_flat_clean (44,418 rows / 22,209 replays)"
+    - "player_history_all (44,817 rows / 22,390 replays)"
+  schema_yamls:
+    - "data/db/schemas/views/player_history_all.yaml"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md"
+reproducibility: "Code and output in the paired notebook."
+key_findings:
+  - "157 replays excluded due to at least one player having MMR<0; replay-level exclusion preserves the 2-players-per-replay invariant"
+  - "181 replays present in player_history_all but not in matches_flat_clean (non-1v1, indecisive, or MMR<0 — retained as player history)"
+  - "2,495 distinct players (toon_ids) across all replays"
+  - "gd_isBlizzardMap confirmed identical to details_isBlizzardMap (zero mismatches) — duplicate column dropped"
+  - "gameSpeed column is constant across all replays — excluded from both VIEWs"
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      matches_flat_clean excludes APM, SQ, supplyCappedPercent, elapsed game loops
+      (all in-game metrics). player_history_all retains them as valid historical signals
+      for prior matches. Temporal discipline applies at the target match level only,
+      not to historical records. Python assertion confirms forbidden columns absent
+      from matches_flat_clean.
+  - number: "6"
+    how_upheld: "All VIEW DDL and SQL queries stored verbatim in JSON artifact under sql_queries."
+  - number: "7"
+    how_upheld: >
+      All cleaning thresholds sourced from prior profiling artifacts: MMR<0 from
+      impossibility argument confirmed in 01_03_01, SQ parse-failure sentinel from
+      01_03_01, map_size=0 from 01_02_04 and 01_03_01. No hard-coded magic numbers.
+  - number: "9"
+    how_upheld: "No rows deleted. Raw tables untouched. All three VIEWs are non-destructive projections."
+gate:
+  artifact_check: >
+    JSON and MD artifacts exist. Schema YAML for player_history_all exists with
+    row_count populated and in-game historical annotation on APM/SQ columns.
+  continue_predicate: >
+    matches_flat returns 44,817 rows. matches_flat_clean returns rows with APM column
+    absent. player_history_all returns 44,817 rows with APM column present. CONSORT
+    arithmetic verified. Zero symmetry violations. STEP_STATUS.yaml has 01_04_01: complete.
+  halt_predicate: "Any VIEW fails to create or validation assertions fail."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

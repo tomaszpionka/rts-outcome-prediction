@@ -2,6 +2,139 @@
 
 ---
 
+## 2026-04-16 -- [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** Create matches_long_raw VIEW. INNER JOIN replay_players_raw x replays_meta_raw into 10-column canonical schema.
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md`
+- `data/db/schemas/views/matches_long_raw.yaml`
+- **DuckDB VIEW:** `matches_long_raw`
+
+### What
+
+Created `matches_long_raw` VIEW: canonical 10-column long skeleton (match_id, started_timestamp,
+side, player_id, chosen_civ_or_race, outcome_raw, rating_pre_raw, map_id_raw, patch_raw,
+leaderboard_raw). Structural INNER JOIN of replay_players_raw x replays_meta_raw via
+hex-hash regexp key (same as matches_flat). 44,817 rows. leaderboard_raw = NULL for all rows.
+
+### Why
+
+Unify grain across all three datasets before downstream cleaning.
+
+### How (reproducibility)
+
+Notebook: `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_00_source_normalization.py`
+
+### Findings
+
+- **Lossless check PASSED:** 44,817 rows (matches_long_raw == direct JOIN count).
+- **Side values:** Distinct values 0-8. Side=0: 22,390 rows (playerID=1); side=1: 22,387 rows (playerID=2).
+  Values 2-8: 37 rows total (rare multi-player/observer slots).
+- **Symmetry audit (side IN (0,1)):**
+  side=0: 22,390 rows, win_pct=51.96%, n_null=13.
+  side=1: 22,387 rows, win_pct=47.97%, n_null=13.
+  Mild asymmetry: side=0 wins ~52% (3.99pp deviation). Alert threshold (10pp) not breached.
+- **leaderboard_raw:** NULL for all 44,817 rows (tournament dataset, no matchmaking ladder).
+- **NULL match_id:** 0 rows (NULLIF guard effective; all filenames match the hex-hash pattern).
+- **started_timestamp type:** VARCHAR (details.timeUTC struct dot notation). Type unification deferred to Phase 02.
+
+### Decisions taken
+
+- details.timeUTC accessed via struct dot notation (rm.details.timeUTC).
+- NULLIF guard included for match_id (consistent with matches_flat in 01_04_01).
+- leaderboard_raw = NULL constant (deliberate; tournament data).
+
+### Decisions deferred
+
+- started_timestamp type unification (VARCHAR -> TIMESTAMP) deferred to Phase 02.
+- MMR sentinel 0 (unrated) handling deferred to Phase 02.
+- Side=0 win asymmetry (51.96% vs 47.97%) documented; not corrected at this step.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.1 -- SC2EGSet dataset description, data normalization
+
+---
+
+## 2026-04-16 -- [Phase 01 / Step 01_04_01] Data Cleaning
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** Non-destructive cleaning -- creates 3 DuckDB VIEWs (matches_flat,
+matches_flat_clean, player_history_all)
+**Revision:** 1 (incorporates critique BLOCKER F01, WARNINGS W02-W05)
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md`
+- `data/db/schemas/views/player_history_all.yaml`
+
+### What
+
+Created three DuckDB VIEWs resolving the F01 structural blocker (matches_flat
+JOIN) and implementing the dual-scope cleaning design:
+
+1. **matches_flat** (44,817 rows / 22,390 replays): Structural JOIN of
+   replay_players_raw x replays_meta_raw via NULLIF-guarded regexp_extract.
+   No filters. All columns retained.
+
+2. **matches_flat_clean** (44,418 rows / 22,209 replays): Prediction target
+   VIEW. True 1v1 decisive only (R01: -24 replays). MMR<0 replays excluded
+   at REPLAY level (R03: -157 replays, BLOCKER F01 fix). PRE-GAME features
+   only (I3: APM, SQ, supplyCappedPercent, header_elapsedGameLoops excluded).
+   Constant columns excluded (W02: gameSpeed). Duplicate column excluded
+   (W03: gd_isBlizzardMap). No APM-derived flags (W05).
+
+3. **player_history_all** (44,817 rows / 22,390 replays): Player feature
+   history VIEW. All replays retained (including non-1v1 and indecisive).
+   APM, SQ, supplyCappedPercent, header_elapsedGameLoops RETAINED as valid
+   IN_GAME_HISTORICAL signals for prior matches.
+
+### CONSORT Flow (REPLAY units)
+
+| Stage | Replays | Rows |
+|-------|---------|------|
+| Raw (replays_meta_raw) | 22,390 | -- |
+| Raw (replay_players_raw) | -- | 44,817 |
+| matches_flat (JOIN) | 22,390 | 44,817 |
+| After R01 (true_1v1_decisive) | 22,366 | 44,732 |
+| R01 excluded (non-1v1 + indecisive) | -24 | -85 |
+| After R03 (MMR<0 replay-level) | 22,209 | 44,418 |
+| R03 excluded (any MMR<0 player) | -157 | -314 |
+| **matches_flat_clean (final)** | **22,209** | **44,418** |
+| player_history_all (all replays) | 22,390 | 44,817 |
+
+R03 is a REPLAY-LEVEL exclusion (BLOCKER F01 fix). Row-level filtering would
+orphan the opponent's row, breaking the 2-per-replay invariant.
+
+### Key Findings
+
+- isBlizzardMap duplication: gd_isBlizzardMap == details_isBlizzardMap for
+  all 44,817 rows (mismatch=0). gd_isBlizzardMap excluded from downstream VIEWs.
+- gameSpeed constant: cardinality=1 for both details_gameSpeed and gd_gameSpeed.
+  Both excluded from downstream VIEWs (W02).
+- NULLIF guard: null_replay_id=0 in matches_flat (W04 fix verified).
+- R03 scope: all 157 MMR<0-containing replays are in true_1v1_decisive scope
+  (not already excluded by R01).
+- Result distribution in matches_flat_clean: 50.0% Win / 50.0% Loss (perfect).
+- Symmetry: 0 violations (every clean replay has exactly 1 Win + 1 Loss row).
+- Unique players in player_history_all: 2,495 distinct toon_ids.
+- selectedRace normalization: 1,110 empty strings normalized to 'Random' (R04).
+- SQ sentinel: 2 rows with INT32_MIN -> NULL in player_history_all (R05).
+- map_size=0: 273 replays (271 also in 1v1_decisive scope); flagged, not excluded.
+
+### Critique Fixes Applied
+
+- **F01 (BLOCKER):** R03 replay-level CTE (mmr_valid). 157 replays excluded.
+- **W02:** gameSpeed columns excluded (verified constant, cardinality=1).
+- **W03:** gd_isBlizzardMap excluded (verified identical, mismatch=0).
+- **W04:** NULLIF wrapper on regexp_extract. null_replay_id=0 confirmed.
+- **W05:** No APM-derived columns in any VIEW.
+
+---
+
 ## 2026-04-15 -- [Phase 01 / Step 01_03_04] Event Table Profiling
 
 **Category:** A (science)

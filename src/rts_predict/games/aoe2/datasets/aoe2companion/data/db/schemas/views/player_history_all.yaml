@@ -1,0 +1,159 @@
+table: player_history_all
+dataset: aoe2companion
+game: aoe2
+object_type: view
+step: "01_04_01"
+row_count: 264132745
+describe_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json
+generated_date: '2026-04-16'
+columns:
+- name: matchId
+  type: INTEGER
+  nullable: true
+  description: Match identifier. Join key for linking player rows to a match.
+  notes: "IDENTITY / CONTEXT. Temporal join key for feature computation."
+
+- name: profileId
+  type: INTEGER
+  nullable: true
+  description: Player profile identifier. Primary player identity key in aoe2companion.
+  notes: "IDENTITY. All profileId=-1 rows excluded (R02 / R00)."
+
+- name: name
+  type: VARCHAR
+  nullable: true
+  description: Player in-game display name at time of match.
+  notes: "IDENTITY. Not used as canonical identifier (server-scoped); see I2."
+
+- name: started
+  type: TIMESTAMP
+  nullable: true
+  description: Match start timestamp. Temporal anchor for I3 discipline.
+  notes: "CONTEXT. I3: downstream feature queries must use WHERE ph.started < target_match.started."
+
+- name: leaderboard
+  type: VARCHAR
+  nullable: true
+  description: Ladder name (rm_1v1, rm_team, unranked, etc.). 21 distinct values.
+  notes: "CONTEXT. No restriction applied: all game types included for feature scope."
+
+- name: internalLeaderboardId
+  type: INTEGER
+  nullable: true
+  description: Numeric ladder ID. Maps to ratings_raw.leaderboard_id for cross-table joins.
+  notes: "CONTEXT. Not filtered; all leaderboard IDs present."
+
+- name: map
+  type: VARCHAR
+  nullable: true
+  description: Map name (e.g., arabia, arena, black_forest).
+  notes: "PRE_GAME. Available before match start."
+
+- name: civ
+  type: VARCHAR
+  nullable: true
+  description: Civilization name (e.g., Franks, Mongols, Britons).
+  notes: "PRE_GAME. Player's civilization choice. Feature candidate for civ proficiency."
+
+- name: rating
+  type: INTEGER
+  nullable: true
+  description: Player ELO rating entering the match. Confirmed PRE-GAME in 01_03_03 (99.8%).
+  notes: "PRE_GAME. I3: use only games where started < target_match.started."
+
+- name: color
+  type: INTEGER
+  nullable: true
+  description: In-game player color code (1-8).
+  notes: "CONTEXT. Lobby assignment; not predictive."
+
+- name: slot
+  type: INTEGER
+  nullable: true
+  description: Player slot index in the lobby.
+  notes: "CONTEXT. Lobby assignment."
+
+- name: team
+  type: INTEGER
+  nullable: true
+  description: Team number. Sentinel value 255 exists in some records.
+  notes: "CONTEXT. For 1v1 matches, always team 1 or 2."
+
+- name: startingAge
+  type: VARCHAR
+  nullable: true
+  description: Starting age setting (dark, feudal, castle, imperial).
+  notes: "PRE_GAME. Game setting; near-constant in ranked play."
+
+- name: gameMode
+  type: VARCHAR
+  nullable: true
+  description: Game mode identifier (e.g., random_map, empire_wars).
+  notes: "PRE_GAME. Game setting."
+
+- name: speed
+  type: VARCHAR
+  nullable: true
+  description: Game speed setting name (e.g., normal, fast).
+  notes: "PRE_GAME. Game setting; near-constant in ranked play."
+
+- name: won
+  type: BOOLEAN
+  nullable: true
+  description: Match outcome for this player. TRUE = won, FALSE = lost.
+  notes: "TARGET. Prediction label for matches_1v1_clean. In player_history_all, used for historical win-rate feature computation."
+
+- name: country
+  type: VARCHAR
+  nullable: true
+  description: Player country code (ISO 3166-1 alpha-2).
+  notes: "IDENTITY / CONTEXT. Player attribute; potential demographic feature."
+
+- name: status
+  type: VARCHAR
+  nullable: true
+  description: Player status (player or ai).
+  notes: "IDENTITY. All rows are status=player after R00 exclusions."
+
+- name: verified
+  type: BOOLEAN
+  nullable: true
+  description: Whether the player account is verified.
+  notes: "IDENTITY. Account attribute."
+
+- name: filename
+  type: VARCHAR
+  nullable: true
+  description: Source Parquet file path relative to raw_dir (I10).
+  notes: "IDENTITY / PROVENANCE. Invariant I10: relative path only."
+
+provenance:
+  source_tables: [matches_raw]
+  filter: "profileId != -1; deduplicated by (matchId, profileId) ORDER BY started (earliest wins)"
+  scope: "All game types (no internalLeaderboardId restriction). Prediction scope != feature scope."
+  created_by: sandbox/aoe2/aoe2companion/01_exploration/04_cleaning/01_04_01_data_cleaning.py
+  columns_excluded:
+    - name: ratingDiff
+      reason: "POST-GAME (rating change after match). I3 leakage prevention."
+    - name: finished
+      reason: "POST-GAME (game end timestamp). I3 leakage prevention."
+
+invariants:
+  - id: I3
+    description: >
+      POST-GAME columns ratingDiff and finished excluded. Temporal anchor (started)
+      exposed for downstream WHERE ph.started < target_match.started.
+      V2 validation confirms 0 POST-GAME columns in view (see describe_artifact).
+  - id: I5
+    description: >
+      Player-row-oriented (one row per player per match). No slot-based pivoting.
+      profileId is the identity key. Both players in any match are represented
+      identically with the same column structure.
+  - id: I6
+    description: >
+      VIEW DDL stored verbatim in 01_04_01_data_cleaning.json under
+      sql_queries.T06_player_history_all_view.
+  - id: I9
+    description: >
+      No features computed here. VIEW is a filtered projection of matches_raw.
+      Feature computation from player_history_all occurs in 01_05 / Phase 02.
