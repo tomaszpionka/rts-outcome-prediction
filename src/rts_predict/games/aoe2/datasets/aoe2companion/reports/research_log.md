@@ -8,6 +8,147 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_03_03] Table Utility Assessment
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** profiling (read-only — no DuckDB writes, no new tables)
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_03_table_utility_assessment.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_03_table_utility_assessment.md`
+
+### What
+
+Ran empirical diagnostic queries on all 4 raw tables to determine I3 classification and prediction pipeline utility. Resolved the matches_raw.rating pre/post-game ambiguity via cross-reference with ratings_raw. All SQL written verbatim to artifacts (I6).
+
+### Key finding: matches_raw.rating is definitively the PRE-GAME rating
+
+Cross-reference of matches_raw.rating against ratings_raw per-game entries for a focal player (profileId=3299155, 3,942 matches, lb=0/unranked):
+
+- **PRE-GAME hypothesis** (rating_before = MAX_BY(r.rating, r.date) WHERE r.date <= m.started): **99.8% exact match** (3,933 / 3,942 matches)
+- **POST-GAME derived** (match_rating + ratingDiff == rating_after): 79.2% (explained by the fact that the nearest-after entry for many matches belongs to a different match played by the same player shortly after)
+
+The ~0.2% mismatch in the pre-game test is attributable to gaps in ratings_raw coverage (games played between two consecutive ratings_raw entries). The conclusion is unambiguous: **matches_raw.rating is the pre-game rating**. ratingDiff = post_game_rating - pre_game_rating.
+
+This resolves the AMBIGUOUS classification from 01_02_04 census.
+
+### Table utility verdicts
+
+| Table | I3 Classification | Notes |
+|---|---|---|
+| `matches_raw` | USABLE | Primary feature source. rating=pre-game (99.8%), 74% of rm_1v1 rows have rating |
+| `ratings_raw` | CONDITIONALLY_USABLE | No rm_1v1 data (lb=6 absent). Only lb=0 (unranked, 25.8M rows) and lb=3/4 (dm_team) |
+| `leaderboards_raw` | NOT_USABLE_FOR_TEMPORAL_FEATURES | Single snapshot per player (avg_entries_per_player=1.0). I3 violation for any T before April 2026 |
+| `profiles_raw` | NOT_USABLE_FOR_TEMPORAL_FEATURES | Zero TIMESTAMP columns. 100% coverage of match players. steamId/clan unique vs matches_raw |
+
+### Leaderboard key mapping finding
+
+`ratings_raw.leaderboard_id` does NOT map 1:1 to `matches_raw.internalLeaderboardId` for rm_1v1:
+- `matches_raw` rm_1v1: `internalLeaderboardId = 6`
+- `ratings_raw`: has zero rows with `leaderboard_id = 6`
+
+The usable cross-reference is only for lb=0 (unranked). For rm_1v1 prediction, the rating history must come from `matches_raw.rating` (pre-game, 74% complete) rather than `ratings_raw`.
+
+### leaderboards_raw snapshot confirmation
+
+`leaderboards_raw` has exactly 1 row per player per leaderboard (avg_entries_per_player=1.000 for rm_1v1, rm_team, unranked). The `updatedAt` column is a per-player last-activity timestamp, not a collection date for multiple snapshots. Coverage of rm_1v1 match players: 242,054 / 538,280 (45.0%).
+
+### Cross-dataset summary (01_03_03 across all three datasets)
+
+| Dataset | Table | Verdict | Key finding |
+|---------|-------|---------|-------------|
+| **aoe2companion** | matches_raw | ESSENTIAL | `rating` is PRE-GAME (99.8% match with ratings_raw), sole source for rm_1v1 ratings |
+| | ratings_raw | CONDITIONALLY USABLE | No rm_1v1 coverage (leaderboard_id=6 absent). Useful for other leaderboards only |
+| | leaderboards_raw | NOT USABLE | Singleton snapshot, 1 entry per player per leaderboard. I3 violation risk |
+| | profiles_raw | NOT USABLE | No temporal dimension. Adds steamId/clan (99.9% non-null) but not usable for temporal features |
+| **aoestats** | matches_raw | ESSENTIAL | Temporal anchor (`started_timestamp`), match context (map, leaderboard, patch) |
+| | players_raw | ESSENTIAL | Target (`winner`), `old_rating` (pre-game), `civ`. ELO perfectly derivable (Spearman rho=1.0 with avg_elo in 1v1) |
+| | overviews_raw | SUPPLEMENTARY | Singleton lookup. Patch release dates are the only unique data |
+| **sc2egset** | replay_players_raw | ESSENTIAL | Target (`result`), player features (MMR, race, selectedRace) |
+| | replays_meta_raw | ESSENTIAL | Match metadata, 31 struct fields. Join via replay_id (regexp_extract) |
+| | map_aliases_raw | CONDITIONAL | All 188 map names already English — translation not required |
+| | event views (3) | IN_GAME_ONLY | Deferred to optional Phase 02 in-game comparison |
+
+---
+
+## 2026-04-16 — [Phase 01 / Step 01_03_02] True 1v1 Match Identification
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** profiling (read-only — no DuckDB writes, no new tables)
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md`
+
+### What
+
+Identified the full population of genuine 1v1 matches in matches_raw (277,099,059 rows, 74,788,989 distinct matchIds) using structural criteria applied via DuckDB aggregate queries. No temporal features computed, no tables created. All SQL written verbatim to artifacts (I6).
+
+### Key finding: all matchIds have exactly 1 leaderboard value
+
+The leaderboard_cardinality_per_match diagnostic confirmed that all 74,788,989 distinct matchIds appear under exactly 1 leaderboard value — zero cross-leaderboard matchIds exist. The 01_03_01 matchId cardinality (61,799,126) was a significant HLL underestimate (~21% below true value); exact COUNT(DISTINCT matchId) = 74,788,989 confirmed by direct query. The per-leaderboard distinct matchId sums from 01_02_04 (74,788,989) are therefore exact, not inflated by cross-leaderboard overlap. The leaderboard column is a clean single-value-per-match identifier.
+
+### Rows-per-match distribution
+
+| Rows/Match | Matches | % |
+|---|---|---|
+| 1 | 782,044 | 1.05% |
+| 2 | 40,062,975 | 53.57% |
+| 3 | 2,013,196 | 2.69% |
+| 4 | 12,288,436 | 16.43% |
+| 5 | 677,201 | 0.91% |
+| 6 | 6,864,783 | 9.18% |
+| 7 | 379,802 | 0.51% |
+| 8 | 11,720,552 | 15.67% |
+
+### True 1v1 criteria funnel (structural, no deduplication)
+
+| Level | Criterion | Matches | % |
+|---|---|---|---|
+| total_matches | All distinct matchIds | 74,788,989 | 100.00% |
+| L1 | Exactly 2 rows | 40,062,975 | 53.57% |
+| L2 | L1 + both status='player' | 39,882,778 | 53.33% |
+| L3 | L2 + both won IS NOT NULL | 39,878,383 | 53.32% |
+| L4 | L3 + one won=true, one won=false | 35,479,656 | 47.44% |
+| L5 | L4 + 2 distinct profileId (excl -1) | 35,479,656 | 47.44% |
+| L6 | L5 + 2 distinct teams | 34,630,907 | 46.30% |
+
+L5 = L4 (35,479,656): all complementary-won 2-human matches already have 2 distinct non-(-1) profileIds.
+
+Deduplication recovers 1,940,722 additional matchIds at L1 (matchIds with >2 rows but exactly 2 distinct human profileIds), raising dedup-L1 to 42,003,697.
+
+### Proxy vs structural overlap
+
+rm_1v1 leaderboard: 26,847,572 total matchIds, 26,843,082 (99.98%) are structural 1v1 (L4). Only 4,490 rm_1v1 matchIds fail structural 1v1.
+
+qp_rm_1v1 leaderboard: 3,688,676 total, 3,688,114 (99.98%) structural 1v1.
+
+unranked leaderboard: 18,783,620 total matchIds, 2,558,192 (13.62%) are structural 1v1. This is the largest source of "hidden" 1v1 matches outside named 1v1 leaderboards.
+
+rm_1v1 + qp_rm_1v1 proxy captures 30,531,196 structural 1v1 matches; all-1v1-leaderboard proxy (incl ew_1v1, dm_1v1, etc.) adds ew_1v1 (971,856), rm_1v1_console (800,143), ew_1v1_redbullwololo (297,413), dm_1v1 (47,254), and smaller leaderboards.
+
+### profileId = -1 investigation
+
+profileId = -1 appears as: status='ai' (12,947,078 rows, 4.67% of all rows, 4,150,733 distinct matches) and status='player' (19,232 rows, 0.01%, 8,993 matches). Only 1 profileId=-1 row appears in rm_1v1 leaderboard (in exactly 1 match). profileId = -1 with status='player' is negligible.
+
+### Won complement (2-row, 2-human matches)
+
+complementary: 35,479,656 (88.96%), both_true: 2,499,163 (6.27%), both_false: 1,899,564 (4.76%), edge cases (<0.01% combined).
+
+### Team patterns (structural 1v1, L4 matches)
+
+standard_1v2 (teams 1 and 2): 32,525,927 (91.67%), two_teams_nonstandard: 2,104,980 (5.93%), both_null: 846,898 (2.39%).
+
+### Thesis implications (observations for 01_04, no decisions)
+
+1. The leaderboard proxy rm_1v1+qp_rm_1v1 captures ~86.3% of structural 1v1 matches. Including all named 1v1 leaderboards raises coverage further. unranked contains ~2.6M structural 1v1 matches not captured by any named 1v1 leaderboard.
+2. 4,390 (L2 - L4 drop) 2-human matches have non-complementary won patterns (mostly both_true/both_false). These are candidates for exclusion from the prediction target.
+3. 846,898 structural 1v1 matches have NULL team for both players (2.39%). Whether to require team data is a 01_04 decision.
+4. profileId = -1 as status='player' affects 8,993 matches (negligible). Identity resolution scope for 01_05 accordingly narrow.
+5. Deduplication recovers 1.94M additional matchIds at L1. Whether to include deduplicated matches is a 01_04 decision.
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
 
 **Category:** A (science)
@@ -19,6 +160,10 @@ AoE2 / aoe2companion findings. Reverse chronological.
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_qq_plot.png`
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png`
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md`
+
+### Retroactive correction — 2026-04-16 (matchId cardinality)
+
+The original execution used the 01_02_04 census `approx_cardinality` for matchId (61,799,126 from HLL/SUMMARIZE). Step 01_03_02 later confirmed via exact `COUNT(DISTINCT matchId)` that the true value is 74,788,989 (~21% HLL undercount). The `column_profiles` entry for matchId was patched in the JSON and MD artifacts: cardinality 61,799,126 → 74,788,989, uniqueness_ratio 0.22302178 → 0.26989983. Notebook re-executed 2026-04-16 to propagate the corrected census value.
 
 ### What
 
@@ -290,6 +435,10 @@ All clip thresholds and bin widths derived from census artifact at runtime (Inva
 **Artifacts produced:**
 - `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
 - `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### Retroactive correction — 2026-04-16 (matchId cardinality)
+
+DuckDB `SUMMARIZE` (HyperLogLog) significantly underestimated matchId cardinality: HLL reported 61,799,126 vs exact `COUNT(DISTINCT matchId)` = 74,788,989 (~21% undercount). A correction cell was added to the notebook after the existing `won` null-count patch: it runs `SELECT COUNT(DISTINCT matchId)` and overwrites the `approx_cardinality` for matchId in `matches_raw_null_census`. The `exact_matchid_cardinality_note` key was added to the artifact JSON to document the old and new values. Notebook re-executed 2026-04-16.
 
 ### What
 

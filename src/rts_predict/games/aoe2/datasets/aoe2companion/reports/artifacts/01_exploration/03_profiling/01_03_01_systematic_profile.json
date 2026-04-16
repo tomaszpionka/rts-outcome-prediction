@@ -10,8 +10,8 @@
       "i3_classification": "IDENTIFIER",
       "null_count": 0,
       "null_pct": 0.0,
-      "cardinality": 61799126,
-      "uniqueness_ratio": 0.22302178
+      "cardinality": 74788989,
+      "uniqueness_ratio": 0.26989983
     },
     {
       "column": "started",
@@ -1162,97 +1162,97 @@
           "cnt": 8
         },
         {
-          "matchId": 68070047,
-          "profileId": -1,
-          "cnt": 8
-        },
-        {
           "matchId": 326681601,
           "profileId": -1,
           "cnt": 8
         },
         {
-          "matchId": 178080720,
+          "matchId": 68070047,
+          "profileId": -1,
+          "cnt": 8
+        },
+        {
+          "matchId": 183561872,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 183355314,
+          "matchId": 188196536,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 181401860,
+          "matchId": 168690934,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 181009322,
+          "matchId": 195027114,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 180310176,
+          "matchId": 179037195,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 184603984,
+          "matchId": 184418953,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 181905200,
+          "matchId": 183829589,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 181358520,
+          "matchId": 193195896,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 183352442,
+          "matchId": 192718860,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 183968858,
+          "matchId": 201970682,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 183969245,
+          "matchId": 180189308,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 177340905,
+          "matchId": 174852706,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 179301325,
+          "matchId": 199744095,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 179325732,
+          "matchId": 169980736,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 182692194,
+          "matchId": 183526675,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 182282999,
+          "matchId": 202411029,
           "profileId": -1,
           "cnt": 7
         },
         {
-          "matchId": 182666096,
+          "matchId": 178545318,
           "profileId": -1,
           "cnt": 7
         }
@@ -2202,7 +2202,7 @@
     "skewness_kurtosis_method": "DuckDB native SKEWNESS()/KURTOSIS() -- exact, full table",
     "skewness_kurtosis_columns": 10,
     "kurtosis_convention": "excess kurtosis (kurtosis - 3); DuckDB KURTOSIS() default",
-    "qq_ecdf_sample_rows": 55952
+    "qq_ecdf_sample_rows": 55443
   },
   "sql_queries": {
     "zero_count_numeric": "SELECT\n    SUM(CASE WHEN rating = 0 THEN 1 ELSE 0 END) AS rating_zero_count,\n    SUM(CASE WHEN ratingDiff = 0 THEN 1 ELSE 0 END) AS ratingDiff_zero_count,\n    SUM(CASE WHEN population = 0 THEN 1 ELSE 0 END) AS population_zero_count,\n    SUM(CASE WHEN slot = 0 THEN 1 ELSE 0 END) AS slot_zero_count,\n    SUM(CASE WHEN color = 0 THEN 1 ELSE 0 END) AS color_zero_count,\n    SUM(CASE WHEN team = 0 THEN 1 ELSE 0 END) AS team_zero_count,\n    SUM(CASE WHEN speedFactor = 0 THEN 1 ELSE 0 END) AS speedFactor_zero_count,\n    SUM(CASE WHEN treatyLength = 0 THEN 1 ELSE 0 END) AS treatyLength_zero_count,\n    SUM(CASE WHEN internalLeaderboardId = 0 THEN 1 ELSE 0 END) AS internalLeaderboardId_zero_count\nFROM matches_raw",

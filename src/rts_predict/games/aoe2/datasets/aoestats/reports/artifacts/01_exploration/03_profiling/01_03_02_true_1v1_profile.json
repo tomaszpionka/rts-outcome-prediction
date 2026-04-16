@@ -1,0 +1,266 @@
+{
+  "step": "01_03_02",
+  "dataset": "aoestats",
+  "constants_source": {
+    "MATCHES_TOTAL": {
+      "value": 30690651,
+      "source": "01_03_01_systematic_profile.json > dataset_level.matches_raw_rows"
+    },
+    "PLAYERS_TOTAL": {
+      "value": 107627584,
+      "source": "01_03_01_systematic_profile.json > dataset_level.players_raw_rows"
+    },
+    "MATCHES_WITHOUT_PLAYERS": {
+      "value": 212890,
+      "source": "01_03_01_systematic_profile.json > dataset_level.matches_without_players"
+    },
+    "NUM_PLAYERS_2_CENSUS": {
+      "value": 18586063,
+      "source": "01_02_04_univariate_census.json > num_players_distribution[num_players=2].row_count"
+    },
+    "RANKED_1V1_CENSUS": {
+      "value": 17959543,
+      "source": "01_02_04_univariate_census.json > categorical_matches.leaderboard.top_values[random_map].cnt"
+    }
+  },
+  "q1_active_player_diagnostic": {
+    "total_rows": 107627584,
+    "winner_null": 0,
+    "civ_null": 0,
+    "team_null": 0,
+    "profile_id_null": 1185,
+    "game_id_null": 0,
+    "all_key_null": 0,
+    "team_min": 0,
+    "team_max": 1,
+    "team_distinct": 2
+  },
+  "q1_conclusion": "Every row in players_raw is an active player. No observer/spectator marker columns exist. winner is never NULL, civ is never NULL, team has values {0, 1} only.",
+  "q2_num_players_vs_actual_crosstab": [
+    {
+      "num_players": 1,
+      "actual_player_count": 1,
+      "match_count": 39,
+      "pct": 0.0001
+    },
+    {
+      "num_players": 2,
+      "actual_player_count": 0,
+      "match_count": 147294,
+      "pct": 0.4799
+    },
+    {
+      "num_players": 2,
+      "actual_player_count": 2,
+      "match_count": 18438769,
+      "pct": 60.0794
+    },
+    {
+      "num_players": 3,
+      "actual_player_count": 0,
+      "match_count": 1,
+      "pct": 0.0
+    },
+    {
+      "num_players": 3,
+      "actual_player_count": 3,
+      "match_count": 349,
+      "pct": 0.0011
+    },
+    {
+      "num_players": 4,
+      "actual_player_count": 0,
+      "match_count": 29637,
+      "pct": 0.0966
+    },
+    {
+      "num_players": 4,
+      "actual_player_count": 4,
+      "match_count": 5027632,
+      "pct": 16.3816
+    },
+    {
+      "num_players": 5,
+      "actual_player_count": 5,
+      "match_count": 327,
+      "pct": 0.0011
+    },
+    {
+      "num_players": 6,
+      "actual_player_count": 0,
+      "match_count": 12347,
+      "pct": 0.0402
+    },
+    {
+      "num_players": 6,
+      "actual_player_count": 6,
+      "match_count": 2723856,
+      "pct": 8.8752
+    },
+    {
+      "num_players": 7,
+      "actual_player_count": 7,
+      "match_count": 651,
+      "pct": 0.0021
+    },
+    {
+      "num_players": 8,
+      "actual_player_count": 0,
+      "match_count": 23611,
+      "pct": 0.0769
+    },
+    {
+      "num_players": 8,
+      "actual_player_count": 8,
+      "match_count": 4286138,
+      "pct": 13.9656
+    }
+  ],
+  "q2_alignment_summary": {
+    "total_matches": 30690651,
+    "aligned_count": 30477761,
+    "aligned_pct": 99.3063,
+    "mismatched_count": 212890,
+    "mismatched_pct": 0.6937
+  },
+  "q2_mismatch_breakdown": {
+    "orphaned_matches_no_players": 212890,
+    "num_players_ne_actual_with_players": 0
+  },
+  "true_1v1_count": 18438769,
+  "duplicate_impact": {
+    "matches_exactly_2_raw": 18438769,
+    "matches_exactly_2_distinct": 18438972,
+    "recovered_by_dedup": 203,
+    "misclassified_count_3_but_2_distinct": 0
+  },
+  "true_1v1_by_leaderboard": [
+    {
+      "leaderboard": "random_map",
+      "match_count": 17815944,
+      "pct_of_true_1v1": 96.6222
+    },
+    {
+      "leaderboard": "co_random_map",
+      "match_count": 622817,
+      "pct_of_true_1v1": 3.3778
+    },
+    {
+      "leaderboard": "team_random_map",
+      "match_count": 7,
+      "pct_of_true_1v1": 0.0
+    },
+    {
+      "leaderboard": "co_team_random_map",
+      "match_count": 1,
+      "pct_of_true_1v1": 0.0
+    }
+  ],
+  "true_1v1_by_num_players": [
+    {
+      "num_players": 2,
+      "match_count": 18438769
+    }
+  ],
+  "q4_set_comparison": {
+    "total_matches": 30690651,
+    "true_1v1": 18438769,
+    "ranked_1v1": 17959543,
+    "overlap_both": 17815944,
+    "true_only": 622825,
+    "ranked_only": 143599,
+    "neither": 12108283
+  },
+  "q4_overlap_metrics": {
+    "jaccard_index": 0.958755,
+    "overlap_pct_of_true": 96.6222,
+    "overlap_pct_of_ranked": 99.2004
+  },
+  "q4_ranked_not_true_1v1": [
+    {
+      "num_players": 2,
+      "actual_player_count": 0,
+      "match_count": 143572
+    },
+    {
+      "num_players": 1,
+      "actual_player_count": 1,
+      "match_count": 27
+    }
+  ],
+  "q4_true_not_ranked": [
+    {
+      "leaderboard": "co_random_map",
+      "match_count": 622817,
+      "pct": 99.9987
+    },
+    {
+      "leaderboard": "team_random_map",
+      "match_count": 7,
+      "pct": 0.0011
+    },
+    {
+      "leaderboard": "co_team_random_map",
+      "match_count": 1,
+      "pct": 0.0002
+    }
+  ],
+  "null_profile_id_by_type": [
+    {
+      "leaderboard": "team_random_map",
+      "actual_player_count": 6,
+      "null_profile_rows": 346
+    },
+    {
+      "leaderboard": "team_random_map",
+      "actual_player_count": 4,
+      "null_profile_rows": 329
+    },
+    {
+      "leaderboard": "co_team_random_map",
+      "actual_player_count": 4,
+      "null_profile_rows": 191
+    },
+    {
+      "leaderboard": "team_random_map",
+      "actual_player_count": 8,
+      "null_profile_rows": 159
+    },
+    {
+      "leaderboard": "co_team_random_map",
+      "actual_player_count": 6,
+      "null_profile_rows": 85
+    },
+    {
+      "leaderboard": "co_team_random_map",
+      "actual_player_count": 8,
+      "null_profile_rows": 75
+    }
+  ],
+  "summary": {
+    "total_matches_in_dataset": 30690651,
+    "matches_with_player_data": 30477761,
+    "matches_without_player_data": 212890,
+    "true_1v1_count": 18438769,
+    "ranked_1v1_count": 17959543,
+    "overlap": 17815944,
+    "true_1v1_pct_of_all": 60.0794,
+    "ranked_1v1_pct_of_all": 58.518,
+    "profiling_notes": "Player-count method (actual_player_count=2) and leaderboard proxy (leaderboard='random_map') overlap analysis complete. Orphaned game_ids (no player rows): see cross_table_linkage from 01_03_01. Duplicate impact bounded by duplicate_impact diagnostic above."
+  },
+  "sql_queries": {
+    "active_player_diagnostic": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) FILTER (WHERE winner IS NULL)     AS winner_null,\n    COUNT(*) FILTER (WHERE civ IS NULL)        AS civ_null,\n    COUNT(*) FILTER (WHERE team IS NULL)        AS team_null,\n    COUNT(*) FILTER (WHERE profile_id IS NULL)  AS profile_id_null,\n    COUNT(*) FILTER (WHERE game_id IS NULL)     AS game_id_null,\n    -- Check if there are any rows where ALL of winner, civ, team are NULL\n    -- (would suggest empty/observer slots)\n    COUNT(*) FILTER (\n        WHERE winner IS NULL AND civ IS NULL AND team IS NULL\n    ) AS all_key_null,\n    -- Check team value range\n    MIN(team) AS team_min,\n    MAX(team) AS team_max,\n    COUNT(DISTINCT team) AS team_distinct\nFROM players_raw\n",
+    "num_players_vs_actual": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    m.num_players,\n    COALESCE(pc.actual_player_count, 0) AS actual_player_count,\n    COUNT(*) AS match_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw m\nLEFT JOIN player_counts pc ON m.game_id = pc.game_id\nGROUP BY m.num_players, COALESCE(pc.actual_player_count, 0)\nORDER BY m.num_players, actual_player_count\n",
+    "player_counts_distribution": "\nSELECT\n    actual_player_count,\n    COUNT(*) AS num_matches\nFROM (\n    SELECT game_id, COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n) sub\nGROUP BY actual_player_count\nORDER BY actual_player_count\n",
+    "true_1v1_count": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n    HAVING COUNT(*) = 2\n)\nSELECT COUNT(*) AS true_1v1_count\nFROM player_counts\n",
+    "duplicate_impact": "\nWITH raw_counts AS (\n    SELECT game_id, COUNT(*) AS raw_count\n    FROM players_raw\n    GROUP BY game_id\n),\ndistinct_counts AS (\n    SELECT game_id, COUNT(DISTINCT profile_id) AS distinct_profiles\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    COUNT(*) FILTER (WHERE rc.raw_count = 2) AS matches_exactly_2_raw,\n    COUNT(*) FILTER (WHERE dc.distinct_profiles = 2) AS matches_exactly_2_distinct,\n    COUNT(*) FILTER (WHERE rc.raw_count != 2 AND dc.distinct_profiles = 2)\n        AS recovered_by_dedup,\n    COUNT(*) FILTER (WHERE rc.raw_count = 3 AND dc.distinct_profiles = 2)\n        AS misclassified_count_3_but_2_distinct\nFROM raw_counts rc\nJOIN distinct_counts dc ON rc.game_id = dc.game_id\n",
+    "true_1v1_by_leaderboard": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n    HAVING COUNT(*) = 2\n)\nSELECT\n    m.leaderboard,\n    COUNT(*) AS match_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct_of_true_1v1\nFROM matches_raw m\nINNER JOIN player_counts pc ON m.game_id = pc.game_id\nGROUP BY m.leaderboard\nORDER BY match_count DESC\n",
+    "true_1v1_by_num_players": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n    HAVING COUNT(*) = 2\n)\nSELECT\n    m.num_players,\n    COUNT(*) AS match_count\nFROM matches_raw m\nINNER JOIN player_counts pc ON m.game_id = pc.game_id\nGROUP BY m.num_players\nORDER BY m.num_players\n",
+    "set_comparison": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n),\nclassified AS (\n    SELECT\n        m.game_id,\n        m.leaderboard,\n        m.num_players,\n        COALESCE(pc.actual_player_count, 0) AS actual_player_count,\n        (COALESCE(pc.actual_player_count, 0) = 2)    AS is_true_1v1,\n        (m.leaderboard = 'random_map')                AS is_ranked_1v1\n    FROM matches_raw m\n    LEFT JOIN player_counts pc ON m.game_id = pc.game_id\n)\nSELECT\n    COUNT(*) AS total_matches,\n    COUNT(*) FILTER (WHERE is_true_1v1)                               AS true_1v1,\n    COUNT(*) FILTER (WHERE is_ranked_1v1)                             AS ranked_1v1,\n    COUNT(*) FILTER (WHERE is_true_1v1 AND is_ranked_1v1)             AS overlap_both,\n    COUNT(*) FILTER (WHERE is_true_1v1 AND NOT is_ranked_1v1)         AS true_only,\n    COUNT(*) FILTER (WHERE NOT is_true_1v1 AND is_ranked_1v1)         AS ranked_only,\n    COUNT(*) FILTER (WHERE NOT is_true_1v1 AND NOT is_ranked_1v1)     AS neither\nFROM classified\n",
+    "ranked_not_true_1v1": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    m.num_players,\n    COALESCE(pc.actual_player_count, 0) AS actual_player_count,\n    COUNT(*) AS match_count\nFROM matches_raw m\nLEFT JOIN player_counts pc ON m.game_id = pc.game_id\nWHERE m.leaderboard = 'random_map'\n  AND COALESCE(pc.actual_player_count, 0) != 2\nGROUP BY m.num_players, COALESCE(pc.actual_player_count, 0)\nORDER BY match_count DESC\n",
+    "true_not_ranked": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n    HAVING COUNT(*) = 2\n)\nSELECT\n    m.leaderboard,\n    COUNT(*) AS match_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS pct\nFROM matches_raw m\nINNER JOIN player_counts pc ON m.game_id = pc.game_id\nWHERE m.leaderboard != 'random_map'\nGROUP BY m.leaderboard\nORDER BY match_count DESC\n",
+    "null_profile_by_type": "\nWITH player_counts AS (\n    SELECT\n        game_id,\n        COUNT(*) AS actual_player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    m.leaderboard,\n    COALESCE(pc.actual_player_count, 0) AS actual_player_count,\n    COUNT(*) AS null_profile_rows\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nLEFT JOIN player_counts pc ON p.game_id = pc.game_id\nWHERE p.profile_id IS NULL\nGROUP BY m.leaderboard, COALESCE(pc.actual_player_count, 0)\nORDER BY null_profile_rows DESC\n",
+    "sample_true_1v1": "\nSELECT m.game_id, m.leaderboard, m.num_players,\n       p.profile_id, p.winner, p.civ, p.team\nFROM matches_raw m\nJOIN players_raw p ON m.game_id = p.game_id\nWHERE m.game_id IN (\n    SELECT game_id FROM players_raw\n    GROUP BY game_id HAVING COUNT(*) = 2\n    LIMIT 5\n)\nORDER BY m.game_id, p.team\n",
+    "sample_non_1v1": "\nSELECT m.game_id, m.leaderboard, m.num_players,\n       COUNT(p.profile_id) AS actual_player_count,\n       LIST(p.civ ORDER BY p.team) AS civs,\n       LIST(p.team ORDER BY p.team) AS teams,\n       LIST(p.winner ORDER BY p.team) AS winners\nFROM matches_raw m\nJOIN players_raw p ON m.game_id = p.game_id\nWHERE m.game_id IN (\n    SELECT game_id FROM players_raw\n    GROUP BY game_id HAVING COUNT(*) != 2\n    LIMIT 5\n)\nGROUP BY m.game_id, m.leaderboard, m.num_players\nORDER BY actual_player_count DESC\n"
+  }
+}

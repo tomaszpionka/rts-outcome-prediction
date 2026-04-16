@@ -11,7 +11,7 @@
 
 | Column | I3 Classification | Null % | Cardinality | Uniqueness Ratio | Notes |
 |--------|-------------------|--------|-------------|------------------|-------|
-| matchId | IDENTIFIER | 0.0 | 61,799,126 | 0.22302178 |  |
+| matchId | IDENTIFIER | 0.0 | 74,788,989 | 0.26989983 |  |
 | started | PRE_GAME | 0.0 | 52,689,164 | 0.19014559 |  |
 | finished | POST_GAME | 0.0 | 55,139,738 | 0.19898926 |  |
 | leaderboard | PRE_GAME | 0.0 | 22 | 0.00000008 | NEAR-CONSTANT (uniqueness_ratio=0.00000008 < 0.001) |
@@ -626,4 +626,4 @@ WHERE finished > started
 - Bivariate findings: `01_02_06_bivariate_eda.md` (I3 classifications)
 - Multivariate findings: `01_02_07_multivariate_analysis.md`
 - Skewness/kurtosis: DuckDB native SKEWNESS()/KURTOSIS() -- exact, full table, 10 columns
-- BERNOULLI sample: 0.02% (55,952 rows for QQ/ECDF visualization)
+- BERNOULLI sample: 0.02% (55,443 rows for QQ/ECDF visualization)

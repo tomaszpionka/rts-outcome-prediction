@@ -227,6 +227,47 @@ findings["exact_won_null_note"] = {
 }
 
 # %%
+# Patch matchId approx_cardinality with exact COUNT(DISTINCT matchId).
+# SUMMARIZE uses HyperLogLog (HLL) which significantly underestimated matchId
+# cardinality: HLL gave 61,799,126 vs exact 74,788,989 (~21% undercount).
+# This is the same correction pattern applied to 'won' above.
+matchid_exact_sql = "SELECT COUNT(DISTINCT matchId) AS exact_cardinality FROM matches_raw"
+print("Running exact COUNT(DISTINCT matchId) to correct HLL underestimate...")
+matchid_exact_cardinality = int(
+    con.execute(matchid_exact_sql).fetchdf().iloc[0]["exact_cardinality"]
+)
+matchid_hll_cardinality = int(
+    null_census_matches.loc[
+        null_census_matches["column_name"] == "matchId", "approx_cardinality"
+    ].iloc[0]
+)
+matchid_idx = null_census_matches.index[null_census_matches["column_name"] == "matchId"]
+null_census_matches.loc[matchid_idx, "approx_cardinality"] = matchid_exact_cardinality
+print(
+    f"Patched matchId approx_cardinality: {matchid_hll_cardinality:,} (HLL) "
+    f"-> {matchid_exact_cardinality:,} (exact)"
+)
+
+# Re-emit matches_raw_null_census with corrected matchId cardinality
+findings["matches_raw_null_census"] = (
+    null_census_matches[
+        ["column_name", "total_rows", "null_count", "null_pct", "approx_cardinality"]
+    ]
+    .to_dict(orient="records")
+)
+
+findings["exact_matchid_cardinality_note"] = {
+    "column": "matchId",
+    "hll_approx_cardinality": matchid_hll_cardinality,
+    "exact_cardinality": matchid_exact_cardinality,
+    "hll_undercount_pct": round(
+        (matchid_exact_cardinality - matchid_hll_cardinality)
+        * 100.0 / matchid_exact_cardinality, 2
+    ),
+    "resolution": "exact COUNT(DISTINCT matchId) is authoritative; HLL was ~21% below true value.",
+}
+
+# %%
 won_by_lb_sql = """
 SELECT
     leaderboard,

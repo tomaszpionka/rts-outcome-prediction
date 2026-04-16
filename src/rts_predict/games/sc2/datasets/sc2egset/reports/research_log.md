@@ -1,10 +1,143 @@
 # Research Log — SC2 / sc2egset
 
+---
+
+## 2026-04-16 -- [Phase 01 / Step 01_03_03] Table Utility Assessment
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** profiling -- all 6 raw data objects utility verdict
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_03_table_utility.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_03_table_utility.md`
+
+### What
+
+Empirical assessment of all 6 raw data objects (replay_players_raw,
+replays_meta_raw, map_aliases_raw, game_events_raw, tracker_events_raw,
+message_events_raw). Verified the replay_id join key between the two core
+tables. Enumerated all 31 struct leaf fields of replays_meta_raw.
+Characterized loop=0 initialization events in game_events_raw and
+tracker_events_raw. Cross-referenced metadata.mapName against
+map_aliases_raw foreign/english name columns. All SQL stored verbatim (I6).
+Verdicts derived from query results (I9).
+
+### Key findings
+
+**Join key (CONFIRMED):** `replay_id` derived via
+`regexp_extract(filename, '([0-9a-f]{32})\.SC2Replay\.json$', 1)` gives
+a perfect 22,390-to-22,390 match between replay_players_raw and
+replays_meta_raw. Zero orphans in either direction. This is the canonical
+join key per sql-data.md rule.
+
+**Struct leaf fields (CONFIRMED 31):** replays_meta_raw contains exactly 31
+struct leaf fields across 4 STRUCT columns (details: 3, header: 2,
+initData.gameDescription: 22 including 15 gameOptions sub-fields, metadata:
+4). The assertion `len == 31` passed.
+
+**Map names already English (T02):** All 188 distinct `metadata.mapName`
+values in replays_meta_raw appear in BOTH the `foreign_name` AND
+`english_name` columns of map_aliases_raw. Zero map names are in neither
+column. 14.4% of alias pairs have `foreign_name == english_name` (i.e., the
+alias table maps some English names to themselves). Conclusion: map names in
+replays_meta_raw are already in English; `map_aliases_raw` is not required
+for translation of observed map names. It may still be retained as a
+reference for completeness, but is `UTILITY_CONDITIONAL` for the pipeline.
+
+**Event views -- all IN_GAME (T03/T04):**
+- `game_events_raw`: 608,618,823 rows (schema YAML count). Loop=0 events are
+  game initialization (PlayerSetup, NNet.Game.SCommandManagerStateEvent etc).
+  Min loop = 0. No pre-game events (loop < 0).
+- `tracker_events_raw`: 62,003,411 rows (live COUNT confirmed). Loop=0
+  events include PlayerSetup and UnitBorn initialization events. Min loop = 0,
+  max loop = 109,287. All 22,390 replays covered.
+- `message_events_raw`: 52,167 rows (live COUNT confirmed). Covers 22,260 of
+  22,390 replays (99.42% coverage). Chat/ping messages during game.
+  All three event views classified IN_GAME per Invariant #3.
+
+### Table utility verdicts (all data-derived)
+
+| Table/View | Verdict | Reason |
+|---|---|---|
+| replay_players_raw | ESSENTIAL | Per-player features + prediction target |
+| replays_meta_raw | ESSENTIAL | Timestamp, game version, map name, struct fields for temporal ordering |
+| map_aliases_raw | UTILITY_CONDITIONAL | All 188 meta map names already in English; translation not required |
+| game_events_raw | IN_GAME_ONLY | 608M rows, loop >= 0, excluded from Phase 02 pre-game pipeline per I3 |
+| tracker_events_raw | IN_GAME_ONLY | 62M rows, loop >= 0, excluded from Phase 02 pre-game pipeline per I3 |
+| message_events_raw | LOW_UTILITY | 52K rows, chat/ping, IN_GAME, 99.42% coverage but no pre-game signal |
+
+### Implications for Phase 02
+
+The `matches_flat` VIEW should join replay_players_raw and replays_meta_raw
+using `replay_id` (regexp_extract) as the key. The join is guaranteed to be
+complete (0 orphans). Event views (game/tracker/message) are excluded from
+Phase 02 pre-game features per I3. map_aliases_raw may be skipped since
+map names in replays_meta_raw are already in English.
+
+### Cross-dataset summary (01_03_03 across all three datasets)
+
+| Dataset | Table | Verdict | Key finding |
+|---------|-------|---------|-------------|
+| **aoe2companion** | matches_raw | ESSENTIAL | `rating` is PRE-GAME (99.8% match with ratings_raw), sole source for rm_1v1 ratings |
+| | ratings_raw | CONDITIONALLY USABLE | No rm_1v1 coverage (leaderboard_id=6 absent). Useful for other leaderboards only |
+| | leaderboards_raw | NOT USABLE | Singleton snapshot, 1 entry per player per leaderboard. I3 violation risk |
+| | profiles_raw | NOT USABLE | No temporal dimension. Adds steamId/clan (99.9% non-null) but not usable for temporal features |
+| **aoestats** | matches_raw | ESSENTIAL | Temporal anchor (`started_timestamp`), match context (map, leaderboard, patch) |
+| | players_raw | ESSENTIAL | Target (`winner`), `old_rating` (pre-game), `civ`. ELO perfectly derivable (Spearman rho=1.0 with avg_elo in 1v1) |
+| | overviews_raw | SUPPLEMENTARY | Singleton lookup. Patch release dates are the only unique data |
+| **sc2egset** | replay_players_raw | ESSENTIAL | Target (`result`), player features (MMR, race, selectedRace) |
+| | replays_meta_raw | ESSENTIAL | Match metadata, 31 struct fields. Join via replay_id (regexp_extract) |
+| | map_aliases_raw | CONDITIONAL | All 188 map names already English — translation not required |
+| | event views (3) | IN_GAME_ONLY | Deferred to optional Phase 02 in-game comparison |
+
+---
+
 Thesis: "A comparative analysis of methods for predicting game results
 in real-time strategy games, based on the examples of StarCraft II and
 Age of Empires II."
 
 SC2 / sc2egset findings. Reverse chronological.
+
+---
+
+## 2026-04-16 -- [Phase 01 / Step 01_03_02] True 1v1 Match Identification
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** profiling -- replay-level 1v1 classification
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md`
+
+### What
+
+Classified all 22,390 sc2egset replays into one of four categories based on player row count and result decisiveness: `true_1v1_decisive`, `true_1v1_indecisive`, `non_1v1_too_few_players`, `non_1v1_too_many_players`. Multi-signal analysis: per-replay player row counts (DuckDB GROUP BY), cross-reference with max_players struct field, observer setting, selectedRace/result profiling of anomalous rows. All SQL stored verbatim (I6). Standard races derived dynamically from 01_02_04 census (I7). No rows dropped (I9).
+
+### Key finding
+
+The dataset is overwhelmingly 1v1: **22,366 / 22,390 replays (99.89%) are `true_1v1_decisive`** (exactly 2 player rows, 1 Win + 1 Loss). Only 24 replays are to be excluded:
+- `non_1v1_too_many_players`: 8 replays (4-9 player rows; genuine team games)
+- `non_1v1_too_few_players`: 3 replays (1 player row)
+- `true_1v1_indecisive`: 13 replays (2 players, Undecided/Tie result -- no prediction target)
+- `non_1v1_other`: 0 (classification is exhaustive)
+
+Gate condition verified: 22,366 + 13 + 8 + 3 = 22,390.
+
+### Secondary findings
+
+- **Empty selectedRace (1,110 rows, 555 replays):** All belong to `true_1v1_decisive` replays (players_per_replay = 2 for all 1,110; result = 555 Win + 555 Loss; APM = 0 for all). Race resolved post-game (Zerg 569, Prot 276, Terr 265). This is a data quality issue in the `selectedRace` field, not an observer issue. APM = 0 sentinel warrants investigation in 01_04.
+- **Observer setting:** 0 (no observers) for all 22,390 replays. Non-1v1 replays are genuine multi-player games, not observer-contaminated 1v1s.
+- **max_players vs actual count:** 403 replays have max_players = 4 but only 2 actual player rows -- all `true_1v1_decisive`. The max_players field encodes lobby slot capacity, not active players. Not a reliable 1v1 filter.
+- **BW race variants (3 rows):** All 3 (BWTe, BWPr, BWZe) belong to the single 6-player replay -- a team game in the 2024 ESL SC2 Masters Spring Finals corpus.
+
+### Implications for data cleaning (01_04)
+
+Exclude 24 replays from the analysis population:
+- 3 `non_1v1_too_few_players` (filename list in artifact)
+- 8 `non_1v1_too_many_players` (filename list in artifact)
+- 13 `true_1v1_indecisive` (filename list in artifact)
+
+The 22,366 `true_1v1_decisive` replays form the viable pool for the prediction pipeline. Investigate APM = 0 and empty-selectedRace sentinel in 01_04.
 
 ---
 

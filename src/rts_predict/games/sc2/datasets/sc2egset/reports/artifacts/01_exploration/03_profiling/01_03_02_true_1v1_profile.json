@@ -1,0 +1,354 @@
+{
+  "step": "01_03_02",
+  "dataset": "sc2egset",
+  "total_replay_count": 22390,
+  "total_player_rows": 44817,
+  "players_per_replay_distribution": [
+    {
+      "players_per_replay": 1,
+      "replay_count": 3,
+      "pct": 0.0134
+    },
+    {
+      "players_per_replay": 2,
+      "replay_count": 22379,
+      "pct": 99.9509
+    },
+    {
+      "players_per_replay": 4,
+      "replay_count": 2,
+      "pct": 0.0089
+    },
+    {
+      "players_per_replay": 6,
+      "replay_count": 1,
+      "pct": 0.0045
+    },
+    {
+      "players_per_replay": 8,
+      "replay_count": 3,
+      "pct": 0.0134
+    },
+    {
+      "players_per_replay": 9,
+      "replay_count": 2,
+      "pct": 0.0089
+    }
+  ],
+  "max_players_distribution": [
+    {
+      "max_players": 2,
+      "replay_count": 21981,
+      "pct": 98.1733
+    },
+    {
+      "max_players": 4,
+      "replay_count": 403,
+      "pct": 1.7999
+    },
+    {
+      "max_players": 6,
+      "replay_count": 1,
+      "pct": 0.0045
+    },
+    {
+      "max_players": 8,
+      "replay_count": 3,
+      "pct": 0.0134
+    },
+    {
+      "max_players": 9,
+      "replay_count": 2,
+      "pct": 0.0089
+    }
+  ],
+  "observer_setting_distribution": [
+    {
+      "observer_setting": 0,
+      "replay_count": 22390,
+      "pct": 100.0
+    }
+  ],
+  "max_players_vs_actual_cross_tab": [
+    {
+      "max_players": 2,
+      "players_per_replay": 1,
+      "replay_count": 3
+    },
+    {
+      "max_players": 2,
+      "players_per_replay": 2,
+      "replay_count": 21978
+    },
+    {
+      "max_players": 4,
+      "players_per_replay": 2,
+      "replay_count": 401
+    },
+    {
+      "max_players": 4,
+      "players_per_replay": 4,
+      "replay_count": 2
+    },
+    {
+      "max_players": 6,
+      "players_per_replay": 6,
+      "replay_count": 1
+    },
+    {
+      "max_players": 8,
+      "players_per_replay": 8,
+      "replay_count": 3
+    },
+    {
+      "max_players": 9,
+      "players_per_replay": 9,
+      "replay_count": 2
+    }
+  ],
+  "empty_selectedRace_analysis": {
+    "total_rows": 1110,
+    "unique_replays": 555,
+    "players_per_replay_distribution": {
+      "2": 1110
+    },
+    "result_distribution": {
+      "Win": 555,
+      "Loss": 555
+    },
+    "race_resolved_distribution": {
+      "Zerg": 569,
+      "Prot": 276,
+      "Terr": 265
+    },
+    "apm_stats": {
+      "count": 1110.0,
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 0.0,
+      "max": 0.0
+    }
+  },
+  "bw_race_analysis": {
+    "total_rows": 3,
+    "detail": [
+      {
+        "filename": "2024_03_ESL_SC2_Masters_Spring_Finals/2024_03_ESL_SC2_Masters_Spring_Finals_data/c23226fa504bfe0045e01d6363df6826.SC2Replay.json",
+        "playerID": 2,
+        "selectedRace": "BWTe",
+        "race": "BWTe",
+        "result": "Loss",
+        "APM": 338,
+        "players_per_replay": 6,
+        "max_players": 6
+      },
+      {
+        "filename": "2024_03_ESL_SC2_Masters_Spring_Finals/2024_03_ESL_SC2_Masters_Spring_Finals_data/c23226fa504bfe0045e01d6363df6826.SC2Replay.json",
+        "playerID": 3,
+        "selectedRace": "BWPr",
+        "race": "BWPr",
+        "result": "Loss",
+        "APM": 312,
+        "players_per_replay": 6,
+        "max_players": 6
+      },
+      {
+        "filename": "2024_03_ESL_SC2_Masters_Spring_Finals/2024_03_ESL_SC2_Masters_Spring_Finals_data/c23226fa504bfe0045e01d6363df6826.SC2Replay.json",
+        "playerID": 5,
+        "selectedRace": "BWZe",
+        "race": "BWZe",
+        "result": "Loss",
+        "APM": 482,
+        "players_per_replay": 6,
+        "max_players": 6
+      }
+    ]
+  },
+  "undecided_tie_analysis": {
+    "total_rows": 26,
+    "unique_replays": 13,
+    "players_per_replay_distribution": {
+      "2": 26
+    }
+  },
+  "replay_classification": {
+    "summary": [
+      {
+        "classification": "true_1v1_decisive",
+        "replay_count": 22366,
+        "pct": 99.8928,
+        "min_players": 2,
+        "max_players_actual": 2,
+        "total_empty_race_rows": 1110.0
+      },
+      {
+        "classification": "true_1v1_indecisive",
+        "replay_count": 13,
+        "pct": 0.0581,
+        "min_players": 2,
+        "max_players_actual": 2,
+        "total_empty_race_rows": 0.0
+      },
+      {
+        "classification": "non_1v1_too_many_players",
+        "replay_count": 8,
+        "pct": 0.0357,
+        "min_players": 4,
+        "max_players_actual": 9,
+        "total_empty_race_rows": 0.0
+      },
+      {
+        "classification": "non_1v1_too_few_players",
+        "replay_count": 3,
+        "pct": 0.0134,
+        "min_players": 1,
+        "max_players_actual": 1,
+        "total_empty_race_rows": 0.0
+      }
+    ],
+    "true_1v1_decisive_count": 22366,
+    "true_1v1_indecisive_count": 13
+  },
+  "non_1v1_replay_detail": [
+    {
+      "filename": "2020_TSL5/2020_TSL5_data/1165d50a76c7b67e7153180c5419a1be.SC2Replay.json",
+      "player_row_count": 9,
+      "player_ids": "[1 2 3 4 5 6 7 8 9]",
+      "selected_races": "['Zerg' 'Prot' 'Zerg' 'Terr' 'Terr' 'Terr' 'Zerg' 'Prot' 'Zerg']",
+      "results": "['Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Win']",
+      "nicknames": "['LiquidTLO' 'goblin' '&lt;RYE&gt;BlyOnFire' 'DeMusliM'\n '&lt;TlNG&gt;Neeblet' '&lt;ArGGEU&gt;Kelazhur' '&lt;noT\u0415\u0410M&gt;Lambo'\n 'NonY' 'StephaNoFear']",
+      "max_players_setting": 9,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2020_TSL5/2020_TSL5_data/3f0f70a69cdb8c5160c8e3a41a137cc9.SC2Replay.json",
+      "player_row_count": 9,
+      "player_ids": "[1 2 3 4 5 6 7 8 9]",
+      "selected_races": "['Zerg' 'Zerg' 'Prot' 'Zerg' 'Prot' 'Prot' 'Terr' 'Zerg' 'Terr']",
+      "results": "['Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Win']",
+      "nicknames": "['LiquidTLO' 'Denver' '&lt;\u0441S\u0441\u01c3&gt;SKillous' '&lt;QLASH&gt;Reynor'\n 'ShoWTimE' 'TLHarstem' 'AqueroN' '&lt;ENCE&gt;Serral' 'LiquidClem']",
+      "max_players_setting": 9,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2017_HomeStory_Cup_XVI/2017_HomeStory_Cup_XVI_data/b9372ad82eda92aad170137c847529ac.SC2Replay.json",
+      "player_row_count": 8,
+      "player_ids": "[1 2 3 4 5 6 7 8]",
+      "selected_races": "['Prot' 'Prot' 'Zerg' 'Prot' 'Prot' 'Terr' 'Prot' 'Prot']",
+      "results": "['Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss' 'Win']",
+      "nicknames": "['&lt;dPix&gt;Patience' '&lt;dPix&gt;FeaR' '&lt;Qlash&gt;Elazer'\n '&lt;mYi&gt;PtitDrogo' 'Socke' 'DeMusliM' '&lt;TlNG&gt;Neeblet' 'Stats']",
+      "max_players_setting": 8,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2020_TSL5/2020_TSL5_data/7fbfb67baa5224adde96b6616e6bf08f.SC2Replay.json",
+      "player_row_count": 8,
+      "player_ids": "[1 2 3 4 5 6 7 8]",
+      "selected_races": "['Terr' 'Prot' 'Zerg' 'Prot' 'Terr' 'Terr' 'Terr' 'Prot']",
+      "results": "['Win' 'Loss' 'Loss' 'Win' 'Loss' 'Loss' 'Loss' 'Loss']",
+      "nicknames": "['&lt;Wardi&gt;Wardi' '&lt;Ting&gt;Neeb' 'LiquidTLO'\n '&lt;RYE1&gt;PtitDrogo' 'LiquidClem' 'evoli' '&lt;ScSwrm&gt;Alephnaut'\n 'JeXeD']",
+      "max_players_setting": 8,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2024_05_EWC/2024_05_EWC_data/d6cdb5b7bc84ef247f4e1e65318b5654.SC2Replay.json",
+      "player_row_count": 8,
+      "player_ids": "[1 2 3 4 5 6 7 8]",
+      "selected_races": "['Terr' 'Prot' 'Prot' 'Prot' 'Zerg' 'Prot' 'Prot' 'Terr']",
+      "results": "['Loss' 'Loss' 'Win' 'Loss' 'Loss' 'Loss' 'Loss' 'Loss']",
+      "nicknames": "['Lokman' 'DeMu' 'Rotterdam' 'Magnath' 'Lambo' 'PiG' 'State' 'ZombieGrub']",
+      "max_players_setting": 8,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2024_03_ESL_SC2_Masters_Spring_Finals/2024_03_ESL_SC2_Masters_Spring_Finals_data/c23226fa504bfe0045e01d6363df6826.SC2Replay.json",
+      "player_row_count": 6,
+      "player_ids": "[1 2 3 4 5 6]",
+      "selected_races": "['Terr' 'BWTe' 'BWPr' 'Prot' 'BWZe' 'Zerg']",
+      "results": "['Win' 'Loss' 'Loss' 'Win' 'Loss' 'Win']",
+      "nicknames": "['Kelazhur' 'Clem' 'Creator' 'Harstem' 'Reynor' 'Scarlett']",
+      "max_players_setting": 6,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2017_HomeStory_Cup_XVI/2017_HomeStory_Cup_XVI_data/6c8412ef7612d62a7fdc8f88b63b431e.SC2Replay.json",
+      "player_row_count": 4,
+      "player_ids": "[1 2 3 4]",
+      "selected_races": "['Prot' 'Prot' 'Terr' 'Terr']",
+      "results": "['Loss' 'Win' 'Loss' 'Win']",
+      "nicknames": "['ToD' '&lt;RA08&gt;RotterdaM' '&lt;Wardi&gt;Ward\u00ed' 'Narde']",
+      "max_players_setting": 4,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2020_TSL5/2020_TSL5_data/e5fbb3c300666748ad5f1475a9ac7a3a.SC2Replay.json",
+      "player_row_count": 4,
+      "player_ids": "[1 2 3 4]",
+      "selected_races": "['Terr' 'Prot' 'Prot' 'Terr']",
+      "results": "['Win' 'Win' 'Loss' 'Loss']",
+      "nicknames": "['liquidthermy' 'goblin' 'LiquidMaNa' 'LiquidClem']",
+      "max_players_setting": 4,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2017_IEM_XI_World_Championship_Katowice/2017_IEM_XI_World_Championship_Katowice_data/061a5252c6679e52d41e0ec6b8bd5de6.SC2Replay.json",
+      "player_row_count": 1,
+      "player_ids": "[1]",
+      "selected_races": "['Terr']",
+      "results": "['Win']",
+      "nicknames": "['LiquidTLO']",
+      "max_players_setting": 2,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2017_IEM_XI_World_Championship_Katowice/2017_IEM_XI_World_Championship_Katowice_data/c2ffb9cfccf4a14e4559a39f42d48604.SC2Replay.json",
+      "player_row_count": 1,
+      "player_ids": "[1]",
+      "selected_races": "['Prot']",
+      "results": "['Win']",
+      "nicknames": "['ShoWTimE']",
+      "max_players_setting": 2,
+      "observer_setting": 0
+    },
+    {
+      "filename": "2024_03_ESL_SC2_Masters_Spring_Finals/2024_03_ESL_SC2_Masters_Spring_Finals_data/91e0c26212ba1e519cd1bf8db6ec93a9.SC2Replay.json",
+      "player_row_count": 1,
+      "player_ids": "[1]",
+      "selected_races": "['Prot']",
+      "results": "['Win']",
+      "nicknames": "['Rhizer']",
+      "max_players_setting": 2,
+      "observer_setting": 0
+    }
+  ],
+  "classification_criteria": {
+    "true_1v1_decisive": "player_row_count == 2 AND win_count == 1 AND loss_count == 1",
+    "non_1v1_too_few_players": "player_row_count < 2",
+    "non_1v1_too_many_players": "player_row_count > 2",
+    "true_1v1_indecisive": "player_row_count == 2 AND (undecided_count > 0 OR tie_count > 0)",
+    "non_1v1_other": "all remaining (should be 0 if classification is exhaustive)"
+  },
+  "standard_races_used": [
+    "Prot",
+    "Rand",
+    "Terr",
+    "Zerg"
+  ],
+  "sql_queries": {
+    "players_per_replay": "\nSELECT\n    players_per_replay,\n    COUNT(*) AS replay_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 4) AS pct\nFROM (\n    SELECT\n        filename,\n        COUNT(*) AS players_per_replay\n    FROM replay_players_raw\n    GROUP BY filename\n)\nGROUP BY players_per_replay\nORDER BY players_per_replay\n",
+    "non_2p_replay_detail": "\nSELECT\n    rp.filename,\n    COUNT(*) AS player_row_count,\n    LIST(rp.playerID ORDER BY rp.playerID) AS player_ids,\n    LIST(rp.selectedRace ORDER BY rp.playerID) AS selected_races,\n    LIST(rp.result ORDER BY rp.playerID) AS results,\n    LIST(rp.nickname ORDER BY rp.playerID) AS nicknames,\n    rm.initData.gameDescription.maxPlayers AS max_players_setting,\n    rm.initData.gameDescription.gameOptions.observers AS observer_setting\nFROM replay_players_raw rp\nJOIN replays_meta_raw rm ON rp.filename = rm.filename\nGROUP BY rp.filename, max_players_setting, observer_setting\nHAVING COUNT(*) != 2\nORDER BY COUNT(*) DESC, rp.filename\n",
+    "max_players_distribution": "\nSELECT\n    initData.gameDescription.maxPlayers AS max_players,\n    COUNT(*) AS replay_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 4) AS pct\nFROM replays_meta_raw\nGROUP BY max_players\nORDER BY max_players\n",
+    "observer_setting_distribution": "\nSELECT\n    initData.gameDescription.gameOptions.observers AS observer_setting,\n    COUNT(*) AS replay_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 4) AS pct\nFROM replays_meta_raw\nGROUP BY observer_setting\nORDER BY observer_setting\n",
+    "max_players_vs_actual": "\nSELECT\n    rm.initData.gameDescription.maxPlayers AS max_players,\n    pc.players_per_replay,\n    COUNT(*) AS replay_count\nFROM replays_meta_raw rm\nJOIN (\n    SELECT filename, COUNT(*) AS players_per_replay\n    FROM replay_players_raw\n    GROUP BY filename\n) pc ON rm.filename = pc.filename\nGROUP BY max_players, players_per_replay\nORDER BY max_players, players_per_replay\n",
+    "empty_race_profile": "\nSELECT\n    rp.filename,\n    rp.playerID,\n    rp.nickname,\n    rp.selectedRace,\n    rp.race,\n    rp.result,\n    rp.MMR,\n    rp.APM,\n    rp.highestLeague,\n    rm.initData.gameDescription.maxPlayers AS max_players,\n    rm.initData.gameDescription.gameOptions.observers AS observer_setting,\n    pc.players_per_replay\nFROM replay_players_raw rp\nJOIN replays_meta_raw rm ON rp.filename = rm.filename\nJOIN (\n    SELECT filename, COUNT(*) AS players_per_replay\n    FROM replay_players_raw\n    GROUP BY filename\n) pc ON rp.filename = pc.filename\nWHERE rp.selectedRace = ''\nORDER BY pc.players_per_replay DESC, rp.filename, rp.playerID\n",
+    "bw_race_context": "\nSELECT\n    rp.filename,\n    rp.playerID,\n    rp.selectedRace,\n    rp.race,\n    rp.result,\n    rp.APM,\n    pc.players_per_replay,\n    rm.initData.gameDescription.maxPlayers AS max_players\nFROM replay_players_raw rp\nJOIN replays_meta_raw rm ON rp.filename = rm.filename\nJOIN (\n    SELECT filename, COUNT(*) AS players_per_replay\n    FROM replay_players_raw\n    GROUP BY filename\n) pc ON rp.filename = pc.filename\nWHERE rp.selectedRace IN ('BWTe', 'BWZe', 'BWPr')\nORDER BY rp.filename, rp.playerID\n",
+    "undecided_tie_1v1_context": "\nSELECT\n    rp.filename,\n    rp.playerID,\n    rp.selectedRace,\n    rp.result,\n    pc.players_per_replay,\n    rm.initData.gameDescription.maxPlayers AS max_players\nFROM replay_players_raw rp\nJOIN replays_meta_raw rm ON rp.filename = rm.filename\nJOIN (\n    SELECT filename, COUNT(*) AS players_per_replay\n    FROM replay_players_raw\n    GROUP BY filename\n) pc ON rp.filename = pc.filename\nWHERE rp.result IN ('Undecided', 'Tie')\nORDER BY rp.result, rp.filename, rp.playerID\n",
+    "replay_classification": "\nWITH per_replay AS (\n    SELECT\n        rp.filename,\n        COUNT(*) AS player_row_count,\n        COUNT(*) FILTER (\n            WHERE rp.selectedRace IN ('Prot', 'Zerg', 'Terr', 'Rand')\n        ) AS standard_race_count,\n        COUNT(*) FILTER (WHERE rp.result IN ('Win', 'Loss')) AS decisive_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Win') AS win_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Loss') AS loss_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Undecided') AS undecided_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Tie') AS tie_count,\n        COUNT(*) FILTER (WHERE rp.selectedRace = '') AS empty_race_count,\n        COUNT(*) FILTER (\n            WHERE rp.selectedRace IN ('BWTe', 'BWZe', 'BWPr')\n        ) AS bw_race_count,\n        rm.initData.gameDescription.maxPlayers AS max_players,\n        rm.initData.gameDescription.gameOptions.observers AS observer_setting\n    FROM replay_players_raw rp\n    JOIN replays_meta_raw rm ON rp.filename = rm.filename\n    GROUP BY rp.filename, max_players, observer_setting\n)\nSELECT\n    filename,\n    player_row_count,\n    standard_race_count,\n    decisive_count,\n    win_count,\n    loss_count,\n    undecided_count,\n    tie_count,\n    empty_race_count,\n    bw_race_count,\n    max_players,\n    observer_setting,\n    CASE\n        WHEN player_row_count = 2\n             AND decisive_count = 2\n             AND win_count = 1\n             AND loss_count = 1\n        THEN 'true_1v1_decisive'\n        WHEN player_row_count < 2\n        THEN 'non_1v1_too_few_players'\n        WHEN player_row_count > 2\n        THEN 'non_1v1_too_many_players'\n        WHEN player_row_count = 2\n             AND (undecided_count > 0 OR tie_count > 0)\n        THEN 'true_1v1_indecisive'\n        ELSE 'non_1v1_other'\n    END AS classification\nFROM per_replay\nORDER BY classification, filename\n",
+    "classification_summary": "\n-- Summary aggregation over the per-replay classification\n-- (derived from the replay_classification CTE above, re-executed for clarity)\nWITH per_replay AS (\n    SELECT\n        rp.filename,\n        COUNT(*) AS player_row_count,\n        COUNT(*) FILTER (WHERE rp.result IN ('Win', 'Loss')) AS decisive_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Win') AS win_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Loss') AS loss_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Undecided') AS undecided_count,\n        COUNT(*) FILTER (WHERE rp.result = 'Tie') AS tie_count,\n        COUNT(*) FILTER (WHERE rp.selectedRace = '') AS empty_race_count,\n        rm.initData.gameDescription.maxPlayers AS max_players\n    FROM replay_players_raw rp\n    JOIN replays_meta_raw rm ON rp.filename = rm.filename\n    GROUP BY rp.filename, max_players\n),\nclassified AS (\n    SELECT *,\n        CASE\n            WHEN player_row_count = 2\n                 AND decisive_count = 2\n                 AND win_count = 1\n                 AND loss_count = 1\n            THEN 'true_1v1_decisive'\n            WHEN player_row_count < 2\n            THEN 'non_1v1_too_few_players'\n            WHEN player_row_count > 2\n            THEN 'non_1v1_too_many_players'\n            WHEN player_row_count = 2\n                 AND (undecided_count > 0 OR tie_count > 0)\n            THEN 'true_1v1_indecisive'\n            ELSE 'non_1v1_other'\n        END AS classification\n    FROM per_replay\n)\nSELECT\n    classification,\n    COUNT(*) AS replay_count,\n    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 4) AS pct,\n    MIN(player_row_count) AS min_players,\n    MAX(player_row_count) AS max_players_actual,\n    SUM(empty_race_count) AS total_empty_race_rows\nFROM classified\nGROUP BY classification\nORDER BY replay_count DESC\n",
+    "sample_true_1v1": "\nSELECT rp.filename, rp.playerID, rp.selectedRace, rp.result,\n       rp.APM, rp.MMR, rp.SQ\nFROM replay_players_raw rp\nWHERE rp.filename IN (\n    SELECT filename FROM replay_players_raw\n    GROUP BY filename\n    HAVING COUNT(*) = 2\n       AND COUNT(*) FILTER (WHERE result = 'Win') = 1\n       AND COUNT(*) FILTER (WHERE result = 'Loss') = 1\n    LIMIT 5\n)\nORDER BY rp.filename, rp.playerID\n",
+    "sample_non_1v1": "\nSELECT rp.filename, rp.playerID, rp.selectedRace, rp.result, rp.APM\nFROM replay_players_raw rp\nWHERE rp.filename IN (\n    SELECT filename FROM replay_players_raw\n    GROUP BY filename HAVING COUNT(*) != 2\n)\nORDER BY rp.filename, rp.playerID\n"
+  }
+}
