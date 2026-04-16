@@ -23,7 +23,7 @@ Identified the full population of genuine 1v1 matches in matches_raw (277,099,05
 
 ### Key finding: all matchIds have exactly 1 leaderboard value
 
-The leaderboard_cardinality_per_match diagnostic showed that all 74,788,989 distinct matchIds appear under exactly 1 leaderboard value. The census surplus (sum of per-leaderboard distinct matchIds = 74.8M > 61.8M total) was caused by multi-row counting, not multi-leaderboard matchIds. The leaderboard column is a clean single-value per match.
+The leaderboard_cardinality_per_match diagnostic confirmed that all 74,788,989 distinct matchIds appear under exactly 1 leaderboard value — zero cross-leaderboard matchIds exist. The 01_03_01 matchId cardinality (61,799,126) was a significant HLL underestimate (~21% below true value); exact COUNT(DISTINCT matchId) = 74,788,989 confirmed by direct query. The per-leaderboard distinct matchId sums from 01_02_04 (74,788,989) are therefore exact, not inflated by cross-leaderboard overlap. The leaderboard column is a clean single-value-per-match identifier.
 
 ### Rows-per-match distribution
 
@@ -97,6 +97,10 @@ standard_1v2 (teams 1 and 2): 32,525,927 (91.67%), two_teams_nonstandard: 2,104,
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_qq_plot.png`
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_ecdf_key_columns.png`
 - `reports/artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md`
+
+### Retroactive correction — 2026-04-16 (matchId cardinality)
+
+The original execution used the 01_02_04 census `approx_cardinality` for matchId (61,799,126 from HLL/SUMMARIZE). Step 01_03_02 later confirmed via exact `COUNT(DISTINCT matchId)` that the true value is 74,788,989 (~21% HLL undercount). The `column_profiles` entry for matchId was patched in the JSON and MD artifacts: cardinality 61,799,126 → 74,788,989, uniqueness_ratio 0.22302178 → 0.26989983. Notebook re-executed 2026-04-16 to propagate the corrected census value.
 
 ### What
 
@@ -368,6 +372,10 @@ All clip thresholds and bin widths derived from census artifact at runtime (Inva
 **Artifacts produced:**
 - `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.md`
 - `reports/artifacts/01_exploration/02_eda/01_02_04_univariate_census.json`
+
+### Retroactive correction — 2026-04-16 (matchId cardinality)
+
+DuckDB `SUMMARIZE` (HyperLogLog) significantly underestimated matchId cardinality: HLL reported 61,799,126 vs exact `COUNT(DISTINCT matchId)` = 74,788,989 (~21% undercount). A correction cell was added to the notebook after the existing `won` null-count patch: it runs `SELECT COUNT(DISTINCT matchId)` and overwrites the `approx_cardinality` for matchId in `matches_raw_null_census`. The `exact_matchid_cardinality_note` key was added to the artifact JSON to document the old and new values. Notebook re-executed 2026-04-16.
 
 ### What
 

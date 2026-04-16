@@ -273,20 +273,9 @@ These are excluded from the prediction pipeline because they have no usable pred
 
 ## Observations and thesis implications
 
-1. **Observation:** The dataset is overwhelmingly 1v1: 22,366 of 22,390 replays (99.89%) are `true_1v1_decisive` (exactly 2 player rows, 1 Win + 1 Loss). Only 11 replays (0.05%) are non-1v1 by player count (8 `non_1v1_too_many_players` with 4-9 rows; 3 `non_1v1_too_few_players` with 1 row), and 13 replays (0.06%) are `true_1v1_indecisive` (2 players but Undecided/Tie result, no usable prediction target). The `non_1v1_other` category is empty -- the classification logic is exhaustive.
-   **Thesis implication:** The sc2egset corpus is practically a pure 1v1 dataset. The 24 replays to be excluded (11 non-1v1 by count + 13 indecisive) represent 0.11% attrition. The thesis population is 22,366 decisive 1v1 replays.
-   **Next action:** Feed classification to 01_04 (Data Cleaning). Exclude `non_1v1_too_few_players` (3), `non_1v1_too_many_players` (8), and `true_1v1_indecisive` (13) replays from the analysis population.
-
-2. **Observation:** All 1,110 empty-selectedRace rows belong to `true_1v1_decisive` replays (players_per_replay = 2 for all 1,110 rows; result distribution is exactly 555 Win + 555 Loss; APM = 0.0 for all). The `race` column is populated for all 1,110 (Zerg 569, Prot 276, Terr 265), confirming the race was resolved post-game. This is not an observer issue -- it is a data quality issue in the `selectedRace` field for players who selected Random pre-game.
-   **Thesis implication:** The empty-selectedRace phenomenon is confined to 555 replays in the 1v1 decisive population and does not affect match classification. The APM = 0 pattern across all 1,110 rows is a sentinel value investigation item for 01_04.
-   **Next action:** Investigate APM = 0 sentinel in 01_04.
-
-3. **Observation:** The observer setting is 0 (no observers) for all 22,390 replays. The 8 `non_1v1_too_many_players` replays (4-9 player rows) are not caused by observer slots in the lobby -- they are genuine multi-player game replays (max_players matches actual player row count exactly: 4=4, 6=6, 8=8, 9=9). The 3 BW-race variant rows (BWTe, BWPr, BWZe) all belong to the single 6-player replay.
-   **Thesis implication:** Observer contamination is not a concern in this dataset. The non-1v1 replays are genuine team games that inadvertently entered the esport corpus.
-   **Next action:** Document in INVARIANTS.md that observer_setting = 0 is universal in sc2egset.
-
-4. **Observation:** 403 replays have max_players = 4 but only 2 actual player rows -- these are all classified as `true_1v1_decisive`. The max_players field encodes lobby slot capacity, not active player count, as expected for SC2 maps with observer/referee slots. These are genuine 1v1 matches played on 4-slot maps.
-   **Thesis implication:** max_players alone is not a reliable 1v1 filter; actual player row count is the correct criterion. The max_players field is not useful for 1v1 identification and should be excluded from features.
+1. **Observation:** [to be filled based on execution results]
+   **Thesis implication:** [to be filled]
+   **Next action:** Feed classification to 01_04 (Data Cleaning).
 
 ---
 

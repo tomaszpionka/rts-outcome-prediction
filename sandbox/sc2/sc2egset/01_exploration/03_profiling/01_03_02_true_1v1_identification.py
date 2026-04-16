@@ -545,6 +545,47 @@ print(f"true_1v1_decisive: {true_1v1_decisive_count} / {RM_TOTAL_ROWS} "
 print(f"true_1v1_indecisive: {true_1v1_indecisive_count} / {RM_TOTAL_ROWS} "
       f"({100.0 * true_1v1_indecisive_count / RM_TOTAL_ROWS:.2f}%)")
 
+# %% [markdown]
+# ## Cell 16b -- Sample row preview for sanity check
+
+# %%
+# True 1v1 decisive: 2 players, 1 Win + 1 Loss
+sample_true_sql = """
+SELECT rp.filename, rp.playerID, rp.selectedRace, rp.result,
+       rp.APM, rp.MMR, rp.SQ
+FROM replay_players_raw rp
+WHERE rp.filename IN (
+    SELECT filename FROM replay_players_raw
+    GROUP BY filename
+    HAVING COUNT(*) = 2
+       AND COUNT(*) FILTER (WHERE result = 'Win') = 1
+       AND COUNT(*) FILTER (WHERE result = 'Loss') = 1
+    LIMIT 5
+)
+ORDER BY rp.filename, rp.playerID
+"""
+sql_queries["sample_true_1v1"] = sample_true_sql
+print("=== Sample: TRUE 1v1 decisive replays (2 players, 1 Win + 1 Loss) ===")
+df_sample_true = conn.con.execute(sample_true_sql).df()
+print(df_sample_true.to_string(index=False))
+
+# %%
+# Non-1v1: replays with player_row_count != 2 (all 11 shown — small enough)
+sample_non1v1_sql = """
+SELECT rp.filename, rp.playerID, rp.selectedRace, rp.result, rp.APM
+FROM replay_players_raw rp
+WHERE rp.filename IN (
+    SELECT filename FROM replay_players_raw
+    GROUP BY filename HAVING COUNT(*) != 2
+)
+ORDER BY rp.filename, rp.playerID
+"""
+sql_queries["sample_non_1v1"] = sample_non1v1_sql
+print("=== Sample: NON-1v1 replays (player_row_count != 2) ===")
+df_sample_non1v1 = conn.con.execute(sample_non1v1_sql).df()
+print(df_sample_non1v1.to_string(index=False))
+
+# %%
 json_path = artifact_dir / "01_03_02_true_1v1_profile.json"
 with open(json_path, "w") as f:
     json.dump(artifact, f, indent=2, default=str)

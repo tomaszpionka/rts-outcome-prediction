@@ -52,6 +52,8 @@ db = get_notebook_db("aoe2", "aoestats")
 reports_dir = get_reports_dir("aoe2", "aoestats")
 profiling_dir = reports_dir / "artifacts" / "01_exploration" / "03_profiling"
 profiling_dir.mkdir(parents=True, exist_ok=True)
+plots_dir = profiling_dir / "plots"
+plots_dir.mkdir(parents=True, exist_ok=True)
 
 census_path = reports_dir / "artifacts" / "01_exploration" / "02_eda" / "01_02_04_univariate_census.json"
 with open(census_path) as f:
@@ -569,38 +571,100 @@ for k, v in result["summary"].items():
         print(f"  {k}: {v}")
 
 # %%
-# Bar chart: Venn-style breakdown
-categories = ["Overlap\n(True AND Ranked)", "True 1v1 Only", "Ranked 1v1 Only", "Neither"]
-values = [
-    sc["overlap_both"],
-    sc["true_only"],
-    sc["ranked_only"],
-    sc["neither"],
+# Sample rows: visual preview of true 1v1 and non-1v1 matches for sanity check
+sample_true_sql = """
+SELECT m.game_id, m.leaderboard, m.num_players,
+       p.profile_id, p.winner, p.civ, p.team
+FROM matches_raw m
+JOIN players_raw p ON m.game_id = p.game_id
+WHERE m.game_id IN (
+    SELECT game_id FROM players_raw
+    GROUP BY game_id HAVING COUNT(*) = 2
+    LIMIT 5
+)
+ORDER BY m.game_id, p.team
+"""
+sql_queries["sample_true_1v1"] = sample_true_sql
+print("=== Sample: TRUE 1v1 matches (actual_player_count = 2) ===")
+df_sample_true = db.fetch_df(sample_true_sql)
+print(df_sample_true.to_string(index=False))
+
+# %%
+sample_non1v1_sql = """
+SELECT m.game_id, m.leaderboard, m.num_players,
+       COUNT(p.profile_id) AS actual_player_count,
+       LIST(p.civ ORDER BY p.team) AS civs,
+       LIST(p.team ORDER BY p.team) AS teams,
+       LIST(p.winner ORDER BY p.team) AS winners
+FROM matches_raw m
+JOIN players_raw p ON m.game_id = p.game_id
+WHERE m.game_id IN (
+    SELECT game_id FROM players_raw
+    GROUP BY game_id HAVING COUNT(*) != 2
+    LIMIT 5
+)
+GROUP BY m.game_id, m.leaderboard, m.num_players
+ORDER BY actual_player_count DESC
+"""
+sql_queries["sample_non_1v1"] = sample_non1v1_sql
+print("=== Sample: NON-1v1 matches (actual_player_count != 2) ===")
+df_sample_non1v1 = db.fetch_df(sample_non1v1_sql)
+print(df_sample_non1v1.to_string(index=False))
+
+# %%
+# Chart: 2-panel — LEFT: total 1v1 counts (easy to read), RIGHT: Venn breakdown
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+# Left panel: total counts — what fraction of ALL matches are structural / proxy 1v1
+total_labels = [
+    "All Matches",
+    "Structural 1v1\n(actual 2 players)",
+    "Leaderboard proxy\n(random_map)",
 ]
-colors = ["#2ecc71", "#3498db", "#e67e22", "#95a5a6"]
-
-fig, ax = plt.subplots(figsize=(10, 6))
-bars = ax.bar(categories, values, color=colors, edgecolor="black", linewidth=0.5)
-
-# Add count labels on bars
-for bar, val in zip(bars, values):
-    ax.text(
+total_values = [sc["total_matches"], sc["true_1v1"], sc["ranked_1v1"]]
+total_colors = ["#95a5a6", "#2ecc71", "#3498db"]
+bars1 = ax1.bar(total_labels, total_values, color=total_colors, edgecolor="black", linewidth=0.5)
+for bar, val in zip(bars1, total_values):
+    ax1.text(
         bar.get_x() + bar.get_width() / 2,
         bar.get_height() + MATCHES_TOTAL * 0.005,
         f"{val:,.0f}\n({val / MATCHES_TOTAL * 100:.1f}%)",
         ha="center", va="bottom", fontsize=9,
     )
+ax1.set_ylabel("Number of Matches")
+ax1.set_title("Total 1v1 counts\n(bars overlap — a match can be in both)")
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
 
-ax.set_ylabel("Number of Matches")
-ax.set_title(
-    "aoestats: True 1v1 vs Ranked 1v1 (leaderboard='random_map') Comparison\n"
-    f"Total matches: {MATCHES_TOTAL:,}",
-    fontsize=11,
+# Right panel: non-overlapping Venn regions
+region_labels = [
+    "Both\n(structural AND proxy)",
+    "Structural only\n(not random_map)",
+    "Proxy only\n(random_map,\n>2 players or orphaned)",
+    "Neither",
+]
+region_values = [sc["overlap_both"], sc["true_only"], sc["ranked_only"], sc["neither"]]
+region_colors = ["#2ecc71", "#27ae60", "#e67e22", "#95a5a6"]
+bars2 = ax2.bar(region_labels, region_values, color=region_colors, edgecolor="black", linewidth=0.5)
+for bar, val in zip(bars2, region_values):
+    ax2.text(
+        bar.get_x() + bar.get_width() / 2,
+        bar.get_height() + MATCHES_TOTAL * 0.005,
+        f"{val:,.0f}\n({val / MATCHES_TOTAL * 100:.1f}%)",
+        ha="center", va="bottom", fontsize=9,
+    )
+ax2.set_ylabel("Number of Matches")
+ax2.set_title("Non-overlapping Venn regions\n(four bars sum to total matches)")
+ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+
+fig.suptitle(
+    f"aoestats: Structural 1v1 vs Leaderboard Proxy\n"
+    f"Total matches: {MATCHES_TOTAL:,} | "
+    f"Structural 1v1: {sc['true_1v1']:,} ({sc['true_1v1'] / MATCHES_TOTAL * 100:.1f}%) | "
+    f"Proxy 1v1: {sc['ranked_1v1']:,} ({sc['ranked_1v1'] / MATCHES_TOTAL * 100:.1f}%)",
+    fontsize=10,
 )
-ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
-
 plt.tight_layout()
-chart_path = profiling_dir / "01_03_02_match_type_breakdown.png"
+chart_path = plots_dir / "01_03_02_match_type_breakdown.png"
 fig.savefig(chart_path, dpi=150, bbox_inches="tight")
 plt.close(fig)
 print(f"Saved: {chart_path}")
@@ -739,7 +803,7 @@ md_lines.extend([
     "",
     "## Visualization",
     "",
-    "![Match type breakdown](01_03_02_match_type_breakdown.png)",
+    "![Match type breakdown](plots/01_03_02_match_type_breakdown.png)",
     "",
     "## SQL Queries (I6)",
     "",

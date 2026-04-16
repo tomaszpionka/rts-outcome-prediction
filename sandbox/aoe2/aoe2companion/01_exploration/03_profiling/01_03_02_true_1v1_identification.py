@@ -20,7 +20,7 @@
 # **Phase:** 01 -- Data Exploration
 # **Pipeline Section:** 01_03 -- Systematic Data Profiling
 # **Dataset:** aoe2companion
-# **Question:** Among all 61.8M distinct matchIds, which ones are genuine
+# **Question:** Among all 74.8M distinct matchIds, which ones are genuine
 #   1v1 matches (exactly 2 human players)? How does this set compare to
 #   the leaderboard-based 1v1 proxy? What edge cases exist?
 # **Invariants applied:**
@@ -481,9 +481,12 @@ for _, row in df_hybrid.iterrows():
 hybrid_1v1_composition = df_hybrid.to_dict(orient="records")
 
 # %% Cell 12b -- B1 fix (a): leaderboard cardinality per matchId diagnostic
-# The 01_02_04 census proves sum(per-leaderboard distinct matchIds) = 74.8M > 61.8M total,
-# meaning ~13M matchIds appear under 2+ leaderboard values. Quantify this before any
-# leaderboard-based aggregation.
+# Prior hypothesis (based on HLL approx from 01_03_01): matchId cardinality ~61.8M,
+# census per-leaderboard sum = 74.8M => ~13M matchIds in multiple leaderboards.
+# CORRECTED: exact COUNT(DISTINCT matchId) = 74,788,989 -- the 01_03_01 HLL
+# (61,799,126) was a significant underestimate (~21% below true value).
+# Per-leaderboard sums equal the exact cardinality, meaning ZERO matchIds span
+# multiple leaderboards. This diagnostic confirms that finding.
 leaderboard_cardinality_sql = """
 SELECT n_leaderboards, COUNT(*) AS n_matches
 FROM (
@@ -721,6 +724,52 @@ for _, row in df_team.iterrows():
     print(f"  {row['team_pattern']}: {int(row['n_matches']):,} ({row['pct']}%)")
 
 team_analysis = df_team.to_dict(orient="records")
+
+# %% Cell 17b -- sample row preview for sanity check
+# Show actual rows so the classification can be verified visually.
+# Structural 1v1 = matchId with exactly 2 status='player' rows and complementary won.
+sample_true_1v1_sql = """
+SELECT matchId, leaderboard, profileId, status, won, rating, team
+FROM matches_raw
+WHERE matchId IN (
+    SELECT matchId FROM matches_raw
+    WHERE status = 'player'
+    GROUP BY matchId
+    HAVING COUNT(*) = 2
+       AND COUNT(*) FILTER (WHERE won = true) = 1
+       AND COUNT(*) FILTER (WHERE won = false) = 1
+    LIMIT 5
+)
+ORDER BY matchId, profileId
+"""
+sql_queries["sample_true_1v1"] = sample_true_1v1_sql
+print("=== Sample: TRUE 1v1 matches (2 human players, complementary won) ===")
+df_sample_true = con.execute(sample_true_1v1_sql).df()
+print(df_sample_true.to_string(index=False))
+
+# %%
+# Non-1v1 sample: matchIds with != 2 human-status rows
+sample_non1v1_sql = """
+SELECT matchId, leaderboard,
+       COUNT(*) AS total_rows,
+       COUNT(*) FILTER (WHERE status = 'player') AS human_rows,
+       COUNT(*) FILTER (WHERE status = 'ai') AS ai_rows,
+       MIN(won) AS won_min, MAX(won) AS won_max
+FROM matches_raw
+WHERE matchId IN (
+    SELECT matchId FROM matches_raw
+    WHERE status = 'player'
+    GROUP BY matchId
+    HAVING COUNT(*) != 2
+    LIMIT 5
+)
+GROUP BY matchId, leaderboard
+ORDER BY total_rows DESC
+"""
+sql_queries["sample_non_1v1"] = sample_non1v1_sql
+print("=== Sample: NON-1v1 matches (human player count != 2) ===")
+df_sample_non1v1 = con.execute(sample_non1v1_sql).df()
+print(df_sample_non1v1.to_string(index=False))
 
 # %% Cell 18 -- assemble and write JSON
 artifact = {

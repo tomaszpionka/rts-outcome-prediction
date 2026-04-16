@@ -1,6 +1,6 @@
 # Step 01_03_02 -- True 1v1 Match Identification: aoestats
 
-**Generated:** 2026-04-16 09:07
+**Generated:** 2026-04-16 09:54
 **Dataset:** aoestats
 **Invariants:** #6 (SQL verbatim), #7 (no magic numbers), #9 (profiling only)
 
@@ -87,7 +87,7 @@ has values {0, 1} only. profile_id has 1,185 NULLs (0.0011%).
 
 ## Visualization
 
-![Match type breakdown](01_03_02_match_type_breakdown.png)
+![Match type breakdown](plots/01_03_02_match_type_breakdown.png)
 
 ## SQL Queries (I6)
 
@@ -314,4 +314,36 @@ LEFT JOIN player_counts pc ON p.game_id = pc.game_id
 WHERE p.profile_id IS NULL
 GROUP BY m.leaderboard, COALESCE(pc.actual_player_count, 0)
 ORDER BY null_profile_rows DESC
+```
+
+### sample_true_1v1
+```sql
+SELECT m.game_id, m.leaderboard, m.num_players,
+       p.profile_id, p.winner, p.civ, p.team
+FROM matches_raw m
+JOIN players_raw p ON m.game_id = p.game_id
+WHERE m.game_id IN (
+    SELECT game_id FROM players_raw
+    GROUP BY game_id HAVING COUNT(*) = 2
+    LIMIT 5
+)
+ORDER BY m.game_id, p.team
+```
+
+### sample_non_1v1
+```sql
+SELECT m.game_id, m.leaderboard, m.num_players,
+       COUNT(p.profile_id) AS actual_player_count,
+       LIST(p.civ ORDER BY p.team) AS civs,
+       LIST(p.team ORDER BY p.team) AS teams,
+       LIST(p.winner ORDER BY p.team) AS winners
+FROM matches_raw m
+JOIN players_raw p ON m.game_id = p.game_id
+WHERE m.game_id IN (
+    SELECT game_id FROM players_raw
+    GROUP BY game_id HAVING COUNT(*) != 2
+    LIMIT 5
+)
+GROUP BY m.game_id, m.leaderboard, m.num_players
+ORDER BY actual_player_count DESC
 ```
