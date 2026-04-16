@@ -1,0 +1,89 @@
+object_name: matches_long_raw
+object_type: view
+dataset: aoe2companion
+game: aoe2
+step: "01_04_00"
+row_count: 277099059
+generated_date: "2026-04-16"
+describe_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json
+description: >
+  Canonical long skeleton -- one row per player per match. Lossless projection
+  of matches_raw into the unified 10-column schema. No filtering, no cleaning.
+  Side reflects source slot encoding; any side-outcome correlation is preserved
+  as-is for downstream symmetry auditing (I5).
+invariants: [I3, I5, I6, I9]
+columns:
+  - name: match_id
+    type: INTEGER
+    nullable: true
+    notes: "Dataset-native match identifier (matchId from matches_raw)."
+
+  - name: started_timestamp
+    type: TIMESTAMP
+    nullable: true
+    notes: >
+      I3 temporal anchor (source: started, nullable).
+      NULLs pass through (no WHERE filter applied).
+      Type unification across datasets deferred to Phase 02.
+
+  - name: side
+    type: INTEGER
+    nullable: true
+    notes: >
+      Source slot encoding: CASE WHEN team IN (0, 1) THEN team ELSE NULL END.
+      Note: aoe2companion uses team=1 and team=2 as 1v1 sides, not team=0 and team=1.
+      Side=0 contains only 449 rows (source encoding artifact); team=2 maps to NULL.
+      Values outside {0, 1} (team-game values 2-12, sentinel 255/32) also map to NULL.
+
+  - name: player_id
+    type: INTEGER
+    nullable: true
+    notes: "Dataset-native player identifier (profileId from matches_raw)."
+
+  - name: chosen_civ_or_race
+    type: VARCHAR
+    nullable: true
+    notes: "Civilization name (civ column from matches_raw)."
+
+  - name: outcome_raw
+    type: INTEGER
+    nullable: true
+    notes: "1=win, 0=loss, NULL=unknown. Derived from won BOOLEAN."
+
+  - name: rating_pre_raw
+    type: INTEGER
+    nullable: true
+    notes: >
+      Pre-match ELO rating (rating column). Confirmed pre-game in 01_03_03 (99.8%).
+      I3: ratingDiff and finished excluded.
+
+  - name: map_id_raw
+    type: VARCHAR
+    nullable: true
+    notes: "Raw map identifier (map column). Not harmonized across datasets."
+
+  - name: patch_raw
+    type: INTEGER
+    nullable: true
+    notes: "NULL constant -- no patch column in matches_raw source."
+
+  - name: leaderboard_raw
+    type: INTEGER
+    nullable: true
+    notes: >
+      Ladder/queue identifier (internalLeaderboardId from matches_raw).
+      Values: 6=rm_1v1, 18=qp_rm_1v1 for ranked 1v1 (established in 01_04_01).
+      Allows downstream 1v1 scoping without rejoining matches_raw.
+
+provenance:
+  source_tables: [matches_raw]
+  filter: "none -- lossless projection"
+  scope: "All game types and leaderboards. No row filtering."
+  created_by: sandbox/aoe2/aoe2companion/01_exploration/04_cleaning/01_04_00_source_normalization.py
+  columns_excluded:
+    - name: ratingDiff
+      reason: "POST-GAME (rating change after match). I3 leakage prevention."
+    - name: finished
+      reason: "POST-GAME (game end timestamp). I3 leakage prevention."
+    - name: team (raw)
+      reason: "Transformed to side via CASE WHEN team IN (0, 1) THEN team ELSE NULL END."

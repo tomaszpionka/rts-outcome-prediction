@@ -1,0 +1,103 @@
+object_name: matches_long_raw
+object_type: view
+dataset: sc2egset
+game: sc2
+step: "01_04_00"
+row_count: 44817
+generated_date: "2026-04-16"
+describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json
+description: >
+  Canonical long skeleton -- one row per player per match. Structural INNER JOIN
+  of replay_players_raw x replays_meta_raw using 32-char hex hash extracted from
+  filename. Lossless projection into the unified 10-column schema. No filtering,
+  no cleaning beyond INNER JOIN semantics (unmatched rows excluded).
+invariants: [I3, I5, I6, I9]
+columns:
+  - name: match_id
+    type: VARCHAR
+    nullable: true
+    notes: >
+      32-char hex hash extracted from filename via regexp_extract with NULLIF guard.
+      Pattern: ([0-9a-f]{32})\.SC2Replay\.json$ (same as matches_flat.replay_id in 01_04_01).
+      NULL if filename does not match the pattern (0 NULL rows observed).
+
+  - name: started_timestamp
+    type: VARCHAR
+    nullable: true
+    notes: >
+      I3 temporal anchor (source: rm.details.timeUTC via struct dot notation, VARCHAR).
+      ISO 8601 string with Windows FILETIME sub-second precision
+      (e.g. "2016-01-31T19:13:30.0627872Z"). Type unification deferred to Phase 02.
+
+  - name: side
+    type: INTEGER
+    nullable: true
+    notes: >
+      Source slot: rp.playerID - 1 (playerID is 1-based; 0-based for schema consistency).
+      Values 0/1 for the two main players (playerID 1 and 2; 22,390 and 22,387 rows).
+      Values 2-8 for rare multi-player/observer slots (37 rows total, playerID 3-9).
+
+  - name: player_id
+    type: VARCHAR
+    nullable: false
+    notes: "Battle.net toon identifier (rp.toon_id, VARCHAR). Not nullable in source."
+
+  - name: chosen_civ_or_race
+    type: VARCHAR
+    nullable: true
+    notes: >
+      Actual race played (rp.race). NOT selectedRace (which includes pre-game 'Random'
+      selection before race assignment). Distinction: race reflects what was played;
+      selectedRace reflects the lobby menu choice.
+
+  - name: outcome_raw
+    type: INTEGER
+    nullable: true
+    notes: >
+      1=win, 0=loss, NULL=unknown/undecided/tie.
+      Source values: Win->1, Loss->0, Undecided/Tie->NULL.
+      13 NULL outcome rows for each of side=0 and side=1.
+
+  - name: rating_pre_raw
+    type: INTEGER
+    nullable: true
+    notes: >
+      Pre-match MMR (rp.MMR, INTEGER). Value 0 is an unrated sentinel -- handling deferred to Phase 02.
+      PRE_GAME classification sourced from 01_04_01 MMR analysis (replay-level, pre-match).
+      I3: APM, SQ, supplyCappedPercent, header_elapsedGameLoops excluded.
+
+  - name: map_id_raw
+    type: VARCHAR
+    nullable: true
+    notes: "Human-readable map name (rm.metadata.mapName via struct dot notation)."
+
+  - name: patch_raw
+    type: VARCHAR
+    nullable: true
+    notes: "Game version string (rm.metadata.gameVersion via struct dot notation)."
+
+  - name: leaderboard_raw
+    type: INTEGER
+    nullable: true
+    notes: >
+      NULL constant for all 44,817 rows. SC2EGSet is an esports tournament dataset
+      (SC2EGSet: StarCraft II Esport Replay and Game-state Dataset) with no matchmaking
+      ladder. This is deliberate -- not missing data.
+
+provenance:
+  source_tables: [replay_players_raw, replays_meta_raw]
+  join_key: "NULLIF(regexp_extract(filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1), '') on both sides"
+  filter: "INNER JOIN only -- unmatched rows excluded (0 rows affected)"
+  scope: "All replays in the dataset. No game-type or outcome filtering."
+  created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_00_source_normalization.py
+  columns_excluded:
+    - name: APM
+      reason: "IN_GAME metric. I3 leakage prevention for target match T."
+    - name: SQ
+      reason: "IN_GAME metric. I3 leakage prevention for target match T."
+    - name: supplyCappedPercent
+      reason: "IN_GAME metric. I3 leakage prevention for target match T."
+    - name: header_elapsedGameLoops
+      reason: "IN_GAME metric (game duration). I3 leakage prevention."
+    - name: selectedRace
+      reason: "Pre-game menu selection (includes 'Random'); race (actual played race) used instead."

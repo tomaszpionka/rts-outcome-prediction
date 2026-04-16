@@ -9,9 +9,40 @@ live in per-dataset logs — one per game/dataset combination.
 
 | Dataset | Log | Last entry |
 |---------|-----|------------|
-| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-15 (01_03_04) |
-| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-14 (01_02_03) |
-| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-14 (01_02_03) |
+| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-16 (01_04_00) |
+| aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-16 (01_04_00) |
+| aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-16 (01_04_00) |
+
+---
+
+## [CROSS] 2026-04-16 — [Phase 01 / Step 01_04_00] Canonical long skeleton normalization
+
+Schema: 10 columns (match_id, started_timestamp, side, player_id,
+chosen_civ_or_race, outcome_raw, rating_pre_raw, map_id_raw, patch_raw, leaderboard_raw)
+
+All three datasets now expose a structurally identical long skeleton VIEW (`matches_long_raw`).
+Downstream cleaning in all datasets operates against this common 10-column contract.
+
+  - **aoe2companion:** 277,099,059 rows (lossless from matches_raw).
+    side 0 win_pct = 4.45% (449 rows -- source encoding artifact; team=1 and team=2 are 1v1 sides).
+    side 1 win_pct = 49.58%.
+    1v1 scoped (leaderboard_raw IN (6, 18)): only side=1 rows appear; win_pct=47.18%.
+    leaderboard_raw = internalLeaderboardId (INTEGER); 1v1 values: 6 (rm_1v1), 18 (qp_rm_1v1).
+    patch_raw = NULL (no patch column in source).
+
+  - **aoestats:** 107,626,399 rows (lossless via independent anchor: 107,627,584 - 1,185 null_profile - 0 orphans).
+    side 0 win_pct = 48.97% (53,813,160 rows).
+    side 1 win_pct = 51.03% (53,813,239 rows).
+    1v1 scoped (leaderboard_raw = 'random_map'): side 0 win_pct = 47.73%, side 1 win_pct = 52.27%.
+    Known asymmetry from 01_04_01 confirmed.
+    leaderboard_raw = leaderboard (VARCHAR); 1v1 value: 'random_map'.
+
+  - **sc2egset:** 44,817 rows (lossless JOIN count).
+    side 0 win_pct = 51.96% (22,390 rows, 13 null outcome).
+    side 1 win_pct = 47.97% (22,387 rows, 13 null outcome).
+    Mild asymmetry (3.99pp deviation, below 10pp alert threshold). Documented, not corrected.
+    leaderboard_raw = NULL (tournament data, no matchmaking ladder).
+    started_timestamp type = VARCHAR (details.timeUTC); type unification deferred to Phase 02.
 
 > **Phase migration note (2026-04-09):** This log was reset as part of the
 > Phase 01-07 migration. Prior entries were removed in v2.0.0 (archive

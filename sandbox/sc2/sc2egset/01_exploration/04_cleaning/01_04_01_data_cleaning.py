@@ -32,7 +32,7 @@
 # **Commit:** feat/data-cleaning-01-04
 # **Date:** 2026-04-16
 # **ROADMAP ref:** 01_04_01
-# **Revision:** 1 (incorporates critique BLOCKER F01, WARNINGS W02-W05)
+# **Revision:** 1 (incorporates replay-level MMR exclusion, regexp_extract NULLIF guard, constant column exclusions, and APM=0 as documentation-only)
 #
 # ## Design constraint: Prediction scope != Feature scope
 #
@@ -74,14 +74,14 @@ con = get_notebook_db("sc2", "sc2egset", read_only=False)
 print("DuckDB connection opened (read-write).")
 
 # %% [markdown]
-# ## Cell 3 -- T01: Create matches_flat VIEW
+# ## Create matches_flat VIEW (structural JOIN)
 #
 # Structural JOIN of replay_players_raw x replays_meta_raw using replay_id
-# extracted via regexp. NULLIF converts empty-string non-matches to NULL (W04).
-# This is the F01 structural blocker resolution.
+# extracted via regexp. NULLIF converts empty-string non-matches to NULL
+# (empty-string protection).
 #
 # **Columns RETAINED:** all raw columns including APM, SQ, supplyCappedPercent
-# (IN_GAME) for pass-through to player_history_all.
+# (in-game metrics) for pass-through to player_history_all.
 #
 # **JOIN key:** NULLIF(regexp_extract(filename, '([0-9a-f]{32})\.SC2Replay\.json$', 1), '')
 
@@ -89,7 +89,7 @@ print("DuckDB connection opened (read-write).")
 CREATE_MATCHES_FLAT_SQL = """
 CREATE OR REPLACE VIEW matches_flat AS
 SELECT
-    -- Canonical join key (NULLIF converts empty-string non-match to NULL -- W04 fix)
+    -- Canonical join key (NULLIF converts empty-string non-match to NULL)
     NULLIF(
         regexp_extract(rp.filename, '([0-9a-f]{32})\\.SC2Replay\\.json$', 1),
         ''
@@ -187,7 +187,7 @@ con.con.execute(CREATE_MATCHES_FLAT_SQL)
 print("matches_flat VIEW created.")
 
 # %% [markdown]
-# ## Cell 4 -- T01 Validation
+# ## matches_flat validation
 
 # %%
 r_mf = con.con.execute(
@@ -203,15 +203,15 @@ r_null = con.con.execute(
 print(f"NULL replay_id: {r_null[0]}")
 assert r_null[0] == 0, f"Expected 0 NULL replay_ids, got {r_null[0]}"
 
-# W03: isBlizzardMap duplication check
+# isBlizzardMap duplication check
 r_bm = con.con.execute(
     "SELECT COUNT(*) AS mismatched_blizzard_map FROM matches_flat WHERE gd_isBlizzardMap != details_isBlizzardMap"
 ).fetchone()
 print(f"isBlizzardMap mismatch count: {r_bm[0]}")
 if r_bm[0] == 0:
-    print("W03: gd_isBlizzardMap == details_isBlizzardMap for all rows. Will exclude gd_isBlizzardMap from downstream VIEWs.")
+    print("gd_isBlizzardMap == details_isBlizzardMap for all rows. Will exclude gd_isBlizzardMap from downstream VIEWs.")
 
-# W02: gameSpeed constant assertion
+# gameSpeed constant assertion
 r_gs = con.con.execute(
     "SELECT COUNT(DISTINCT details_gameSpeed) AS n_details, COUNT(DISTINCT gd_gameSpeed) AS n_gd FROM matches_flat"
 ).fetchone()
@@ -220,11 +220,11 @@ assert r_gs[0] == 1, f"details_gameSpeed cardinality={r_gs[0]}, expected 1"
 assert r_gs[1] == 1, f"gd_gameSpeed cardinality={r_gs[1]}, expected 1"
 
 # %% [markdown]
-# ## Cell 5 -- T02: Non-1v1 and Indecisive Result Classification (R01)
+# ## Non-1v1 and indecisive result classification
 #
 # Identify replays not suitable for binary 1v1 classification.
-# R01 exclusion applies to matches_flat_clean (prediction target) ONLY.
-# The 24 excluded replays remain in player_history_all as valid game history.
+# Exclusion applies to matches_flat_clean (prediction target) ONLY.
+# Excluded replays remain in player_history_all as valid game history.
 
 # %%
 CLASSIFICATION_SUMMARY_SQL = """
@@ -250,16 +250,16 @@ GROUP BY classification ORDER BY n_replays DESC
 """
 
 r_class = con.con.execute(CLASSIFICATION_SUMMARY_SQL).df()
-print("T02 Classification summary:")
+print("Non-1v1 and indecisive classification:")
 print(r_class.to_string(index=False))
 assert r_class["n_replays"].sum() == 22390, "Sum of classified replays != 22390"
 
 # %% [markdown]
-# ## Cell 6 -- T03: MMR Sentinel Analysis (R02, R03)
+# ## MMR analysis: unrated players (MMR=0) and anomalous values (MMR<0)
 #
-# CRITICAL FIX (BLOCKER F01): R03 uses replay-level CTE (mmr_valid) in
-# matches_flat_clean, NOT row-level WHERE filter. This prevents orphaned rows.
-# CONSORT flow records REPLAY units, not row units.
+# Replay-level exclusion: any replay with at least one MMR<0 player is excluded
+# from matches_flat_clean via a CTE, not a row-level WHERE filter.
+# This prevents orphaned rows. CONSORT flow records REPLAY units, not row units.
 
 # %%
 TRUE_1V1_SUBQ = """SELECT replay_id FROM matches_flat GROUP BY replay_id
@@ -296,7 +296,7 @@ LIMIT 30
 r_mmr_neg = con.con.execute(MMR_NEG_SQL).df()
 print(f"\nMMR<0 distribution (top 30):\n{r_mmr_neg.head(10).to_string(index=False)}")
 
-# BLOCKER F01 FIX: Count REPLAYS with at least one MMR<0 player
+# Count REPLAYS with at least one MMR<0 player
 MMR_NEG_REPLAYS_SQL = f"""
 SELECT COUNT(*) AS replays_with_mmr_negative
 FROM (
@@ -308,7 +308,7 @@ FROM (
 )
 """
 r_mmr_neg_replays = con.con.execute(MMR_NEG_REPLAYS_SQL).fetchone()
-print(f"\nR03 replay-level exclusion count: {r_mmr_neg_replays[0]} replays")
+print(f"\nMMR<0 replay-level exclusion: {r_mmr_neg_replays[0]} replays")
 
 # Overlap check
 MMR_OVERLAP_SQL = f"""
@@ -343,7 +343,7 @@ r_strat = con.con.execute(MMR_STRAT_SQL).df()
 print(f"\nMMR=0 tournament stratification (first 5):\n{r_strat.head(5).to_string(index=False)}")
 
 # %% [markdown]
-# ## Cell 7 -- T04: selectedRace Normalization (R04)
+# ## selectedRace normalisation (empty string → Random)
 #
 # Map selectedRace='' (empty string) to 'Random' in both VIEWs.
 # Empty string = Random race resolved post-game. 'race' column holds actual played race.
@@ -373,11 +373,11 @@ print(f"\nEmpty selectedRace: total={r_sr_apm[0]}, apm_zero={r_sr_apm[1]}, apm_n
 assert r_sr_apm[0] == 1110, f"Expected 1110 empty selectedRace rows, got {r_sr_apm[0]}"
 
 # %% [markdown]
-# ## Cell 8 -- T05: SQ Sentinel Correction (R05)
+# ## SQ parse-failure sentinel correction (INT32_MIN → NULL)
 #
 # 2 rows with SQ=INT32_MIN (-2147483648) are parse failures.
 # Action: set SQ to NULL in player_history_all.
-# Note: SQ excluded from matches_flat_clean per I3.
+# Note: SQ excluded from matches_flat_clean per temporal discipline.
 
 # %%
 SQ_SENTINEL_SQL = """
@@ -391,10 +391,10 @@ print(r_sq[["replay_id", "nickname", "MMR", "APM", "SQ", "result"]].to_string(in
 assert len(r_sq) == 2, f"Expected 2 SQ sentinel rows, got {len(r_sq)}"
 
 # %% [markdown]
-# ## Cell 9 -- T06: APM=0 Investigation (Documentation Only -- no cleaning rule)
+# ## APM=0 investigation (documentation only — no cleaning action)
 #
-# REVISED per W05: APM investigation is documentation-only.
-# NO APM-derived columns are added to any VIEW. APM is IN_GAME (I3).
+# APM investigation is documentation-only.
+# NO APM-derived columns are added to any VIEW. APM is an in-game metric.
 # APM IS included in player_history_all (valid historical observation).
 
 # %%
@@ -425,10 +425,10 @@ WHERE APM = 0
 """
 r_apm2 = con.con.execute(APM_RACE_SQL).fetchone()
 print(f"\nAPM=0 overlap: total={r_apm2[0]}, also_empty_race={r_apm2[1]}, has_selected_race={r_apm2[2]}")
-print("Finding: 97.9% of APM=0 rows coincide with selectedRace=''. No cleaning rule applied (W05).")
+print("Finding: 97.9% of APM=0 rows coincide with selectedRace=''. No cleaning rule applied.")
 
 # %% [markdown]
-# ## Cell 10 -- T07: map_size=0 Investigation (R07)
+# ## map_size=0 investigation
 #
 # 273 replays (1.22%) have gd_mapSizeX=0 AND gd_mapSizeY=0 (parse artifact).
 # Action: FLAG (is_map_size_missing=TRUE; set mapSize to NULL in both VIEWs).
@@ -466,7 +466,7 @@ r_map2 = con.con.execute(MAP_ZERO_OVERLAP_SQL).fetchone()
 print(f"map_size=0 replays also in 1v1_decisive: {r_map2[1]} of {r_map2[0]}")
 
 # %% [markdown]
-# ## Cell 11 -- T08: handicap=0 Flag (R08)
+# ## handicap=0 flag
 #
 # 2 rows with handicap=0 (standard=100). FLAG only, not excluded.
 
@@ -482,20 +482,20 @@ print(r_hc[["replay_id", "nickname", "MMR", "handicap", "result"]].to_string(ind
 assert len(r_hc) == 2, f"Expected 2 handicap=0 rows, got {len(r_hc)}"
 
 # %% [markdown]
-# ## Cell 12 -- T09: Create matches_flat_clean VIEW (Prediction Targets)
+# ## Create matches_flat_clean VIEW (prediction targets)
 #
-# BLOCKER F01 FIX: R03 uses replay-level CTE (mmr_valid) -- ALL players
-# in replay must have MMR >= 0. Row-level filter would orphan opponent rows.
-# I3: APM, SQ, supplyCappedPercent, header_elapsedGameLoops EXCLUDED.
-# W02: details_gameSpeed, gd_gameSpeed EXCLUDED (cardinality=1).
-# W03: gd_isBlizzardMap EXCLUDED (identical to details_isBlizzardMap).
-# W05: No APM-derived flags.
+# Replay-level exclusion: all players in a replay must have MMR >= 0.
+# Row-level filter would orphan opponent rows, so a CTE is used instead.
+# In-game metrics (APM, SQ, supplyCappedPercent, header_elapsedGameLoops) excluded
+# per temporal discipline. Constant gameSpeed columns excluded (cardinality=1).
+# gd_isBlizzardMap excluded (confirmed identical to details_isBlizzardMap).
+# No APM-derived flag columns added.
 
 # %%
 CREATE_MATCHES_FLAT_CLEAN_SQL = """
 CREATE OR REPLACE VIEW matches_flat_clean AS
 WITH true_1v1_decisive AS (
-    -- R01: only replays with exactly 2 players, 1 Win + 1 Loss
+    -- only replays with exactly 2 players, 1 Win + 1 Loss
     SELECT replay_id
     FROM matches_flat
     GROUP BY replay_id
@@ -504,7 +504,7 @@ WITH true_1v1_decisive AS (
        AND COUNT(*) FILTER (WHERE result = 'Loss') = 1
 ),
 mmr_valid AS (
-    -- R03 (BLOCKER F01 FIX): replay-level exclusion -- ALL players must have MMR >= 0.
+    -- replay-level exclusion: any replay with MMR<0 player excluded entirely.
     -- If ANY player has MMR < 0, the ENTIRE replay is excluded.
     -- Prevents orphaned opponent rows that would break the 2-per-replay invariant.
     SELECT replay_id
@@ -526,13 +526,13 @@ SELECT
 
     -- Pre-game player features
     mf.MMR,
-    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,  -- R02
+    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,  -- flag MMR=0 as unrated sentinel
     mf.race,
     CASE WHEN mf.selectedRace = '' THEN 'Random'
-         ELSE mf.selectedRace END AS selectedRace,                      -- R04
+         ELSE mf.selectedRace END AS selectedRace,                      -- normalise empty selectedRace to 'Random'
 
     mf.handicap,
-    CASE WHEN mf.handicap = 0 THEN TRUE ELSE FALSE END AS is_handicap_anomalous, -- R08
+    CASE WHEN mf.handicap = 0 THEN TRUE ELSE FALSE END AS is_handicap_anomalous, -- handicap=0 anomaly flag
     mf.region,
     mf.realm,
     mf.highestLeague,
@@ -546,15 +546,15 @@ SELECT
 
     -- Pre-game map metadata
     mf.metadata_mapName,
-    CASE WHEN mf.gd_mapSizeX = 0 THEN NULL ELSE mf.gd_mapSizeX END AS gd_mapSizeX, -- R07
-    CASE WHEN mf.gd_mapSizeY = 0 THEN NULL ELSE mf.gd_mapSizeY END AS gd_mapSizeY, -- R07
+    CASE WHEN mf.gd_mapSizeX = 0 THEN NULL ELSE mf.gd_mapSizeX END AS gd_mapSizeX, -- map_size=0 anomaly flag
+    CASE WHEN mf.gd_mapSizeY = 0 THEN NULL ELSE mf.gd_mapSizeY END AS gd_mapSizeY, -- map_size=0 anomaly flag
     CASE WHEN mf.gd_mapSizeX = 0 AND mf.gd_mapSizeY = 0 THEN TRUE
-         ELSE FALSE END AS is_map_size_missing,                         -- R07
+         ELSE FALSE END AS is_map_size_missing,                         -- map_size=0 anomaly flag
     mf.gd_maxPlayers,
     mf.gd_mapAuthorName,
     mf.gd_mapFileSyncChecksum,
 
-    -- Pre-game Blizzard map flag (W03: only details_ variant retained)
+    -- Pre-game Blizzard map flag (only details_ variant retained; gd_ is duplicate)
     mf.details_isBlizzardMap,
 
     -- Pre-game temporal anchor
@@ -584,15 +584,15 @@ SELECT
     mf.go_userDifficulty
 
 FROM matches_flat mf
-JOIN true_1v1_decisive t1v1 ON mf.replay_id = t1v1.replay_id  -- R01
-JOIN mmr_valid mv ON mf.replay_id = mv.replay_id;             -- R03 (replay-level)
+JOIN true_1v1_decisive t1v1 ON mf.replay_id = t1v1.replay_id  -- filter to true 1v1 decisive only
+JOIN mmr_valid mv ON mf.replay_id = mv.replay_id;             -- replay-level MMR exclusion
 """
 
 con.con.execute(CREATE_MATCHES_FLAT_CLEAN_SQL)
 print("matches_flat_clean VIEW created.")
 
 # %% [markdown]
-# ## Cell 13 -- T09 Validation
+# ## matches_flat_clean validation
 
 # %%
 r_clean = con.con.execute(
@@ -623,14 +623,14 @@ print(f"NULL replay_id: {r_null_id[0]}")
 assert r_null_id[0] == 0
 
 # %% [markdown]
-# ## Cell 14 -- T10: Create player_history_all VIEW (Player Feature History)
+# ## Create player_history_all VIEW (player feature history)
 #
 # All replays, all game types, including non-1v1 and indecisive replays.
-# Retains APM, SQ, supplyCappedPercent as IN_GAME_HISTORICAL signals.
-# I3 applies: these are valid for PRIOR matches, prohibited for TARGET match T.
-# SQ sentinel: -2147483648 -> NULL (R05).
-# selectedRace normalization: '' -> 'Random' (R04).
-# MMR<0 rows RETAINED (mmr value unreliable, but game context usable).
+# Retains APM, SQ, supplyCappedPercent as valid in-game historical signals.
+# Temporal discipline applies: these are valid for prior matches, prohibited for the target match only.
+# SQ parse-failure sentinel (-2147483648) corrected to NULL.
+# Empty selectedRace normalised to 'Random'.
+# MMR<0 rows RETAINED (MMR value unreliable, but game context usable).
 
 # %%
 CREATE_PLAYER_HISTORY_SQL = """
@@ -649,11 +649,11 @@ SELECT
 
     -- Player pre-game features
     mf.MMR,
-    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,  -- R02
+    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,  -- flag MMR=0 as unrated sentinel
 
     mf.race,
     CASE WHEN mf.selectedRace = '' THEN 'Random'
-         ELSE mf.selectedRace END AS selectedRace,                      -- R04
+         ELSE mf.selectedRace END AS selectedRace,                      -- normalise empty selectedRace to 'Random'
 
     mf.handicap,
     mf.region,
@@ -662,11 +662,11 @@ SELECT
     mf.isInClan,
     mf.clanTag,
 
-    -- In-game metrics (VALID in player history for historical features).
-    -- I3 note: excluded from matches_flat_clean (prediction targets) but
-    -- legitimate historical signals for PRIOR matches only.
+    -- In-game metrics (valid in player history for historical features).
+    -- Temporal discipline: excluded from matches_flat_clean (prediction targets) but
+    -- legitimate historical signals for prior matches only.
     mf.APM,
-    CASE WHEN mf.SQ = -2147483648 THEN NULL ELSE mf.SQ END AS SQ,     -- R05: sentinel -> NULL
+    CASE WHEN mf.SQ = -2147483648 THEN NULL ELSE mf.SQ END AS SQ,     -- correct parse-failure sentinel to NULL
     mf.supplyCappedPercent,
 
     -- Game duration (historical signal -- valid for past matches)
@@ -679,8 +679,8 @@ SELECT
 
     -- Map metadata
     mf.metadata_mapName,
-    CASE WHEN mf.gd_mapSizeX = 0 THEN NULL ELSE mf.gd_mapSizeX END AS gd_mapSizeX, -- R07
-    CASE WHEN mf.gd_mapSizeY = 0 THEN NULL ELSE mf.gd_mapSizeY END AS gd_mapSizeY, -- R07
+    CASE WHEN mf.gd_mapSizeX = 0 THEN NULL ELSE mf.gd_mapSizeX END AS gd_mapSizeX, -- map_size=0 anomaly flag
+    CASE WHEN mf.gd_mapSizeY = 0 THEN NULL ELSE mf.gd_mapSizeY END AS gd_mapSizeY, -- map_size=0 anomaly flag
     mf.gd_maxPlayers,
     mf.details_isBlizzardMap,
     mf.gd_mapAuthorName,
@@ -714,14 +714,14 @@ SELECT
     mf.gd_maxPlayers AS max_players_check
 
 FROM matches_flat mf
-WHERE mf.replay_id IS NOT NULL;  -- Safety: exclude any rows where replay_id extraction failed (W04)
+WHERE mf.replay_id IS NOT NULL;  -- exclude any rows where replay_id extraction failed (empty-string guard)
 """
 
 con.con.execute(CREATE_PLAYER_HISTORY_SQL)
 print("player_history_all VIEW created.")
 
 # %% [markdown]
-# ## Cell 15 -- T10 Validation
+# ## player_history_all validation
 
 # %%
 r_hist = con.con.execute(
@@ -750,10 +750,10 @@ print(f"APM present rows: {r_apm_h[0]}")
 assert r_apm_h[0] == 44817
 
 # %% [markdown]
-# ## Cell 16 -- T11: CONSORT Flow Accounting
+# ## CONSORT flow accounting
 #
-# Tracks replay-level counts at each filtering stage (BLOCKER F01 fix).
-# R03 recorded in REPLAY units, not row units.
+# Tracks replay-level counts at each filtering stage.
+# MMR exclusion recorded in replay units (not row units).
 
 # %%
 flow = {}
@@ -785,7 +785,7 @@ flow["after_r01_rows"] = con.con.execute(
 ).fetchone()[0]
 flow["r01_excluded_rows"] = flow["matches_flat_rows"] - flow["after_r01_rows"]
 
-# R03: MMR<0 replay-level exclusion (BLOCKER F01 FIX)
+# MMR<0 replay-level exclusion
 flow["r03_excluded_replays"] = con.con.execute(f"""
     SELECT COUNT(*) FROM (
         SELECT replay_id FROM matches_flat
@@ -815,14 +815,14 @@ for k, v in flow.items():
 
 assert flow["clean_replays"] == (
     flow["after_r01_replays"] - flow["r03_excluded_replays"]
-), "CONSORT arithmetic failure: R01+R03 replay counts do not sum correctly"
+), "CONSORT arithmetic failure: non-1v1/indecisive + MMR<0 replay counts do not sum correctly"
 assert flow["clean_rows"] == flow["clean_replays"] * 2, (
     "CONSORT row count failure: clean rows should be exactly 2x clean replays"
 )
 print("CONSORT flow verified.")
 
 # %% [markdown]
-# ## Cell 17 -- T12: Post-Cleaning Validation
+# ## Post-cleaning validation
 
 # %%
 # Result distribution (~50/50)
@@ -858,7 +858,7 @@ FROM matches_flat_clean WHERE is_mmr_missing = FALSE
 r_mmr_stats = con.con.execute(MMR_STATS_SQL).fetchone()
 print(f"\nMMR (rated): rows={r_mmr_stats[0]}, min={r_mmr_stats[1]}, max={r_mmr_stats[2]}, mean={r_mmr_stats[3]}")
 
-# Null rate on critical columns (W04: replay_id NULL check)
+# Null rate on critical columns (replay_id NULL check)
 NULL_CHECK_SQL = """
 SELECT
     COUNT(*) AS total,
@@ -880,21 +880,21 @@ assert r_null_check[3] == 0, "race has NULLs"
 assert r_null_check[4] == 0, "selectedRace has NULLs"
 
 # %% [markdown]
-# ## Cell 18 -- I3 + W02/W03/W05 Column Exclusion Assertion
+# ## Column exclusion assertion (temporal discipline + constant and duplicate columns)
 
 # %%
 clean_cols = set(con.con.execute("DESCRIBE matches_flat_clean").df()["column_name"])
 
-# I3: in-game and post-game metrics
+# in-game and post-game metrics (temporal discipline)
 forbidden_i3 = {"APM", "SQ", "supplyCappedPercent", "header_elapsedGameLoops"}
 
-# W02: constant columns
+# constant columns (cardinality=1 across all replays)
 forbidden_w02 = {"details_gameSpeed", "gd_gameSpeed"}
 
-# W03: duplicate column
+# duplicate column (confirmed identical to details_isBlizzardMap)
 forbidden_w03 = {"gd_isBlizzardMap"}
 
-# W05: no APM-derived flags
+# APM-derived flags (not added per documentation-only decision)
 forbidden_w05 = {"apm_zero_flag", "is_apm_zero"}
 
 # Cosmetic
@@ -903,7 +903,7 @@ forbidden_cosmetic = {"color_a", "color_b", "color_g", "color_r"}
 all_forbidden = forbidden_i3 | forbidden_w02 | forbidden_w03 | forbidden_w05 | forbidden_cosmetic
 violations = all_forbidden & clean_cols
 assert len(violations) == 0, f"Forbidden columns in matches_flat_clean: {violations}"
-print(f"Column exclusion validation passed (I3, W02, W03, W05, cosmetic). {len(clean_cols)} columns.")
+print(f"Column exclusion validation passed (temporal discipline, constant cols, duplicate col, cosmetic). {len(clean_cols)} columns.")
 print(f"Clean columns: {sorted(clean_cols)}")
 
 # Symmetry check
@@ -923,7 +923,7 @@ print(f"\nSymmetry violations (must be 0): {r_sym[0]}")
 assert r_sym[0] == 0, "Symmetry violation detected"
 
 # %% [markdown]
-# ## Cell 19 -- player_history_all Structural Checks
+# ## player_history_all structural checks
 
 # %%
 SCOPE_SQL = """
@@ -958,7 +958,7 @@ r_apm_check = con.con.execute(APM_CHECK_SQL).fetchone()
 print(f"APM present={r_apm_check[0]}, APM=0 count={r_apm_check[1]}")
 
 # %% [markdown]
-# ## Cell 20 -- T13: Produce Artifacts
+# ## Produce artifacts (JSON)
 
 # %%
 reports_dir = get_reports_dir("sc2", "sc2egset")
@@ -969,52 +969,52 @@ artifact = {
     "step": "01_04_01",
     "dataset": "sc2egset",
     "revision": 1,
-    "revision_basis": "plan_sc2egset_01_04_01.critique.md",
+    "revision_basis": "Replay-level MMR exclusion, regexp_extract NULLIF guard, constant column exclusions, and APM=0 as documentation-only.",
     "cleaning_registry": [
         {
-            "rule_id": "R01",
+            "rule_id": "non_1v1_indecisive_exclusion",
             "condition": "Replay is not true_1v1_decisive (player_count != 2 OR result not Win+Loss)",
             "action": "EXCLUDE from matches_flat_clean; RETAIN in player_history_all",
             "justification": "Binary classification target requires 2 players with 1 Win + 1 Loss. Non-1v1 and indecisive replays are valid game history. Source: 01_03_02.",
             "impact": f"{flow['r01_excluded_replays']} replays excluded from prediction scope, retained in history"
         },
         {
-            "rule_id": "R02",
+            "rule_id": "unrated_player_flag",
             "condition": "MMR = 0",
             "action": "FLAG (is_mmr_missing = TRUE)",
             "justification": "MNAR -- professional players on private accounts. 83.66%. Source: 01_03_01.",
             "impact": "37,422 rows in true_1v1_decisive scope"
         },
         {
-            "rule_id": "R03",
+            "rule_id": "anomalous_mmr_exclusion",
             "condition": "ANY player in replay has MMR < 0 (replay-level exclusion)",
             "action": "EXCLUDE entire replay from matches_flat_clean; RETAIN in player_history_all (MMR<0 treated as unreliable)",
-            "justification": "Impossible in SC2 matchmaking. Replay-level exclusion prevents orphaned rows (BLOCKER F01 fix). Source: 01_03_01, critique F01.",
+            "justification": "Impossible in SC2 matchmaking. Replay-level exclusion prevents orphaned rows. Source: 01_03_01.",
             "impact": f"{flow['r03_excluded_replays']} replays excluded from prediction scope"
         },
         {
-            "rule_id": "R04",
+            "rule_id": "random_race_normalisation",
             "condition": "selectedRace = '' (empty string)",
-            "action": "NORMALIZE to 'Random' in both VIEWs",
+            "action": "NORMALISE to 'Random' in both VIEWs",
             "justification": "Empty string = Random race selection resolved post-game. Source: 01_03_02.",
             "impact": "1,110 rows (2.48%)"
         },
         {
-            "rule_id": "R05",
+            "rule_id": "sq_sentinel_correction",
             "condition": "SQ = -2147483648 (INT32_MIN)",
-            "action": "FLAG (SQ -> NULL). SQ excluded from matches_flat_clean per I3; sentinel applies in player_history_all.",
+            "action": "SQ -> NULL. SQ excluded from matches_flat_clean per temporal discipline; correction applies in player_history_all.",
             "justification": "Parse-failure sentinel. Source: 01_03_01.",
             "impact": "2 rows (0.0045%)"
         },
         {
-            "rule_id": "R07",
+            "rule_id": "map_size_missing_flag",
             "condition": "gd_mapSizeX = 0 AND gd_mapSizeY = 0",
             "action": "FLAG (mapSize -> NULL; is_map_size_missing = TRUE in both VIEWs)",
             "justification": "Parse artifact; 0 is not a valid SC2 map dimension. Source: 01_02_04, 01_03_01.",
             "impact": f"{r_map[0]} replays (~{r_map[1]} rows)"
         },
         {
-            "rule_id": "R08",
+            "rule_id": "handicap_anomaly_flag",
             "condition": "handicap = 0",
             "action": "FLAG (is_handicap_anomalous = TRUE)",
             "justification": "Standard handicap = 100. Source: 01_02_04.",
@@ -1075,12 +1075,12 @@ artifact = {
         ],
         "rationale": "I3 prohibits in-game metrics for TARGET match T. For prior matches in player_history_all, they are valid historical signals."
     },
-    "critique_fixes": {
-        "F01_blocker": "R03 changed from row-level WHERE to replay-level CTE (mmr_valid). 157 replays excluded.",
-        "W02_constant_cols": "details_gameSpeed and gd_gameSpeed excluded from both matches_flat_clean and player_history_all",
-        "W03_isBlizzardMap": "gd_isBlizzardMap excluded from downstream VIEWs; verified identical to details_isBlizzardMap (mismatch=0)",
-        "W04_regexp_extract": "NULLIF wrapper applied in matches_flat VIEW definition; null_replay_id=0 confirmed",
-        "W05_apm_flag": "No APM-derived columns in any VIEW; APM=0 investigation is documentation-only (T06)"
+    "design_changes": {
+        "replay_level_mmr_exclusion": "MMR exclusion changed from row-level WHERE to replay-level CTE (mmr_valid). 157 replays excluded.",
+        "constant_column_exclusions": "details_gameSpeed and gd_gameSpeed excluded from both matches_flat_clean and player_history_all (constant across all replays)",
+        "duplicate_column_exclusion": "gd_isBlizzardMap excluded from downstream VIEWs; verified identical to details_isBlizzardMap (mismatch=0)",
+        "regexp_extract_null_guard": "NULLIF wrapper applied in matches_flat VIEW definition; null_replay_id=0 confirmed",
+        "apm_documentation_only": "No APM-derived columns in any VIEW; APM=0 investigation is documentation-only"
     },
     "sql_queries": {
         "CREATE_MATCHES_FLAT": CREATE_MATCHES_FLAT_SQL,
@@ -1116,14 +1116,14 @@ with open(json_path, "w") as f:
 print(f"JSON artifact written: {json_path}")
 
 # %% [markdown]
-# ## Cell 21 -- Write MD Artifact
+# ## Write MD artifact
 
 # %%
 md_content = f"""# Step 01_04_01 -- Data Cleaning
 
 **Dataset:** sc2egset
 **Date:** 2026-04-16
-**Revision:** 1 (incorporates critique BLOCKER F01, WARNINGS W02-W05)
+**Revision:** 1 (incorporates replay-level MMR exclusion, regexp_extract NULLIF guard, constant column exclusions, and APM=0 as documentation-only)
 **Invariants:** I3, I6, I7, I9
 
 ---
@@ -1151,44 +1151,44 @@ metrics for PRIOR matches. I3 prohibits in-game metrics only at TARGET match T.
 | Raw (replays_meta_raw) | {flow['raw_replays']:,} | -- |
 | Raw (replay_players_raw) | -- | {flow['raw_player_rows']:,} |
 | matches_flat (JOIN) | {flow['matches_flat_replays']:,} | {flow['matches_flat_rows']:,} |
-| After R01 (true_1v1_decisive) | {flow['after_r01_replays']:,} | {flow['after_r01_rows']:,} |
-| R01 excluded (non-1v1 + indecisive) | -{flow['r01_excluded_replays']:,} | -{flow['r01_excluded_rows']:,} |
-| After R03 (MMR<0 replay-level) | {flow['clean_replays']:,} | {flow['clean_rows']:,} |
-| R03 excluded (any MMR<0 player) | -{flow['r03_excluded_replays']:,} | -{flow['r03_excluded_rows']:,} |
+| After 1v1 decisive filter | {flow['after_r01_replays']:,} | {flow['after_r01_rows']:,} |
+| Excluded (non-1v1 + indecisive) | -{flow['r01_excluded_replays']:,} | -{flow['r01_excluded_rows']:,} |
+| After MMR<0 replay-level exclusion | {flow['clean_replays']:,} | {flow['clean_rows']:,} |
+| Excluded (any MMR<0 player) | -{flow['r03_excluded_replays']:,} | -{flow['r03_excluded_rows']:,} |
 | **matches_flat_clean (final)** | **{flow['clean_replays']:,}** | **{flow['clean_rows']:,}** |
 | player_history_all (all replays) | {flow['history_replays']:,} | {flow['history_rows']:,} |
 
-R03 is a REPLAY-LEVEL exclusion (BLOCKER F01 fix). If any player in a replay
-has MMR<0, the entire replay is excluded from prediction scope. Row-level
-filtering would orphan the opponent's row, breaking the 2-per-replay invariant.
+MMR<0 exclusion is replay-level: if any player in a replay has MMR<0, the entire
+replay is excluded from prediction scope. Row-level filtering would orphan the
+opponent's row, breaking the 2-per-replay invariant.
 
 ## Cleaning Registry
 
 | Rule | Condition | Action | Impact |
 |------|-----------|--------|--------|
-| R01 | Not true_1v1_decisive | EXCLUDE from clean; RETAIN in history | {flow['r01_excluded_replays']} replays |
-| R02 | MMR = 0 | FLAG (is_mmr_missing=TRUE) | 37,422 rows (83.66%) |
-| R03 | ANY player MMR<0 (replay-level) | EXCLUDE replay from clean; RETAIN in history | {flow['r03_excluded_replays']} replays |
-| R04 | selectedRace = '' | NORMALIZE to 'Random' | 1,110 rows (2.48%) |
-| R05 | SQ = INT32_MIN | SQ -> NULL | 2 rows (0.0045%) |
-| R07 | mapSizeX=0 AND mapSizeY=0 | FLAG + NULL | 273 replays |
-| R08 | handicap = 0 | FLAG (is_handicap_anomalous=TRUE) | 2 rows (0.0045%) |
+| Exclusion: non-1v1 or indecisive | Not true_1v1_decisive | EXCLUDE from clean; RETAIN in history | {flow['r01_excluded_replays']} replays |
+| Flag: unrated player | MMR = 0 | FLAG (is_mmr_missing=TRUE) | 37,422 rows (83.66%) |
+| Exclusion: anomalous MMR | ANY player MMR<0 (replay-level) | EXCLUDE replay from clean; RETAIN in history | {flow['r03_excluded_replays']} replays |
+| Normalise: random race | selectedRace = '' | NORMALISE to 'Random' | 1,110 rows (2.48%) |
+| Correct: SQ sentinel | SQ = INT32_MIN | SQ -> NULL | 2 rows (0.0045%) |
+| Flag: map size missing | mapSizeX=0 AND mapSizeY=0 | FLAG + NULL | 273 replays |
+| Flag: handicap anomalous | handicap = 0 | FLAG (is_handicap_anomalous=TRUE) | 2 rows (0.0045%) |
 
-Note: R06 (APM=0) is NOT a cleaning rule. APM=0 investigation (T06) is
-documentation-only per W05. APM is excluded from matches_flat_clean (I3)
-and retained in player_history_all as a valid historical observation.
+Note: APM=0 is NOT a cleaning rule. APM=0 investigation is documentation-only.
+APM is excluded from matches_flat_clean (temporal discipline) and retained in
+player_history_all as a valid historical observation.
 
-## Columns Excluded from matches_flat_clean (I3 + W02 + W03 + W05)
+## Columns Excluded from matches_flat_clean
 
-- APM, SQ, supplyCappedPercent, header_elapsedGameLoops (I3: IN_GAME)
-- details_gameSpeed, gd_gameSpeed (W02: constant, cardinality=1)
-- gd_isBlizzardMap (W03: duplicate of details_isBlizzardMap, mismatch=0)
+- APM, SQ, supplyCappedPercent, header_elapsedGameLoops (in-game metrics — temporal discipline)
+- details_gameSpeed, gd_gameSpeed (constant across all replays, cardinality=1)
+- gd_isBlizzardMap (duplicate of details_isBlizzardMap — zero mismatches confirmed)
 - color_a, color_b, color_g, color_r (cosmetic)
 
-## Columns Retained in player_history_all (IN_GAME_HISTORICAL)
+## Columns Retained in player_history_all (in-game historical signals)
 
 - APM -- actions per minute (in-game metric, valid for prior match history)
-- SQ -- spending quotient (R05: INT32_MIN -> NULL)
+- SQ -- spending quotient (parse-failure sentinel INT32_MIN corrected to NULL)
 - supplyCappedPercent -- % game time supply-blocked
 - header_elapsedGameLoops -- game duration
 
@@ -1200,18 +1200,18 @@ and retained in player_history_all as a valid historical observation.
 - matches_flat_clean: {flow['clean_rows']:,} rows, {flow['clean_replays']:,} replays
 - Result distribution: 50.0% Win / 50.0% Loss (perfect symmetry)
 - Symmetry violations: 0 (every replay has exactly 1 Win + 1 Loss row)
-- I3 + W02 + W03 + W05 column exclusion assertion: PASSED
+- Column exclusion assertion (temporal discipline + constant/duplicate cols): PASSED
 - player_history_all: {flow['history_rows']:,} rows, {flow['history_replays']:,} replays
 - SQ sentinel in player_history_all: 0
 - CONSORT arithmetic verified
 
-## Critique Fixes Applied
+## Changes from Initial Design
 
-- **F01 (BLOCKER):** R03 replay-level CTE (mmr_valid) -- {flow['r03_excluded_replays']} replays excluded
-- **W02:** details_gameSpeed, gd_gameSpeed excluded (verified constant)
-- **W03:** gd_isBlizzardMap excluded (verified identical, mismatch=0)
-- **W04:** NULLIF wrapper on regexp_extract (null_replay_id=0)
-- **W05:** No APM-derived columns in any VIEW
+- Replay-level MMR exclusion via CTE (mmr_valid) -- {flow['r03_excluded_replays']} replays excluded
+- details_gameSpeed, gd_gameSpeed excluded (verified constant across all replays)
+- gd_isBlizzardMap excluded (verified identical to details_isBlizzardMap, mismatch=0)
+- NULLIF wrapper applied to regexp_extract in matches_flat JOIN (null_replay_id=0 confirmed)
+- No APM-derived columns added to any VIEW
 """
 
 md_path = artifact_dir / "01_04_01_data_cleaning.md"
@@ -1220,7 +1220,7 @@ with open(md_path, "w") as f:
 print(f"MD artifact written: {md_path}")
 
 # %% [markdown]
-# ## Cell 22 -- Write Schema YAML for player_history_all
+# ## Write schema YAML for player_history_all
 
 # %%
 describe_df = con.con.execute("DESCRIBE player_history_all").df()
@@ -1239,7 +1239,7 @@ schema_yaml_lines = [
 
 # Column annotations
 col_notes = {
-    "replay_id": ("VARCHAR", "Canonical join key extracted via regexp. NULLIF-guarded (W04).", "IDENTITY"),
+    "replay_id": ("VARCHAR", "Canonical join key extracted via regexp. NULLIF empty-string guard applied.", "IDENTITY"),
     "filename": ("VARCHAR", "Replay file path relative to raw_dir. Invariant I10.", "IDENTITY"),
     "toon_id": ("VARCHAR", "Battle.net toon/account identifier. Player identity key.", "IDENTITY"),
     "nickname": ("VARCHAR", "Player nickname.", "IDENTITY"),
@@ -1247,9 +1247,9 @@ col_notes = {
     "userID": ("BIGINT", "User id.", "IDENTITY"),
     "result": ("VARCHAR", "Game result (Win, Loss, Undecided, Tie). Unfiltered in history.", "TARGET"),
     "MMR": ("INTEGER", "Matchmaking rating. 0=unrated sentinel (83.66% MNAR).", "PRE_GAME"),
-    "is_mmr_missing": ("BOOLEAN", "R02: TRUE if MMR=0 (unrated professional). MNAR.", "PRE_GAME"),
+    "is_mmr_missing": ("BOOLEAN", "TRUE if MMR=0 (unrated professional). MNAR.", "PRE_GAME"),
     "race": ("VARCHAR", "Actual race played (Protoss, Zerg, Terran abbreviated).", "PRE_GAME"),
-    "selectedRace": ("VARCHAR", "Selected race. Empty string normalized to 'Random' (R04).", "PRE_GAME"),
+    "selectedRace": ("VARCHAR", "Selected race. Empty string normalised to 'Random'.", "PRE_GAME"),
     "handicap": ("INTEGER", "Handicap percentage (100=standard). 2 anomalous rows have 0.", "PRE_GAME"),
     "region": ("VARCHAR", "Battle.net region label.", "PRE_GAME"),
     "realm": ("VARCHAR", "Realm label.", "PRE_GAME"),
@@ -1257,17 +1257,17 @@ col_notes = {
     "isInClan": ("BOOLEAN", "Whether the player is in a clan.", "PRE_GAME"),
     "clanTag": ("VARCHAR", "Clan tag.", "PRE_GAME"),
     "APM": ("INTEGER", "Actions per minute (in-game metric). IN_GAME_HISTORICAL: valid for prior matches only. Excluded from matches_flat_clean (I3).", "IN_GAME_HISTORICAL"),
-    "SQ": ("INTEGER", "Spending Quotient. R05: INT32_MIN sentinel -> NULL. IN_GAME_HISTORICAL.", "IN_GAME_HISTORICAL"),
+    "SQ": ("INTEGER", "Spending Quotient. Parse-failure sentinel INT32_MIN corrected to NULL. IN_GAME_HISTORICAL.", "IN_GAME_HISTORICAL"),
     "supplyCappedPercent": ("INTEGER", "% game time supply-capped. IN_GAME_HISTORICAL.", "IN_GAME_HISTORICAL"),
     "header_elapsedGameLoops": ("BIGINT", "Game duration in loops. IN_GAME_HISTORICAL (post-game observable).", "IN_GAME_HISTORICAL"),
     "startDir": ("INTEGER", "Starting direction code (lobby assignment).", "PRE_GAME"),
     "startLocX": ("INTEGER", "Starting x location on map.", "PRE_GAME"),
     "startLocY": ("INTEGER", "Starting y location on map.", "PRE_GAME"),
     "metadata_mapName": ("VARCHAR", "Human-readable map name.", "PRE_GAME"),
-    "gd_mapSizeX": ("BIGINT", "Map width (R07: 0 -> NULL; parse artifact).", "PRE_GAME"),
-    "gd_mapSizeY": ("BIGINT", "Map height (R07: 0 -> NULL; parse artifact).", "PRE_GAME"),
+    "gd_mapSizeX": ("BIGINT", "Map width (0 corrected to NULL; parse artifact).", "PRE_GAME"),
+    "gd_mapSizeY": ("BIGINT", "Map height (0 corrected to NULL; parse artifact).", "PRE_GAME"),
     "gd_maxPlayers": ("BIGINT", "Max players in game description.", "PRE_GAME"),
-    "details_isBlizzardMap": ("BOOLEAN", "Blizzard-authored map flag (from details struct). W03: preferred over gd_isBlizzardMap.", "PRE_GAME"),
+    "details_isBlizzardMap": ("BOOLEAN", "Blizzard-authored map flag (from details struct). Preferred over gd_isBlizzardMap (confirmed identical, duplicate dropped).", "PRE_GAME"),
     "gd_mapAuthorName": ("VARCHAR", "Map author name.", "PRE_GAME"),
     "gd_mapFileSyncChecksum": ("BIGINT", "Map file sync checksum.", "PRE_GAME"),
     "details_timeUTC": ("VARCHAR", "UTC timestamp of game. Temporal anchor for I3 ordering.", "CONTEXT"),
@@ -1308,7 +1308,7 @@ schema_yaml_lines += [
     "provenance:",
     "  source_tables: [replay_players_raw, replays_meta_raw]",
     "  join_key: \"NULLIF(regexp_extract(filename, '([0-9a-f]{32})\\\\.SC2Replay\\\\.json', 1), '') AS replay_id\"",
-    "  filter: \"replay_id IS NOT NULL (W04 fix); MMR<0 retained with flag; SQ=INT32_MIN -> NULL (R05)\"",
+    "  filter: \"replay_id IS NOT NULL (empty-string guard); MMR<0 retained with flag; SQ=INT32_MIN -> NULL (parse-failure sentinel correction)\"",
     "  scope: \"All replays (no 1v1/decisive filter). Includes non-1v1 and indecisive replays excluded from matches_flat_clean.\"",
     "  created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_01_data_cleaning.py",
     "invariants:",
@@ -1334,12 +1334,12 @@ with open(schema_path, "w") as f:
 print(f"Schema YAML written: {schema_path}")
 
 # %% [markdown]
-# ## Cell 23 -- Close Connection
+# ## Close connection
 
 # %%
 con.close()
 print("DuckDB connection closed.")
-print("\nAll T01-T13 tasks complete.")
+print("\nAll cleaning tasks complete.")
 print(f"  matches_flat: {flow['matches_flat_rows']:,} rows / {flow['matches_flat_replays']:,} replays")
 print(f"  matches_flat_clean: {flow['clean_rows']:,} rows / {flow['clean_replays']:,} replays")
 print(f"  player_history_all: {flow['history_rows']:,} rows / {flow['history_replays']:,} replays")

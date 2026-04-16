@@ -8,6 +8,66 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** Create matches_long_raw VIEW. JOIN players_raw x matches_raw into 10-column canonical schema.
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md`
+- `data/db/schemas/views/matches_long_raw.yaml`
+- **DuckDB VIEW:** `matches_long_raw`
+
+### What
+
+Created `matches_long_raw` VIEW: canonical 10-column long skeleton (match_id, started_timestamp,
+side, player_id, chosen_civ_or_race, outcome_raw, rating_pre_raw, map_id_raw, patch_raw,
+leaderboard_raw). INNER JOIN of players_raw x matches_raw, filtered identically to
+player_history_all (profile_id IS NOT NULL, started_timestamp IS NOT NULL).
+107,626,399 rows.
+
+### Why
+
+Unify grain across all three datasets before downstream cleaning. Independent lossless
+anchor check (not tautological) confirms format conversion is correct.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_00_source_normalization.py`
+
+### Findings
+
+- **Lossless check PASSED (independent anchor):**
+  total_players_raw=107,627,584 (cross-check vs 01_04_01 artifact: PASS).
+  null_profile=1,185. orphan_or_null_ts=0. Expected=107,626,399. view_count=107,626,399. PASS.
+- **Symmetry audit (full dataset, side IN (0,1)):**
+  side=0: 53,813,160 rows, win_pct=48.97%.
+  side=1: 53,813,239 rows, win_pct=51.03%.
+  Balanced row counts (side=0 and side=1 each ~half the dataset as expected for a JOIN).
+- **Symmetry audit (1v1 scoped, leaderboard_raw = 'random_map'):**
+  side=0: 17,815,971 rows, win_pct=47.73%.
+  side=1: 17,815,944 rows, win_pct=52.27%.
+  Known asymmetry from 01_04_01 (side=1 wins ~52.27%) confirmed.
+- **leaderboard_raw distribution:** team_random_map (67.9M), random_map (35.6M),
+  co_team_random_map (2.8M), co_random_map (1.2M).
+
+### Decisions taken
+
+- WHERE clause matches player_history_all exactly (profile_id IS NOT NULL, started_timestamp IS NOT NULL).
+- old_rating used for rating_pre_raw; new_rating and match_rating_diff excluded (I3).
+
+### Decisions deferred
+
+- Side-outcome asymmetry (side=1 ~52.27% in 1v1) documented; not corrected. Correction deferred.
+- Cross-dataset leaderboard_raw harmonization deferred to Phase 02.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 -- AoE2 dataset description, data normalization
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_04_01] Data Cleaning
 
 **Category:** A (science)

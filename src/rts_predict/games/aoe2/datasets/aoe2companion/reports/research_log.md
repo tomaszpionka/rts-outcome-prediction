@@ -8,6 +8,133 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** Create matches_long_raw VIEW. Lossless projection of matches_raw into 10-column canonical schema.
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md`
+- `data/db/schemas/views/matches_long_raw.yaml`
+- **DuckDB VIEW:** `matches_long_raw`
+
+### What
+
+Created `matches_long_raw` VIEW: canonical 10-column long skeleton (match_id, started_timestamp,
+side, player_id, chosen_civ_or_race, outcome_raw, rating_pre_raw, map_id_raw, patch_raw,
+leaderboard_raw). Lossless from matches_raw (277,099,059 rows in, 277,099,059 rows out).
+
+### Why
+
+Unify grain across all three datasets before downstream cleaning. A single structural contract
+makes all subsequent cleaning logic dataset-agnostic at the schema level.
+
+### How (reproducibility)
+
+Notebook: `sandbox/aoe2/aoe2companion/01_exploration/04_cleaning/01_04_00_source_normalization.py`
+
+### Findings
+
+- **Lossless check PASSED:** 277,099,059 rows (matches_long_raw == matches_raw).
+- **Side encoding artifact (FINDING):** aoe2companion uses team=1 and team=2 as 1v1 sides,
+  not team=0 and team=1. Side=0 has only 449 rows; side=1 has 130,369,073 rows; 146,729,537
+  rows have side=NULL (team values 2-12 or NULL). The CASE WHEN team IN (0,1) THEN team ELSE NULL
+  END encoding is correct per plan; the source simply uses team=1/2 not team=0/1 for 1v1.
+- **Symmetry audit (full, side IN (0,1)):**
+  side=0: 449 rows, win_pct=4.45% (artifact of encoding -- not a real asymmetry).
+  side=1: 130,369,073 rows, win_pct=49.58%.
+- **Symmetry audit (1v1 scoped, leaderboard_raw IN (6,18)):**
+  Only side=1 rows appear in ranked 1v1 (confirms team=2 is the counterpart side, maps to NULL).
+  side=1: 29,921,254 rows, win_pct=47.18%.
+- **leaderboard_raw top values:** 0 (78M), 6/rm_1v1 (54M), 9 (50M), 7 (28M), 8 (24M), 18/qp_rm_1v1 (7M).
+- **patch_raw:** NULL for all rows (no patch column in source -- deliberate placeholder).
+
+### Decisions taken
+
+- CASE WHEN team IN (0,1) THEN team ELSE NULL END is the correct encoding per plan.
+- Side encoding artifact documented here and in schema YAML. No correction at this step.
+
+### Decisions deferred
+
+- Cross-dataset side harmonization deferred to Phase 02.
+- leaderboard_raw value harmonization across datasets deferred to Phase 02.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.2 -- AoE2 dataset description, data normalization
+
+---
+
+## 2026-04-16 — [Phase 01 / Step 01_04_01] Data Cleaning
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Step scope:** Non-destructive cleaning via DuckDB VIEWs; raw data untouched
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md`
+- `data/db/schemas/views/player_history_all.yaml`
+- **DuckDB VIEWs:** `matches_1v1_clean`, `player_history_all`, `ratings_clean`
+
+### What
+
+Implemented 6 cleaning rules (R00–R05) as non-destructive DuckDB VIEWs. Produced CONSORT-style row-count flow, post-cleaning validation (V1–V8), and schema YAML for `player_history_all`. Established the architectural split: `matches_1v1_clean` defines the prediction target; `player_history_all` provides the full-history feature computation source (all game types).
+
+### CONSORT Flow
+
+| Stage | N rows | N matches | Description |
+|-------|--------|-----------|-------------|
+| S0 Raw | 277,099,059 | 74,788,989 | All rows in matches_raw |
+| S1 Scope restricted | 61,071,799 | 30,536,248 | R01: internalLeaderboardId IN (6, 18) |
+| S2 Deduplicated | 61,071,794 | 30,536,248 | R02: dedup + profileId=-1 excluded |
+| S3 Valid complementary | 61,062,392 | 30,531,196 | R03: 2-row matches with complementary won only |
+
+SQL (CONSORT stages run individually due to DuckDB UNION ALL + VIEW optimizer behavior):
+
+```sql
+-- S0
+SELECT COUNT(*) AS n_rows, COUNT(DISTINCT matchId) AS n_matches FROM matches_raw;
+-- S1
+SELECT COUNT(*) AS n_rows, COUNT(DISTINCT matchId) AS n_matches
+FROM matches_raw WHERE internalLeaderboardId IN (6, 18);
+-- S2
+SELECT COUNT(*) AS n_rows, COUNT(DISTINCT matchId) AS n_matches
+FROM (SELECT matchId, ROW_NUMBER() OVER (PARTITION BY matchId, profileId ORDER BY started) AS rn
+      FROM matches_raw WHERE internalLeaderboardId IN (6, 18) AND profileId != -1) sub WHERE rn = 1;
+-- S3
+SELECT COUNT(*) AS n_rows, COUNT(DISTINCT matchId) AS n_matches FROM matches_1v1_clean;
+```
+
+### Validation Results
+
+| Check | Result |
+|-------|--------|
+| V1 Rating coverage in matches_1v1_clean | 73.8% non-null (45,063,158 / 61,062,392) |
+| V2 No POST-GAME leakage in player_history_all | PASS (0 ratingDiff/finished columns) |
+| V3 No negative ratings | PASS (0 rows) |
+| V4 Leaderboard distribution | rm_1v1: 53,686,164 rows; qp_rm_1v1: 7,376,228 rows |
+| V5 NULL cluster proportion | 0.0183% flagged (11,184 rows) |
+| V6 player_history_all | 264,132,745 rows / 2,659,038 matches / 74,788,984 players / 21 leaderboards |
+| V7 No anonymous rows in player_history_all | PASS (0 rows) |
+| V8 Leaderboard diversity | 21 distinct leaderboards including rm_team, unranked, rm_1v1 |
+
+### Key findings
+
+1. **Duplicates were minimal in 1v1 scope:** Only 5 excess rows (4 duplicate groups for real profileIds; 1 profileId=-1 row). Orders of magnitude less than the full-table estimate from 01_02_04 (which counted 8.8M across all game types).
+
+2. **NULL cluster dispersed across date range:** The 10-column NULL cluster spans all 70 months (2020-07 to 2026-04) with < 0.02% rate per month. Not concentrated in a schema-change era — contrary to initial hypothesis. Flagged as `is_null_cluster` in `matches_1v1_clean`; retained for sensitivity analysis.
+
+3. **Non-complementary won matches:** 4,350 matches excluded (1,336 both_false + 337 both_true + 2,677 has_null). Represents 0.014% of in-scope matches.
+
+4. **ratings_raw.games p99.9:** Value is 1,775,011,321 (nearly identical to max 1,775,260,795). The outlier cluster is 78,923 rows (0.14% of ratings_raw). `ratings_clean` VIEW winsorizes at p99.9.
+
+5. **player_history_all scope:** 264M rows across 21 leaderboard types. rm_team (102M) and unranked (66M) dominate. rm_1v1 (53M) is third-largest. Feature computation will draw from all types per design constraint.
+
+6. **DuckDB CTE re-use bug:** matches_1v1_clean VIEW required subquery IN approach (not CTE INNER JOIN) to return correct COUNT(*). The CTE-based VIEW with INNER JOIN gave 42,866 rows vs correct 61,062,392 due to DuckDB's query optimizer re-executing the window function CTE inconsistently under COUNT aggregation. Subquery IN approach resolves this.
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_03_03] Table Utility Assessment
 
 **Category:** A (science)

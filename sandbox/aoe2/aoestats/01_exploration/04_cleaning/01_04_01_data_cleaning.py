@@ -67,9 +67,9 @@ with open(bivariate_path) as f:
 print("Artifacts loaded. Reports dir:", reports_dir)
 
 # %% [markdown]
-# ## T01 -- profile_id DOUBLE precision verification
+# ## profile_id precision verification
 #
-# Objective: Verify no precision loss from DOUBLE storage. Produce note R01.
+# Objective: Verify no precision loss from DOUBLE storage. Verify DOUBLE precision safety.
 # Threshold 2^53 = 9,007,199,254,740,992 is the IEEE 754 double safe-integer bound.
 
 # %%
@@ -87,15 +87,15 @@ FROM players_raw
 """
 
 t01_result = con.execute(SQL_T01_PROFILE_ID_PRECISION).df()
-print("T01 profile_id precision verification:")
+print("profile_id precision verification:")
 print(t01_result.to_string())
 
 assert t01_result["fractional_count"].iloc[0] == 0, "FAIL: fractional profile_ids found"
 assert t01_result["unsafe_range_count"].iloc[0] == 0, "FAIL: profile_ids exceed 2^53"
-print("T01 PASS: fractional_count=0, unsafe_range_count=0, max_id < 2^53")
+print("PASS: fractional_count=0, unsafe_range_count=0, max_id < 2^53")
 
 # %% [markdown]
-# ## T02 -- 1v1 scope restriction (prediction target only)
+# ## 1v1 scope restriction (prediction target only)
 #
 # Objective: Define ranked 1v1 scope for the prediction target VIEW.
 # IMPORTANT: This restriction applies to matches_1v1_clean ONLY.
@@ -127,19 +127,19 @@ SELECT * FROM scope
 """
 
 t02_result = con.execute(SQL_T02_SCOPE).df()
-print("T02 1v1 scope restriction:")
+print("1v1 scope restriction:")
 print(t02_result.to_string())
 
 assert t02_result["total_matches"].iloc[0] == 30_690_651
 assert t02_result["orphan_matches"].iloc[0] == 212_890
 assert t02_result["structural_1v1"].iloc[0] == 18_438_769
 assert t02_result["scope_1v1_ranked"].iloc[0] == 17_815_944
-print("T02 PASS: all counts match 01_03_01 and 01_03_02 artifacts")
+print("PASS: all counts match 01_03_01 and 01_03_02 artifacts")
 
 # %% [markdown]
-# ## T03 -- Orphan match exclusion
+# ## Orphan match exclusion
 #
-# Objective: Document 212,890 orphan match exclusion. Produce rule R03.
+# Objective: Document 212,890 orphan match exclusion (matches with no player rows).
 
 # %%
 SQL_T03_ORPHANS = """
@@ -149,14 +149,14 @@ WHERE NOT EXISTS (SELECT 1 FROM players_raw p WHERE p.game_id = m.game_id)
 """
 
 t03_result = con.execute(SQL_T03_ORPHANS).fetchone()
-print("T03 orphan_match_count:", t03_result[0])
+print("orphan_match_count:", t03_result[0])
 assert t03_result[0] == 212_890, f"FAIL: unexpected orphan count {t03_result[0]}"
-print("T03 PASS: orphan_match_count=212,890 (validated against 01_03_01)")
+print("PASS: orphan_match_count=212,890 (validated against 01_03_01)")
 
 # %% [markdown]
-# ## T04 -- Constant and near-dead column documentation
+# ## Constant and near-dead column documentation
 #
-# Objective: Document exclusion of zero-information columns. Produce rules R04, R05.
+# Objective: Document exclusion of zero-information columns (constant and near-constant).
 
 # %%
 SQL_T04_CONSTANTS = """
@@ -170,7 +170,7 @@ SELECT 'starting_age', COUNT(DISTINCT starting_age), MIN(starting_age) FROM matc
 """
 
 t04_result = con.execute(SQL_T04_CONSTANTS).df()
-print("T04 constant/near-dead columns:")
+print("Constant/near-dead columns:")
 print(t04_result.to_string())
 
 game_type_card = t04_result[t04_result["column_name"] == "game_type"]["cardinality"].iloc[0]
@@ -179,10 +179,10 @@ starting_age_card = t04_result[t04_result["column_name"] == "starting_age"]["car
 assert game_type_card == 1, "FAIL: game_type not constant"
 assert game_speed_card == 1, "FAIL: game_speed not constant"
 assert starting_age_card == 2, "FAIL: starting_age cardinality changed"
-print("T04 PASS: game_type cardinality=1, game_speed cardinality=1, starting_age cardinality=2")
+print("PASS: game_type cardinality=1, game_speed cardinality=1, starting_age cardinality=2")
 
 # %% [markdown]
-# ## T05 -- Temporal schema analysis for high-NULL columns
+# ## Temporal schema analysis for high-NULL columns
 #
 # Objective: Find the date boundary where opening, feudal_age_uptime,
 # castle_age_uptime, imperial_age_uptime transition from all-NULL to populated.
@@ -197,7 +197,7 @@ SELECT filename, SUBSTR(filename, 9, 10) AS week_date FROM players_raw LIMIT 3
 """
 
 t05_sample = con.execute(SQL_T05_VERIFY_FILENAME).df()
-print("T05 filename parsing verification:")
+print("Filename parsing verification:")
 print(t05_sample.to_string())
 
 SQL_T05_TEMPORAL = """
@@ -220,19 +220,19 @@ SELECT * FROM weekly ORDER BY week_date
 """
 
 t05_result = con.execute(SQL_T05_TEMPORAL).df()
-print(f"T05 temporal schema analysis ({len(t05_result)} weeks):")
+print(f"Temporal schema analysis ({len(t05_result)} weeks):")
 print(t05_result.to_string())
 
 # Find transition boundary
 last_populated_week = t05_result[t05_result["opening_pct"] > 1.0]["week_date"].max()
 first_zero_week = t05_result[t05_result["opening_pct"] == 0.0]["week_date"].min()
-print(f"T05 Schema transition: last week with opening > 1%: {last_populated_week}")
-print(f"T05 Schema transition: first week with opening = 0%: {first_zero_week}")
+print(f"Schema transition: last week with opening > 1%: {last_populated_week}")
+print(f"Schema transition: first week with opening = 0%: {first_zero_week}")
 
 # %% [markdown]
-# ## T06 -- Create matches_1v1_clean VIEW
+# ## Create matches_1v1_clean VIEW
 #
-# W02 FIX: Run same-team assertion before creating VIEW.
+# Run same-team assertion before creating VIEW to confirm the COUNT(DISTINCT team)=2 predicate is sufficient.
 
 # %%
 SQL_T06_SAME_TEAM_ASSERTION = """
@@ -246,15 +246,15 @@ FROM (
 """
 
 t06_same_team = con.execute(SQL_T06_SAME_TEAM_ASSERTION).fetchone()[0]
-print(f"T06 same_team_game_count: {t06_same_team}")
-print("R07: same-team assertion = 0-impact (condition never triggered, no exclusion needed)")
+print(f"same_team_game_count: {t06_same_team}")
+print("Same-team assertion: 0-impact (condition never triggered, no exclusion needed)")
 
 # %%
 # VIEW SQL with I3-safe column selection
-# EXCLUDES: new_rating (I3 violation), game_type/game_speed (constant R04),
-#           starting_age (near-dead R05), filename (provenance), team (redundant after pivot)
-# INCLUDES: team1_wins column to make team-assignment asymmetry explicit (W01/I5)
-# ALSO EXCLUDES: inconsistent winner rows (R08 -- both players same winner value, 997 rows, 0.0056%)
+# EXCLUDES: new_rating (I3 violation — post-game), game_type/game_speed (constant columns),
+#           starting_age (near-dead: 99.99994% single value), filename (provenance), team (redundant after pivot)
+# INCLUDES: team1_wins column to make team-assignment asymmetry explicit (I5)
+# ALSO EXCLUDES: inconsistent winner rows — both players same outcome (997 rows, 0.0056%)
 
 SQL_T06_MATCHES_1V1_CLEAN = """
 CREATE OR REPLACE VIEW matches_1v1_clean AS
@@ -316,17 +316,17 @@ con.execute(SQL_T06_MATCHES_1V1_CLEAN)
 t06_cnt = con.execute("SELECT COUNT(*) FROM matches_1v1_clean").fetchone()[0]
 print(f"matches_1v1_clean VIEW created. Row count: {t06_cnt:,}")
 assert abs(t06_cnt - 17_814_947) <= 1000, f"FAIL: unexpected row count {t06_cnt}"
-print("T06 PASS: row count within +/-1000 of expected 17,814,947")
+print("PASS: row count within +/-1000 of expected 17,814,947")
 
 # Verify no forbidden columns
 clean_cols = set(con.execute("DESCRIBE matches_1v1_clean").df()["column_name"])
 forbidden = {"new_rating", "p0_new_rating", "p1_new_rating", "game_type", "game_speed", "starting_age"}
 assert forbidden.isdisjoint(clean_cols), f"SCHEMA VIOLATION: {forbidden & clean_cols}"
 assert "team1_wins" in clean_cols, "FAIL: team1_wins column missing"
-print("T06 PASS: no forbidden columns; team1_wins present")
+print("PASS: no forbidden columns; team1_wins present")
 
 # %% [markdown]
-# ## T07 -- Create player_history_all VIEW
+# ## Create player_history_all VIEW
 #
 # Full-history player-row VIEW for feature computation.
 # ALL game types, ALL leaderboards. No leaderboard restriction.
@@ -394,13 +394,12 @@ hist_cols = set(con.execute("DESCRIBE player_history_all").df()["column_name"])
 forbidden_hist = {"new_rating", "game_type", "game_speed", "starting_age", "duration", "irl_duration"}
 assert forbidden_hist.isdisjoint(hist_cols), f"SCHEMA VIOLATION: {forbidden_hist & hist_cols}"
 assert "profile_id" in hist_cols, "FAIL: profile_id missing from player_history_all"
-print("T07 PASS: all assertions passed; leaderboard distribution confirmed")
+print("PASS: all assertions passed; leaderboard distribution confirmed")
 
 # %% [markdown]
-# ## T08 -- Post-cleaning validation
+# ## Post-cleaning validation
 #
-# W03 FIX: ratings_raw absence assertion.
-# Winner consistency XOR check. Team-assignment asymmetry. CONSORT flow.
+# ratings_raw absence assertion. Winner consistency XOR check. Team-assignment asymmetry. CONSORT flow.
 
 # %%
 SQL_T08_RATINGS_RAW_ABSENCE = """
@@ -410,9 +409,9 @@ WHERE table_name = 'ratings_raw'
 """
 
 t08_ratings_raw = con.execute(SQL_T08_RATINGS_RAW_ABSENCE).fetchone()[0]
-print(f"T08 ratings_raw_exists: {t08_ratings_raw}")
+print(f"ratings_raw_exists: {t08_ratings_raw}")
 assert t08_ratings_raw == 0, "FAIL: ratings_raw table found in aoestats"
-print("T08 PASS: ratings_raw_exists=0. ELO data embedded in players_raw and matches_raw.")
+print("PASS: ratings_raw_exists=0. ELO data embedded in players_raw and matches_raw.")
 
 # %%
 SQL_T08_CONSORT = """
@@ -436,7 +435,7 @@ SELECT
 """
 
 t08_consort = con.execute(SQL_T08_CONSORT).df()
-print("T08 CONSORT flow:")
+print("CONSORT flow:")
 print(t08_consort.to_string())
 
 # %%
@@ -447,7 +446,7 @@ FROM matches_1v1_clean GROUP BY p0_winner ORDER BY p0_winner
 """
 
 t08_winner_dist = con.execute(SQL_T08_WINNER_DIST).df()
-print("T08 winner distribution (p0_winner):")
+print("Winner distribution (p0_winner):")
 print(t08_winner_dist.to_string())
 
 # %%
@@ -460,10 +459,10 @@ FROM matches_1v1_clean
 """
 
 t08_xor = con.execute(SQL_T08_XOR_CHECK).df()
-print("T08 winner XOR check:")
+print("Winner XOR check:")
 print(t08_xor.to_string())
 assert t08_xor["inconsistent"].iloc[0] == 0, "FAIL: inconsistent winner rows found"
-print("T08 PASS: inconsistent=0 (R08 exclusion in VIEW verified)")
+print("PASS: inconsistent=0 (inconsistent winner rows excluded from VIEW verified)")
 
 # %%
 SQL_T08_TEAM_ASYM = """
@@ -475,7 +474,7 @@ FROM matches_1v1_clean
 """
 
 t08_team_asym = con.execute(SQL_T08_TEAM_ASYM).df()
-print("T08 team-assignment asymmetry (W01):")
+print("Team-assignment asymmetry:")
 print(t08_team_asym.to_string())
 t1_win_pct = float(t08_team_asym["t1_win_pct"].iloc[0])
 print(f"t1_win_pct = {t1_win_pct}% (expected ~51.9%)")
@@ -488,13 +487,13 @@ WHERE table_name IN ('matches_1v1_clean', 'player_history_all')
 """
 
 t08_types = con.execute(SQL_T08_PROFILE_ID_TYPES).df()
-print("T08 profile_id type check:")
+print("profile_id type check:")
 print(t08_types.to_string())
 assert all(t08_types["data_type"] == "BIGINT"), "FAIL: profile_id columns not BIGINT"
-print("T08 PASS: all profile_id columns are BIGINT")
+print("PASS: all profile_id columns are BIGINT")
 
 # %% [markdown]
-# ## T09 -- Assemble artifacts and write output files
+# ## Assemble artifacts and update tracking
 
 # %%
 # Build artifact structure
@@ -557,7 +556,7 @@ cleaning_registry = {
     "R03": {
         "id": "R03",
         "condition": "game_id in matches_raw with no rows in players_raw",
-        "action": "EXCLUDE (implicit via INNER JOIN in T06 and T07 VIEWs)",
+        "action": "EXCLUDE (implicit via INNER JOIN in matches_1v1_clean and player_history_all VIEWs)",
         "justification": "01_03_01 linkage check confirmed 212,890 orphans. No target variable.",
         "impact": "212,890 matches (0.69%)",
         "orphan_match_count": int(t03_result[0]),
@@ -698,19 +697,19 @@ md_lines += [
     f"- Stage 4 (final VIEW, inconsistent winners excluded): {consort_flow['stage_4_view_final']:,}",
     f"- player_history_all rows: {consort_flow['player_history_all_rows']:,}",
     "",
-    "## T05 Temporal Schema Analysis",
+    "## Temporal Schema Analysis",
     "",
     f"- Total weeks analysed: {artifact['t05_temporal_schema_analysis']['weeks_total']}",
     f"- Last week with opening > 1%: {artifact['t05_temporal_schema_analysis']['last_week_opening_gt_1pct']}",
     f"- First week with opening = 0%: {artifact['t05_temporal_schema_analysis']['first_week_opening_zero']}",
     "- Feature-inclusion decision deferred to Phase 02 (I9).",
     "",
-    "## T06 Same-Team Assertion (W02)",
+    "## Same-Team Assertion",
     "",
     f"- same_team_game_count: {t06_same_team}",
     "- Outcome: 0-impact assertion verified. No same-team games found.",
     "",
-    "## T06 Team-Assignment Asymmetry (W01 / I5 Warning)",
+    "## Team-Assignment Asymmetry (I5 Warning)",
     "",
     f"- t1_wins: {artifact['t06_team_assignment_asymmetry']['t1_wins']:,}",
     f"- t0_wins: {artifact['t06_team_assignment_asymmetry']['t0_wins']:,}",
@@ -719,7 +718,7 @@ md_lines += [
     "**WARNING:** p0 (team=0) and p1 (team=1) are NOT symmetric player slots.",
     "Downstream 01_05+ feature engineering MUST apply player-slot randomisation.",
     "",
-    "## T08 Validation Results",
+    "## Post-Cleaning Validation Results",
     "",
     f"- ratings_raw_exists: {t08_ratings_raw} (PASS)",
     f"- inconsistent winner rows: {t08_xor['inconsistent'].iloc[0]} (PASS)",
@@ -750,5 +749,5 @@ print("All artifacts written successfully.")
 print(f"  matches_1v1_clean row count: {t06_cnt:,}")
 print(f"  player_history_all row count: {t07_cnt:,}")
 print(f"  t1_win_pct: {t1_win_pct}%")
-print(f"  inconsistent winner rows excluded: 997 (R08)")
+print(f"  inconsistent winner rows excluded: 997 (both players same outcome)")
 db.close()

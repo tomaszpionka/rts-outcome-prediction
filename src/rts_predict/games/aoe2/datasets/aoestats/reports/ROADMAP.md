@@ -666,30 +666,111 @@ research_log_entry: "Required on completion."
 
 ## Pipeline Section 01_04 -- Data Cleaning
 
+### Step 01_04_00 -- Source Normalization to Canonical Long Skeleton
+
+```yaml
+step_number: "01_04_00"
+name: "Source Normalization to Canonical Long Skeleton"
+description: >
+  Creates the matches_long_raw VIEW: a canonical 10-column long skeleton with one row
+  per player per match. JOIN of players_raw (per-player rows) with matches_raw (per-match
+  metadata), filtered identically to player_history_all (profile_id IS NOT NULL,
+  started_timestamp IS NOT NULL). Lossless validation uses an independent anchor
+  (players_raw total of 107,627,584 minus independently-counted exclusions). No further
+  filtering, no cleaning, no feature computation.
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
+dataset: "aoestats"
+question: >
+  Can players_raw JOIN matches_raw be projected losslessly into the canonical 10-column
+  long skeleton that all downstream cleaning steps will operate against?
+method: >
+  INNER JOIN of players_raw x matches_raw on game_id, filtered identically to
+  player_history_all. Lossless check uses independent anchor (players_raw total minus
+  null profile_id minus orphan/null-ts rows). Symmetry audit confirms known side=1
+  win asymmetry (~52.27% in random_map 1v1 scope) reappears. leaderboard_raw
+  (m.leaderboard VARCHAR) allows downstream 1v1 scoping without rejoining.
+predecessors:
+  - "01_04_01"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_00_source_normalization.py"
+outputs:
+  duckdb_views:
+    - "matches_long_raw"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md"
+  schema_yaml: "data/db/schemas/views/matches_long_raw.yaml"
+gate:
+  artifact_check: >
+    JSON artifact exists with row_count, schema, lossless_check (independent anchor),
+    symmetry_audit (full and 1v1-scoped), leaderboard_raw_distribution, and all SQL
+    queries verbatim. matches_long_raw VIEW is queryable and returns 107,626,399 rows.
+    Anchor cross-check: total_players_raw == 107,627,584.
+    Schema YAML exists with row_count populated.
+  continue_predicate: >
+    Lossless check PASSED (view_count == total_players - null_profile - orphan_or_null_ts).
+    STEP_STATUS.yaml has 01_04_00: complete.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      old_rating retained. new_rating and match_rating_diff excluded. I3 preserved.
+  - number: "5"
+    how_upheld: >
+      Player-row-oriented VIEW. No slot-based pivoting. Both players in any match
+      are represented with the same 10-column structure.
+  - number: "6"
+    how_upheld: "All SQL queries written verbatim to JSON artifact under sql_queries."
+  - number: "9"
+    how_upheld: >
+      No features computed. Only rows with null profile_id or null started_timestamp
+      excluded (matching player_history_all filter). Raw data untouched.
+research_log_entry: "Required on completion."
+```
+
 ### Step 01_04_01 -- Data Cleaning
 
 ```yaml
 step_number: "01_04_01"
 name: "Data Cleaning"
-description: "Create cleaned analytical VIEWs in DuckDB. Two VIEWs: matches_1v1_clean (wide-format prediction target VIEW, ranked 1v1 only) and player_history_all (long-format feature computation source VIEW, all game types and leaderboards). Documents cleaning rules R00-R08 with CONSORT flow."
-phase: "01 -- Data Exploration"
-pipeline_section: "01_04 -- Data Cleaning"
+description: >
+  Non-destructive data cleaning for aoestats. All raw data remains untouched; cleaning
+  is expressed as DuckDB VIEW definitions. Produces two VIEWs: matches_1v1_clean
+  (wide-format prediction target: ranked 1v1 matches, one row per match with p0/p1
+  column pairs, team-assignment asymmetry explicitly documented) and player_history_all
+  (long-format feature computation source: all game types and leaderboards, one row
+  per player per match). Generates CONSORT-style row-count flow and post-cleaning
+  validation.
+phase: "01 — Data Exploration"
+pipeline_section: "01_04 — Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
 dataset: "aoestats"
-question: "What cleaned analytical VIEWs are needed for downstream feature engineering and prediction? What data quality issues exist in the raw tables?"
-method: "Non-destructive DuckDB VIEW creation. profile_id DOUBLE precision verification (T01). 1v1 scope restriction (T02). Orphan match exclusion (T03). Constant/near-dead column documentation (T04). Temporal schema analysis for high-NULL columns (T05). Same-team assertion and wide-format VIEW creation (T06). Full-history player-row VIEW creation (T07). Post-cleaning validation with CONSORT flow, winner XOR check, team-asymmetry verification, and ratings_raw absence assertion (T08)."
+question: >
+  Which matches in aoestats are suitable for binary classification of 1v1 match
+  outcomes? What is the correct prediction target scope vs feature computation scope?
+method: >
+  Eight cleaning decisions derived from 01_02 and 01_03 findings:
+  (1) profile_id DOUBLE precision verification — confirmed safe to cast to BIGINT
+  (max value 24,853,897 is well below the IEEE 754 double safe-integer boundary);
+  (2) scope restriction to structural 1v1 (player_count=2) and leaderboard='random_map'
+  for the prediction target VIEW, retaining all game types in player_history_all;
+  (3) documentation of 212,890 orphan matches (no player rows) excluded via INNER JOIN;
+  (4) documentation of constant columns game_type and game_speed (excluded from VIEWs)
+  and near-dead column starting_age (99.99994% single value, excluded);
+  (5) temporal schema analysis of opening/age-uptime columns — these drop to 0% coverage
+  after week 2024-03-17 (schema change boundary found); feature-inclusion deferred to Phase 02;
+  (6) same-team assertion pre-VIEW (confirmed zero game_ids with both players on same team);
+  (7) exclusion of new_rating (POST-GAME) from all VIEWs;
+  (8) exclusion of 997 matches with inconsistent winner values (both players same outcome, 0.0056%).
+  Team-assignment asymmetry documented: team=1 wins 52.27% of ranked 1v1 matches.
+  CONSORT flow tracks match counts through four filtering stages.
 predecessors:
   - "01_03_03"
 notebook_path: "sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_01_data_cleaning.py"
 inputs:
   duckdb_tables:
-    - "matches_raw"
-    - "players_raw"
-  prior_artifacts:
-    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
-    - "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json"
-    - "artifacts/01_exploration/03_profiling/01_03_03_table_utility.json"
-    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
-    - "artifacts/01_exploration/02_eda/01_02_06_bivariate_eda.json"
+    - "matches_raw (30,690,651 rows)"
+    - "players_raw (107,627,584 rows)"
 outputs:
   duckdb_views:
     - "matches_1v1_clean (17,814,947 rows)"
@@ -699,31 +780,51 @@ outputs:
   report: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md"
   schema_yaml: "data/db/schemas/views/player_history_all.yaml"
 reproducibility: "Code and output in the paired notebook. All SQL queries stored verbatim in JSON artifact."
-scientific_invariants_applied:
-  - number: "3"
-    how_upheld: "new_rating (POST-GAME) excluded from both VIEWs (R06). Python assertion confirms. started_timestamp exposed in player_history_all for downstream WHERE ph.started_timestamp < target_match.started_timestamp."
-  - number: "5"
-    how_upheld: "Team-assignment asymmetry documented in DDL comment, team1_wins column, and research_log. t1_win_pct=52.27%. Randomisation deferred to 01_05 (documented as mandatory)."
-  - number: "6"
-    how_upheld: "All SQL queries stored verbatim in sql_queries dict in JSON artifact."
-  - number: "7"
-    how_upheld: "No magic numbers. player_count=2 and leaderboard='random_map' from 01_03_02. Precision threshold 2^53 is IEEE 754 double safe-integer bound. Inconsistent winner count (997) from T08 investigation."
-  - number: "9"
-    how_upheld: "Cleaning and VIEW creation only. Feature-inclusion decisions for opening/age uptimes explicitly deferred to Phase 02."
 key_findings:
-  - "matches_1v1_clean: 17,814,947 rows (prediction target scope)"
-  - "player_history_all: 107,626,399 rows (feature computation source, all game types)"
-  - "R08 (NEW): 997 inconsistent winner rows (0.0056%) excluded -- both players same winner value"
-  - "team1_wins column: team=1 wins 52.27% of ranked 1v1 matches (I5 asymmetry)"
-  - "same_team_game_count: 0 (W02 assertion confirmed, 0-impact)"
-  - "ratings_raw_exists: 0 (W03 assertion confirmed)"
+  - "17,814,947 ranked 1v1 matches retained in prediction target VIEW"
+  - "997 matches excluded due to inconsistent winner values (both players same outcome)"
+  - "team=1 wins 52.27% of ranked 1v1 matches — team slot is not a random assignment (I5 warning for downstream feature engineering)"
+  - "opening/age-uptime columns populated until 2024-03-17, then dropped to zero — schema change boundary"
   - "schema change boundary: opening/age-uptime columns drop to 0% coverage after week 2024-03-17"
 gate:
-  artifact_check: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json and .md exist and are non-empty."
-  continue_predicate: "JSON contains cleaning_registry (R00-R08), consort_flow, view_ddl (both VIEWs), sql_queries. VIEW matches_1v1_clean returns ~17.8M rows. VIEW player_history_all returns ~107.6M rows. inconsistent=0 (winner XOR check). ratings_raw_exists=0. team1_wins column exists."
+  artifact_check: >
+    JSON and MD artifacts exist and are non-empty. JSON contains cleaning decisions,
+    CONSORT flow, temporal schema analysis results, same-team assertion result,
+    team-assignment asymmetry findings, ratings_raw absence confirmation, both VIEW
+    DDL definitions, and all SQL queries verbatim.
+  continue_predicate: >
+    matches_1v1_clean returns approximately 17.8M rows. player_history_all returns
+    approximately 107.6M rows. Zero inconsistent winner matches (winner XOR check passes).
+    Confirmed no ratings_raw table in aoestats schema. team1_wins column exists in
+    matches_1v1_clean. Schema YAML exists with row_count populated.
   halt_predicate: "Any SQL query fails, any assertion fails, or any artifact is missing."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      new_rating (POST-GAME) excluded from both VIEWs. Python assertion confirms no
+      forbidden columns in either VIEW. duration and irl_duration excluded from
+      player_history_all. Temporal anchor (started_timestamp) exposed for downstream
+      strict before-match ordering.
+  - number: "5"
+    how_upheld: >
+      Team-assignment asymmetry (team=1 wins 52.27%) documented in VIEW DDL comment,
+      team1_wins column, and research log. Downstream feature engineering must apply
+      player-slot randomisation before using p0/p1 column pairs as symmetric features.
+      player_history_all is player-row-oriented, keyed on profile_id — no slot asymmetry.
+  - number: "6"
+    how_upheld: "All SQL queries stored verbatim in JSON artifact under sql_queries."
+  - number: "7"
+    how_upheld: >
+      Scope criteria (player_count=2, leaderboard='random_map') sourced from 01_03_02
+      systematic profile. profile_id precision threshold is the IEEE 754 double
+      safe-integer boundary. All cleaning thresholds derived empirically from 01_02
+      and 01_03 artifacts, not assumed.
+  - number: "9"
+    how_upheld: >
+      Cleaning and VIEW creation only. Feature-inclusion decisions for opening and
+      age-uptime columns explicitly deferred to Phase 02. No aggregations computed.
 thesis_mapping:
-  - "Chapter 4 -- Data and Methodology > 4.2 Data Preparation"
+  - "Chapter 4 — Data and Methodology > 4.2 Data Cleaning"
 research_log_entry: "Required on completion."
 ```
 

@@ -2,6 +2,63 @@
 
 ---
 
+## 2026-04-16 -- [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** Create matches_long_raw VIEW. INNER JOIN replay_players_raw x replays_meta_raw into 10-column canonical schema.
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.json`
+- `reports/artifacts/01_exploration/04_cleaning/01_04_00_source_normalization.md`
+- `data/db/schemas/views/matches_long_raw.yaml`
+- **DuckDB VIEW:** `matches_long_raw`
+
+### What
+
+Created `matches_long_raw` VIEW: canonical 10-column long skeleton (match_id, started_timestamp,
+side, player_id, chosen_civ_or_race, outcome_raw, rating_pre_raw, map_id_raw, patch_raw,
+leaderboard_raw). Structural INNER JOIN of replay_players_raw x replays_meta_raw via
+hex-hash regexp key (same as matches_flat). 44,817 rows. leaderboard_raw = NULL for all rows.
+
+### Why
+
+Unify grain across all three datasets before downstream cleaning.
+
+### How (reproducibility)
+
+Notebook: `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_00_source_normalization.py`
+
+### Findings
+
+- **Lossless check PASSED:** 44,817 rows (matches_long_raw == direct JOIN count).
+- **Side values:** Distinct values 0-8. Side=0: 22,390 rows (playerID=1); side=1: 22,387 rows (playerID=2).
+  Values 2-8: 37 rows total (rare multi-player/observer slots).
+- **Symmetry audit (side IN (0,1)):**
+  side=0: 22,390 rows, win_pct=51.96%, n_null=13.
+  side=1: 22,387 rows, win_pct=47.97%, n_null=13.
+  Mild asymmetry: side=0 wins ~52% (3.99pp deviation). Alert threshold (10pp) not breached.
+- **leaderboard_raw:** NULL for all 44,817 rows (tournament dataset, no matchmaking ladder).
+- **NULL match_id:** 0 rows (NULLIF guard effective; all filenames match the hex-hash pattern).
+- **started_timestamp type:** VARCHAR (details.timeUTC struct dot notation). Type unification deferred to Phase 02.
+
+### Decisions taken
+
+- details.timeUTC accessed via struct dot notation (rm.details.timeUTC).
+- NULLIF guard included for match_id (consistent with matches_flat in 01_04_01).
+- leaderboard_raw = NULL constant (deliberate; tournament data).
+
+### Decisions deferred
+
+- started_timestamp type unification (VARCHAR -> TIMESTAMP) deferred to Phase 02.
+- MMR sentinel 0 (unrated) handling deferred to Phase 02.
+- Side=0 win asymmetry (51.96% vs 47.97%) documented; not corrected at this step.
+
+### Thesis mapping
+
+- Chapter 4, §4.1.1 -- SC2EGSet dataset description, data normalization
+
+---
+
 ## 2026-04-16 -- [Phase 01 / Step 01_04_01] Data Cleaning
 
 **Category:** A (science)
