@@ -134,9 +134,9 @@ Non-CameraUpdate events: 221,110,968
 ### Per-replay density (10% BERNOULLI sample)
 
 - Sample method: CTE-based 10% filename sample
-- Replays sampled: 22383
-- Mean events/replay (sampled): 27191.1
-- Median events/replay (sampled): 21910.0
+- Replays sampled: 22384
+- Mean events/replay (sampled): 27189.9
+- Median events/replay (sampled): 21909.5
 
 Note: BERNOULLI samples rows, so per-replay counts are deflated (~10% of true per-replay totals).
 
