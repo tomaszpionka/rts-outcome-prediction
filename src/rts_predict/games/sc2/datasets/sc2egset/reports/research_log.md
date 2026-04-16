@@ -8,6 +8,47 @@ SC2 / sc2egset findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 -- [Phase 01 / Step 01_03_02] True 1v1 Match Identification
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** profiling -- replay-level 1v1 classification
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json`
+- `reports/artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md`
+
+### What
+
+Classified all 22,390 sc2egset replays into one of four categories based on player row count and result decisiveness: `true_1v1_decisive`, `true_1v1_indecisive`, `non_1v1_too_few_players`, `non_1v1_too_many_players`. Multi-signal analysis: per-replay player row counts (DuckDB GROUP BY), cross-reference with max_players struct field, observer setting, selectedRace/result profiling of anomalous rows. All SQL stored verbatim (I6). Standard races derived dynamically from 01_02_04 census (I7). No rows dropped (I9).
+
+### Key finding
+
+The dataset is overwhelmingly 1v1: **22,366 / 22,390 replays (99.89%) are `true_1v1_decisive`** (exactly 2 player rows, 1 Win + 1 Loss). Only 24 replays are to be excluded:
+- `non_1v1_too_many_players`: 8 replays (4-9 player rows; genuine team games)
+- `non_1v1_too_few_players`: 3 replays (1 player row)
+- `true_1v1_indecisive`: 13 replays (2 players, Undecided/Tie result -- no prediction target)
+- `non_1v1_other`: 0 (classification is exhaustive)
+
+Gate condition verified: 22,366 + 13 + 8 + 3 = 22,390.
+
+### Secondary findings
+
+- **Empty selectedRace (1,110 rows, 555 replays):** All belong to `true_1v1_decisive` replays (players_per_replay = 2 for all 1,110; result = 555 Win + 555 Loss; APM = 0 for all). Race resolved post-game (Zerg 569, Prot 276, Terr 265). This is a data quality issue in the `selectedRace` field, not an observer issue. APM = 0 sentinel warrants investigation in 01_04.
+- **Observer setting:** 0 (no observers) for all 22,390 replays. Non-1v1 replays are genuine multi-player games, not observer-contaminated 1v1s.
+- **max_players vs actual count:** 403 replays have max_players = 4 but only 2 actual player rows -- all `true_1v1_decisive`. The max_players field encodes lobby slot capacity, not active players. Not a reliable 1v1 filter.
+- **BW race variants (3 rows):** All 3 (BWTe, BWPr, BWZe) belong to the single 6-player replay -- a team game in the 2024 ESL SC2 Masters Spring Finals corpus.
+
+### Implications for data cleaning (01_04)
+
+Exclude 24 replays from the analysis population:
+- 3 `non_1v1_too_few_players` (filename list in artifact)
+- 8 `non_1v1_too_many_players` (filename list in artifact)
+- 13 `true_1v1_indecisive` (filename list in artifact)
+
+The 22,366 `true_1v1_decisive` replays form the viable pool for the prediction pipeline. Investigate APM = 0 and empty-selectedRace sentinel in 01_04.
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
 
 **Category:** A (science)

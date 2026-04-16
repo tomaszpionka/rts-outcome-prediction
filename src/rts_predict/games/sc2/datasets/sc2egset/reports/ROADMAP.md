@@ -528,6 +528,52 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_03_02 -- True 1v1 Match Identification
+
+```yaml
+step_number: "01_03_02"
+name: "True 1v1 Match Identification"
+description: "Profile every replay to determine which are genuine 1v1 matches (exactly 2 active player rows with decisive Win/Loss results) vs non-1v1 (team games, observer contamination, incomplete replays). Produces a replay-level classification without dropping any rows (cleaning deferred to 01_04)."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_03 -- Systematic Data Profiling"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "sc2egset"
+question: "Which of the 22,390 replays are genuine 1v1 matches, and what characterises the non-1v1 replays?"
+method: "DuckDB SQL: per-replay player row counts, cross-reference with max_players struct field, selectedRace/result analysis of non-2-player rows, observer setting profiling. Multi-signal classification of each replay."
+predecessors: "01_03_01"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/03_profiling/01_03_02_true_1v1_identification.py"
+inputs:
+  duckdb_tables:
+    - "replay_players_raw"
+    - "replays_meta_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json"
+  report: "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "Standard race list derived dynamically from 01_02_04 census categorical_profiles.selectedRace at runtime (list comprehension + assertion guard). All other thresholds from census JSON."
+  - number: "9"
+    how_upheld: "Classification and profiling only. No rows dropped, no new features computed, no cleaning decisions made."
+  - number: "3"
+    how_upheld: "elapsed_game_loops annotated as POST-GAME wherever referenced. No temporal features computed."
+gate:
+  artifact_check: "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json and .md exist and are non-empty."
+  continue_predicate: "JSON contains: true_1v1_decisive_count, true_1v1_indecisive_count, total_replay_count, observer_row_analysis, players_per_replay_distribution, max_players_distribution, replay_classification. MD contains comparison summary table. true_1v1_decisive_count + true_1v1_indecisive_count + sum(non_1v1 categories) = total_replay_count."
+  halt_predicate: "Any artifact is missing, or classification totals do not sum to 22,390."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet (StarCraft II)"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)

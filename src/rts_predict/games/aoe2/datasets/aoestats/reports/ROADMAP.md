@@ -566,6 +566,56 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_03_02 -- True 1v1 Match Identification
+
+```yaml
+step_number: "01_03_02"
+name: "True 1v1 Match Identification"
+description: "Cross-reference matches_raw.num_players against actual player row counts from players_raw to identify genuine 1v1 matches (exactly 2 active players). Compare against leaderboard-based filtering. Document discrepancies, orphaned matches, and edge cases. Profiling only -- no cleaning decisions."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_03 -- Systematic Data Profiling"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 3"
+dataset: "aoestats"
+question: "Which matches are genuine 1v1 (exactly 2 active players), how does num_players relate to actual player counts, and how does the true 1v1 set compare to leaderboard='random_map'?"
+method: "JOIN matches_raw with aggregated players_raw player counts per game_id. Cross-tabulate num_players vs actual_player_count. Compute leaderboard-vs-player-count overlap."
+stratification: "By num_players value. By leaderboard value. By match type (true 1v1 vs label 1v1)."
+predecessors:
+  - "01_03_01"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/03_profiling/01_03_02_true_1v1_identification.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+  external_references:
+    - ".claude/scientific-invariants.md"
+    - "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md, Section 3"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json"
+  plots:
+    - "artifacts/01_exploration/03_profiling/01_03_02_match_type_breakdown.png"
+  report: "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md"
+reproducibility: "Code and output in the paired notebook."
+scientific_invariants_applied:
+  - number: "6"
+    how_upheld: "All SQL queries stored in sql_queries dict and written verbatim to markdown artifact."
+  - number: "7"
+    how_upheld: "No magic numbers. All row counts, NULL rates, and thresholds from census JSON or systematic profile JSON. The 'active player' definition is schema-derived, not a magic number."
+  - number: "9"
+    how_upheld: "Profiling only. No cleaning decisions, no feature engineering, no model fitting. Findings are documented for 01_04, not acted upon."
+gate:
+  artifact_check: "All 3 artifact files exist under reports/artifacts/01_exploration/03_profiling/ and are non-empty."
+  continue_predicate: "JSON contains keys: true_1v1_count, ranked_1v1_count, overlap, num_players_vs_actual_crosstab. MD contains comparison table. PNG file exists."
+  halt_predicate: "Any SQL query fails or any artifact is missing or empty."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.2 AoE2 Match Data"
+  - "Chapter 4 -- Data and Methodology > 4.2 Pre-processing"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ---

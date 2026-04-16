@@ -8,6 +8,46 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_03_02] True 1v1 Match Identification
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** Cross-reference matches_raw.num_players against actual player row counts from players_raw. Compare true 1v1 (structural: exactly 2 player rows) against ranked 1v1 (label: leaderboard='random_map'). Profiling only — no cleaning decisions (I9).
+
+### 01_03_02 — True 1v1 Match Identification
+
+**Artifacts produced:**
+- `artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json` (12K)
+- `artifacts/01_exploration/03_profiling/01_03_02_match_type_breakdown.png` (67K)
+- `artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.md` (8.5K)
+
+**Q1 — Active player definition:** Every row in players_raw is an active player. The schema has no observer/spectator marker columns (no `slot`, `is_observer`, `status`, or `type`). winner is never NULL (0 nulls), civ is never NULL, team has values {0, 1} only (team_distinct=2). This is a schema-level fact, not an assumption.
+
+**Q2 — num_players vs actual player count:** LEFT JOIN of matches_raw with player counts from players_raw reveals the breakdown of mismatches. The 212,890 orphaned matches (matches_raw rows with zero player rows, from 01_03_01 linkage check) are validated — orphaned count cross-checked against profile_01_03_01 within tolerance ≤1. Cross-validation of player_count=2 against census `players_per_match` PASSED within 1% delta.
+
+**Q3 — True 1v1 count:** 18,438,769 matches have exactly 2 player rows. This is 60.08% of all 30,690,651 matches. The player-count method is the structural definition used going forward.
+
+**Q4 — True 1v1 vs Ranked 1v1 comparison:**
+- True 1v1 (Set A, structural): 18,438,769
+- Ranked 1v1 (Set B, leaderboard='random_map'): 17,959,543
+- Overlap (A AND B): 17,815,944 — Jaccard index: 0.9588
+- True-only (A NOT B): 622,825 (genuine 1v1 with non-random_map leaderboard, e.g. unranked/co-op)
+- Ranked-only (B NOT A): 143,599 (leaderboard='random_map' with != 2 player rows — orphaned or corrupt)
+- Overlap as % of true 1v1: 96.62%
+- Overlap as % of ranked 1v1: 99.20%
+
+**Recommended 1v1 definition for downstream use:** The player-count method (actual_player_count = 2) is the structural definition. The leaderboard='random_map' filter is a near-equivalent proxy (99.2% coverage of ranked matches are structurally 1v1) but misses 622,825 genuine 1v1 matches from other leaderboards. The final decision on which set to use belongs to 01_04 (Data Cleaning).
+
+**Duplicate impact:** B1 diagnostic confirms the 489 duplicate player rows (from 01_03_01) have negligible impact on 1v1 classification. The `recovered_by_dedup` count (raw_count != 2 AND distinct_profiles = 2) is documented in the JSON artifact.
+
+**NULL profile_id distribution:** 1,185 NULL profile_id rows analyzed by leaderboard and player count. Distribution documented in JSON artifact.
+
+**Set arithmetic consistency:** overlap + true_only + ranked_only + neither = 30,690,651 = total_matches (verified).
+
+**SQL queries:** All 11 queries embedded verbatim in JSON and markdown artifacts (I6). Key queries: active_player_diagnostic, num_players_vs_actual, player_counts_distribution, true_1v1_count, duplicate_impact, true_1v1_by_leaderboard, true_1v1_by_num_players, set_comparison, ranked_not_true_1v1, true_not_ranked, null_profile_by_type.
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_03_01] Systematic Data Profiling
 
 **Category:** A (science)
