@@ -173,7 +173,7 @@ Systematic profiling of matches_raw (277,099,059 rows, 55 columns) per Manual Se
 
 55 columns profiled with: null count/pct, approximate cardinality, uniqueness ratio, zero count for numeric columns, descriptive stats (mean, std, percentiles from census), exact skewness/kurtosis for all 10 numeric columns (9 from census + derived duration_min) via DuckDB native SKEWNESS()/KURTOSIS() aggregation over the full table (no sampling, no listwise deletion), IQR outlier counts via consolidated single-scan query, and top-5 values for 21 categorical columns.
 
-All columns carry I3 temporal classification (Invariant #3). Rating classified as AMBIGUOUS per 01_02_06 finding. Resolution deferred to 01_04. **[Note]:** Rating ambiguity resolution is assigned to 01_04 (Data Cleaning), not Phase 02 -- the temporal join with ratings_raw is a data investigation prerequisite, not a feature engineering decision.
+All columns carry I3 temporal classification (Invariant #3). Rating classified as AMBIGUOUS per 01_02_06 finding. **[Resolved in 01_03_03]:** `matches_raw.rating` confirmed **PRE-GAME** (99.8% exact match with ratings_raw pre-match entries). See 01_03_03 entry above.
 
 ### Dataset-level profiling
 
@@ -285,7 +285,7 @@ degeneracy determination from census IQR statistics (I7 -- no magic numbers).
 
 | Column | Classification | Applied |
 |--------|----------------|---------|
-| rating | AMBIGUOUS | Deferred to 01_04 (row-level verification with ratings_raw) |
+| rating | ~~AMBIGUOUS~~ **PRE-GAME** | **Resolved in 01_03_03** (99.8% match with ratings_raw pre-match entries) |
 | ratingDiff | POST-GAME | Excluded from all pre-game feature sets |
 | duration_min | POST-GAME | EDA characterization only; not prediction feature |
 | population | PRE-GAME | Near-constant; excluded from PCA |
@@ -344,9 +344,9 @@ from 01_02_04 census at runtime (Invariant #7). POST-GAME annotations applied to
   Elo (won=True: 1095, won=False: 1088). This is ~2% of the rating stddev (~344).
   Falls between the decision thresholds of 5 (likely pre-game) and 50 (likely
   post-game). Cannot resolve with bivariate analysis alone.
-- **rating temporal status — deferred to 01_04:** Row-level verification required:
-  check `rating = pre_rating + ratingDiff` via temporal join with ratings_raw. If
-  true, `rating` is post-game and must be excluded alongside `ratingDiff`.
+- **rating temporal status — ~~deferred to 01_04~~ resolved in 01_03_03:** Row-level
+  cross-reference confirmed `matches_raw.rating` is **PRE-GAME** (99.8% exact match
+  with ratings_raw pre-match entries). `ratingDiff` = post - pre (sign confirmed).
 - **ratingDiff × leaderboard:** The ratingDiff magnitude varies substantially across
   leaderboards (higher-ELO leaderboards have larger absolute ratingDiff per match).
   Leaderboard ID may be a useful pre-game feature.
@@ -354,7 +354,7 @@ from 01_02_04 census at runtime (Invariant #7). POST-GAME annotations applied to
 ### Decisions
 
 - `ratingDiff` → excluded from all pre-game feature sets (confirmed leakage, I3)
-- `rating` → ambiguous; 01_04 row-level verification required before use
+- `rating` → ~~ambiguous~~ **PRE-GAME** (resolved in 01_03_03; 99.8% match with ratings_raw)
 - `duration` → post-game descriptor; usable for EDA characterization but not prediction
 
 ### Open questions
@@ -412,7 +412,7 @@ All clip thresholds and bin widths derived from census artifact at runtime (Inva
 ### Decisions deferred
 
 - Bivariate analysis of `ratingDiff × won` and `rating × won` deferred to Step 01_02_06 (Bivariate EDA).
-- `rating` temporal classification (ambiguous_pre_or_post) resolution deferred to 01_04.
+- `rating` temporal classification (ambiguous_pre_or_post) — **resolved in 01_03_03: PRE-GAME** (99.8% match).
 - `won` inconsistency (both_true / both_false rows) cleaning strategy deferred to Phase 01_04 (Data Cleaning).
 
 ### Thesis mapping
@@ -496,7 +496,7 @@ Primary prediction scope: rm_1v1 (26.8M matches) + qp_rm_1v1 (3.7M matches) = 30
 
 **Confirmed post_game:** `ratingDiff` (range [-174, 319], direct leakage); `finished`; `won` (target).
 
-**Critical ambiguity — `matches_raw.rating`:** Classified `ambiguous_pre_or_post`. Identical 42.46% NULL rate for `rating` and `ratingDiff` suggests simultaneous population. If `rating` is post-match snapshot, it encodes the outcome via `rating = pre_rating + ratingDiff`. Row-level co-occurrence check required in 01_04 — this is the single most important open question for aoe2companion feature engineering.
+**~~Critical ambiguity~~ Resolved — `matches_raw.rating`:** Originally classified `ambiguous_pre_or_post` due to identical 42.46% NULL rate with `ratingDiff`. **Resolved in 01_03_03:** cross-reference with `ratings_raw` confirmed `matches_raw.rating` is the **PRE-GAME** rating (99.8% exact match with nearest pre-match ratings_raw entry). `ratingDiff` = post_game_rating - pre_game_rating.
 
 **ratings_raw:** Time-series ratings safe only with strict temporal join (`rating.date < match.started`).
 
@@ -520,7 +520,7 @@ Primary prediction scope: rm_1v1 (26.8M matches) + qp_rm_1v1 (3.7M matches) = 30
 
 - 7 dead columns in profiles_raw identified for exclusion
 - 10 constant/dead fields catalogued across all tables
-- `matches_raw.rating` flagged as ambiguous; resolution deferred to 01_04
+- `matches_raw.rating` flagged as ambiguous — **resolved in 01_03_03: PRE-GAME** (99.8% match)
 - 4,398,727 internally inconsistent 2-row matches flagged for investigation
 
 ### Decisions deferred
