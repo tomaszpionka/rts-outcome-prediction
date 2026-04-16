@@ -8,6 +8,68 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-16 — [Phase 01 / Step 01_04_01] Data Cleaning
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** Create cleaned analytical VIEWs in DuckDB. Two VIEWs: `matches_1v1_clean` (prediction target VIEW) and `player_history_all` (feature computation source VIEW). Documents cleaning rules R00-R08. Non-destructive: raw tables never modified.
+
+### 01_04_01 — Data Cleaning
+
+**Artifacts produced:**
+- `artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json`
+- `artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md`
+- `data/db/schemas/views/player_history_all.yaml`
+
+**VIEWs created:**
+- `matches_1v1_clean`: 17,814,947 rows (prediction target scope — ranked 1v1 only)
+- `player_history_all`: 107,626,399 rows (feature computation source — all game types and leaderboards)
+
+**T01 — profile_id precision verification:**
+- fractional_count=0, unsafe_range_count=0, max_id=24,853,897 (below 2^53)
+- SAFE: CAST to BIGINT in both VIEWs (R01)
+
+**T02 — 1v1 scope restriction:**
+- total_matches=30,690,651; orphan_matches=212,890; structural_1v1=18,438,769; scope_1v1_ranked=17,815,944
+- Cross-validated against 01_03_01 and 01_03_02 artifacts (all counts match)
+
+**T05 — Temporal schema analysis:**
+- opening/feudal_age_uptime/castle_age_uptime/imperial_age_uptime: populated until ~2024-03-10, then drop to 0% coverage
+- Last week with opening > 1%: 2024-03-10; first week with opening = 0%: 2024-03-17
+- Feature-inclusion decision deferred to Phase 02 (I9)
+
+**T06 — Same-team assertion (W02):**
+- same_team_game_count = 0 (verified). R07 is a 0-impact assertion.
+
+**T08 — Inconsistent winner rows (NEW finding — R08):**
+- 997 rows with p0_winner = p1_winner (811 both False, 186 both True)
+- Rate: 0.0056% of candidate matches. Source data quality issue (not a JOIN artifact).
+- Action: excluded via WHERE p0.winner != p1.winner in matches_1v1_clean VIEW.
+- Final VIEW row count: 17,814,947 (= 17,815,944 - 997). inconsistent=0 after exclusion.
+
+**T08 — ratings_raw absence (W03):**
+- ratings_raw_exists = 0. Confirmed: aoestats has no ratings_raw table.
+- All ELO data embedded in players_raw (old_rating, new_rating) and matches_raw (avg_elo, team_0_elo, team_1_elo).
+
+**T08 — Post-cleaning validation:**
+- inconsistent = 0 (winner XOR check PASS)
+- p0_profile_id, p1_profile_id, profile_id: all BIGINT (PASS)
+- No forbidden columns in either VIEW (I3 assertion PASS)
+
+---
+
+**TEAM-ASSIGNMENT ASYMMETRY (I5 WARNING FOR 01_05+):** In the
+`matches_1v1_clean` VIEW, p0 (team=0) and p1 (team=1) are NOT random
+player slots. Team=1 wins ~52.27% of 1v1 matches, with mean elo_diff
+(team_0_elo - team_1_elo) of -18.48 when team=1 wins vs -0.37 when
+team=0 wins (01_02_06 artifact). Downstream 01_05+ feature engineering
+MUST apply player-slot randomisation before using p0_*/p1_* column
+pairs as symmetric features. Without randomisation, any model will
+learn the team-assignment signal, not match skill. The `team1_wins`
+column is included in the VIEW to make this asymmetry explicit.
+
+---
+
 ## 2026-04-15 — [Phase 01 / Step 01_03_03] Table Utility Assessment
 
 **Category:** A (science)

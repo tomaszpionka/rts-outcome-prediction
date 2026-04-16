@@ -664,6 +664,71 @@ research_log_entry: "Required on completion."
 
 ---
 
+## Pipeline Section 01_04 -- Data Cleaning
+
+### Step 01_04_01 -- Data Cleaning
+
+```yaml
+step_number: "01_04_01"
+name: "Data Cleaning"
+description: "Create cleaned analytical VIEWs in DuckDB. Two VIEWs: matches_1v1_clean (wide-format prediction target VIEW, ranked 1v1 only) and player_history_all (long-format feature computation source VIEW, all game types and leaderboards). Documents cleaning rules R00-R08 with CONSORT flow."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+dataset: "aoestats"
+question: "What cleaned analytical VIEWs are needed for downstream feature engineering and prediction? What data quality issues exist in the raw tables?"
+method: "Non-destructive DuckDB VIEW creation. profile_id DOUBLE precision verification (T01). 1v1 scope restriction (T02). Orphan match exclusion (T03). Constant/near-dead column documentation (T04). Temporal schema analysis for high-NULL columns (T05). Same-team assertion and wide-format VIEW creation (T06). Full-history player-row VIEW creation (T07). Post-cleaning validation with CONSORT flow, winner XOR check, team-asymmetry verification, and ratings_raw absence assertion (T08)."
+predecessors:
+  - "01_03_03"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_01_data_cleaning.py"
+inputs:
+  duckdb_tables:
+    - "matches_raw"
+    - "players_raw"
+  prior_artifacts:
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.json"
+    - "artifacts/01_exploration/03_profiling/01_03_02_true_1v1_profile.json"
+    - "artifacts/01_exploration/03_profiling/01_03_03_table_utility.json"
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json"
+    - "artifacts/01_exploration/02_eda/01_02_06_bivariate_eda.json"
+outputs:
+  duckdb_views:
+    - "matches_1v1_clean (17,814,947 rows)"
+    - "player_history_all (107,626,399 rows)"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md"
+  schema_yaml: "data/db/schemas/views/player_history_all.yaml"
+reproducibility: "Code and output in the paired notebook. All SQL queries stored verbatim in JSON artifact."
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: "new_rating (POST-GAME) excluded from both VIEWs (R06). Python assertion confirms. started_timestamp exposed in player_history_all for downstream WHERE ph.started_timestamp < target_match.started_timestamp."
+  - number: "5"
+    how_upheld: "Team-assignment asymmetry documented in DDL comment, team1_wins column, and research_log. t1_win_pct=52.27%. Randomisation deferred to 01_05 (documented as mandatory)."
+  - number: "6"
+    how_upheld: "All SQL queries stored verbatim in sql_queries dict in JSON artifact."
+  - number: "7"
+    how_upheld: "No magic numbers. player_count=2 and leaderboard='random_map' from 01_03_02. Precision threshold 2^53 is IEEE 754 double safe-integer bound. Inconsistent winner count (997) from T08 investigation."
+  - number: "9"
+    how_upheld: "Cleaning and VIEW creation only. Feature-inclusion decisions for opening/age uptimes explicitly deferred to Phase 02."
+key_findings:
+  - "matches_1v1_clean: 17,814,947 rows (prediction target scope)"
+  - "player_history_all: 107,626,399 rows (feature computation source, all game types)"
+  - "R08 (NEW): 997 inconsistent winner rows (0.0056%) excluded -- both players same winner value"
+  - "team1_wins column: team=1 wins 52.27% of ranked 1v1 matches (I5 asymmetry)"
+  - "same_team_game_count: 0 (W02 assertion confirmed, 0-impact)"
+  - "ratings_raw_exists: 0 (W03 assertion confirmed)"
+  - "schema change boundary: opening/age-uptime columns drop to 0% coverage after week 2024-03-17"
+gate:
+  artifact_check: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json and .md exist and are non-empty."
+  continue_predicate: "JSON contains cleaning_registry (R00-R08), consort_flow, view_ddl (both VIEWs), sql_queries. VIEW matches_1v1_clean returns ~17.8M rows. VIEW player_history_all returns ~107.6M rows. inconsistent=0 (winner XOR check). ratings_raw_exists=0. team1_wins column exists."
+  halt_predicate: "Any SQL query fails, any assertion fails, or any artifact is missing."
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.2 Data Preparation"
+research_log_entry: "Required on completion."
+```
+
+---
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)
