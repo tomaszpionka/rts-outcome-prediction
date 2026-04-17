@@ -1,9 +1,9 @@
-table: player_history_all
+table: matches_flat_clean
 dataset: sc2egset
 game: sc2
 object_type: view
 step: '01_04_02'
-row_count: 44817
+row_count: 44418
 describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json
 generated_date: '2026-04-17'
 columns:
@@ -15,12 +15,12 @@ columns:
   notes: IDENTITY
 - name: filename
   type: VARCHAR
-  nullable: false
+  nullable: true
   description: Replay file path relative to raw_dir. Invariant I10.
   notes: IDENTITY
 - name: toon_id
   type: VARCHAR
-  nullable: false
+  nullable: true
   description: Battle.net toon/account identifier. Player identity key.
   notes: IDENTITY
 - name: nickname
@@ -41,14 +41,9 @@ columns:
 - name: result
   type: VARCHAR
   nullable: true
-  description: Game result (Win, Loss, Undecided, Tie). Unfiltered in history.
+  description: Game result (Win or Loss only -- Undecided/Tie excluded by true_1v1_decisive
+    CTE). Prediction target.
   notes: TARGET
-- name: is_decisive_result
-  type: BOOLEAN
-  nullable: true
-  description: TRUE if result IN ('Win','Loss'). Added in 01_04_02 (DS-SC2-04). Enables
-    Phase 02 win-rate denominator selection without VIEW changes.
-  notes: POST_GAME_HISTORICAL
 - name: is_mmr_missing
   type: BOOLEAN
   nullable: true
@@ -80,34 +75,6 @@ columns:
   nullable: true
   description: Whether the player is in a clan.
   notes: PRE_GAME
-- name: APM
-  type: INTEGER
-  nullable: true
-  description: Actions per minute. Sentinel APM=0 converted to NULL via NULLIF (01_04_02,
-    DS-SC2-10). 1132 rows affected.
-  notes: IN_GAME_HISTORICAL
-- name: is_apm_unparseable
-  type: BOOLEAN
-  nullable: true
-  description: TRUE if original APM=0 (parse failure / empty replay). Added in 01_04_02
-    (DS-SC2-10).
-  notes: IN_GAME_HISTORICAL
-- name: SQ
-  type: INTEGER
-  nullable: true
-  description: Spending Quotient. Parse-failure sentinel INT32_MIN corrected to NULL.
-    IN_GAME_HISTORICAL.
-  notes: IN_GAME_HISTORICAL
-- name: supplyCappedPercent
-  type: INTEGER
-  nullable: true
-  description: '% game time supply-capped. IN_GAME_HISTORICAL.'
-  notes: IN_GAME_HISTORICAL
-- name: header_elapsedGameLoops
-  type: BIGINT
-  nullable: true
-  description: Game duration in loops. IN_GAME_HISTORICAL (post-game observable).
-  notes: IN_GAME_HISTORICAL
 - name: startDir
   type: INTEGER
   nullable: true
@@ -128,38 +95,20 @@ columns:
   nullable: true
   description: Human-readable map name.
   notes: PRE_GAME
-- name: gd_mapSizeX
-  type: BIGINT
-  nullable: true
-  description: Map width (0 corrected to NULL; parse artifact). Retained in player_history_all
-    per DS-SC2-06.
-  notes: PRE_GAME
-- name: gd_mapSizeY
-  type: BIGINT
-  nullable: true
-  description: Map height (0 corrected to NULL; parse artifact). Retained in player_history_all
-    per DS-SC2-06.
-  notes: PRE_GAME
 - name: gd_maxPlayers
   type: BIGINT
   nullable: true
   description: Max players in game description.
   notes: PRE_GAME
-- name: details_isBlizzardMap
-  type: BOOLEAN
-  nullable: true
-  description: Blizzard-authored map flag (from details struct). Preferred over gd_isBlizzardMap
-    (confirmed identical, duplicate dropped).
-  notes: PRE_GAME
-- name: gd_mapAuthorName
-  type: VARCHAR
-  nullable: true
-  description: Map author name. Retained in player_history_all per DS-SC2-07.
-  notes: PRE_GAME
 - name: gd_mapFileSyncChecksum
   type: BIGINT
   nullable: true
   description: Map file sync checksum.
+  notes: PRE_GAME
+- name: details_isBlizzardMap
+  type: BOOLEAN
+  nullable: true
+  description: Blizzard-authored map flag (from details struct).
   notes: PRE_GAME
 - name: details_timeUTC
   type: VARCHAR
@@ -207,20 +156,16 @@ provenance:
   - replays_meta_raw
   join_key: NULLIF(regexp_extract(filename, '([0-9a-f]{32})\.SC2Replay\.json', 1),
     '') AS replay_id
-  filter: replay_id IS NOT NULL (empty-string guard); SQ=INT32_MIN -> NULL (parse-failure
-    sentinel correction); APM=0 -> NULL via NULLIF (01_04_02); selectedRace='' ->
-    'Random'
-  scope: All replays (no 1v1/decisive filter). Includes non-1v1 and indecisive replays
-    excluded from matches_flat_clean.
+  filter: true_1v1_decisive CTE (exactly 2 players, 1 Win + 1 Loss); mmr_valid CTE
+    (no MMR<0 player in replay)
+  scope: True 1v1 decisive replays only. 22,209 replays, 44,418 rows (2 per replay).
   created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_data_cleaning_execution.py
 invariants:
 - id: I3
-  description: 'Temporal discipline / no future leakage. Each column carries a single-token
-    provenance category in its notes: field. The vocabulary, with operational rules,
-    is enumerated under provenance_categories below. Phase 02 MUST filter by match_time
-    < T (the prediction target''s started_timestamp) before aggregating ANY column
-    tagged TARGET, IN_GAME_HISTORICAL, or POST_GAME_HISTORICAL into a feature for
-    game T.'
+  description: 'matches_flat_clean is the prediction-target VIEW. ALL columns must
+    be PRE_GAME (available before game T starts). IN_GAME_HISTORICAL and POST_GAME_HISTORICAL
+    columns are excluded by construction. Verified by assertions: APM/SQ/supplyCappedPercent/header_elapsedGameLoops/result-derived-flags
+    absent.'
   provenance_categories:
   - TARGET: THE prediction label itself (Win/Loss/Undecided/Tie). Singleton sentinel
       -- only the result column carries this tag. Never aggregate without temporal
@@ -228,26 +173,25 @@ invariants:
   - POST_GAME_HISTORICAL: The game-T outcome itself or any feature derived from it
       (e.g., is_decisive_result, future Phase-02 win-rate aggregates). SAFE only when
       used as a player-history aggregate FILTERED by match_time < T. UNSAFE as direct
-      game-T feature. The TARGET singleton is conceptually a sub-class of this category
-      but tagged separately for sentinel-clarity.
+      game-T feature. NOT PRESENT in this VIEW by construction (I3).
   - IN_GAME_HISTORICAL: Available during/after game completion (e.g., APM, SQ, supplyCappedPercent,
-      header_elapsedGameLoops, is_apm_unparseable). SAFE only when used as a player-history
-      aggregate FILTERED by match_time < T. UNSAFE as direct game-T feature.
-  - PRE_GAME: Available before game T starts (e.g., MMR, leaderboard, race, map).
-      Safe to use as feature for game T without temporal filtering.
+      header_elapsedGameLoops). NOT PRESENT in this VIEW by construction (I3).
+  - PRE_GAME: Available before game T starts (e.g., race, map, skill flags). Safe
+      to use as feature for game T without temporal filtering.
   - IDENTITY: Stable identifiers (replay_id, toon_id, profileId). No temporal constraint;
       not a feature input but a join key.
   - CONTEXT: Game/match metadata (started_timestamp, mapName, gameLoops). PRE_GAME-equivalent
       for temporal purposes; available before game T.
+- id: I5
+  description: 'Every replay_id has exactly 2 rows: 1 with result=''Win'', 1 with
+    result=''Loss''. Verified by symmetry assertion in 01_04_02 (0 violations).'
 - id: I6
-  description: VIEW DDL stored verbatim in 01_04_02_post_cleaning_validation.json
-    sql_queries.
+  description: DDL is reproducible from raw + 01_04_00 + 01_04_01 + this notebook
+    (01_04_02). All SQL stored verbatim in 01_04_02_post_cleaning_validation.json
+    sql_queries block.
 - id: I9
-  description: No features computed. VIEW is a JOIN projection of replay_players_raw
-    x replays_meta_raw with minimal quality corrections. 01_04_02 modifies the column
-    SET (drops/adds), never the values. No imputation, scaling, or encoding. Phase
-    02 owns those transforms.
+  description: 01_04_02 modifies the column SET (drops/adds), never the values. No
+    imputation, scaling, or encoding. Phase 02 owns those transforms.
 - id: I10
   description: All replay_id derivation traces back to filename relative to raw_dir
-    (per Invariant I10). Both VIEWs in this dataset (matches_flat_clean and player_history_all)
-    share this constraint.
+    per Invariant I10.

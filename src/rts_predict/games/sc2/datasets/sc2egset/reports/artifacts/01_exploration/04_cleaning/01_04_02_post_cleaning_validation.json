@@ -1,0 +1,268 @@
+{
+  "step": "01_04_02",
+  "dataset": "sc2egset",
+  "generated_date": "2026-04-17",
+  "cleaning_registry": [
+    {
+      "rule_id": "drop_mmr_high_sentinel",
+      "condition": "Always (column drop)",
+      "action": "DROP MMR from matches_flat_clean and player_history_all",
+      "justification": "DS-SC2-01: ledger rate 83.95%/83.65%, Rule S4 / van Buuren 2018",
+      "impact": "-1 col each VIEW; rated subset signal preserved via is_mmr_missing"
+    },
+    {
+      "rule_id": "drop_highestleague_mid_sentinel",
+      "condition": "Always",
+      "action": "DROP highestLeague from both VIEWs",
+      "justification": "DS-SC2-02: ledger rate 72.04%/72.16%, Rule S4 non-primary",
+      "impact": "-1 col each VIEW"
+    },
+    {
+      "rule_id": "drop_clantag_mid_sentinel",
+      "condition": "Always",
+      "action": "DROP clanTag from both VIEWs",
+      "justification": "DS-SC2-03: ledger rate 73.93%/74.10%, Rule S4 non-primary; isInClan retained",
+      "impact": "-1 col each VIEW"
+    },
+    {
+      "rule_id": "add_is_decisive_result",
+      "condition": "result IN ('Win','Loss')",
+      "action": "ADD is_decisive_result BOOLEAN to player_history_all",
+      "justification": "DS-SC2-04: preserve Undecided/Tie context per Manual 4.2",
+      "impact": "+1 col player_history_all"
+    },
+    {
+      "rule_id": "drop_mapsize_pred_view",
+      "condition": "Always",
+      "action": "DROP gd_mapSizeX/Y/is_map_size_missing from matches_flat_clean",
+      "justification": "DS-SC2-06: redundant with metadata_mapName; retained in player_history_all",
+      "impact": "-3 cols matches_flat_clean"
+    },
+    {
+      "rule_id": "drop_mapauthor_pred_view",
+      "condition": "Always",
+      "action": "DROP gd_mapAuthorName from matches_flat_clean",
+      "justification": "DS-SC2-07: domain-judgement non-predictive metadata",
+      "impact": "-1 col matches_flat_clean"
+    },
+    {
+      "rule_id": "drop_go_constants",
+      "condition": "n_distinct=1 in either VIEW",
+      "action": "DROP 12 constant go_* cols from both VIEWs",
+      "justification": "DS-SC2-08: ledger constants-detection; zero information",
+      "impact": "-12 cols each VIEW"
+    },
+    {
+      "rule_id": "drop_handicap_near_constant",
+      "condition": "Always",
+      "action": "DROP handicap + is_handicap_anomalous",
+      "justification": "DS-SC2-09: 2 anomalies in 44k = effectively constant",
+      "impact": "-2 cols matches_flat_clean (handicap + is_handicap_anomalous); -1 col player_history_all (handicap only)"
+    },
+    {
+      "rule_id": "nullif_apm_history",
+      "condition": "APM = 0 in player_history_all",
+      "action": "APM -> NULL via NULLIF; ADD is_apm_unparseable flag",
+      "justification": "DS-SC2-10: low-rate sentinel + indicator pattern (Manual 4.2)",
+      "impact": "1132 APM values -> NULL; +1 col player_history_all"
+    }
+  ],
+  "consort_flow_columns": {
+    "matches_flat_clean": {
+      "cols_before": 49,
+      "cols_dropped": 21,
+      "cols_added": 0,
+      "cols_modified": 0,
+      "cols_after": 28
+    },
+    "player_history_all": {
+      "cols_before": 51,
+      "cols_dropped": 16,
+      "cols_added": 2,
+      "cols_modified": 1,
+      "cols_after": 37
+    }
+  },
+  "consort_flow_replays": {
+    "matches_flat_clean": {
+      "replays_before_01_04_02": 22209,
+      "rows_before_01_04_02": 44418,
+      "replays_after_01_04_02": 22209,
+      "rows_after_01_04_02": 44418,
+      "note": "Column-only cleaning step: row counts unchanged."
+    },
+    "player_history_all": {
+      "replays_before_01_04_02": 22390,
+      "rows_before_01_04_02": 44817,
+      "replays_after_01_04_02": 22390,
+      "rows_after_01_04_02": 44817,
+      "note": "Column-only cleaning step: row counts unchanged."
+    }
+  },
+  "subgroup_impact": [
+    {
+      "dropped_column": "MMR",
+      "source_decision": "DS-SC2-01",
+      "subgroup_most_affected": "Rated players (7128 of 44418 rows = 16.0%)",
+      "impact": "Lose precise skill signal; is_mmr_missing retained as proxy"
+    },
+    {
+      "dropped_column": "highestLeague",
+      "source_decision": "DS-SC2-02",
+      "subgroup_most_affected": "Known-league players (~28% of rows per ledger)",
+      "impact": "Lose league-tier context; no proxy retained (dominated by is_mmr_missing)"
+    },
+    {
+      "dropped_column": "clanTag",
+      "source_decision": "DS-SC2-03",
+      "subgroup_most_affected": "Players in clans (11578 of 44418 rows = 26.1%)",
+      "impact": "Lose clan-identity feature; isInClan boolean retained as proxy"
+    },
+    {
+      "dropped_column": "gd_mapSizeX/gd_mapSizeY",
+      "source_decision": "DS-SC2-06",
+      "subgroup_most_affected": "All players (map-size columns dropped from matches_flat_clean only)",
+      "impact": "Lose explicit map-area; recoverable from metadata_mapName; retained in player_history_all"
+    },
+    {
+      "dropped_column": "gd_mapAuthorName",
+      "source_decision": "DS-SC2-07",
+      "subgroup_most_affected": "All players",
+      "impact": "Lose map author identity (non-predictive metadata); retained in player_history_all"
+    },
+    {
+      "dropped_column": "12 go_* constants",
+      "source_decision": "DS-SC2-08",
+      "subgroup_most_affected": "None (constant columns carry no information)",
+      "impact": "N/A"
+    },
+    {
+      "dropped_column": "handicap",
+      "source_decision": "DS-SC2-09",
+      "subgroup_most_affected": "2 anomalous-game rows (0.0045%)",
+      "impact": "Effectively no-op; near-constant column"
+    }
+  ],
+  "validation_assertions": {
+    "zero_null_replay_id_clean": true,
+    "zero_null_toon_id_clean": true,
+    "zero_null_result_clean": true,
+    "zero_non_decisive_result_clean": true,
+    "zero_null_replay_id_hist": true,
+    "zero_null_toon_id_hist": true,
+    "zero_null_result_hist": true,
+    "symmetry_violations_zero": true,
+    "forbidden_cols_absent_clean": true,
+    "forbidden_cols_absent_hist": true,
+    "new_col_is_decisive_result_present": true,
+    "new_col_is_apm_unparseable_present": true,
+    "apm_nullif_count_1132": true,
+    "is_decisive_result_false_count_26": true,
+    "col_count_clean_28": true,
+    "col_count_hist_37": true,
+    "row_count_clean_unchanged": true,
+    "row_count_hist_unchanged": true
+  },
+  "sql_queries": {
+    "create_matches_flat_clean_v2": "\nCREATE OR REPLACE VIEW matches_flat_clean AS\n-- Purpose: Prediction-target VIEW. True 1v1 decisive replays only.\n-- Row multiplicity: 2 rows per replay (1 Win + 1 Loss), invariant I5.\n-- Column set: 28 PRE_GAME + IDENTITY + TARGET columns only (I3).\n-- All 21 dropped columns documented in 01_04_02_post_cleaning_validation.json.\nWITH true_1v1_decisive AS (\n    -- only replays with exactly 2 players, 1 Win + 1 Loss\n    SELECT replay_id\n    FROM matches_flat\n    GROUP BY replay_id\n    HAVING COUNT(*) = 2\n       AND COUNT(*) FILTER (WHERE result = 'Win') = 1\n       AND COUNT(*) FILTER (WHERE result = 'Loss') = 1\n),\nmmr_valid AS (\n    -- replay-level exclusion: any replay with MMR<0 player excluded entirely.\n    -- If ANY player has MMR < 0, the ENTIRE replay is excluded.\n    -- Prevents orphaned opponent rows that would break the 2-per-replay invariant.\n    SELECT replay_id\n    FROM matches_flat\n    GROUP BY replay_id\n    HAVING COUNT(*) FILTER (WHERE MMR < 0) = 0\n)\nSELECT\n    -- Identity (2 cols)\n    mf.replay_id,\n    mf.filename,\n    mf.toon_id,\n    mf.nickname,\n    mf.playerID,\n    mf.userID,\n\n    -- Target (1 col)\n    mf.result,\n\n    -- Pre-game player features (DS-SC2-01: MMR DROPPED; is_mmr_missing RETAINED)\n    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,\n    mf.race,\n    CASE WHEN mf.selectedRace = '' THEN 'Random'\n         ELSE mf.selectedRace END AS selectedRace,\n\n    -- DS-SC2-09: handicap DROPPED (near-constant: 2 anomalies in 44k)\n    -- DS-SC2-09: is_handicap_anomalous DROPPED (flag meaningless without column)\n    mf.region,\n    mf.realm,\n    -- DS-SC2-02: highestLeague DROPPED (72.04% sentinel rate, Rule S4)\n    mf.isInClan,\n    -- DS-SC2-03: clanTag DROPPED (73.93% sentinel rate, Rule S4; isInClan retained)\n\n    -- Pre-game spatial\n    mf.startDir,\n    mf.startLocX,\n    mf.startLocY,\n\n    -- Pre-game map metadata\n    mf.metadata_mapName,\n    -- DS-SC2-06: gd_mapSizeX DROPPED (redundant with mapName; retained in player_history_all)\n    -- DS-SC2-06: gd_mapSizeY DROPPED (same)\n    -- DS-SC2-06: is_map_size_missing DROPPED (flag meaningless without columns)\n    mf.gd_maxPlayers,\n    -- DS-SC2-07: gd_mapAuthorName DROPPED (non-predictive metadata; domain-judgement override)\n    mf.gd_mapFileSyncChecksum,\n\n    -- Pre-game Blizzard map flag\n    mf.details_isBlizzardMap,\n\n    -- Pre-game temporal anchor\n    mf.details_timeUTC,\n\n    -- Pre-game version context\n    mf.header_version,\n    mf.metadata_baseBuild,\n    mf.metadata_dataBuild,\n    mf.metadata_gameVersion,\n\n    -- Pre-game game options (variable cardinality only; 12 constants DROPPED per DS-SC2-08)\n    -- DS-SC2-08: go_advancedSharedControl DROPPED (n_distinct=1)\n    mf.go_amm,\n    -- DS-SC2-08: go_battleNet DROPPED (n_distinct=1)\n    mf.go_clientDebugFlags,\n    mf.go_competitive\n    -- DS-SC2-08: go_cooperative DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_fog DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_heroDuplicatesAllowed DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_lockTeams DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_noVictoryOrDefeat DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_observers DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_practice DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_randomRaces DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_teamsTogether DROPPED (n_distinct=1)\n    -- DS-SC2-08: go_userDifficulty DROPPED (n_distinct=1)\n\nFROM matches_flat mf\nJOIN true_1v1_decisive t1v1 ON mf.replay_id = t1v1.replay_id\nJOIN mmr_valid mv ON mf.replay_id = mv.replay_id;\n",
+    "create_player_history_all_v2": "\nCREATE OR REPLACE VIEW player_history_all AS\n-- Purpose: Player feature history VIEW. All replays (no 1v1/decisive filter).\n-- Row multiplicity: 1 row per player per replay (44817 rows, 22390 replays).\n-- Column set: 37 columns including IN_GAME_HISTORICAL metrics (APM, SQ, etc.)\n-- valid for prior-match historical aggregation only (temporal discipline I3).\n-- Changes from v1 (01_04_01): 16 cols dropped, 2 cols added, APM NULLIF applied.\nSELECT\n    -- Identity (6 cols)\n    mf.replay_id,\n    mf.filename,\n    mf.toon_id,\n    mf.nickname,\n    mf.playerID,\n    mf.userID,\n\n    -- Target and decisive flag (2 cols per DS-SC2-04)\n    mf.result,\n    (mf.result IN ('Win', 'Loss')) AS is_decisive_result,\n\n    -- Pre-game player features\n    -- DS-SC2-01: MMR DROPPED (83.65% sentinel; is_mmr_missing retained)\n    CASE WHEN mf.MMR = 0 THEN TRUE ELSE FALSE END AS is_mmr_missing,\n    mf.race,\n    CASE WHEN mf.selectedRace = '' THEN 'Random'\n         ELSE mf.selectedRace END AS selectedRace,\n    -- DS-SC2-09: handicap DROPPED (near-constant: 2 anomalies in 44k)\n    mf.region,\n    mf.realm,\n    -- DS-SC2-02: highestLeague DROPPED (72.16% sentinel rate)\n    mf.isInClan,\n    -- DS-SC2-03: clanTag DROPPED (74.10% sentinel rate)\n\n    -- In-game metrics (DS-SC2-10: APM NULLIF applied; is_apm_unparseable added)\n    NULLIF(mf.APM, 0) AS APM,\n    (mf.APM = 0) AS is_apm_unparseable,\n    CASE WHEN mf.SQ = -2147483648 THEN NULL ELSE mf.SQ END AS SQ,\n    mf.supplyCappedPercent,\n\n    -- Game duration (historical signal)\n    mf.header_elapsedGameLoops,\n\n    -- Pre-game spatial\n    mf.startDir,\n    mf.startLocX,\n    mf.startLocY,\n\n    -- Map metadata (full set retained in history VIEW per DS-SC2-06 differential)\n    mf.metadata_mapName,\n    CASE WHEN mf.gd_mapSizeX = 0 THEN NULL ELSE mf.gd_mapSizeX END AS gd_mapSizeX,\n    CASE WHEN mf.gd_mapSizeY = 0 THEN NULL ELSE mf.gd_mapSizeY END AS gd_mapSizeY,\n    mf.gd_maxPlayers,\n    mf.details_isBlizzardMap,\n    mf.gd_mapAuthorName,\n    mf.gd_mapFileSyncChecksum,\n\n    -- Temporal anchor\n    mf.details_timeUTC,\n\n    -- Version context\n    mf.header_version,\n    mf.metadata_baseBuild,\n    mf.metadata_dataBuild,\n    mf.metadata_gameVersion,\n\n    -- Game options (variable cardinality only; 12 constants DROPPED per DS-SC2-08)\n    -- DS-SC2-08: go_advancedSharedControl, go_battleNet, go_cooperative, go_fog,\n    -- go_heroDuplicatesAllowed, go_lockTeams, go_noVictoryOrDefeat, go_observers,\n    -- go_practice, go_randomRaces, go_teamsTogether, go_userDifficulty DROPPED.\n    mf.go_amm,\n    mf.go_clientDebugFlags,\n    mf.go_competitive\n\nFROM matches_flat mf\nWHERE mf.replay_id IS NOT NULL;\n",
+    "zero_null_clean": "\nSELECT\n    COUNT(*) FILTER (WHERE replay_id IS NULL) AS null_replay_id,\n    COUNT(*) FILTER (WHERE toon_id IS NULL) AS null_toon_id,\n    COUNT(*) FILTER (WHERE result IS NULL) AS null_result,\n    COUNT(*) FILTER (WHERE result NOT IN ('Win', 'Loss')) AS non_decisive_result\nFROM matches_flat_clean\n",
+    "zero_null_hist": "\nSELECT\n    COUNT(*) FILTER (WHERE replay_id IS NULL) AS null_replay_id,\n    COUNT(*) FILTER (WHERE toon_id IS NULL) AS null_toon_id,\n    COUNT(*) FILTER (WHERE result IS NULL) AS null_result\nFROM player_history_all\n",
+    "symmetry": "\nSELECT COUNT(*) AS replays_not_symmetric\nFROM (\n    SELECT replay_id,\n           COUNT(*) FILTER (WHERE result = 'Win') AS wins,\n           COUNT(*) FILTER (WHERE result = 'Loss') AS losses\n    FROM matches_flat_clean\n    GROUP BY replay_id\n    HAVING wins != 1 OR losses != 1\n)\n",
+    "apm_nullif": "\nSELECT\n    COUNT(*) FILTER (WHERE APM IS NULL) AS apm_null_after,\n    COUNT(*) FILTER (WHERE is_apm_unparseable = TRUE) AS apm_unparseable_flag,\n    COUNT(*) FILTER (WHERE is_apm_unparseable = FALSE AND APM IS NULL) AS inconsistent\nFROM player_history_all\n",
+    "decisive_distribution": "\nSELECT result, is_decisive_result, COUNT(*) AS cnt\nFROM player_history_all\nGROUP BY result, is_decisive_result\nORDER BY result\n"
+  },
+  "decisions_resolved": [
+    {
+      "id": "DS-SC2-01",
+      "column": "MMR",
+      "views": "both",
+      "ledger_rate": "83.95% (matches_flat_clean) / 83.65% (player_history_all)",
+      "recommendation": "DROP_COLUMN",
+      "decision": "DROP from both VIEWs; retain is_mmr_missing flag",
+      "ddl_effect": "Remove mf.MMR from SELECT in both VIEWs"
+    },
+    {
+      "id": "DS-SC2-02",
+      "column": "highestLeague",
+      "views": "both",
+      "ledger_rate": "72.04% (matches_flat_clean) / 72.16% (player_history_all)",
+      "recommendation": "DROP_COLUMN",
+      "decision": "DROP from both VIEWs",
+      "ddl_effect": "Remove mf.highestLeague from SELECT in both VIEWs"
+    },
+    {
+      "id": "DS-SC2-03",
+      "column": "clanTag",
+      "views": "both",
+      "ledger_rate": "73.93% (matches_flat_clean) / 74.10% (player_history_all)",
+      "recommendation": "DROP_COLUMN",
+      "decision": "DROP from both VIEWs; retain isInClan",
+      "ddl_effect": "Remove mf.clanTag from SELECT in both VIEWs"
+    },
+    {
+      "id": "DS-SC2-04",
+      "column": "result",
+      "views": "player_history_all",
+      "ledger_rate": "0.058% (26 Undecided/Tie rows)",
+      "recommendation": "EXCLUDE_TARGET_NULL_ROWS",
+      "decision": "RETAIN literal strings; ADD is_decisive_result = (result IN ('Win','Loss'))",
+      "ddl_effect": "Add (mf.result IN ('Win','Loss')) AS is_decisive_result to player_history_all"
+    },
+    {
+      "id": "DS-SC2-05",
+      "column": "selectedRace",
+      "views": "both",
+      "ledger_rate": "0.00%",
+      "recommendation": "RETAIN_AS_IS",
+      "decision": "NO-OP (upstream normalisation already applied by 01_04_01)",
+      "ddl_effect": "None"
+    },
+    {
+      "id": "DS-SC2-06",
+      "column": "gd_mapSizeX/gd_mapSizeY",
+      "views": "matches_flat_clean",
+      "ledger_rate": "1.22%/1.30%",
+      "recommendation": "RETAIN_AS_IS",
+      "decision": "DROP gd_mapSizeX, gd_mapSizeY, is_map_size_missing from matches_flat_clean; RETAIN in player_history_all",
+      "ddl_effect": "Remove 3 map-size cols from matches_flat_clean SELECT only"
+    },
+    {
+      "id": "DS-SC2-07",
+      "column": "gd_mapAuthorName",
+      "views": "matches_flat_clean",
+      "ledger_rate": "0.00%",
+      "recommendation": "RETAIN_AS_IS (domain override: DROP)",
+      "decision": "DROP from matches_flat_clean (non-predictive metadata); RETAIN in player_history_all",
+      "ddl_effect": "Remove mf.gd_mapAuthorName from matches_flat_clean SELECT"
+    },
+    {
+      "id": "DS-SC2-08",
+      "column": "go_* constants (12 cols)",
+      "views": "both",
+      "ledger_rate": "n_distinct=1",
+      "recommendation": "DROP_COLUMN",
+      "decision": "DROP all 12 constant go_* from both VIEWs; retain go_amm, go_clientDebugFlags, go_competitive",
+      "ddl_effect": "Remove 12 constant go_* columns from SELECT in both VIEWs"
+    },
+    {
+      "id": "DS-SC2-09",
+      "column": "handicap",
+      "views": "both",
+      "ledger_rate": "0.0045% (2 rows)",
+      "recommendation": "CONVERT_SENTINEL_TO_NULL (non-binding)",
+      "decision": "DROP handicap + is_handicap_anomalous from both VIEWs (near-constant, 2 anomalies in 44k)",
+      "ddl_effect": "Remove mf.handicap and is_handicap_anomalous from matches_flat_clean; mf.handicap from player_history_all"
+    },
+    {
+      "id": "DS-SC2-10",
+      "column": "APM",
+      "views": "player_history_all",
+      "ledger_rate": "2.53%",
+      "recommendation": "CONVERT_SENTINEL_TO_NULL (non-binding)",
+      "decision": "NULLIF(mf.APM, 0) AS APM + ADD is_apm_unparseable flag",
+      "ddl_effect": "Replace mf.APM with NULLIF(mf.APM,0); add (mf.APM=0) AS is_apm_unparseable to player_history_all"
+    }
+  ],
+  "all_assertions_pass": true
+}

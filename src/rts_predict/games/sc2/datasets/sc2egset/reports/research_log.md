@@ -2,6 +2,61 @@
 
 ---
 
+## 2026-04-17 -- [Phase 01 / Step 01_04_02] Data Cleaning Execution
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Step scope:** Acts on DS-SC2-01..10. Modifies matches_flat_clean and player_history_all VIEW DDL. No raw changes (I9). Closes Pipeline Section 01_04.
+
+### CONSORT column-count flow
+
+| VIEW | Cols before | Cols dropped | Cols added | Cols modified | Cols after |
+|---|---|---|---|---|---|
+| matches_flat_clean | 49 | 21 | 0 | 0 | 28 |
+| player_history_all | 51 | 16 | 2 | 1 (APM) | 37 |
+
+Row counts unchanged (column-only cleaning step):
+- matches_flat_clean: 44,418 rows / 22,209 replays (before and after)
+- player_history_all: 44,817 rows / 22,390 replays (before and after)
+
+### Decisions resolved
+
+| DS ID | Column | Decision |
+|---|---|---|
+| DS-SC2-01 | MMR | DROP from both VIEWs; retain is_mmr_missing flag |
+| DS-SC2-02 | highestLeague | DROP from both VIEWs |
+| DS-SC2-03 | clanTag | DROP from both VIEWs; retain isInClan |
+| DS-SC2-04 | result | RETAIN literal strings; ADD is_decisive_result = (result IN ('Win','Loss')) |
+| DS-SC2-05 | selectedRace | NO-OP (upstream normalisation already applied) |
+| DS-SC2-06 | gd_mapSizeX/gd_mapSizeY | DROP from matches_flat_clean; RETAIN in player_history_all |
+| DS-SC2-07 | gd_mapAuthorName | DROP from matches_flat_clean; RETAIN in player_history_all |
+| DS-SC2-08 | go_* constants (12) | DROP all 12 from both VIEWs |
+| DS-SC2-09 | handicap | DROP handicap + is_handicap_anomalous (near-constant) |
+| DS-SC2-10 | APM | NULLIF(mf.APM, 0) + ADD is_apm_unparseable flag |
+
+### Gate verdict
+
+All 18 validation assertions PASS. Key invariants confirmed:
+- matches_flat_clean: 28 columns, 44,418 rows, 22,209 replays, 0 symmetry violations
+- player_history_all: 37 columns, 44,817 rows, 22,390 replays, 1132 APM NULLs (expected), 26 non-decisive rows (expected)
+- All forbidden columns absent (21 from matches_flat_clean, 16 from player_history_all)
+- New columns present: is_decisive_result (BOOLEAN), is_apm_unparseable (BOOLEAN)
+
+### Artifacts produced
+
+- `reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json` (NEW)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.md` (NEW)
+- `data/db/schemas/views/matches_flat_clean.yaml` (NEW — 28 cols + I3/I5/I6/I9/I10 invariants block)
+- `data/db/schemas/views/player_history_all.yaml` (UPDATED — 37 cols + extended I3 provenance_categories + I10)
+- **DuckDB VIEWs:** matches_flat_clean (28 cols), player_history_all (37 cols)
+
+### Status update
+
+- STEP_STATUS.yaml: 01_04_02 -> complete
+- PIPELINE_SECTION_STATUS.yaml: 01_04 -> complete (no 01_04_03+ steps defined in ROADMAP)
+
+---
+
 ## 2026-04-17 -- [Phase 01 / Step 01_04_01 — PART B] Missingness Audit (insight-gathering)
 
 **Category:** A (science)

@@ -996,6 +996,124 @@ research_log_entry: >
   artifact paths, summarise decisions surfaced for downstream resolution.
 ```
 
+### Step 01_04_02 -- Data Cleaning Execution
+
+```yaml
+step_number: "01_04_02"
+name: "Data Cleaning Execution -- Act on DS-SC2-01..10"
+description: >
+  Acts on the 10 cleaning decisions surfaced by 01_04_01. Modifies VIEW DDL
+  for matches_flat_clean and player_history_all (no raw table changes per
+  Invariant I9): drops MMR (Rule S4 / 83.95%), highestLeague (Rule S4 / 72%),
+  clanTag (Rule S4 / 74%), 12 go_* constants (DS-SC2-08), gd_mapAuthorName
+  (DS-SC2-07 domain), gd_mapSizeX/Y from matches_flat_clean (DS-SC2-06),
+  handicap (DS-SC2-09 near-constant). Modifies APM in player_history_all
+  via NULLIF (DS-SC2-10) + adds is_apm_unparseable indicator. Adds
+  is_decisive_result to player_history_all (DS-SC2-04). Reports CONSORT-style
+  column-count flow + subgroup impact + post-cleaning invariant re-validation.
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
+dataset: "sc2egset"
+question: >
+  Which of the 10 decisions surfaced by 01_04_01 (DS-SC2-01..10) are
+  resolved by DDL modifications, what is the column-count and subgroup
+  impact, and do all post-cleaning invariants still hold?
+method: >
+  Modify CREATE OR REPLACE VIEW DDL for matches_flat_clean and player_history_all
+  per per-DS resolutions (see plan Section 1). Apply column drops, the APM NULLIF,
+  and two new derived columns (is_decisive_result, is_apm_unparseable). Re-run
+  the assertion battery from 01_04_01 plus 01_04_02-specific assertions on the
+  new column set. Produce a CONSORT-style column-count table and per-DS
+  resolution log.
+stratification: "By VIEW (matches_flat_clean vs player_history_all) and by DS-SC2-NN."
+predecessors:
+  - "01_04_01"
+methodology_citations:
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.1 (cleaning registry), §4.2 (non-destructive), §4.3 (CONSORT impact), §4.4 (post-validation)"
+  - "Liu, X. et al. (2020). Reporting guidelines for clinical trial reports for interventions involving artificial intelligence: the CONSORT-AI extension. BMJ, 370."
+  - "Jeanselme, V. et al. (2024). Participant Flow Diagrams for Health Equity in AI. Journal of Biomedical Informatics, 152."
+  - "Schafer, J.L. & Graham, J.W. (2002). Missing data: Our view of the state of the art. Psychological Methods, 7(2)."
+  - "van Buuren, S. (2018). Flexible Imputation of Missing Data, 2nd ed. CRC Press."
+  - "Sambasivan, N. et al. (2021). Data Cascades in High-Stakes AI. CHI '21."
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_data_cleaning_execution.py"
+inputs:
+  duckdb_views:
+    - "matches_flat (44,817 rows -- structural JOIN, unchanged)"
+    - "matches_flat_clean (44,418 rows / 22,209 replays -- pre-01_04_02)"
+    - "player_history_all (44,817 rows / 22,390 replays -- pre-01_04_02)"
+  prior_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json (cleaning_registry, missingness_audit, consort_flow)"
+    - "artifacts/01_exploration/04_cleaning/01_04_01_missingness_ledger.csv (100 rows, per-DS empirical evidence)"
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md (decisions_surfaced reference)"
+  schema_yamls:
+    - "data/db/schemas/views/player_history_all.yaml (current -- to be updated)"
+outputs:
+  duckdb_views:
+    - "matches_flat_clean (replaced via CREATE OR REPLACE -- 28 cols, 44,418 rows)"
+    - "player_history_all (replaced via CREATE OR REPLACE -- 37 cols, 44,817 rows)"
+  schema_yamls:
+    - "data/db/schemas/views/matches_flat_clean.yaml (NEW)"
+    - "data/db/schemas/views/player_history_all.yaml (UPDATED)"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.md"
+reproducibility: >
+  Code and output in the paired notebook. All DDL stored verbatim in the
+  validation JSON sql_queries block (Invariant I6). All thresholds derived
+  from the 01_04_01 ledger CSV at runtime (Invariant I7). Re-runs deterministically.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      No new feature computation. matches_flat_clean retains only PRE_GAME
+      columns. player_history_all retains IN_GAME_HISTORICAL columns (APM, SQ,
+      supplyCappedPercent, header_elapsedGameLoops) which are valid for
+      historical computation per the I3 design constraint established in 01_04_01.
+  - number: "5"
+    how_upheld: >
+      Symmetry assertion re-run: every replay_id in matches_flat_clean has
+      exactly 1 Win + 1 Loss row. The is_decisive_result derivation in
+      player_history_all is symmetric (depends only on result, not on player slot).
+  - number: "6"
+    how_upheld: >
+      All DDL queries stored verbatim in JSON sql_queries. All assertion SQL
+      stored verbatim. All per-DS rationale references the ledger row + ledger
+      recommendation_justification by view+column.
+  - number: "7"
+    how_upheld: >
+      Thresholds (5/40/80%) come from the 01_04_01 framework block (Schafer &
+      Graham 2002 boundary; van Buuren 2018 warning). Per-DS empirical evidence
+      (n_sentinel, pct_missing_total, n_distinct) is read from the 01_04_01
+      ledger CSV at runtime, not hardcoded.
+  - number: "9"
+    how_upheld: >
+      No raw tables modified. matches_flat (structural JOIN) unmodified.
+      matches_long_raw (canonical skeleton from 01_04_00) unmodified. Only
+      matches_flat_clean and player_history_all VIEWs are replaced via
+      CREATE OR REPLACE. All inputs are 01_04_01 artifacts (predecessor) or
+      this step's own DDL output.
+gate:
+  artifact_check: >
+    artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json
+    and .md exist and are non-empty. Both schema YAMLs
+    (matches_flat_clean.yaml NEW, player_history_all.yaml UPDATED) exist with
+    correct column counts.
+  continue_predicate: >
+    matches_flat_clean has exactly 28 columns. player_history_all has exactly
+    37 columns. All zero-NULL assertions pass (replay_id, toon_id, result in
+    both VIEWs). Symmetry violations = 0 in matches_flat_clean. CONSORT column-
+    count table reproduces drop counts per DS-SC2-01..10. STEP_STATUS.yaml has
+    01_04_02: complete. PIPELINE_SECTION_STATUS for 01_04 transitions to complete
+    (no further 01_04_NN steps defined in ROADMAP).
+  halt_predicate: >
+    Any zero-NULL assertion fails; any symmetry violation; any forbidden column
+    appears in matches_flat_clean; any expected NEW column missing from
+    player_history_all; column count off by even one from spec.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet (StarCraft II) > Data Cleaning Decisions"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)
