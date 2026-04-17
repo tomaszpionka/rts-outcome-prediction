@@ -41,7 +41,7 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
    - Imports: `from __future__ import annotations`, `logging`, `Any` from typing, `duckdb`, `pandas as pd`
    - `logger = logging.getLogger(__name__)`
    - Module-level constants: `_VALID_MECHANISMS = frozenset({"MAR", "MCAR", "MNAR", "N/A"})` and `_VALID_RECOMMENDATIONS = frozenset({"DROP_COLUMN", "FLAG_FOR_IMPUTATION", "RETAIN_AS_IS", "EXCLUDE_TARGET_NULL_ROWS", "CONVERT_SENTINEL_TO_NULL"})`
-2. Function signatures (use the **aoestats notebook body** as the canonical source; sc2egset body is identical for all 5; aoec body has CONTRACTED `_recommend` text that must be replaced by the canonical version):
+2. Function signatures (per NOTE-2 critique fix, **bodies are semantically equivalent across sc2/aoestats but not byte-identical**: aoestats uses an intermediate `col_field` variable; sc2 has a `try/except Exception` guard in `_sentinel_census` that aoestats lacks. The canonical adoption strategy: **use aoestats body as base; merge in sc2's try/except guard** for `_sentinel_census` resilience. aoec body has CONTRACTED `_recommend` text — replaced by the canonical version per Q2):
    - `def _build_sentinel_predicate(col: str, sentinel_value: Any) -> tuple[str | None, str | None]:` — copy verbatim from aoestats; all 3 versions identical
    - `def _sentinel_census(view_name: str, total_rows: int, spec: dict[str, Any], con: duckdb.DuckDBPyConnection) -> list[dict[str, Any]]:` — copy aoestats body, add `con` as explicit parameter, replace closure ref `con.execute(...)` with the parameter, add `except Exception` guard for non-existent columns (sc2 has it; aoestats doesn't — add for safety)
    - `def _detect_constants(view_name: str, columns: list[str], con: duckdb.DuckDBPyConnection, identity_cols: frozenset[str] = frozenset()) -> dict[str, int | None]:` — copy aoestats body, add `con` as 3rd param, `identity_cols` becomes 4th param (was 3rd in inline call sites — see T03/T04/T05 for call-site updates)
@@ -116,6 +116,7 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
    - Identity column → `mechanism="N/A"`, `recommendation="RETAIN_AS_IS"`, `n_distinct=None`
    - True constant (n_distinct=1, no NULLs, no sentinels) → `mechanism="N/A"`, `recommendation="DROP_COLUMN"`
    - Zero-missingness with spec → `mechanism="N/A"`, `recommendation="RETAIN_AS_IS"`, `carries_semantic_content` from spec
+   - **Zero-missingness for column NOT in spec** (per WARNING-3 critique fix) → `mechanism="N/A"`, `recommendation="RETAIN_AS_IS"`, `carries_sem=False`, `is_primary=False` (covers the `spec_entry is None` sub-branch of F1)
    - Spec entry + missingness → mechanism from spec, recommendation from `_recommend`
    - No spec + missingness → fallback `mechanism="MAR"`, recommendation from `_recommend`
    - Target column with missingness → `recommendation="EXCLUDE_TARGET_NULL_ROWS"` (B4 fires)
@@ -126,6 +127,7 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
    - Two views input → output has `views.view_a` and `views.view_b` with correct keys
    - `columns_audited == len(df_ledger)` for each view
    - Empty DataFrame → `ledger=[]`, `columns_audited=0`
+   - **Empty `view_ledgers` dict input** (per WARNING-3 critique fix) → returns `{"views": {}}`
 
 **Verification:**
 - `source .venv/bin/activate && poetry run pytest tests/rts_predict/common/test_missingness_audit.py -v --cov=rts_predict.common.missingness_audit --cov-report=term-missing` — all pass, 100% line coverage on the new module
@@ -224,7 +226,7 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
    ```
    Remove the old `ledger_<view_name>` flat keys from the artifact dict.
 
-5. **Bug fix (caught by planner during analysis):** `per_view_target_cols.player_history_all` is currently hardcoded as `["winner"]` in the inline artifact-write cell. The actual target set for aoestats player_history_all per the plan and notebook code is `_target_cols_ph` which contains `"winner"` BUT may need to be derived dynamically. Replace the hardcoded list with `list(_target_cols_ph)` or the equivalent dynamic reference. Verify against the actual `_consolidate_ledger` call's `target_cols` argument to ensure consistency.
+5. **(removed per BLOCKER-1 critique fix):** Direct inspection confirmed aoestats `_target_cols_ph = {"winner"}` (line 1096) and `list(_target_cols_ph) == ["winner"]` matches the hardcoded literal at line 1568 exactly. No bug exists. The hardcoded `["winner"]` and `["team1_wins"]` literals stay as-is — no churn, no fictitious "Fixed:" CHANGELOG entry.
 
 6. Sync + re-execute (jupytext + jupyter execute) — note: aoestats player_history_all is 107.6M rows × 13 cols; constants-detection takes ~10-30 min.
 
@@ -234,7 +236,6 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
    - CSV recommendation codes IDENTICAL (no logic change)
    - CSV byte-identical for numeric columns
    - JSON `missingness_audit.views` keys are `["matches_1v1_clean", "player_history_all"]` (no `ledger_*` keys)
-   - JSON `per_view_target_cols.player_history_all` reflects the actual target set (no hardcoded `["winner"]` if that was wrong)
 
 **Verification:**
 - Notebook re-executes without `AssertionError`
@@ -265,16 +266,16 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
 
 2. Update `_sentinel_census` call sites to pass `con` (2 occurrences).
 
-3. Update `_detect_constants` call sites — `con` becomes 3rd positional, `identity_cols` 4th (2 occurrences).
+3. Update `_detect_constants` call sites — `con` becomes 3rd positional, `identity_cols` 4th (2 occurrences). **NOTE (per WARNING-1 critique fix):** aoec currently uses keyword form `_detect_constants(view, cols, identity_cols=_IDENTITY_COLS_M1)` (lines 1165, 1245). After signature change, both `_detect_constants(view, cols, con, identity_cols=...)` (keyword) and `_detect_constants(view, cols, con, _IDENTITY_COLS_M1)` (positional) are equivalent. Pick the keyword form to minimize diff and preserve existing aoec call style.
 
-4. **W2 fix:** Replace direct `<view_name>:` top-level keys in `artifact["missingness_audit"]` (currently `"matches_1v1_clean": {...}` and `"player_history_all": {...}`) with the canonical `views.<view_name>:` shape:
+4. **W2 fix:** Replace direct `<view_name>:` top-level keys in `artifact["missingness_audit"]` (currently `"matches_1v1_clean": {...}` and `"player_history_all": {...}`) with the canonical `views.<view_name>:` shape (using `_VIEW_M1` / `_VIEW_PH` variables for consistency with T03/T04 — per NOTE-1 critique fix):
    ```python
    artifact["missingness_audit"]["views"] = build_audit_views_block({
-       "matches_1v1_clean": {"total_rows": int(total_rows_m1), "df_ledger": df_ledger_m1},
-       "player_history_all": {"total_rows": int(total_rows_ph), "df_ledger": df_ledger_ph},
+       _VIEW_M1: {"total_rows": int(total_rows_m1), "df_ledger": df_ledger_m1},
+       _VIEW_PH: {"total_rows": int(total_rows_ph), "df_ledger": df_ledger_ph},
    })["views"]
    ```
-   Remove the old direct view-name keys from the artifact dict.
+   Remove the old direct view-name keys from the artifact dict. **WARNING-2 side-effect to document:** aoec currently has `"n_cols": len(df_ledger_m1)` — the new `build_audit_views_block` produces `"columns_audited"` instead. This is a deliberate field rename as part of W2 canonicalization (uniform across 3 datasets); record explicitly in CHANGELOG (T06 step 4).
 
 5. Sync + re-execute (jupytext + jupyter execute) — matches_1v1_clean is 17.8M × 54; constants-detection ~10-20 min.
 
@@ -316,9 +317,9 @@ Backward-compatible refactor: the produced ledger artifacts must be functionally
 3. `source .venv/bin/activate && poetry run mypy src/rts_predict/` — clean
 4. Append entries to existing `[3.10.3]` block in CHANGELOG.md (per user Q1 — NOT to `[Unreleased]`):
    - **Added:** `src/rts_predict/common/missingness_audit.py` — shared missingness-audit helpers extracted from 3 inline notebook definitions; new `build_audit_views_block` helper for canonical `views.<view_name>:` JSON shape; 100% unit-test coverage at `tests/rts_predict/common/test_missingness_audit.py`
-   - **Changed:** all 3 cleaning notebooks (`01_04_01_data_cleaning.py`) now import helpers from `rts_predict.common.missingness_audit` instead of defining them inline. Inline `missingness_audit.views` JSON block standardized to canonical `views.<view_name>: {total_rows, columns_audited, ledger}` shape across all 3 datasets (W2 fix); aoec `_recommend` body upgraded from contracted to canonical (recommendation codes unchanged, free-text `recommendation_justification` for affected rows now carries the full B6 deferral sentence)
-   - **Fixed:** aoestats `per_view_target_cols.player_history_all` was hardcoded as `["winner"]`; now derives from the actual `_target_cols_ph` runtime value (pre-existing bug surfaced during refactor)
+   - **Changed:** all 3 cleaning notebooks (`01_04_01_data_cleaning.py`) now import helpers from `rts_predict.common.missingness_audit` instead of defining them inline. Inline `missingness_audit.views` JSON block standardized to canonical `views.<view_name>: {total_rows, columns_audited, ledger}` shape across all 3 datasets (W2 fix); aoec `_recommend` body upgraded from contracted to canonical (recommendation codes unchanged, free-text `recommendation_justification` for affected rows now carries the full B6 deferral sentence). **aoec inline `missingness_audit.<view>.n_cols` field renamed to `views.<view>.columns_audited` as part of W2 canonicalization** (per WARNING-2 critique fix — explicit because downstream consumers referencing `n_cols` would otherwise break silently).
 5. **DO NOT bump version** — stays at 3.10.3 per user Q1 decision
+6. **(no "Fixed:" entry per BLOCKER-1 critique fix)** — direct inspection confirmed aoestats `per_view_target_cols.*` hardcoded literals match runtime `_target_cols_*` set values; no observable bug to fix.
 
 **Verification:**
 - pytest TOTAL ≥ 95% with zero failures
