@@ -1,66 +1,92 @@
 ---
-verdict: APPROVE
+verdict: APPROVE_FOR_COMMIT
 plan_reviewed: planning/current_plan.md
-revision_reviewed: 2
+revision_reviewed: 3 (post-execution)
 reviewer_model: claude-opus-4-7[1m]
 date: 2026-04-17
-v1_findings_resolved:
-  WARNING-1: pass
-  WARNING-2: pass
-  WARNING-3: pass
-  WARNING-4: pass
-  NOTE-1: pass
-  NOTE-2: pass
-  NOTE-3: pass
 findings:
-  - id: v2-NOTE-1
+  - id: NOTE-1
     severity: NOTE
-    title: "WARNING-3 fix scope-narrow: gate predicate (line 520) and Gate Condition #9 (line 633) still contained the same hardcoded literals (4730/188/118/5937) — RESOLVED in v3 cleanup"
-    description: "§3.6 SQL was I7-clean but ROADMAP step block continue_predicate + Gate Condition kept literals. Parent applied v3 cleanup: both locations now use ledger-derived expected_* placeholder phrasing."
-    investigated_concern: A
-  - id: v2-NOTE-2
+    title: "I3 invariants block in matches_1v1_clean.yaml has self-contradicting opening sentence"
+    description: |
+      Opens "All columns are PRE_GAME, IDENTITY, or TARGET" then immediately
+      qualifies "p0_winner / p1_winner are POST_GAME_HISTORICAL". Intent clear
+      and operationally correct (those 2 cols are not features, only used for
+      target derivation), but the opening blanket claim is contradicted by the
+      next clause. Cosmetic only — not a commit blocker.
+    investigated_concern: B
+  - id: NOTE-2
     severity: NOTE
-    title: "Misleading 'tildes' reference in §4 fence guidance — RESOLVED in v3 cleanup"
-    description: "Line 404 said 'using tildes here to avoid nested-backtick confusion' but actual fences are backticks. Parent applied v3 cleanup: rewrote to 'plan-typography container ONLY' without false claim."
-    investigated_concern: A
-  - id: v2-NOTE-3
+    title: "POST_GAME_HISTORICAL terminology applied to same-match outcome may confuse a reviewer"
+    description: |
+      p0_winner/p1_winner notes use "POST_GAME_HISTORICAL." prefix. Conventionally
+      "historical" implies a different prior game; here these columns describe
+      THIS match's outcome. Text-after-prefix correctly explains the role; consider
+      a clearer prefix in a future PR (e.g., TARGET_DERIVATION). Not for this commit.
+    investigated_concern: B
+  - id: NOTE-3
     severity: NOTE
-    title: "v2_fixes_applied_by_parent referenced wrong Self-check item number"
-    description: "Round-1 critique said 'Self-check item 1'; actual location is item 9 (CRITICAL ASYMMETRY items). Audit-trail label only; substantive fix is correct."
-    investigated_concern: A
+    title: "is_unrated columns marked nullable: true despite empirical zero NULLs"
+    description: |
+      DuckDB's DESCRIBE returns nullable=YES because (old_rating = 0) returns NULL
+      when old_rating is NULL, but ledger asserts old_rating itself has zero raw
+      NULLs in players_raw. YAML reflects DuckDB's type-system answer rather than
+      empirical truth. If Phase 02 relies on flag being non-nullable, re-verify
+      there. Not blocking.
+    investigated_concern: B
 
 verified_correct:
-  - "WARNING-1 + NOTE-2: zero residual BIGINT for team1_wins; only correct BIGINT uses are CAST(profile_id AS BIGINT) at lines 145/152/189"
-  - "WARNING-2: §1 DS-02/03/04 denominators arithmetically verified consistent with ledger figures"
-  - "WARNING-3 (§3.6): zero hardcoded numerics; placeholder form 'expected_*' used throughout"
-  - "WARNING-4: §4 fence-handling guidance present and executor-actionable"
-  - "NOTE-1: §1 DS-AOESTATS-04 cell explicitly cites W7 constants-detection branch as override of ledger RETAIN_AS_IS"
-  - "NOTE-3: §3.4 information_schema query lists 4 columns (3 is_unrated + team1_wins); expects 4 BOOLEAN rows"
-  - "Concern B: no new false claims, logical inconsistencies, or scope creep introduced by v2 deltas"
-  - "Concern C: all 4 user-locked decisions Q1-Q4 still respected; single-token mentions are deferral context only"
+  - "Concern A1: 33 assertions all PASS in 01_04_02_post_cleaning_validation.json"
+  - "Concern A2: NULLIF counts match ledger expectations (4730/188/118/5937 within ±1)"
+  - "Concern A3: aoestats symmetry analog (no_duplicate_game_id, no_inconsistent_winner_rows, team1_wins_equals_p1_winner) all PASS"
+  - "Concern B1: matches_1v1_clean.yaml exactly 20 cols matching plan §1 manifest"
+  - "Concern B2: player_history_all.yaml exactly 14 cols matching plan §2.2"
+  - "Concern B3: All 34 column notes in both YAMLs are prose-format (Q3 KEEP convention preserved)"
+  - "Concern B4: Both YAMLs have 5-entry invariants block (I3/I5/I6/I9/I10); I5 correctly states aoestats analog (1-row-per-match), NOT sc2egset 1-Win-1-Loss"
+  - "Concern C1: Only target VIEWs modified via CREATE OR REPLACE VIEW"
+  - "Concern C2: No raw table modifications (I9 respected)"
+  - "Concern C3: is_unrated derivations preserve PRE_GAME provenance"
+  - "Concern C4: NULLIF executions read from raw PRE_GAME source"
+  - "Concern D1: STEP_STATUS.yaml has 01_04_02 complete"
+  - "Concern D2: PIPELINE_SECTION_STATUS.yaml has 01_04 complete; ROADMAP grep confirms no 01_04_03+ pre-listed (WARNING-5 lesson honored)"
+  - "Concern D3: PHASE_STATUS.yaml unchanged (Phase 01 in_progress per 01_05/01_06 not_started)"
+  - "Concern E1-E7: All 7 critical asymmetries from sc2egset honored (BOOLEAN team1_wins, prose notes, leaderboard+num_players drops, sentinel-absent + NULLIF DDL, no is_decisive_result, no is_apm_unparseable, no go_*)"
+  - "Concern F: temp/ contains only working draft; not staged; plan's File Manifest excludes temp/"
+  - "pytest 489/489 PASS"
 
-locked_decisions_check:
-  Q1_NULLIF_plus_flag: pass
-  Q2_DROP_raw_match_type: pass
-  Q3_KEEP_prose_format_notes: pass
-  Q4_runtime_computed_subgroup: pass
+gate_results:
+  matches_1v1_clean_20_cols: pass
+  player_history_all_14_cols: pass
+  team1_wins_BOOLEAN_prose_notes: pass
+  notes_vocabulary_prose_format_q3: pass
+  invariants_block_complete_both_yamls: pass
+  no_raw_modifications: pass
+  step_status_complete: pass
+  pipeline_section_complete_aoestats_only: pass
+  pytest_pass_rate: "100.0% (489/489)"
 
-v3_fixes_applied_by_parent:
-  v2-NOTE-1: §4 ROADMAP continue_predicate (line 520) + Gate Condition #9 (line 633) rewritten with ledger-derived expected_* placeholders (consistent with §3.6 SQL).
-  v2-NOTE-2: §4 fence guidance "using tildes" parenthetical removed; replaced with "plan-typography container ONLY".
-  v2-NOTE-3: audit-trail-only — no plan content change needed; left as-is in critique frontmatter.
+execution_round_summary: "Round 1 (post-execution): APPROVE_FOR_COMMIT. Per user 'up to 3 rounds' cap directive, no further rounds dispatched. 3 NOTEs are informational only and not blocking commit. Artifacts ready to push + PR."
 ---
 
-# Adversarial Review Round 2 — aoestats 01_04_02 plan v2
+# Adversarial Review (post-execution) — aoestats 01_04_02
 
-## Verdict: APPROVE (v3 cleanup applied to close v2-NOTE-1 + v2-NOTE-2)
+## Verdict: APPROVE_FOR_COMMIT
 
-All 7 v1 findings resolved. The 4 user-locked decisions (Q1-Q4) remain respected by the v2 deltas. No new BLOCKERs introduced.
+All 6 investigated concerns (A through F) clear with three NOTE-level cosmetic observations. No BLOCKER or WARNING. The artifacts faithfully implement the v3 plan and respect every locked decision (Q1-Q4) plus every CRITICAL ASYMMETRY versus sc2egset (1-7).
 
-3 informational NOTEs surfaced from delta inspection (v2-NOTE-1/2/3). v2-NOTE-1 and v2-NOTE-2 were tiny editorial fixes — applied as v3 cleanup before execution. v2-NOTE-3 is audit-trail-only (wrong Self-check item number cited in round-1 critique frontmatter); no plan content change needed.
+The artifacts are ready to commit + push + PR. Per user's "up to 3 rounds" cap directive, this is round 1 on execution and verdict is clean APPROVE — no further rounds dispatched.
 
-**Plan moves to APPROVE; ready for executor dispatch.**
+## Per-concern verification
 
-## Path forward
+| Concern | Status | Evidence |
+|---|---|---|
+| A — Trust-but-verify executor | PASS | 33 assertions all PASS; NULLIF counts match ledger; aoestats symmetry analog correctly implemented |
+| B — Schema YAML correctness | PASS (3 cosmetic NOTEs) | 20+14 cols verified; prose-format notes throughout; both YAMLs have 5-entry invariants block; aoestats-specific I5 correctly stated |
+| C — DDL/Phase boundary | PASS | Only target VIEWs modified; no raw modifications; is_unrated + NULLIF preserve PRE_GAME provenance |
+| D — Status bumps | PASS | STEP_STATUS bumped; PIPELINE_SECTION_STATUS bumped (no 01_04_03+ premature listing); PHASE_STATUS unchanged |
+| E — Critical asymmetries from sc2egset | PASS | All 7 asymmetries honored (BOOLEAN type, prose vocab, dataset-specific constants, sentinel handling, no is_decisive_result/is_apm_unparseable/go_*) |
+| F — temp/ exclusion | PASS | Working draft only; not staged; plan File Manifest excludes |
 
-Per user "up to 3 rounds" cap directive: round 2 returned APPROVE → no round 3 needed. Executor dispatched immediately.
+## Reproducibility note
+
+Review verified ground truth via direct file reads (matches_1v1_clean.yaml, player_history_all.yaml, post_cleaning_validation.json, notebook .py, STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS, ROADMAP.md, research_log.md) + pytest run (489 passed). All claims about column counts, type signatures, prose-format notes, invariants block contents, DDL provenance, and status bumps are inspectable.
