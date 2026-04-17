@@ -46,7 +46,7 @@
     "R03": {
       "id": "R03",
       "condition": "game_id in matches_raw with no rows in players_raw",
-      "action": "EXCLUDE (implicit via INNER JOIN in T06 and T07 VIEWs)",
+      "action": "EXCLUDE (implicit via INNER JOIN in matches_1v1_clean and player_history_all VIEWs)",
       "justification": "01_03_01 linkage check confirmed 212,890 orphans. No target variable.",
       "impact": "212,890 matches (0.69%)",
       "orphan_match_count": 212890
@@ -2182,8 +2182,8 @@
     "note": "aoestats has no ratings_raw table. All ELO data is embedded in players_raw (old_rating, new_rating) and matches_raw (avg_elo, team_0_elo, team_1_elo)."
   },
   "view_ddl": {
-    "matches_1v1_clean": "CREATE OR REPLACE VIEW matches_1v1_clean AS\nWITH ranked_1v1 AS (\n    SELECT m.game_id\n    FROM matches_raw m\n    INNER JOIN (\n        SELECT game_id\n        FROM players_raw\n        GROUP BY game_id\n        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2\n    ) pc ON m.game_id = pc.game_id\n    WHERE m.leaderboard = 'random_map'\n),\np0 AS (SELECT * FROM players_raw WHERE team = 0),\np1 AS (SELECT * FROM players_raw WHERE team = 1)\nSELECT\n    m.game_id,\n    m.started_timestamp,\n    m.duration,\n    m.irl_duration,\n    m.leaderboard,\n    m.map,\n    m.mirror,\n    m.num_players,\n    m.patch,\n    m.raw_match_type,\n    m.replay_enhanced,\n    m.avg_elo,\n    m.team_0_elo,\n    m.team_1_elo,\n    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,\n    p0.civ AS p0_civ,\n    p0.old_rating AS p0_old_rating,\n    p0.match_rating_diff AS p0_match_rating_diff,\n    p0.winner AS p0_winner,\n    p0.opening AS p0_opening,\n    p0.feudal_age_uptime AS p0_feudal_age_uptime,\n    p0.castle_age_uptime AS p0_castle_age_uptime,\n    p0.imperial_age_uptime AS p0_imperial_age_uptime,\n    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,\n    p1.civ AS p1_civ,\n    p1.old_rating AS p1_old_rating,\n    p1.match_rating_diff AS p1_match_rating_diff,\n    p1.winner AS p1_winner,\n    p1.opening AS p1_opening,\n    p1.feudal_age_uptime AS p1_feudal_age_uptime,\n    p1.castle_age_uptime AS p1_castle_age_uptime,\n    p1.imperial_age_uptime AS p1_imperial_age_uptime,\n    p1.winner AS team1_wins\nFROM ranked_1v1 r\nINNER JOIN matches_raw m ON m.game_id = r.game_id\nINNER JOIN p0 ON p0.game_id = r.game_id\nINNER JOIN p1 ON p1.game_id = r.game_id\nWHERE p0.winner != p1.winner",
-    "player_history_all": "CREATE OR REPLACE VIEW player_history_all AS\nWITH player_counts AS (\n    SELECT game_id, COUNT(*) AS player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    CAST(p.profile_id AS BIGINT) AS profile_id,\n    p.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.patch,\n    pc.player_count,\n    m.mirror,\n    m.replay_enhanced,\n    p.civ,\n    p.team,\n    p.old_rating,\n    p.match_rating_diff,\n    p.winner\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nINNER JOIN player_counts pc ON p.game_id = pc.game_id\nWHERE p.profile_id IS NOT NULL\n  AND m.started_timestamp IS NOT NULL"
+    "matches_1v1_clean": "CREATE OR REPLACE VIEW matches_1v1_clean AS\nWITH ranked_1v1 AS (\n    SELECT m.game_id\n    FROM matches_raw m\n    INNER JOIN (\n        SELECT game_id\n        FROM players_raw\n        GROUP BY game_id\n        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2\n    ) pc ON m.game_id = pc.game_id\n    WHERE m.leaderboard = 'random_map'\n),\np0 AS (SELECT * FROM players_raw WHERE team = 0),\np1 AS (SELECT * FROM players_raw WHERE team = 1)\nSELECT\n    m.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.mirror,\n    m.num_players,\n    m.patch,\n    m.raw_match_type,\n    m.replay_enhanced,\n    m.avg_elo,\n    m.team_0_elo,\n    m.team_1_elo,\n    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,\n    p0.civ AS p0_civ,\n    p0.old_rating AS p0_old_rating,\n    p0.winner AS p0_winner,\n    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,\n    p1.civ AS p1_civ,\n    p1.old_rating AS p1_old_rating,\n    p1.winner AS p1_winner,\n    -- WARNING (I5): p0 = team=0, p1 = team=1. team=1 wins ~52.27% (slot asymmetry documented in 01_04_01).\n    -- Phase 02 feature engineering MUST randomise player-slot assignment before using\n    -- p0_*/p1_* columns as focal/opponent pairs. DO NOT use raw p0/p1 as symmetric features.\n    p1.winner AS team1_wins\nFROM ranked_1v1 r\nINNER JOIN matches_raw m ON m.game_id = r.game_id\nINNER JOIN p0 ON p0.game_id = r.game_id\nINNER JOIN p1 ON p1.game_id = r.game_id\nWHERE p0.winner != p1.winner",
+    "player_history_all": "CREATE OR REPLACE VIEW player_history_all AS\nWITH player_counts AS (\n    SELECT game_id, COUNT(*) AS player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    CAST(p.profile_id AS BIGINT) AS profile_id,\n    p.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.patch,\n    pc.player_count,\n    m.mirror,\n    m.replay_enhanced,\n    p.civ,\n    p.team,\n    p.old_rating,\n    p.winner\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nINNER JOIN player_counts pc ON p.game_id = pc.game_id\nWHERE p.profile_id IS NOT NULL\n  AND m.started_timestamp IS NOT NULL"
   },
   "sql_queries": {
     "t01_profile_id_precision": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) FILTER (WHERE profile_id IS NOT NULL) AS nonnull_rows,\n    COUNT(*) FILTER (WHERE profile_id IS NOT NULL\n        AND profile_id - FLOOR(profile_id) != 0) AS fractional_count,\n    COUNT(*) FILTER (WHERE profile_id IS NOT NULL\n        AND ABS(profile_id) > 9007199254740992) AS unsafe_range_count,\n    MIN(profile_id) FILTER (WHERE profile_id IS NOT NULL) AS min_id,\n    MAX(profile_id) FILTER (WHERE profile_id IS NOT NULL) AS max_id\nFROM players_raw",
@@ -2192,17 +2192,1014 @@
     "t04_constants": "SELECT\n    'game_type' AS column_name, COUNT(DISTINCT game_type) AS cardinality, MIN(game_type) AS sole_value\nFROM matches_raw\nUNION ALL\nSELECT 'game_speed', COUNT(DISTINCT game_speed), MIN(game_speed) FROM matches_raw\nUNION ALL\nSELECT 'starting_age', COUNT(DISTINCT starting_age), MIN(starting_age) FROM matches_raw",
     "t05_temporal_analysis": "WITH weekly AS (\n    SELECT\n        SUBSTR(filename, 9, 10) AS week_date,\n        COUNT(*) AS total_rows,\n        COUNT(opening) AS opening_nonnull,\n        COUNT(feudal_age_uptime) AS feudal_nonnull,\n        COUNT(castle_age_uptime) AS castle_nonnull,\n        COUNT(imperial_age_uptime) AS imperial_nonnull,\n        ROUND(100.0 * COUNT(opening) / COUNT(*), 2) AS opening_pct,\n        ROUND(100.0 * COUNT(feudal_age_uptime) / COUNT(*), 2) AS feudal_pct,\n        ROUND(100.0 * COUNT(castle_age_uptime) / COUNT(*), 2) AS castle_pct,\n        ROUND(100.0 * COUNT(imperial_age_uptime) / COUNT(*), 2) AS imperial_pct\n    FROM players_raw\n    GROUP BY SUBSTR(filename, 9, 10)\n)\nSELECT * FROM weekly ORDER BY week_date",
     "t06_same_team_assertion": "SELECT COUNT(*) AS same_team_game_count\nFROM (\n    SELECT game_id\n    FROM players_raw\n    GROUP BY game_id\n    HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) < 2\n) st",
-    "t06_matches_1v1_clean_ddl": "CREATE OR REPLACE VIEW matches_1v1_clean AS\nWITH ranked_1v1 AS (\n    SELECT m.game_id\n    FROM matches_raw m\n    INNER JOIN (\n        SELECT game_id\n        FROM players_raw\n        GROUP BY game_id\n        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2\n    ) pc ON m.game_id = pc.game_id\n    WHERE m.leaderboard = 'random_map'\n),\np0 AS (SELECT * FROM players_raw WHERE team = 0),\np1 AS (SELECT * FROM players_raw WHERE team = 1)\nSELECT\n    m.game_id,\n    m.started_timestamp,\n    m.duration,\n    m.irl_duration,\n    m.leaderboard,\n    m.map,\n    m.mirror,\n    m.num_players,\n    m.patch,\n    m.raw_match_type,\n    m.replay_enhanced,\n    m.avg_elo,\n    m.team_0_elo,\n    m.team_1_elo,\n    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,\n    p0.civ AS p0_civ,\n    p0.old_rating AS p0_old_rating,\n    p0.match_rating_diff AS p0_match_rating_diff,\n    p0.winner AS p0_winner,\n    p0.opening AS p0_opening,\n    p0.feudal_age_uptime AS p0_feudal_age_uptime,\n    p0.castle_age_uptime AS p0_castle_age_uptime,\n    p0.imperial_age_uptime AS p0_imperial_age_uptime,\n    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,\n    p1.civ AS p1_civ,\n    p1.old_rating AS p1_old_rating,\n    p1.match_rating_diff AS p1_match_rating_diff,\n    p1.winner AS p1_winner,\n    p1.opening AS p1_opening,\n    p1.feudal_age_uptime AS p1_feudal_age_uptime,\n    p1.castle_age_uptime AS p1_castle_age_uptime,\n    p1.imperial_age_uptime AS p1_imperial_age_uptime,\n    p1.winner AS team1_wins\nFROM ranked_1v1 r\nINNER JOIN matches_raw m ON m.game_id = r.game_id\nINNER JOIN p0 ON p0.game_id = r.game_id\nINNER JOIN p1 ON p1.game_id = r.game_id\nWHERE p0.winner != p1.winner",
-    "t07_player_history_all_ddl": "CREATE OR REPLACE VIEW player_history_all AS\nWITH player_counts AS (\n    SELECT game_id, COUNT(*) AS player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    CAST(p.profile_id AS BIGINT) AS profile_id,\n    p.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.patch,\n    pc.player_count,\n    m.mirror,\n    m.replay_enhanced,\n    p.civ,\n    p.team,\n    p.old_rating,\n    p.match_rating_diff,\n    p.winner\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nINNER JOIN player_counts pc ON p.game_id = pc.game_id\nWHERE p.profile_id IS NOT NULL\n  AND m.started_timestamp IS NOT NULL",
+    "t06_matches_1v1_clean_ddl": "CREATE OR REPLACE VIEW matches_1v1_clean AS\nWITH ranked_1v1 AS (\n    SELECT m.game_id\n    FROM matches_raw m\n    INNER JOIN (\n        SELECT game_id\n        FROM players_raw\n        GROUP BY game_id\n        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2\n    ) pc ON m.game_id = pc.game_id\n    WHERE m.leaderboard = 'random_map'\n),\np0 AS (SELECT * FROM players_raw WHERE team = 0),\np1 AS (SELECT * FROM players_raw WHERE team = 1)\nSELECT\n    m.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.mirror,\n    m.num_players,\n    m.patch,\n    m.raw_match_type,\n    m.replay_enhanced,\n    m.avg_elo,\n    m.team_0_elo,\n    m.team_1_elo,\n    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,\n    p0.civ AS p0_civ,\n    p0.old_rating AS p0_old_rating,\n    p0.winner AS p0_winner,\n    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,\n    p1.civ AS p1_civ,\n    p1.old_rating AS p1_old_rating,\n    p1.winner AS p1_winner,\n    -- WARNING (I5): p0 = team=0, p1 = team=1. team=1 wins ~52.27% (slot asymmetry documented in 01_04_01).\n    -- Phase 02 feature engineering MUST randomise player-slot assignment before using\n    -- p0_*/p1_* columns as focal/opponent pairs. DO NOT use raw p0/p1 as symmetric features.\n    p1.winner AS team1_wins\nFROM ranked_1v1 r\nINNER JOIN matches_raw m ON m.game_id = r.game_id\nINNER JOIN p0 ON p0.game_id = r.game_id\nINNER JOIN p1 ON p1.game_id = r.game_id\nWHERE p0.winner != p1.winner",
+    "t07_player_history_all_ddl": "CREATE OR REPLACE VIEW player_history_all AS\nWITH player_counts AS (\n    SELECT game_id, COUNT(*) AS player_count\n    FROM players_raw\n    GROUP BY game_id\n)\nSELECT\n    CAST(p.profile_id AS BIGINT) AS profile_id,\n    p.game_id,\n    m.started_timestamp,\n    m.leaderboard,\n    m.map,\n    m.patch,\n    pc.player_count,\n    m.mirror,\n    m.replay_enhanced,\n    p.civ,\n    p.team,\n    p.old_rating,\n    p.winner\nFROM players_raw p\nINNER JOIN matches_raw m ON p.game_id = m.game_id\nINNER JOIN player_counts pc ON p.game_id = pc.game_id\nWHERE p.profile_id IS NOT NULL\n  AND m.started_timestamp IS NOT NULL",
     "t08_ratings_raw_absence": "SELECT COUNT(*) AS ratings_raw_exists\nFROM information_schema.tables\nWHERE table_name = 'ratings_raw'",
     "t08_consort": "SELECT\n    (SELECT COUNT(*) FROM matches_raw) AS stage_0_all_matches,\n    (SELECT COUNT(*) FROM matches_raw m\n     WHERE EXISTS (SELECT 1 FROM players_raw p WHERE p.game_id = m.game_id)\n    ) AS stage_1_has_players,\n    (SELECT COUNT(*) FROM matches_raw m\n     INNER JOIN (SELECT game_id FROM players_raw GROUP BY game_id HAVING COUNT(*) = 2) pc\n       ON m.game_id = pc.game_id\n    ) AS stage_2_structural_1v1,\n    (SELECT COUNT(*) FROM matches_raw m\n     INNER JOIN (SELECT game_id FROM players_raw GROUP BY game_id\n                 HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2) pc\n       ON m.game_id = pc.game_id\n     WHERE m.leaderboard = 'random_map'\n    ) AS stage_3_ranked_1v1_distinct_teams,\n    (SELECT COUNT(*) FROM matches_1v1_clean) AS stage_4_view_final,\n    (SELECT COUNT(*) FROM player_history_all) AS player_history_all_rows",
     "t08_winner_distribution": "SELECT p0_winner, COUNT(*) AS cnt,\n       ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER(),4) AS pct\nFROM matches_1v1_clean GROUP BY p0_winner ORDER BY p0_winner",
     "t08_xor_check": "SELECT COUNT(*) AS total,\n       COUNT(*) FILTER (WHERE p0_winner = true AND p1_winner = false) AS p0_wins,\n       COUNT(*) FILTER (WHERE p0_winner = false AND p1_winner = true) AS p1_wins,\n       COUNT(*) FILTER (WHERE p0_winner = p1_winner) AS inconsistent\nFROM matches_1v1_clean",
     "t08_team_asymmetry": "SELECT\n    COUNT(*) FILTER (WHERE team1_wins = true) AS t1_wins,\n    COUNT(*) FILTER (WHERE team1_wins = false) AS t0_wins,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE team1_wins = true) / COUNT(*), 2) AS t1_win_pct\nFROM matches_1v1_clean",
-    "t08_profile_id_types": "SELECT column_name, data_type FROM information_schema.columns\nWHERE table_name IN ('matches_1v1_clean', 'player_history_all')\n  AND column_name IN ('p0_profile_id', 'p1_profile_id', 'profile_id')"
+    "t08_profile_id_types": "SELECT column_name, data_type FROM information_schema.columns\nWHERE table_name IN ('matches_1v1_clean', 'player_history_all')\n  AND column_name IN ('p0_profile_id', 'p1_profile_id', 'profile_id')",
+    "null_audit_matches_1v1_clean": "SELECT column_name\nFROM information_schema.columns\nWHERE table_name = 'matches_1v1_clean'\nORDER BY ordinal_position",
+    "null_audit_player_history_all": "SELECT column_name\nFROM information_schema.columns\nWHERE table_name = 'player_history_all'\nORDER BY ordinal_position",
+    "null_audit_per_column_template": "SELECT COUNT(*) FILTER (WHERE \"{column_name}\" IS NULL) AS null_count FROM {view_name}"
   },
   "view_row_counts": {
     "matches_1v1_clean": 17814947,
     "player_history_all": 107626399
+  },
+  "null_audit": {
+    "matches_1v1_clean": {
+      "schema_guard_passed": true,
+      "expected_col_count": 21,
+      "actual_col_count": 21,
+      "total_rows": 17814947,
+      "columns": [
+        {
+          "column": "game_id",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "started_timestamp",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "leaderboard",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "map",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "mirror",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "num_players",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "patch",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "raw_match_type",
+          "null_count": 7055,
+          "null_pct": 0.0396
+        },
+        {
+          "column": "replay_enhanced",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "avg_elo",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "team_0_elo",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "team_1_elo",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p0_profile_id",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p0_civ",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p0_old_rating",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p0_winner",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p1_profile_id",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p1_civ",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p1_old_rating",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "p1_winner",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "team1_wins",
+          "null_count": 0,
+          "null_pct": 0.0
+        }
+      ],
+      "zero_null_assertions": {
+        "game_id": true,
+        "started_timestamp": true,
+        "p0_profile_id": true,
+        "p1_profile_id": true,
+        "p0_winner": true,
+        "p1_winner": true
+      }
+    },
+    "player_history_all": {
+      "schema_guard_passed": true,
+      "expected_col_count": 13,
+      "actual_col_count": 13,
+      "total_rows": 107626399,
+      "columns": [
+        {
+          "column": "profile_id",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "game_id",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "started_timestamp",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "leaderboard",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "map",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "patch",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "player_count",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "mirror",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "replay_enhanced",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "civ",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "team",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "old_rating",
+          "null_count": 0,
+          "null_pct": 0.0
+        },
+        {
+          "column": "winner",
+          "null_count": 0,
+          "null_pct": 0.0
+        }
+      ],
+      "zero_null_assertions": {
+        "profile_id": true,
+        "game_id": true,
+        "started_timestamp": true
+      },
+      "nullable_findings": {
+        "winner": {
+          "null_count": 0,
+          "null_pct": 0.0,
+          "note": "Nullable in player_history_all; VIEW covers all game types including non-decisive matches. No WHERE winner IS NOT NULL filter applied."
+        }
+      }
+    }
+  },
+  "missingness_audit": {
+    "framework": {
+      "source_doc": "temp/null_handling_recommendations.md",
+      "rules_applied": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6"
+      ],
+      "mechanism_taxonomy": "Rubin (1976); Little & Rubin (2019, 3rd ed.)",
+      "phase_boundary": "Phase 01 documents (I9). Phase 02 transforms.",
+      "thresholds": {
+        "low_rate_pct": 5.0,
+        "mid_rate_pct": 40.0,
+        "high_rate_pct": 80.0,
+        "threshold_source": "Operational starting heuristics from temp/null_handling_recommendations.md \u00a71.2; <5% MCAR boundary citation: Schafer & Graham 2002; warning against rigid global thresholds: van Buuren 2018"
+      },
+      "override_priority": [
+        "1. Constants detection (n_distinct == 1) \u2192 mechanism=N/A, recommendation=DROP_COLUMN",
+        "2. F1 zero-missingness (n_total_missing == 0) \u2192 mechanism=N/A, recommendation=RETAIN_AS_IS",
+        "3. _recommend() per spec/fallback (incl. CONVERT_SENTINEL_TO_NULL for sentinel-only low-rate cases)",
+        "4. Target-column post-step (col in target_cols AND n_total_missing > 0) \u2192 EXCLUDE_TARGET_NULL_ROWS"
+      ],
+      "per_view_target_cols": {
+        "matches_1v1_clean": [
+          "team1_wins"
+        ],
+        "player_history_all": [
+          "winner"
+        ]
+      }
+    },
+    "missingness_spec": {
+      "p0_old_rating": {
+        "mechanism": "MAR",
+        "justification": "Pre-game rating; 0 is the unrated sentinel. 01_02_04 numeric_stats_players[label='old_rating'] reports min_val=0, max_val=3045, n_zero=5,937; consistent with players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). No negative values exist in old_rating (the negative range -5..-1 appears only in new_rating, which is POST-GAME and excluded per I3). Disposition surfaced as DS-AOESTATS-02.",
+        "sentinel_value": 0,
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      "p1_old_rating": {
+        "mechanism": "MAR",
+        "justification": "Symmetric to p0_old_rating.",
+        "sentinel_value": 0,
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      "team_0_elo": {
+        "mechanism": "MCAR",
+        "justification": "ELO=-1 sentinel = isolated parse failures. 01_02_04 census min=-1, n_zero=4824.",
+        "sentinel_value": -1,
+        "carries_semantic_content": false,
+        "is_primary_feature": true
+      },
+      "team_1_elo": {
+        "mechanism": "MCAR",
+        "justification": "Symmetric to team_0_elo. 01_02_04 census min=-1, n_zero=192.",
+        "sentinel_value": -1,
+        "carries_semantic_content": false,
+        "is_primary_feature": true
+      },
+      "avg_elo": {
+        "mechanism": "MAR",
+        "justification": "01_02_04 numeric_stats_matches[label='avg_elo'] reports min_val=0, max_val=2976.5, n_zero=121 (~0.0004% of 30,690,651 matches_raw rows). Disposition (genuine zero vs sentinel) deferred to 01_04_02+ join investigation (DS-AOESTATS-03). Note: the n_zero=4,824 figure cited in earlier drafts belongs to team_0_elo, NOT avg_elo.",
+        "sentinel_value": 0,
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      "raw_match_type": {
+        "mechanism": "MCAR",
+        "justification": "matches_raw_census.raw_match_type.null_count=12,504 (~0.04% of matches_raw). Actual NULL count in matches_1v1_clean (filtered scope) computed at audit runtime by Pass 1; static figure here is raw-table reference. Source: 01_02_04 matches_raw_census.",
+        "sentinel_value": null,
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      "old_rating": {
+        "mechanism": "MAR",
+        "justification": "Pre-game rating; 0 is the unrated sentinel. 01_02_04 numeric_stats_players[label='old_rating'] reports min_val=0, max_val=3045, n_zero=5,937; consistent with players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). Column name is old_rating in player_history_all (pivoted to p0_old_rating/p1_old_rating in matches_1v1_clean). Disposition surfaced as DS-AOESTATS-02.",
+        "sentinel_value": 0,
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      }
+    },
+    "ledger_matches_1v1_clean": [
+      {
+        "view": "matches_1v1_clean",
+        "column": "game_id",
+        "dtype": "VARCHAR",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": NaN,
+        "mechanism": "N/A",
+        "mechanism_justification": "Identity column; n_distinct check skipped per W6 (constants-detection runtime budget). Zero NULLs by definition (asserted upstream).",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Identity column; no missingness possible by upstream assertion.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "started_timestamp",
+        "dtype": "TIMESTAMP WITH TIME ZONE",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 15837208.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "leaderboard",
+        "dtype": "VARCHAR",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 1.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "True constant column; n_distinct=1 across 17,814,947 rows (zero NULLs, zero sentinels). No information content for prediction. Recommend drop in 01_04_02+.",
+        "recommendation": "DROP_COLUMN",
+        "recommendation_justification": "True constant column; n_distinct=1; no information content.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "map",
+        "dtype": "VARCHAR",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 77.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "mirror",
+        "dtype": "BOOLEAN",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "num_players",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 1.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "True constant column; n_distinct=1 across 17,814,947 rows (zero NULLs, zero sentinels). No information content for prediction. Recommend drop in 01_04_02+.",
+        "recommendation": "DROP_COLUMN",
+        "recommendation_justification": "True constant column; n_distinct=1; no information content.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "patch",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 19.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "raw_match_type",
+        "dtype": "DOUBLE",
+        "n_total": 17814947,
+        "n_null": 7055,
+        "pct_null": 0.0396,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0396,
+        "n_distinct": 1.0,
+        "mechanism": "MCAR",
+        "mechanism_justification": "matches_raw_census.raw_match_type.null_count=12,504 (~0.04% of matches_raw). Actual NULL count in matches_1v1_clean (filtered scope) computed at audit runtime by Pass 1; static figure here is raw-table reference. Source: 01_02_04 matches_raw_census.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Rate 0.04% < 5% (Schafer & Graham 2002 boundary citation). Listwise deletion or simple imputation acceptable in Phase 02.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "replay_enhanced",
+        "dtype": "BOOLEAN",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "avg_elo",
+        "dtype": "DOUBLE",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "0",
+        "n_sentinel": 118,
+        "pct_sentinel": 0.0007,
+        "pct_missing_total": 0.0007,
+        "n_distinct": 5788.0,
+        "mechanism": "MAR",
+        "mechanism_justification": "01_02_04 numeric_stats_matches[label='avg_elo'] reports min_val=0, max_val=2976.5, n_zero=121 (~0.0004% of 30,690,651 matches_raw rows). Disposition (genuine zero vs sentinel) deferred to 01_04_02+ join investigation (DS-AOESTATS-03). Note: the n_zero=4,824 figure cited in earlier drafts belongs to team_0_elo, NOT avg_elo.",
+        "recommendation": "CONVERT_SENTINEL_TO_NULL",
+        "recommendation_justification": "Low sentinel rate (0.0007%); convert sentinel to NULL via NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). Listwise deletion or simple imputation acceptable in Phase 02. NOTE: if carries_semantic_content=True (consult ledger column), this recommendation is non-binding \u2014 see corresponding DS entry for the retain-as-category alternative.",
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "team_0_elo",
+        "dtype": "DOUBLE",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "-1",
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 3013.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": true
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "team_1_elo",
+        "dtype": "DOUBLE",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "-1",
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 3024.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": true
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p0_profile_id",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 310670.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p0_civ",
+        "dtype": "VARCHAR",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 50.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p0_old_rating",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "0",
+        "n_sentinel": 4730,
+        "pct_sentinel": 0.0266,
+        "pct_missing_total": 0.0266,
+        "n_distinct": 3013.0,
+        "mechanism": "MAR",
+        "mechanism_justification": "Pre-game rating; 0 is the unrated sentinel. 01_02_04 numeric_stats_players[label='old_rating'] reports min_val=0, max_val=3045, n_zero=5,937; consistent with players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). No negative values exist in old_rating (the negative range -5..-1 appears only in new_rating, which is POST-GAME and excluded per I3). Disposition surfaced as DS-AOESTATS-02.",
+        "recommendation": "CONVERT_SENTINEL_TO_NULL",
+        "recommendation_justification": "Low sentinel rate (0.0266%); convert sentinel to NULL via NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). Listwise deletion or simple imputation acceptable in Phase 02. NOTE: if carries_semantic_content=True (consult ledger column), this recommendation is non-binding \u2014 see corresponding DS entry for the retain-as-category alternative.",
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p0_winner",
+        "dtype": "BOOLEAN",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p1_profile_id",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 309727.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p1_civ",
+        "dtype": "VARCHAR",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 50.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p1_old_rating",
+        "dtype": "BIGINT",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "0",
+        "n_sentinel": 188,
+        "pct_sentinel": 0.0011,
+        "pct_missing_total": 0.0011,
+        "n_distinct": 3024.0,
+        "mechanism": "MAR",
+        "mechanism_justification": "Symmetric to p0_old_rating.",
+        "recommendation": "CONVERT_SENTINEL_TO_NULL",
+        "recommendation_justification": "Low sentinel rate (0.0011%); convert sentinel to NULL via NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). Listwise deletion or simple imputation acceptable in Phase 02. NOTE: if carries_semantic_content=True (consult ledger column), this recommendation is non-binding \u2014 see corresponding DS entry for the retain-as-category alternative.",
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "p1_winner",
+        "dtype": "BOOLEAN",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "matches_1v1_clean",
+        "column": "team1_wins",
+        "dtype": "BOOLEAN",
+        "n_total": 17814947,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      }
+    ],
+    "ledger_player_history_all": [
+      {
+        "view": "player_history_all",
+        "column": "profile_id",
+        "dtype": "BIGINT",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": NaN,
+        "mechanism": "N/A",
+        "mechanism_justification": "Identity column; n_distinct check skipped per W6 (constants-detection runtime budget). Zero NULLs by definition (asserted upstream).",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Identity column; no missingness possible by upstream assertion.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "game_id",
+        "dtype": "VARCHAR",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": NaN,
+        "mechanism": "N/A",
+        "mechanism_justification": "Identity column; n_distinct check skipped per W6 (constants-detection runtime budget). Zero NULLs by definition (asserted upstream).",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Identity column; no missingness possible by upstream assertion.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "started_timestamp",
+        "dtype": "TIMESTAMP WITH TIME ZONE",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 24208646.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "leaderboard",
+        "dtype": "VARCHAR",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 4.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "map",
+        "dtype": "VARCHAR",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 93.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "patch",
+        "dtype": "BIGINT",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 19.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "player_count",
+        "dtype": "BIGINT",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 8.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "mirror",
+        "dtype": "BOOLEAN",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "replay_enhanced",
+        "dtype": "BOOLEAN",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "civ",
+        "dtype": "VARCHAR",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 50.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "team",
+        "dtype": "BIGINT",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      },
+      {
+        "view": "player_history_all",
+        "column": "old_rating",
+        "dtype": "BIGINT",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": "0",
+        "n_sentinel": 5937,
+        "pct_sentinel": 0.0055,
+        "pct_missing_total": 0.0055,
+        "n_distinct": 3032.0,
+        "mechanism": "MAR",
+        "mechanism_justification": "Pre-game rating; 0 is the unrated sentinel. 01_02_04 numeric_stats_players[label='old_rating'] reports min_val=0, max_val=3045, n_zero=5,937; consistent with players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). Column name is old_rating in player_history_all (pivoted to p0_old_rating/p1_old_rating in matches_1v1_clean). Disposition surfaced as DS-AOESTATS-02.",
+        "recommendation": "CONVERT_SENTINEL_TO_NULL",
+        "recommendation_justification": "Low sentinel rate (0.0055%); convert sentinel to NULL via NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). Listwise deletion or simple imputation acceptable in Phase 02. NOTE: if carries_semantic_content=True (consult ledger column), this recommendation is non-binding \u2014 see corresponding DS entry for the retain-as-category alternative.",
+        "carries_semantic_content": true,
+        "is_primary_feature": true
+      },
+      {
+        "view": "player_history_all",
+        "column": "winner",
+        "dtype": "BOOLEAN",
+        "n_total": 107626399,
+        "n_null": 0,
+        "pct_null": 0.0,
+        "sentinel_value": NaN,
+        "n_sentinel": 0,
+        "pct_sentinel": 0.0,
+        "pct_missing_total": 0.0,
+        "n_distinct": 2.0,
+        "mechanism": "N/A",
+        "mechanism_justification": "Zero missingness observed; no action needed.",
+        "recommendation": "RETAIN_AS_IS",
+        "recommendation_justification": "Zero missingness observed; no action needed.",
+        "carries_semantic_content": false,
+        "is_primary_feature": false
+      }
+    ],
+    "decisions_surfaced": [
+      {
+        "id": "DS-AOESTATS-01",
+        "column": "team_0_elo / team_1_elo (sentinel=-1, absent in 1v1 filtered scope)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": "team_0_elo / team_1_elo: ELO=-1 sentinel ABSENT in matches_1v1_clean (upstream filter excludes the rows that carried it \u2014 the matches_1v1_clean WHERE clause restricts to ranked-1v1 decisive games where the sentinel does not appear). Ledger reports n_sentinel=0 \u2192 RETAIN_AS_IS / mechanism=N/A. Action item: if the ranked-1v1 scope is ever broadened, or if a different VIEW (e.g. unranked or non-1v1) is added to the audit, re-audit for sentinel resurfacing and reapply CONVERT_SENTINEL_TO_NULL via Rule S3. The spec entry retains mechanism=MCAR / sentinel_value=-1 to document the design intent for the mechanism (raw matches_raw evidence shows the sentinel exists at low rate); the ledger reflects the empirical post-filter observation."
+      },
+      {
+        "id": "DS-AOESTATS-02",
+        "column": "p0_old_rating / p1_old_rating (sentinel=0, n_zero=5,937 in players_raw)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": "NULLIF + listwise deletion per Rule S3 in 01_04_02+ DDL pass, OR retain 0 as explicit unrated categorical encoding alongside is_unrated? B6 deferral: audit recommends CONVERT_SENTINEL_TO_NULL (non-binding for carries_semantic_content=True). Downstream chooses."
+      },
+      {
+        "id": "DS-AOESTATS-03",
+        "column": "avg_elo (n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": "avg_elo: n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw (numeric_stats_matches[label='avg_elo'] ground truth). Same MAR / CONVERT_SENTINEL_TO_NULL recommendation; the 3-row difference is the upstream 1v1 filter discarding 3 sentinel rows. Disposition (genuine zero vs sentinel) deferred to 01_04_02+ join investigation. Note: the n_zero=4,824 figure cited in earlier drafts belongs to team_0_elo, NOT avg_elo."
+      },
+      {
+        "id": "DS-AOESTATS-04",
+        "column": "raw_match_type (NULLs in matches_raw ~0.04%)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": "MCAR per Rule S3, listwise deletion candidate at 01_04_02+. Column may be redundant given internalLeaderboardId already constrains scope."
+      },
+      {
+        "id": "DS-AOESTATS-05",
+        "column": "team1_wins (prediction target, BIGINT)",
+        "observed_pct_missing_total": 0.0,
+        "question": "0 NULLs verified (upstream WHERE p0.winner != p1.winner exclusion). F1 zero-missingness override \u2192 RETAIN_AS_IS / mechanism=N/A."
+      },
+      {
+        "id": "DS-AOESTATS-06",
+        "column": "winner in player_history_all",
+        "observed_pct_missing_total": 0.0,
+        "question": "winner in player_history_all: ledger reports 0 NULLs / RETAIN_AS_IS / mechanism=N/A (better than plan-anticipated ~5% rate). The upstream players_raw filtering or the players_raw schema does not produce NULL winners in the loaded dataset. CONSORT note: re-verify on every dataset re-load; if winner NULLs surface in future loads, the target-override post-step (B4) will fire automatically and convert recommendation to EXCLUDE_TARGET_NULL_ROWS \u2014 no Phase 02 code change required."
+      },
+      {
+        "id": "DS-AOESTATS-07",
+        "column": "overviews_raw (singleton metadata, 1 row)",
+        "observed_pct_missing_total": "N/A",
+        "question": "Formally declare out-of-analytical-scope at 01_04_02+ disposition step. Not used by any VIEW."
+      },
+      {
+        "id": "DS-AOESTATS-08",
+        "column": "leaderboard, num_players (constants in matches_1v1_clean)",
+        "observed_pct_missing_total": 0.0,
+        "question": "leaderboard and num_players detected as TRUE constants (n_distinct=1) in matches_1v1_clean by the runtime constants-detection branch (W7 fix). Recommendation: DROP_COLUMN per Rule S4 / N/A-mechanism. Both columns are constant-by-construction in the cleaned scope: matches_1v1_clean filters to leaderboard='random_map' and num_players=2. Confirm drop in 01_04_02+ DDL pass."
+      }
+    ]
   }
 }

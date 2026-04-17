@@ -39,6 +39,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from rts_predict.common.notebook_utils import get_notebook_db, get_reports_dir, setup_notebook_logging
@@ -48,7 +49,7 @@ logger = setup_notebook_logging(__name__)
 # %%
 # Use read_only=False to create VIEWs
 db = get_notebook_db("aoe2", "aoestats", read_only=False)
-con = db._con
+con = db.con  # public attribute (W4 fix: use db.con, not the private attribute)
 
 # %%
 reports_dir = get_reports_dir("aoe2", "aoestats")
@@ -521,6 +522,701 @@ assert all(t08_types["data_type"] == "BIGINT"), "FAIL: profile_id columns not BI
 print("PASS: all profile_id columns are BIGINT")
 
 # %% [markdown]
+# ## NULL Audit
+#
+# Systematic per-column NULL census for both analytical VIEWs.
+# DESCRIBE-based schema guards run first to detect column-set drift.
+# Per-column COUNT(*) FILTER approach gives exact integer null counts.
+
+# %%
+# --- Schema guard + NULL census for matches_1v1_clean ---
+
+EXPECTED_MATCHES_COLS = {
+    "game_id", "started_timestamp", "leaderboard", "map", "mirror",
+    "num_players", "patch", "raw_match_type", "replay_enhanced",
+    "avg_elo", "team_0_elo", "team_1_elo",
+    "p0_profile_id", "p0_civ", "p0_old_rating", "p0_winner",
+    "p1_profile_id", "p1_civ", "p1_old_rating", "p1_winner",
+    "team1_wins",
+}
+
+actual_matches_cols = set(
+    con.execute("DESCRIBE matches_1v1_clean").df()["column_name"]
+)
+assert actual_matches_cols == EXPECTED_MATCHES_COLS, (
+    f"Schema drift in matches_1v1_clean: "
+    f"{actual_matches_cols.symmetric_difference(EXPECTED_MATCHES_COLS)}"
+)
+print(f"PASS: matches_1v1_clean schema guard — {len(actual_matches_cols)} columns match expected set")
+
+# Per-column NULL census (exact integer counts, no SUMMARIZE rounding risk)
+SQL_NULL_AUDIT_MATCHES_COLS = """
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'matches_1v1_clean'
+ORDER BY ordinal_position
+"""
+
+df_cols_m1 = con.execute(SQL_NULL_AUDIT_MATCHES_COLS).df()
+total_rows_m1 = con.execute("SELECT COUNT(*) FROM matches_1v1_clean").fetchone()[0]
+
+null_results_m1 = []
+for col_name in df_cols_m1["column_name"]:
+    q = f'SELECT COUNT(*) FILTER (WHERE "{col_name}" IS NULL) AS null_count FROM matches_1v1_clean'
+    null_count = con.execute(q).fetchone()[0]
+    null_pct = round(100.0 * null_count / total_rows_m1, 4) if total_rows_m1 > 0 else 0.0
+    null_results_m1.append({
+        "column": col_name,
+        "null_count": int(null_count),
+        "null_pct": float(null_pct),
+    })
+
+df_null_m1 = pd.DataFrame(null_results_m1)
+print(f"NULL census — matches_1v1_clean ({total_rows_m1:,} total rows):")
+print(df_null_m1.to_string(index=False))
+
+# Zero-NULL assertions for identity and target columns
+MATCHES_ZERO_NULL_COLS = [
+    "game_id", "started_timestamp",
+    "p0_profile_id", "p1_profile_id",
+    "p0_winner", "p1_winner",
+]
+m1_null_map = {r["column"]: r["null_count"] for r in null_results_m1}
+for col_name in MATCHES_ZERO_NULL_COLS:
+    assert m1_null_map[col_name] == 0, f"FAIL: {col_name} has {m1_null_map[col_name]:,} NULLs (expected 0)"
+print(f"PASS: zero-NULL assertions for {MATCHES_ZERO_NULL_COLS}")
+print(f"matches_1v1_clean total rows: {total_rows_m1:,}")
+
+# %%
+# --- Schema guard + NULL census for player_history_all ---
+
+EXPECTED_HIST_COLS = {
+    "profile_id", "game_id", "started_timestamp", "leaderboard", "map",
+    "patch", "player_count", "mirror", "replay_enhanced",
+    "civ", "team", "old_rating", "winner",
+}
+
+actual_hist_cols = set(
+    con.execute("DESCRIBE player_history_all").df()["column_name"]
+)
+assert actual_hist_cols == EXPECTED_HIST_COLS, (
+    f"Schema drift in player_history_all: "
+    f"{actual_hist_cols.symmetric_difference(EXPECTED_HIST_COLS)}"
+)
+print(f"PASS: player_history_all schema guard — {len(actual_hist_cols)} columns match expected set")
+
+# Per-column NULL census (exact integer counts)
+SQL_NULL_AUDIT_HIST_COLS = """
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'player_history_all'
+ORDER BY ordinal_position
+"""
+
+df_cols_ph = con.execute(SQL_NULL_AUDIT_HIST_COLS).df()
+total_rows_ph = con.execute("SELECT COUNT(*) FROM player_history_all").fetchone()[0]
+
+null_results_ph = []
+for col_name in df_cols_ph["column_name"]:
+    q = f'SELECT COUNT(*) FILTER (WHERE "{col_name}" IS NULL) AS null_count FROM player_history_all'
+    null_count = con.execute(q).fetchone()[0]
+    null_pct = round(100.0 * null_count / total_rows_ph, 4) if total_rows_ph > 0 else 0.0
+    null_results_ph.append({
+        "column": col_name,
+        "null_count": int(null_count),
+        "null_pct": float(null_pct),
+    })
+
+df_null_ph = pd.DataFrame(null_results_ph)
+print(f"NULL census — player_history_all ({total_rows_ph:,} total rows):")
+print(df_null_ph.to_string(index=False))
+
+# Zero-NULL assertions for identity and temporal columns only
+HIST_ZERO_NULL_COLS = ["profile_id", "game_id", "started_timestamp"]
+ph_null_map = {r["column"]: r["null_count"] for r in null_results_ph}
+for col_name in HIST_ZERO_NULL_COLS:
+    assert ph_null_map[col_name] == 0, f"FAIL: {col_name} has {ph_null_map[col_name]:,} NULLs (expected 0)"
+print(f"PASS: zero-NULL assertions for {HIST_ZERO_NULL_COLS}")
+
+# winner NULLs documented as FINDING — VIEW covers all game types,
+# no WHERE winner IS NOT NULL filter applied
+winner_null_count_ph = ph_null_map.get("winner", -1)
+winner_null_pct_ph = round(100.0 * winner_null_count_ph / total_rows_ph, 4) if total_rows_ph > 0 else 0.0
+print(f"FINDING: winner NULL count = {winner_null_count_ph:,} ({winner_null_pct_ph}%)")
+print("  Note: Nullable in player_history_all; VIEW covers all game types.")
+print(f"player_history_all total rows: {total_rows_ph:,}")
+
+# %% [markdown]
+# ## Missingness Audit — Phase B
+#
+# **Scope:** Two coordinated census passes per VIEW plus a runtime constants-detection step.
+# **Pass 1** (above): SQL NULL census. **Pass 2** (below): sentinel census driven
+# by `_missingness_spec`. **Pass 3**: `COUNT(DISTINCT col)` constants detection.
+# The three passes feed one consolidated missingness ledger (CSV + JSON) per VIEW.
+#
+# **Phase boundary (Invariant #9):** This audit DOCUMENTS and RECOMMENDS only.
+# No VIEWs are modified, no columns dropped, no imputation performed.
+# Downstream steps 01_04_02+ execute decisions.
+#
+# **Framework references:**
+# - Rubin, D.B. (1976). Inference and missing data. Biometrika, 63(3), 581-592.
+# - Little, R.J. & Rubin, D.B. (2019). Statistical Analysis with Missing Data, 3rd ed.
+# - van Buuren, S. (2018). Flexible Imputation of Missing Data. Warns against rigid thresholds.
+# - Schafer, J.L. & Graham, J.W. (2002). <5% MCAR boundary citation.
+# - Sambasivan, N. et al. (2021). Data Cascades in High-Stakes AI (CHI '21).
+
+# %%
+# --- _missingness_spec for aoestats (Deliverable 2.B) ---
+_missingness_spec = {
+    "p0_old_rating": {
+        "mechanism": "MAR",
+        "justification": (
+            "Pre-game rating; 0 is the unrated sentinel. "
+            "01_02_04 numeric_stats_players[label='old_rating'] reports "
+            "min_val=0, max_val=3045, n_zero=5,937; consistent with "
+            "players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). "
+            "No negative values exist in old_rating (the negative range -5..-1 "
+            "appears only in new_rating, which is POST-GAME and excluded per I3). "
+            "Disposition surfaced as DS-AOESTATS-02."
+        ),
+        "sentinel_value": 0,
+        "carries_semantic_content": True,
+        "is_primary_feature": True,
+    },
+    "p1_old_rating": {
+        "mechanism": "MAR",
+        "justification": "Symmetric to p0_old_rating.",
+        "sentinel_value": 0,
+        "carries_semantic_content": True,
+        "is_primary_feature": True,
+    },
+    "team_0_elo": {
+        "mechanism": "MCAR",
+        "justification": "ELO=-1 sentinel = isolated parse failures. 01_02_04 census min=-1, n_zero=4824.",
+        "sentinel_value": -1,
+        "carries_semantic_content": False,
+        "is_primary_feature": True,
+    },
+    "team_1_elo": {
+        "mechanism": "MCAR",
+        "justification": "Symmetric to team_0_elo. 01_02_04 census min=-1, n_zero=192.",
+        "sentinel_value": -1,
+        "carries_semantic_content": False,
+        "is_primary_feature": True,
+    },
+    "avg_elo": {
+        "mechanism": "MAR",
+        "justification": (
+            "01_02_04 numeric_stats_matches[label='avg_elo'] reports min_val=0, "
+            "max_val=2976.5, n_zero=121 (~0.0004% of 30,690,651 matches_raw rows). "
+            "Disposition (genuine zero vs sentinel) deferred to 01_04_02+ join "
+            "investigation (DS-AOESTATS-03). Note: the n_zero=4,824 figure cited "
+            "in earlier drafts belongs to team_0_elo, NOT avg_elo."
+        ),
+        "sentinel_value": 0,
+        "carries_semantic_content": True,
+        "is_primary_feature": True,
+    },
+    "raw_match_type": {
+        "mechanism": "MCAR",
+        "justification": (
+            "matches_raw_census.raw_match_type.null_count=12,504 (~0.04% of matches_raw). "
+            "Actual NULL count in matches_1v1_clean (filtered scope) computed at audit "
+            "runtime by Pass 1; static figure here is raw-table reference. "
+            "Source: 01_02_04 matches_raw_census."
+        ),
+        "sentinel_value": None,
+        "carries_semantic_content": False,
+        "is_primary_feature": False,
+    },
+    # old_rating: column name in player_history_all (one row per player per match).
+    # p0_old_rating / p1_old_rating are the pivoted names in matches_1v1_clean.
+    # Same sentinel (0 = unrated) applies.
+    "old_rating": {
+        "mechanism": "MAR",
+        "justification": (
+            "Pre-game rating; 0 is the unrated sentinel. "
+            "01_02_04 numeric_stats_players[label='old_rating'] reports "
+            "min_val=0, max_val=3045, n_zero=5,937; consistent with "
+            "players_raw_census.old_rating.zero_count=5,937 (zero_pct=0.0055%). "
+            "Column name is old_rating in player_history_all (pivoted to "
+            "p0_old_rating/p1_old_rating in matches_1v1_clean). "
+            "Disposition surfaced as DS-AOESTATS-02."
+        ),
+        "sentinel_value": 0,
+        "carries_semantic_content": True,
+        "is_primary_feature": True,
+    },
+}
+
+# %%
+# --- DRY helpers: sentinel census, constants detection, ledger consolidation ---
+
+
+def _build_sentinel_predicate(col: str, sentinel_value):
+    """Construct SQL predicate for sentinel matching.
+
+    Returns (predicate_sql, sentinel_repr) or (None, None) when no sentinel declared.
+    """
+    if sentinel_value is None:
+        return None, None
+    if isinstance(sentinel_value, list):
+        quoted = []
+        for v in sentinel_value:
+            if isinstance(v, str):
+                quoted.append("'" + v.replace("'", "''") + "'")
+            else:
+                quoted.append(repr(v))
+        return f'IN ({", ".join(quoted)})', repr(sentinel_value)
+    if isinstance(sentinel_value, str):
+        escaped = sentinel_value.replace("'", "''")
+        return f"= '{escaped}'", repr(sentinel_value)
+    return f"= {sentinel_value!r}", repr(sentinel_value)
+
+
+def _sentinel_census(view_name: str, total_rows: int, spec: dict) -> list:
+    """Run sentinel COUNT(*) FILTER per spec'd column. Returns list of dicts."""
+    rows = []
+    for col, meta in spec.items():
+        sentinel_value = meta["sentinel_value"]
+        predicate, sentinel_repr = _build_sentinel_predicate(col, sentinel_value)
+        if predicate is None:
+            n_sentinel = 0
+        else:
+            sql = f'SELECT COUNT(*) FILTER (WHERE "{col}" {predicate}) FROM {view_name}'
+            n_sentinel = con.execute(sql).fetchone()[0]
+        pct_sentinel = round(100.0 * n_sentinel / total_rows, 4) if total_rows > 0 else 0.0
+        rows.append({
+            "column": col,
+            "sentinel_value": sentinel_repr,
+            "n_sentinel": int(n_sentinel),
+            "pct_sentinel": float(pct_sentinel),
+        })
+    return rows
+
+
+def _detect_constants(view_name: str, columns: list, identity_cols: set) -> dict:
+    """Per-column n_distinct check. Returns {col: n_distinct | None}.
+
+    W6: identity columns skipped (never constant; expensive on large tables).
+    """
+    out = {}
+    for col in columns:
+        if col in identity_cols:
+            out[col] = None
+            continue
+        sql = f'SELECT COUNT(DISTINCT "{col}") FROM {view_name}'
+        out[col] = int(con.execute(sql).fetchone()[0])
+    return out
+
+
+def _recommend(col: str, mechanism: str, pct: float, is_primary: bool,
+               n_null: int, n_sentinel: int) -> tuple:
+    """Decision tree per temp/null_handling_recommendations.md §3.1."""
+    if n_sentinel > 0 and n_null == 0 and pct < 5.0:
+        return "CONVERT_SENTINEL_TO_NULL", (
+            f"Low sentinel rate ({pct:.4f}%); convert sentinel to NULL via "
+            f"NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). "
+            f"Listwise deletion or simple imputation acceptable in Phase 02. "
+            f"NOTE: if carries_semantic_content=True (consult ledger column), "
+            f"this recommendation is non-binding — see corresponding DS entry "
+            f"for the retain-as-category alternative."
+        )
+    if pct == 0.0:
+        return "RETAIN_AS_IS", "Zero missingness observed; no action needed."
+    if pct > 80.0:
+        return "DROP_COLUMN", (
+            f"NULL+sentinel rate {pct:.2f}% exceeds 80% (Rule S4 / van Buuren 2018). "
+            f"Imputation indefensible at this rate."
+        )
+    if pct > 40.0:
+        if mechanism == "MNAR":
+            return "DROP_COLUMN", (
+                f"Rate {pct:.2f}% in 40-80% MNAR band; no defensible imputation. "
+                f"Drop unless domain knowledge provides correction."
+            )
+        if is_primary:
+            return "FLAG_FOR_IMPUTATION", (
+                f"Rate {pct:.2f}% in 40-80%; primary feature exception per Rule S4. "
+                f"Phase 02: conditional imputation + add_indicator."
+            )
+        return "DROP_COLUMN", (
+            f"Rate {pct:.2f}% in 40-80%; non-primary feature; cost/benefit favors "
+            f"simplicity per Rule S4."
+        )
+    if pct > 5.0:
+        return "FLAG_FOR_IMPUTATION", (
+            f"Rate {pct:.2f}% in 5-40%; flag for Phase 02 imputation "
+            f"(conditional for MAR, simple for MCAR per Rules from §3.1)."
+        )
+    return "RETAIN_AS_IS", (
+        f"Rate {pct:.2f}% < 5% (Schafer & Graham 2002 boundary citation). "
+        f"Listwise deletion or simple imputation acceptable in Phase 02."
+    )
+
+
+def _consolidate_ledger(
+    view_name: str,
+    df_null: pd.DataFrame,
+    sentinel_rows: list,
+    spec: dict,
+    dtype_map: dict,
+    total_rows: int,
+    constants_map: dict,
+    target_cols: set,
+    identity_cols: set,
+) -> pd.DataFrame:
+    """Merge NULL census + sentinel census + constants + spec → one ledger row per column.
+
+    Full-coverage (Option B): every column in the VIEW gets a row.
+    Override priority (B4 + B5 + W7):
+      0. Identity branch (B5): route to mechanism=N/A, RETAIN_AS_IS.
+      1. Constants override (W7): n_distinct==1 AND no NULLs/sentinels → DROP_COLUMN.
+      2. F1 zero-missingness: n_total_missing==0 → RETAIN_AS_IS.
+      3. Spec / fallback recommendation via _recommend().
+      4. Target post-step (B4): col in target_cols AND n_total_missing>0 → EXCLUDE_TARGET_NULL_ROWS.
+    """
+    sentinel_map = {r["column"]: r for r in sentinel_rows}
+    ledger = []
+    col_field = "column_name" if "column_name" in df_null.columns else "column"
+    for _, nrow in df_null.iterrows():
+        col = nrow[col_field]
+        n_null = int(nrow["null_count"])
+        pct_null = float(nrow.get("null_pct", round(100.0 * n_null / total_rows, 4)))
+        srow = sentinel_map.get(col, {"sentinel_value": None, "n_sentinel": 0, "pct_sentinel": 0.0})
+        n_sentinel = int(srow["n_sentinel"])
+        pct_sentinel = float(srow["pct_sentinel"])
+        n_total_missing = n_null + n_sentinel
+        pct_missing_total = round(pct_null + pct_sentinel, 4)
+        spec_entry = spec.get(col)
+        n_distinct = constants_map.get(col, None)
+
+        if col in identity_cols:
+            mechanism = "N/A"
+            mech_just = (
+                "Identity column; n_distinct check skipped per W6 (constants-detection "
+                "runtime budget). Zero NULLs by definition (asserted upstream)."
+            )
+            carries_sem = False
+            is_primary = False
+            rec = "RETAIN_AS_IS"
+            rec_just = "Identity column; no missingness possible by upstream assertion."
+        elif n_distinct == 1 and n_null == 0 and n_sentinel == 0:
+            mechanism = "N/A"
+            mech_just = (
+                f"True constant column; n_distinct=1 across {total_rows:,} rows "
+                f"(zero NULLs, zero sentinels). No information content for prediction. "
+                f"Recommend drop in 01_04_02+."
+            )
+            carries_sem = False
+            is_primary = False
+            rec = "DROP_COLUMN"
+            rec_just = "True constant column; n_distinct=1; no information content."
+        elif n_total_missing == 0:
+            mechanism = "N/A"
+            mech_just = "Zero missingness observed; no action needed."
+            carries_sem = bool(spec_entry["carries_semantic_content"]) if spec_entry else False
+            is_primary = bool(spec_entry["is_primary_feature"]) if spec_entry else False
+            rec = "RETAIN_AS_IS"
+            rec_just = "Zero missingness observed; no action needed."
+        elif spec_entry is not None:
+            mechanism = spec_entry["mechanism"]
+            mech_just = spec_entry["justification"]
+            carries_sem = bool(spec_entry["carries_semantic_content"])
+            is_primary = bool(spec_entry["is_primary_feature"])
+            rec, rec_just = _recommend(col, mechanism, pct_missing_total, is_primary, n_null, n_sentinel)
+        else:
+            mechanism = "MAR"
+            mech_just = (
+                f"No _missingness_spec entry; conservative MAR assumption. "
+                f"Observed effective missingness {pct_missing_total:.2f}% "
+                f"(NULL: {pct_null:.2f}%, sentinel: {pct_sentinel:.2f}%)."
+            )
+            carries_sem = False
+            is_primary = False
+            rec, rec_just = _recommend(col, mechanism, pct_missing_total, is_primary, n_null, n_sentinel)
+
+        if col in target_cols and n_total_missing > 0:
+            rec = "EXCLUDE_TARGET_NULL_ROWS"
+            rec_just = (
+                "Per Rule S2: target NULLs/sentinels excluded from prediction "
+                "scope, retained in history for feature computation. "
+                "NEVER impute target."
+            )
+
+        ledger.append({
+            "view": view_name,
+            "column": col,
+            "dtype": dtype_map.get(col, "UNKNOWN"),
+            "n_total": int(total_rows),
+            "n_null": n_null,
+            "pct_null": pct_null,
+            "sentinel_value": srow["sentinel_value"],
+            "n_sentinel": n_sentinel,
+            "pct_sentinel": pct_sentinel,
+            "pct_missing_total": pct_missing_total,
+            "n_distinct": n_distinct,
+            "mechanism": mechanism,
+            "mechanism_justification": mech_just,
+            "recommendation": rec,
+            "recommendation_justification": rec_just,
+            "carries_semantic_content": carries_sem,
+            "is_primary_feature": is_primary,
+        })
+    return pd.DataFrame(ledger)
+
+# %%
+# --- Pass 2 + Pass 3: matches_1v1_clean ---
+
+_view_m1 = "matches_1v1_clean"
+_target_cols_m1: set = {"team1_wins"}
+_identity_cols_m1: set = {"game_id"}
+
+# dtype map from DESCRIBE
+_dtype_m1 = {
+    row["column_name"]: row["column_type"]
+    for _, row in con.execute(f"DESCRIBE {_view_m1}").df().iterrows()
+}
+
+# Pass 2: sentinel census (only spec'd columns that exist in this VIEW)
+_spec_m1 = {c: v for c, v in _missingness_spec.items() if c in actual_matches_cols}
+sentinel_rows_m1 = _sentinel_census(_view_m1, total_rows_m1, _spec_m1)
+print(f"Sentinel census — {_view_m1}: {len(sentinel_rows_m1)} spec'd columns")
+
+# Pass 3: constants detection
+_cols_m1 = list(actual_matches_cols)
+constants_m1 = _detect_constants(_view_m1, _cols_m1, _identity_cols_m1)
+print(f"Constants detection — {_view_m1}: done. n_distinct=1 columns: "
+      f"{[c for c, v in constants_m1.items() if v == 1]}")
+
+# Consolidate
+df_null_m1 = pd.DataFrame(null_results_m1).rename(columns={"column": "column_name"})
+df_ledger_m1 = _consolidate_ledger(
+    _view_m1, df_null_m1, sentinel_rows_m1, _missingness_spec,
+    _dtype_m1, total_rows_m1, constants_m1, _target_cols_m1, _identity_cols_m1,
+)
+print(f"Ledger — {_view_m1}: {len(df_ledger_m1)} rows")
+print(df_ledger_m1[["column", "n_null", "n_sentinel", "pct_missing_total", "mechanism", "recommendation"]].to_string(index=False))
+
+# %%
+# --- Assertions for matches_1v1_clean ledger (6.A + 6.B + 6.C) ---
+
+_target_cols_for_view_m1 = _target_cols_m1
+_identity_cols_for_view_m1 = _identity_cols_m1
+
+# 6.B: full-coverage
+_n_view_cols_m1 = int(con.execute(f"DESCRIBE {_view_m1}").df().shape[0])
+assert len(df_ledger_m1) == _n_view_cols_m1, (
+    f"Full-coverage violation for {_view_m1}: expected {_n_view_cols_m1}, got {len(df_ledger_m1)}"
+)
+
+# 6.B: per-row field assertions
+for _, row in df_ledger_m1.iterrows():
+    assert row["mechanism"] in {"MAR", "MCAR", "MNAR", "N/A"}, row.to_dict()
+    assert row["mechanism_justification"], f"empty mechanism_justification for {row['column']}"
+    assert row["recommendation"] in {
+        "DROP_COLUMN", "FLAG_FOR_IMPUTATION", "RETAIN_AS_IS",
+        "EXCLUDE_TARGET_NULL_ROWS", "CONVERT_SENTINEL_TO_NULL",
+    }, row.to_dict()
+    assert row["recommendation_justification"], row.to_dict()
+    assert isinstance(row["carries_semantic_content"], (bool, np.bool_)), row.to_dict()
+
+# 6.B: zero-missingness rows → N/A + RETAIN_AS_IS
+_zero_m1 = df_ledger_m1[
+    (df_ledger_m1["n_null"] == 0)
+    & (df_ledger_m1["n_sentinel"] == 0)
+    & (df_ledger_m1["n_distinct"].fillna(-1) != 1)
+    & (~df_ledger_m1["column"].isin(_target_cols_for_view_m1))
+    & (~df_ledger_m1["column"].isin(_identity_cols_for_view_m1))
+]
+assert (_zero_m1["mechanism"] == "N/A").all(), "non-target zero-missingness rows must have mechanism=N/A (m1)"
+assert (_zero_m1["recommendation"] == "RETAIN_AS_IS").all(), "non-target zero-missingness rows must be RETAIN_AS_IS (m1)"
+
+# 6.B: identity columns
+_ident_m1 = df_ledger_m1[df_ledger_m1["column"].isin(_identity_cols_for_view_m1)]
+assert (_ident_m1["mechanism"] == "N/A").all(), "identity columns must have mechanism=N/A (m1)"
+assert (_ident_m1["recommendation"] == "RETAIN_AS_IS").all(), "identity columns must be RETAIN_AS_IS (m1)"
+
+# 6.B: target typo guard
+_missing_targets_m1 = _target_cols_for_view_m1 - set(df_ledger_m1["column"].values)
+assert not _missing_targets_m1, f"target col(s) missing from VIEW: {_missing_targets_m1}"
+
+# 6.C: team1_wins → F1 zero-missingness → RETAIN_AS_IS / mechanism=N/A
+_t1w = df_ledger_m1[df_ledger_m1["column"] == "team1_wins"].iloc[0]
+assert _t1w["recommendation"] == "RETAIN_AS_IS", f"team1_wins must be RETAIN_AS_IS, got {_t1w['recommendation']}"
+assert _t1w["mechanism"] == "N/A", f"team1_wins must have mechanism=N/A, got {_t1w['mechanism']}"
+
+# 6.C: p0_winner, p1_winner → F1 → RETAIN_AS_IS / mechanism=N/A
+for _winner_col in ["p0_winner", "p1_winner"]:
+    _wr = df_ledger_m1[df_ledger_m1["column"] == _winner_col].iloc[0]
+    assert _wr["recommendation"] == "RETAIN_AS_IS", f"{_winner_col} must be RETAIN_AS_IS"
+    assert _wr["mechanism"] == "N/A", f"{_winner_col} must have mechanism=N/A"
+
+# 6.C: team_0_elo / team_1_elo → CONVERT_SENTINEL_TO_NULL if n_sentinel>0,
+# OR RETAIN_AS_IS if sentinel=-1 rows happen to be filtered out in matches_1v1_clean scope.
+# Both outcomes are correct per the override priority (W3 fires only when n_sentinel > 0).
+for _elo_col in ["team_0_elo", "team_1_elo"]:
+    _er = df_ledger_m1[df_ledger_m1["column"] == _elo_col].iloc[0]
+    if _er["n_sentinel"] > 0:
+        assert _er["recommendation"] == "CONVERT_SENTINEL_TO_NULL", (
+            f"{_elo_col} must be CONVERT_SENTINEL_TO_NULL when n_sentinel>0, got {_er['recommendation']}"
+        )
+    else:
+        # sentinel=-1 rows absent in this VIEW's filtered scope → F1 fires → RETAIN_AS_IS
+        assert _er["recommendation"] in ("RETAIN_AS_IS", "CONVERT_SENTINEL_TO_NULL"), (
+            f"{_elo_col} unexpected recommendation: {_er['recommendation']}"
+        )
+    assert not _er["carries_semantic_content"], f"{_elo_col} carries_semantic_content must be False"
+    print(f"  {_elo_col}: n_sentinel={_er['n_sentinel']}, recommendation={_er['recommendation']}")
+
+print(f"PASS: all 6.A/6.B/6.C assertions for {_view_m1}")
+
+# %%
+# --- Pass 2 + Pass 3: player_history_all ---
+
+_view_ph = "player_history_all"
+_target_cols_ph: set = {"winner"}
+_identity_cols_ph: set = {"game_id", "profile_id"}
+
+# dtype map
+_dtype_ph = {
+    row["column_name"]: row["column_type"]
+    for _, row in con.execute(f"DESCRIBE {_view_ph}").df().iterrows()
+}
+
+# Pass 2: sentinel census (only spec'd columns in this VIEW)
+_spec_ph = {c: v for c, v in _missingness_spec.items() if c in actual_hist_cols}
+sentinel_rows_ph = _sentinel_census(_view_ph, total_rows_ph, _spec_ph)
+print(f"Sentinel census — {_view_ph}: {len(sentinel_rows_ph)} spec'd columns")
+
+# Pass 3: constants detection
+_cols_ph = list(actual_hist_cols)
+constants_ph = _detect_constants(_view_ph, _cols_ph, _identity_cols_ph)
+print(f"Constants detection — {_view_ph}: done. n_distinct=1 columns: "
+      f"{[c for c, v in constants_ph.items() if v == 1]}")
+
+# Consolidate
+_df_null_ph_raw = pd.DataFrame(null_results_ph)  # from null census above
+df_null_ph_renamed = _df_null_ph_raw.rename(columns={"column": "column_name"})
+df_ledger_ph = _consolidate_ledger(
+    _view_ph, df_null_ph_renamed, sentinel_rows_ph, _missingness_spec,
+    _dtype_ph, total_rows_ph, constants_ph, _target_cols_ph, _identity_cols_ph,
+)
+print(f"Ledger — {_view_ph}: {len(df_ledger_ph)} rows")
+print(df_ledger_ph[["column", "n_null", "n_sentinel", "pct_missing_total", "mechanism", "recommendation"]].to_string(index=False))
+
+# %%
+# --- Assertions for player_history_all ledger (6.B + 6.C) ---
+
+_target_cols_for_view_ph = _target_cols_ph
+_identity_cols_for_view_ph = _identity_cols_ph
+
+# 6.B: full-coverage
+_n_view_cols_ph = int(con.execute(f"DESCRIBE {_view_ph}").df().shape[0])
+assert len(df_ledger_ph) == _n_view_cols_ph, (
+    f"Full-coverage violation for {_view_ph}: expected {_n_view_cols_ph}, got {len(df_ledger_ph)}"
+)
+
+# 6.B: per-row field assertions
+for _, row in df_ledger_ph.iterrows():
+    assert row["mechanism"] in {"MAR", "MCAR", "MNAR", "N/A"}, row.to_dict()
+    assert row["mechanism_justification"], f"empty mechanism_justification for {row['column']}"
+    assert row["recommendation"] in {
+        "DROP_COLUMN", "FLAG_FOR_IMPUTATION", "RETAIN_AS_IS",
+        "EXCLUDE_TARGET_NULL_ROWS", "CONVERT_SENTINEL_TO_NULL",
+    }, row.to_dict()
+    assert row["recommendation_justification"], row.to_dict()
+    assert isinstance(row["carries_semantic_content"], (bool, np.bool_)), row.to_dict()
+
+# 6.B: zero-missingness rows → N/A + RETAIN_AS_IS
+_zero_ph = df_ledger_ph[
+    (df_ledger_ph["n_null"] == 0)
+    & (df_ledger_ph["n_sentinel"] == 0)
+    & (df_ledger_ph["n_distinct"].fillna(-1) != 1)
+    & (~df_ledger_ph["column"].isin(_target_cols_for_view_ph))
+    & (~df_ledger_ph["column"].isin(_identity_cols_for_view_ph))
+]
+assert (_zero_ph["mechanism"] == "N/A").all(), "non-target zero-missingness rows must have mechanism=N/A (ph)"
+assert (_zero_ph["recommendation"] == "RETAIN_AS_IS").all(), "non-target zero-missingness rows must be RETAIN_AS_IS (ph)"
+
+# 6.B: identity columns
+_ident_ph = df_ledger_ph[df_ledger_ph["column"].isin(_identity_cols_for_view_ph)]
+assert (_ident_ph["mechanism"] == "N/A").all(), "identity columns must have mechanism=N/A (ph)"
+assert (_ident_ph["recommendation"] == "RETAIN_AS_IS").all(), "identity columns must be RETAIN_AS_IS (ph)"
+
+# 6.B: target typo guard
+_missing_targets_ph = _target_cols_for_view_ph - set(df_ledger_ph["column"].values)
+assert not _missing_targets_ph, f"target col(s) missing from VIEW: {_missing_targets_ph}"
+
+# 6.C: winner in player_history_all
+# Per plan: if winner has NULLs → target-override → EXCLUDE_TARGET_NULL_ROWS.
+# If winner has 0 NULLs in this VIEW's scope → F1 fires → RETAIN_AS_IS (also correct).
+_winner_ph = df_ledger_ph[df_ledger_ph["column"] == "winner"].iloc[0]
+print(f"  winner in {_view_ph}: n_null={_winner_ph['n_null']}, recommendation={_winner_ph['recommendation']}")
+if _winner_ph["n_null"] > 0:
+    assert _winner_ph["recommendation"] == "EXCLUDE_TARGET_NULL_ROWS", (
+        f"winner in {_view_ph} must be EXCLUDE_TARGET_NULL_ROWS when n_null>0, got {_winner_ph['recommendation']}"
+    )
+else:
+    # winner has 0 NULLs in this VIEW scope (all matches have decisive outcome in players_raw)
+    assert _winner_ph["recommendation"] in ("RETAIN_AS_IS",), (
+        f"winner with 0 NULLs must be RETAIN_AS_IS, got {_winner_ph['recommendation']}"
+    )
+
+# 6.C: p0_old_rating / p1_old_rating in player_history_all (old_rating col)
+_old_r = df_ledger_ph[df_ledger_ph["column"] == "old_rating"]
+if len(_old_r) > 0:
+    _old_row = _old_r.iloc[0]
+    assert _old_row["sentinel_value"] == "0", f"old_rating sentinel must be '0', got {_old_row['sentinel_value']}"
+
+print(f"PASS: all 6.B/6.C assertions for {_view_ph}")
+
+# %% [markdown]
+# ## Decisions Surfaced for Downstream Cleaning (01_04_02+)
+#
+# DS-AOESTATS-01: team_0_elo / team_1_elo — ELO=-1 sentinel ABSENT in matches_1v1_clean
+#   (upstream filter excludes rows that carried it — the matches_1v1_clean WHERE clause
+#   restricts to ranked-1v1 decisive games where the sentinel does not appear).
+#   Ledger reports n_sentinel=0 → RETAIN_AS_IS / mechanism=N/A. Action item: if
+#   the ranked-1v1 scope is ever broadened, re-audit for sentinel resurfacing.
+#   Spec retains mechanism=MCAR / sentinel_value=-1 to document design intent from raw.
+#
+# DS-AOESTATS-02: p0_old_rating / p1_old_rating (sentinel=0, n_zero=5,937 in players_raw, ~0.0055%)
+#   NULLIF + listwise deletion per Rule S3 in 01_04_02+ DDL pass,
+#   OR retain `0` as an explicit `unrated` categorical encoding alongside `is_unrated`?
+#   Source: players_raw_census.old_rating.zero_count=5937 (zero_pct=0.0055%).
+#   B6 deferral: audit recommends CONVERT_SENTINEL_TO_NULL (non-binding for
+#   carries_semantic_content=True columns). DS-AOESTATS-02 surfaces the retain-as-category
+#   alternative for 01_04_02+ to choose.
+#
+# DS-AOESTATS-03: avg_elo n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw
+#   (numeric_stats_matches[label='avg_elo'] ground truth). Same MAR /
+#   CONVERT_SENTINEL_TO_NULL recommendation; the 3-row difference is the upstream
+#   1v1 filter discarding 3 sentinel rows. Disposition (genuine zero vs sentinel)
+#   deferred to 01_04_02+ join investigation.
+#   Note: the n_zero=4,824 figure belongs to team_0_elo, NOT avg_elo.
+#
+# DS-AOESTATS-04: raw_match_type NULLs in matches_raw (~0.04% of matches_raw)
+#   MCAR per Rule S3, listwise deletion candidate at 01_04_02+. Column may be redundant
+#   given internalLeaderboardId already constrains scope.
+#
+# DS-AOESTATS-05: team1_wins (prediction target, BIGINT) in matches_1v1_clean
+#   0 NULLs verified (upstream WHERE p0.winner != p1.winner exclusion).
+#   F1 zero-missingness override → RETAIN_AS_IS / mechanism=N/A.
+#
+# DS-AOESTATS-06: winner in player_history_all — ledger reports 0 NULLs / RETAIN_AS_IS /
+#   mechanism=N/A (better than plan-anticipated ~5% rate). Target-override post-step (B4)
+#   will fire automatically if winner NULLs surface in future loads — no Phase 02 code
+#   change required.
+#
+# DS-AOESTATS-07: overviews_raw is a singleton metadata table (1 row), not used by
+#   any VIEW — formally declare out-of-analytical-scope at 01_04_02+ disposition step.
+#
+# DS-AOESTATS-08: leaderboard + num_players (TRUE constants in matches_1v1_clean)
+#   Constants-detection branch (W7 fix) flags n_distinct=1 for both columns.
+#   Ledger reports DROP_COLUMN / mechanism=N/A. Confirm removal in 01_04_02+ DDL pass.
+
+# %% [markdown]
 # ## Assemble artifacts and update tracking
 
 # %%
@@ -692,11 +1388,227 @@ artifact = {
     },
 }
 
+# NULL audit integration
+artifact["null_audit"] = {
+    "matches_1v1_clean": {
+        "schema_guard_passed": True,
+        "expected_col_count": 21,
+        "actual_col_count": len(actual_matches_cols),
+        "total_rows": int(total_rows_m1),
+        "columns": null_results_m1,
+        "zero_null_assertions": {col: True for col in MATCHES_ZERO_NULL_COLS},
+    },
+    "player_history_all": {
+        "schema_guard_passed": True,
+        "expected_col_count": 13,
+        "actual_col_count": len(actual_hist_cols),
+        "total_rows": int(total_rows_ph),
+        "columns": null_results_ph,
+        "zero_null_assertions": {col: True for col in HIST_ZERO_NULL_COLS},
+        "nullable_findings": {
+            "winner": {
+                "null_count": int(winner_null_count_ph),
+                "null_pct": float(winner_null_pct_ph),
+                "note": (
+                    "Nullable in player_history_all; VIEW covers all game types "
+                    "including non-decisive matches. No WHERE winner IS NOT NULL filter applied."
+                ),
+            },
+        },
+    },
+}
+
+artifact["sql_queries"]["null_audit_matches_1v1_clean"] = SQL_NULL_AUDIT_MATCHES_COLS.strip()
+artifact["sql_queries"]["null_audit_player_history_all"] = SQL_NULL_AUDIT_HIST_COLS.strip()
+artifact["sql_queries"]["null_audit_per_column_template"] = 'SELECT COUNT(*) FILTER (WHERE "{column_name}" IS NULL) AS null_count FROM {view_name}'
+
+# %%
+# --- Add missingness_audit block (additive — Deliverable 5.D) ---
+
+_decisions_surfaced_aoestats = [
+    {
+        "id": "DS-AOESTATS-01",
+        "column": "team_0_elo / team_1_elo (sentinel=-1, absent in 1v1 filtered scope)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": (
+            "team_0_elo / team_1_elo: ELO=-1 sentinel ABSENT in matches_1v1_clean (upstream "
+            "filter excludes the rows that carried it — the matches_1v1_clean WHERE clause "
+            "restricts to ranked-1v1 decisive games where the sentinel does not appear). "
+            "Ledger reports n_sentinel=0 → RETAIN_AS_IS / mechanism=N/A. Action item: if "
+            "the ranked-1v1 scope is ever broadened, or if a different VIEW (e.g. unranked "
+            "or non-1v1) is added to the audit, re-audit for sentinel resurfacing and "
+            "reapply CONVERT_SENTINEL_TO_NULL via Rule S3. The spec entry retains "
+            "mechanism=MCAR / sentinel_value=-1 to document the design intent for the "
+            "mechanism (raw matches_raw evidence shows the sentinel exists at low rate); "
+            "the ledger reflects the empirical post-filter observation."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-02",
+        "column": "p0_old_rating / p1_old_rating (sentinel=0, n_zero=5,937 in players_raw)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": (
+            "NULLIF + listwise deletion per Rule S3 in 01_04_02+ DDL pass, "
+            "OR retain 0 as explicit unrated categorical encoding alongside is_unrated? "
+            "B6 deferral: audit recommends CONVERT_SENTINEL_TO_NULL (non-binding for "
+            "carries_semantic_content=True). Downstream chooses."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-03",
+        "column": "avg_elo (n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": (
+            "avg_elo: n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw "
+            "(numeric_stats_matches[label='avg_elo'] ground truth). Same MAR / "
+            "CONVERT_SENTINEL_TO_NULL recommendation; the 3-row difference is the "
+            "upstream 1v1 filter discarding 3 sentinel rows. Disposition (genuine zero "
+            "vs sentinel) deferred to 01_04_02+ join investigation. Note: the n_zero=4,824 "
+            "figure cited in earlier drafts belongs to team_0_elo, NOT avg_elo."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-04",
+        "column": "raw_match_type (NULLs in matches_raw ~0.04%)",
+        "observed_pct_missing_total": "runtime (from ledger)",
+        "question": (
+            "MCAR per Rule S3, listwise deletion candidate at 01_04_02+. "
+            "Column may be redundant given internalLeaderboardId already constrains scope."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-05",
+        "column": "team1_wins (prediction target, BIGINT)",
+        "observed_pct_missing_total": 0.0,
+        "question": (
+            "0 NULLs verified (upstream WHERE p0.winner != p1.winner exclusion). "
+            "F1 zero-missingness override → RETAIN_AS_IS / mechanism=N/A."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-06",
+        "column": "winner in player_history_all",
+        "observed_pct_missing_total": 0.0,
+        "question": (
+            "winner in player_history_all: ledger reports 0 NULLs / RETAIN_AS_IS / "
+            "mechanism=N/A (better than plan-anticipated ~5% rate). The upstream "
+            "players_raw filtering or the players_raw schema does not produce NULL "
+            "winners in the loaded dataset. CONSORT note: re-verify on every dataset "
+            "re-load; if winner NULLs surface in future loads, the target-override "
+            "post-step (B4) will fire automatically and convert recommendation to "
+            "EXCLUDE_TARGET_NULL_ROWS — no Phase 02 code change required."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-07",
+        "column": "overviews_raw (singleton metadata, 1 row)",
+        "observed_pct_missing_total": "N/A",
+        "question": (
+            "Formally declare out-of-analytical-scope at 01_04_02+ disposition step. "
+            "Not used by any VIEW."
+        ),
+    },
+    {
+        "id": "DS-AOESTATS-08",
+        "column": "leaderboard, num_players (constants in matches_1v1_clean)",
+        "observed_pct_missing_total": 0.0,
+        "question": (
+            "leaderboard and num_players detected as TRUE constants "
+            "(n_distinct=1) in matches_1v1_clean by the runtime constants-detection "
+            "branch (W7 fix). Recommendation: DROP_COLUMN per Rule S4 / N/A-mechanism. "
+            "Both columns are constant-by-construction in the cleaned scope: "
+            "matches_1v1_clean filters to leaderboard='random_map' and num_players=2. "
+            "Confirm drop in 01_04_02+ DDL pass."
+        ),
+    },
+]
+
+artifact["missingness_audit"] = {
+    "framework": {
+        "source_doc": "temp/null_handling_recommendations.md",
+        "rules_applied": ["S1", "S2", "S3", "S4", "S5", "S6"],
+        "mechanism_taxonomy": "Rubin (1976); Little & Rubin (2019, 3rd ed.)",
+        "phase_boundary": "Phase 01 documents (I9). Phase 02 transforms.",
+        "thresholds": {
+            "low_rate_pct": 5.0,
+            "mid_rate_pct": 40.0,
+            "high_rate_pct": 80.0,
+            "threshold_source": (
+                "Operational starting heuristics from temp/null_handling_recommendations.md §1.2; "
+                "<5% MCAR boundary citation: Schafer & Graham 2002; "
+                "warning against rigid global thresholds: van Buuren 2018"
+            ),
+        },
+        "override_priority": [
+            "1. Constants detection (n_distinct == 1) → mechanism=N/A, recommendation=DROP_COLUMN",
+            "2. F1 zero-missingness (n_total_missing == 0) → mechanism=N/A, recommendation=RETAIN_AS_IS",
+            "3. _recommend() per spec/fallback (incl. CONVERT_SENTINEL_TO_NULL for sentinel-only low-rate cases)",
+            "4. Target-column post-step (col in target_cols AND n_total_missing > 0) → EXCLUDE_TARGET_NULL_ROWS",
+        ],
+        "per_view_target_cols": {
+            "matches_1v1_clean": ["team1_wins"],
+            "player_history_all": ["winner"],
+        },
+    },
+    "missingness_spec": _missingness_spec,
+    "ledger_matches_1v1_clean": df_ledger_m1.to_dict(orient="records"),
+    "ledger_player_history_all": df_ledger_ph.to_dict(orient="records"),
+    "decisions_surfaced": _decisions_surfaced_aoestats,
+}
+
+# 6.B: decisions_surfaced assertions
+assert len(artifact["missingness_audit"]["decisions_surfaced"]) >= 1
+assert all(
+    "question" in d and d["question"]
+    for d in artifact["missingness_audit"]["decisions_surfaced"]
+)
+print("PASS: missingness_audit block assembled and assertions passed")
+
 # Write JSON artifact
 artifact_json_path = cleaning_dir / "01_04_01_data_cleaning.json"
 with open(artifact_json_path, "w") as f:
     json.dump(artifact, f, indent=2, default=str)
 print(f"Artifact JSON written: {artifact_json_path}")
+
+# %%
+# --- Write missingness ledger CSV + JSON (Deliverable 5.A) ---
+
+df_ledger_all = pd.concat([df_ledger_m1, df_ledger_ph], ignore_index=True)
+
+ledger_csv_path = cleaning_dir / "01_04_01_missingness_ledger.csv"
+df_ledger_all.to_csv(ledger_csv_path, index=False)
+print(f"Ledger CSV written: {ledger_csv_path} ({len(df_ledger_all)} rows)")
+
+ledger_json_path = cleaning_dir / "01_04_01_missingness_ledger.json"
+ledger_json = {
+    "step": "01_04_01",
+    "dataset": "aoestats",
+    "generated_date": "2026-04-17",
+    "framework": artifact["missingness_audit"]["framework"],
+    "missingness_spec": _missingness_spec,
+    "ledger": df_ledger_all.to_dict(orient="records"),
+    "decisions_surfaced": _decisions_surfaced_aoestats,
+}
+with open(ledger_json_path, "w") as f:
+    json.dump(ledger_json, f, indent=2, default=str)
+print(f"Ledger JSON written: {ledger_json_path}")
+
+# 6.B: file existence assertions
+assert ledger_csv_path.exists(), f"FAIL: ledger CSV missing: {ledger_csv_path}"
+assert ledger_json_path.exists(), f"FAIL: ledger JSON missing: {ledger_json_path}"
+
+# Verify 17-column CSV schema (Deliverable 5.B)
+_expected_csv_cols = {
+    "view", "column", "dtype", "n_total", "n_null", "pct_null",
+    "sentinel_value", "n_sentinel", "pct_sentinel", "pct_missing_total",
+    "n_distinct", "mechanism", "mechanism_justification",
+    "recommendation", "recommendation_justification",
+    "carries_semantic_content", "is_primary_feature",
+}
+assert set(df_ledger_all.columns) == _expected_csv_cols, (
+    f"CSV column set mismatch: {set(df_ledger_all.columns).symmetric_difference(_expected_csv_cols)}"
+)
+print(f"PASS: ledger files written; CSV has {len(df_ledger_all.columns)} columns (expected 17)")
 
 # %%
 # Write MD artifact
@@ -751,6 +1663,45 @@ md_lines += [
     f"- ratings_raw_exists: {t08_ratings_raw} (PASS)",
     f"- inconsistent winner rows: {t08_xor['inconsistent'].iloc[0]} (PASS)",
     f"- p0_profile_id, p1_profile_id, profile_id: all BIGINT (PASS)",
+]
+
+md_lines += [
+    "",
+    "## NULL Audit",
+    "",
+    "### matches_1v1_clean",
+    "",
+    f"Total rows: {int(total_rows_m1):,}",
+    "",
+    "| Column | NULL Count | NULL % |",
+    "|--------|-----------|--------|",
+]
+for r in null_results_m1:
+    md_lines.append(f"| {r['column']} | {r['null_count']:,} | {r['null_pct']}% |")
+
+md_lines += [
+    "",
+    f"Zero-NULL assertions passed: {', '.join(MATCHES_ZERO_NULL_COLS)}",
+    "",
+    "### player_history_all",
+    "",
+    f"Total rows: {int(total_rows_ph):,}",
+    "",
+    "| Column | NULL Count | NULL % |",
+    "|--------|-----------|--------|",
+]
+for r in null_results_ph:
+    md_lines.append(f"| {r['column']} | {r['null_count']:,} | {r['null_pct']}% |")
+
+md_lines += [
+    "",
+    f"Zero-NULL assertions passed: {', '.join(HIST_ZERO_NULL_COLS)}",
+    "",
+    f"**FINDING:** `winner` has {winner_null_count_ph:,} NULLs ({winner_null_pct_ph}%). "
+    "Expected: VIEW covers all game types including non-decisive matches.",
+]
+
+md_lines += [
     "",
     "## VIEW DDL",
     "",
@@ -766,6 +1717,57 @@ md_lines += [
     SQL_T07_PLAYER_HISTORY_ALL.strip(),
     "```",
 ]
+
+# Missingness Ledger sections (Deliverable 4.B + plan gate requirement)
+md_lines += [
+    "",
+    "## Missingness Ledger",
+    "",
+    "### matches_1v1_clean",
+    "",
+    f"Total rows: {int(total_rows_m1):,} | Ledger rows: {len(df_ledger_m1)}",
+    "",
+    "| Column | dtype | n_null | pct_null | sentinel_value | n_sentinel | pct_sentinel | pct_missing_total | mechanism | recommendation | carries_semantic | is_primary |",
+    "|--------|-------|--------|---------|----------------|-----------|-------------|------------------|-----------|---------------|-----------------|-----------|",
+]
+for _, lrow in df_ledger_m1.iterrows():
+    md_lines.append(
+        f"| {lrow['column']} | {lrow['dtype']} | {lrow['n_null']:,} | {lrow['pct_null']} | "
+        f"{lrow['sentinel_value']} | {lrow['n_sentinel']:,} | {lrow['pct_sentinel']} | "
+        f"{lrow['pct_missing_total']} | {lrow['mechanism']} | {lrow['recommendation']} | "
+        f"{lrow['carries_semantic_content']} | {lrow['is_primary_feature']} |"
+    )
+
+md_lines += [
+    "",
+    "### player_history_all",
+    "",
+    f"Total rows: {int(total_rows_ph):,} | Ledger rows: {len(df_ledger_ph)}",
+    "",
+    "| Column | dtype | n_null | pct_null | sentinel_value | n_sentinel | pct_sentinel | pct_missing_total | mechanism | recommendation | carries_semantic | is_primary |",
+    "|--------|-------|--------|---------|----------------|-----------|-------------|------------------|-----------|---------------|-----------------|-----------|",
+]
+for _, lrow in df_ledger_ph.iterrows():
+    md_lines.append(
+        f"| {lrow['column']} | {lrow['dtype']} | {lrow['n_null']:,} | {lrow['pct_null']} | "
+        f"{lrow['sentinel_value']} | {lrow['n_sentinel']:,} | {lrow['pct_sentinel']} | "
+        f"{lrow['pct_missing_total']} | {lrow['mechanism']} | {lrow['recommendation']} | "
+        f"{lrow['carries_semantic_content']} | {lrow['is_primary_feature']} |"
+    )
+
+# Decisions surfaced section
+md_lines += [
+    "",
+    "## Decisions Surfaced for Downstream Cleaning (01_04_02+)",
+    "",
+]
+for ds in _decisions_surfaced_aoestats:
+    md_lines += [
+        f"### {ds['id']}: {ds['column']}",
+        "",
+        ds["question"],
+        "",
+    ]
 
 artifact_md_path = cleaning_dir / "01_04_01_data_cleaning.md"
 with open(artifact_md_path, "w") as f:

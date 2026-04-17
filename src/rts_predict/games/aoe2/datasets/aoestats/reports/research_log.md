@@ -8,6 +8,77 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-17 — [Phase 01 / Step 01_04_01] Missingness Audit (Part B — insight-gathering)
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Step scope:** Consolidated missingness audit over matches_1v1_clean (21 cols) and player_history_all (13 cols). Three coordinated passes per VIEW: SQL NULL census (Pass 1, pre-existing), sentinel census driven by _missingness_spec (Pass 2, new), and runtime constants-detection (Pass 3, new). Produces one missingness ledger (CSV+JSON) per VIEW. No VIEWs modified; no columns dropped; no imputation. Decisions surfaced for 01_04_02+ resolution.
+
+**Artifacts produced:**
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json` (extended with `missingness_audit` block)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md` (extended with Missingness Ledger + Decisions sections)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_missingness_ledger.csv` (NEW — 34 rows, 17 columns)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_01_missingness_ledger.json` (NEW — standalone ledger JSON)
+
+**Ledger row counts per VIEW:**
+- matches_1v1_clean: 21 rows (full-coverage — one row per column)
+- player_history_all: 13 rows (full-coverage — one row per column)
+
+**Key missingness findings:**
+
+matches_1v1_clean:
+- `leaderboard`, `num_players`: constants (n_distinct=1) → DROP_COLUMN flagged
+- `p0_old_rating`: n_sentinel=4,730 (sentinel=0, rate 0.0266%) → CONVERT_SENTINEL_TO_NULL (non-binding: carries_semantic_content=True per DS-AOESTATS-02)
+- `p1_old_rating`: n_sentinel=188 (sentinel=0, rate 0.0011%) → CONVERT_SENTINEL_TO_NULL (same caveat)
+- `avg_elo`: n_sentinel=118 (sentinel=0, rate 0.0007%) → CONVERT_SENTINEL_TO_NULL (non-binding per DS-AOESTATS-03)
+- `team_0_elo`, `team_1_elo`: n_sentinel=0 (ELO=-1 sentinel absent in 1v1 ranked scope) → RETAIN_AS_IS
+- `raw_match_type`: n_null=7,055 (0.0396%) → RETAIN_AS_IS (MCAR, <5% boundary)
+- `team1_wins`: n_null=0, n_sentinel=0 → RETAIN_AS_IS / mechanism=N/A (F1 override, gate check passed)
+- All identity cols (game_id, p0/p1_profile_id, p0/p1_winner): zero NULLs confirmed
+
+player_history_all:
+- `old_rating`: n_sentinel=5,937 (sentinel=0, rate 0.0055%) → CONVERT_SENTINEL_TO_NULL (non-binding per DS-AOESTATS-02; consistent with 01_02_04 census ground truth)
+- `winner`: n_null=0 in this dataset (all rows have decisive outcomes in players_raw) → RETAIN_AS_IS / mechanism=N/A
+- All other 11 cols: zero NULLs and sentinels → RETAIN_AS_IS / mechanism=N/A
+
+**Decisions surfaced (DS-AOESTATS-01..08) — all deferred to 01_04_02+:**
+- DS-AOESTATS-01: ELO=-1 absent in 1v1 scope; handle if re-scoped
+- DS-AOESTATS-02: p0/p1_old_rating sentinel=0 — NULLIF or retain-as-unrated?
+- DS-AOESTATS-03: avg_elo sentinel=0 — investigate genuine-zero vs sentinel via join
+- DS-AOESTATS-04: raw_match_type 7,055 NULLs — listwise deletion candidate (MCAR)
+- DS-AOESTATS-05: team1_wins — 0 NULLs confirmed (RETAIN_AS_IS)
+- DS-AOESTATS-06: winner in player_history_all — 0 NULLs in this dataset; verify on future loads
+- DS-AOESTATS-07: overviews_raw — out-of-analytical-scope (singleton metadata)
+- DS-AOESTATS-08: leaderboard, num_players — constants in matches_1v1_clean, DROP_COLUMN in 01_04_02+
+
+**W4 connection fix applied:** `con = db._con` → `con = db.con` (public attribute; uniform across datasets per Invariant I8).
+
+**Framework:** Rubin (1976) MCAR/MAR/MNAR taxonomy; thresholds from temp/null_handling_recommendations.md §1.2; Schafer & Graham (2002) <5% boundary; van Buuren (2018) warning against rigid global thresholds.
+
+### Reviewer-deep round narrative fixes (post-execution v2)
+
+Reviewer-deep round flagged 3 BLOCKERs + W5 in aoestats DS narratives — all
+narrative-vs-data drift, no logic changes. Fixed:
+- **B1:** added DS-AOESTATS-08 (`leaderboard` + `num_players` TRUE constants
+  → DROP_COLUMN) to in-cell decisions list; was only in ROADMAP/research_log
+  before, now also in JSON/MD artifacts.
+- **B2:** rewrote DS-AOESTATS-01 — team_0_elo/team_1_elo ELO=-1 sentinel
+  absent in 1v1 cleaned scope; ledger reports RETAIN_AS_IS not
+  CONVERT_SENTINEL_TO_NULL. Spec mechanism=MCAR retained for raw-table
+  design intent.
+- **B3:** rewrote DS-AOESTATS-06 — winner in player_history_all has 0 NULLs
+  in this dataset load (better than plan-anticipated ~5%). Target-override
+  post-step (B4) handles future drift automatically.
+- **W5:** DS-AOESTATS-03 now cites both rates (118 in matches_1v1_clean /
+  121 in matches_raw); 3-row delta explained by upstream 1v1 filter.
+
+No changes to recommendation logic, ledger schema, override priority, or
+spec dict mechanism classifications. Notebook re-executed end-to-end; all
+12 gate criteria remain PASS. Reviewer-deep verdict moves from
+REVISE_BEFORE_COMMIT to APPROVE_FOR_COMMIT for aoestats.
+
+---
+
 ## 2026-04-16 — [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton
 
 **Category:** A (science)
