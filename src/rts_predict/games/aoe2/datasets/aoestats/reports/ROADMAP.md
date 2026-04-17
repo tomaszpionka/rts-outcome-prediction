@@ -728,104 +728,214 @@ scientific_invariants_applied:
 research_log_entry: "Required on completion."
 ```
 
-### Step 01_04_01 -- Data Cleaning
+### Step 01_04_01 -- Data Cleaning — VIEW DDL + Missingness Audit (insight-gathering)
 
 ```yaml
 step_number: "01_04_01"
-name: "Data Cleaning"
+name: "Data Cleaning — VIEW DDL + Missingness Audit (insight-gathering)"
 description: >
-  Non-destructive data cleaning for aoestats. All raw data remains untouched; cleaning
-  is expressed as DuckDB VIEW definitions. Produces two VIEWs: matches_1v1_clean
-  (wide-format prediction target: ranked 1v1 matches, one row per match with p0/p1
-  column pairs, team-assignment asymmetry explicitly documented) and player_history_all
-  (long-format feature computation source: all game types and leaderboards, one row
-  per player per match). Generates CONSORT-style row-count flow and post-cleaning
-  validation.
+  Two-part step with one execution pass.
+  PART A (already executed in PRs #138/#139): non-destructive cleaning of
+  matches_raw and players_raw via two DuckDB VIEWs (matches_1v1_clean,
+  player_history_all) — all DDL changes resolved in prior PRs.
+  PART B (this revision): consolidated missingness audit over the analytical VIEWs
+  (matches_1v1_clean, player_history_all). Two coordinated census passes per VIEW —
+  SQL NULL census plus sentinel census driven by per-column _missingness_spec — plus
+  a runtime constants-detection check, feed one missingness ledger (CSV+JSON) per
+  VIEW. The audit gathers insights for downstream cleaning decisions in 01_04_02+;
+  it does NOT execute decisions, modify VIEWs, drop columns, or impute. Ends with
+  an explicit "Decisions surfaced for downstream cleaning" section listing
+  per-dataset open questions (DS-AOESTATS-01..08).
 phase: "01 — Data Exploration"
 pipeline_section: "01_04 — Data Cleaning"
-manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Sections 3 (Profiling) and 4 (Cleaning)"
 dataset: "aoestats"
 question: >
-  Which matches in aoestats are suitable for binary classification of 1v1 match
-  outcomes? What is the correct prediction target scope vs feature computation scope?
+  What is the complete missingness picture (NULL + sentinel-encoded + constant
+  columns) per analytical VIEW column, classified by mechanism (Rubin 1976
+  MCAR/MAR/MNAR), and which open questions must downstream 01_04 steps resolve
+  before Phase 02 imputation design?
 method: >
-  Eight cleaning decisions derived from 01_02 and 01_03 findings:
-  (1) profile_id DOUBLE precision verification — confirmed safe to cast to BIGINT
-  (max value 24,853,897 is well below the IEEE 754 double safe-integer boundary);
-  (2) scope restriction to structural 1v1 (player_count=2) and leaderboard='random_map'
-  for the prediction target VIEW, retaining all game types in player_history_all;
-  (3) documentation of 212,890 orphan matches (no player rows) excluded via INNER JOIN;
-  (4) documentation of constant columns game_type and game_speed (excluded from VIEWs)
-  and near-dead column starting_age (99.99994% single value, excluded);
-  (5) temporal schema analysis of opening/age-uptime columns — these drop to 0% coverage
-  after week 2024-03-17 (schema change boundary found); feature-inclusion deferred to Phase 02;
-  (6) same-team assertion pre-VIEW (confirmed zero game_ids with both players on same team);
-  (7) exclusion of new_rating (POST-GAME) from all VIEWs;
-  (8) exclusion of 997 matches with inconsistent winner values (both players same outcome, 0.0056%).
-  Team-assignment asymmetry documented: team=1 wins 52.27% of ranked 1v1 matches.
-  CONSORT flow tracks match counts through four filtering stages.
+  Three-step per-VIEW audit (matches_1v1_clean, player_history_all):
+  Step 1 (kept verbatim): SQL NULL census per column via
+  COUNT(*) FILTER (WHERE col IS NULL) over the full VIEW.
+  Step 2 (NEW): sentinel census per column driven by _missingness_spec dict
+  (per-column override is preferred; auto-detection from prior census artifacts is
+  the secondary fallback). Sentinel SQL per column matches the spec's declared
+  sentinel value(s).
+  Step 3 (NEW): runtime constants detection — SELECT COUNT(DISTINCT col) per VIEW
+  column; columns with n_distinct=1 get mechanism="N/A" + recommendation="DROP_COLUMN".
+  Per-row recommendation derived from pct_missing_total = pct_null + pct_sentinel
+  via the decision tree in temp/null_handling_recommendations.md §3.1, applying
+  Rules S1-S6, with two override layers: (a) F1 zero-missingness override and
+  (b) target-column override per Rule S2. The notebook produces RECOMMENDATIONS
+  only; downstream 01_04 steps decide and execute.
+  Reads the empirical sentinel patterns from
+  artifacts/01_exploration/02_eda/01_02_04_univariate_census.json — the audit
+  consolidates prior findings; it does not re-derive them.
 predecessors:
   - "01_03_03"
+methodology_citations:
+  - "Rubin, D.B. (1976). Inference and missing data. Biometrika, 63(3), 581-592. — MCAR/MAR/MNAR taxonomy."
+  - "Little, R.J. & Rubin, D.B. (2019). Statistical Analysis with Missing Data, 3rd ed. Wiley. — Authoritative mechanism classification."
+  - "van Buuren, S. (2018). Flexible Imputation of Missing Data, 2nd ed. CRC Press. — Warns against rigid percentage thresholds; threshold S4 used as starting heuristic only."
+  - "Schafer, J.L. & Graham, J.W. (2002). Missing data: Our view of the state of the art. Psychological Methods, 7(2), 147-177. — Listwise deletion acceptable at <5% MCAR (boundary citation, not threshold derivation)."
+  - "Sambasivan, N. et al. (2021). Everyone wants to do the model work, not the data work: Data Cascades in High-Stakes AI. CHI '21. — Rationale for surfacing decisions explicitly rather than deferring."
+  - "Davis, J. et al. (2024). Methodology and Evaluation in Sports Analytics. Machine Learning, 113, 6977-7010. — Domain precedent for sports outcome data quality protocols (retained for future Phase 02/03 reference; not load-bearing in this audit step)."
+  - "scikit-learn v1.8 documentation. Imputation of missing values; sklearn.impute.MissingIndicator. — Missingness-as-signal principle for Phase 02."
+  - "Wirth, R. & Hipp, J. (2000). CRISP-DM: Towards a standard process model for data mining. — Cleaning report convention adopted in artifact format."
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §3 (Profiling) and §4 (Cleaning) — pipeline phase boundary (Phase 01 documents, Phase 02 transforms)."
 notebook_path: "sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_01_data_cleaning.py"
 inputs:
   duckdb_tables:
     - "matches_raw (30,690,651 rows)"
     - "players_raw (107,627,584 rows)"
-outputs:
   duckdb_views:
     - "matches_1v1_clean (17,814,947 rows)"
     - "player_history_all (107,626,399 rows)"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.json (sentinel and zero-distribution evidence)"
+    - "artifacts/01_exploration/03_profiling/* (column-level mechanism evidence — see prior steps)"
+outputs:
+  duckdb_views:
+    - "matches_1v1_clean (unchanged)"
+    - "player_history_all (unchanged)"
   data_artifacts:
-    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json"
-  report: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md"
-  schema_yaml: "data/db/schemas/views/player_history_all.yaml"
-reproducibility: "Code and output in the paired notebook. All SQL queries stored verbatim in JSON artifact."
-key_findings:
-  - "17,814,947 ranked 1v1 matches retained in prediction target VIEW"
-  - "997 matches excluded due to inconsistent winner values (both players same outcome)"
-  - "team=1 wins 52.27% of ranked 1v1 matches — team slot is not a random assignment (I5 warning for downstream feature engineering)"
-  - "opening/age-uptime columns populated until 2024-03-17, then dropped to zero — schema change boundary"
-  - "schema change boundary: opening/age-uptime columns drop to 0% coverage after week 2024-03-17"
-gate:
-  artifact_check: >
-    JSON and MD artifacts exist and are non-empty. JSON contains cleaning decisions,
-    CONSORT flow, temporal schema analysis results, same-team assertion result,
-    team-assignment asymmetry findings, ratings_raw absence confirmation, both VIEW
-    DDL definitions, and all SQL queries verbatim.
-  continue_predicate: >
-    matches_1v1_clean returns approximately 17.8M rows. player_history_all returns
-    approximately 107.6M rows. Zero inconsistent winner matches (winner XOR check passes).
-    Confirmed no ratings_raw table in aoestats schema. team1_wins column exists in
-    matches_1v1_clean. Schema YAML exists with row_count populated.
-  halt_predicate: "Any SQL query fails, any assertion fails, or any artifact is missing."
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.json (extended with missingness_audit block)"
+    - "artifacts/01_exploration/04_cleaning/01_04_01_missingness_ledger.csv (NEW — one row per (view, column); full-coverage Option B; zero-missingness columns tagged RETAIN_AS_IS / mechanism=N/A; constant columns tagged DROP_COLUMN / mechanism=N/A)"
+    - "artifacts/01_exploration/04_cleaning/01_04_01_missingness_ledger.json (NEW — same content, machine-readable)"
+  report: "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md (extended)"
+reproducibility: >
+  Code and output in the paired notebook. All SQL verbatim in JSON sql_queries.
+  Audit re-runs deterministically from raw tables.
+key_findings_carried_forward:
+  - "997 inconsistent winner rows excluded (both players same outcome, 0.0056%)"
+  - "Schema change boundary 2024-03-17: opening/age-uptime columns drop to 0% coverage"
+  - "t1_win_pct 52.27%: team=1 wins more often than team=0 (slot asymmetry — I5 warning)"
+  - "team_0_elo / team_1_elo: ELO=-1 sentinel absent in matches_1v1_clean scope (filtered out by ranked 1v1 restriction)"
+  - "p0_old_rating / p1_old_rating: sentinel=0 present in matches_1v1_clean (n_sentinel=4730 / 188 respectively)"
+  - "old_rating in player_history_all: sentinel=0, n_sentinel=5,937 (consistent with 01_02_04 census)"
+  - "avg_elo: sentinel=0, n_sentinel=118 in matches_1v1_clean"
+  - "leaderboard and num_players: constants in matches_1v1_clean (n_distinct=1) — DROP_COLUMN flagged"
+decisions_surfaced:
+  - id: "DS-AOESTATS-01"
+    column: "team_0_elo / team_1_elo (sentinel=-1, absent in 1v1 filtered scope)"
+    question: >
+      team_0_elo / team_1_elo: ELO=-1 sentinel ABSENT in matches_1v1_clean (upstream
+      filter excludes the rows that carried it — the matches_1v1_clean WHERE clause
+      restricts to ranked-1v1 decisive games where the sentinel does not appear).
+      Ledger reports n_sentinel=0 → RETAIN_AS_IS / mechanism=N/A. Action item: if
+      the ranked-1v1 scope is ever broadened, or if a different VIEW (e.g. unranked
+      or non-1v1) is added to the audit, re-audit for sentinel resurfacing and
+      reapply CONVERT_SENTINEL_TO_NULL via Rule S3. The spec entry retains
+      mechanism=MCAR / sentinel_value=-1 to document the design intent for the
+      mechanism (raw matches_raw evidence shows the sentinel exists at low rate);
+      the ledger reflects the empirical post-filter observation.
+  - id: "DS-AOESTATS-02"
+    column: "p0_old_rating / p1_old_rating (sentinel=0, n_zero=5,937 in players_raw)"
+    question: >
+      NULLIF + listwise deletion per Rule S3 in 01_04_02+ DDL pass,
+      OR retain 0 as an explicit unrated categorical encoding alongside is_unrated?
+      Source: players_raw_census.old_rating.zero_count=5937 (zero_pct=0.0055%).
+      B6 deferral: audit recommends CONVERT_SENTINEL_TO_NULL (non-binding for
+      carries_semantic_content=True). Downstream chooses without prejudice from the ledger.
+  - id: "DS-AOESTATS-03"
+    column: "avg_elo (n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw)"
+    question: >
+      avg_elo: n_sentinel=118 in matches_1v1_clean / n_zero=121 in matches_raw
+      (numeric_stats_matches[label='avg_elo'] ground truth). Same MAR /
+      CONVERT_SENTINEL_TO_NULL recommendation; the 3-row difference is the
+      upstream 1v1 filter discarding 3 sentinel rows. Disposition (genuine zero
+      vs sentinel) deferred to 01_04_02+ join investigation. Note: the n_zero=4,824
+      figure cited in earlier drafts belongs to team_0_elo, NOT avg_elo.
+  - id: "DS-AOESTATS-04"
+    column: "raw_match_type (7,055 NULLs in matches_1v1_clean, 0.0396%)"
+    question: >
+      MCAR per Rule S3, listwise deletion candidate at 01_04_02+. Column may be redundant
+      given internalLeaderboardId already constrains scope. Ledger reports RETAIN_AS_IS
+      (rate < 5% MCAR boundary).
+  - id: "DS-AOESTATS-05"
+    column: "team1_wins (prediction target, BIGINT)"
+    question: >
+      0 NULLs verified (upstream WHERE p0.winner != p1.winner exclusion).
+      F1 zero-missingness override: ledger reports RETAIN_AS_IS / mechanism=N/A.
+      The phantom winner column referenced in v1 plan does NOT exist in matches_1v1_clean.
+  - id: "DS-AOESTATS-06"
+    column: "winner in player_history_all"
+    question: >
+      winner in player_history_all: ledger reports 0 NULLs / RETAIN_AS_IS /
+      mechanism=N/A (better than plan-anticipated ~5% rate). The upstream
+      players_raw filtering or the players_raw schema does not produce NULL
+      winners in the loaded dataset. CONSORT note: re-verify on every dataset
+      re-load; if winner NULLs surface in future loads, the target-override
+      post-step (B4) will fire automatically and convert recommendation to
+      EXCLUDE_TARGET_NULL_ROWS — no Phase 02 code change required.
+  - id: "DS-AOESTATS-07"
+    column: "overviews_raw (singleton metadata, 1 row)"
+    question: >
+      Formally declare out-of-analytical-scope at 01_04_02+ disposition step.
+      Not used by any VIEW; triaging not required in 01_04_01 audit.
+  - id: "DS-AOESTATS-08"
+    column: "leaderboard, num_players (constants in matches_1v1_clean)"
+    question: >
+      Constants-detection branch flags both columns as n_distinct=1 in matches_1v1_clean
+      (all ranked 1v1 rows have identical leaderboard='random_map' and num_players=2).
+      Ledger reports DROP_COLUMN / mechanism=N/A. Confirm removal in 01_04_02+ DDL pass.
 scientific_invariants_applied:
   - number: "3"
     how_upheld: >
-      new_rating (POST-GAME) excluded from both VIEWs. Python assertion confirms no
-      forbidden columns in either VIEW. duration and irl_duration excluded from
-      player_history_all. Temporal anchor (started_timestamp) exposed for downstream
-      strict before-match ordering.
-  - number: "5"
-    how_upheld: >
-      Team-assignment asymmetry (team=1 wins 52.27%) documented in VIEW DDL comment,
-      team1_wins column, and research log. Downstream feature engineering must apply
-      player-slot randomisation before using p0/p1 column pairs as symmetric features.
-      player_history_all is player-row-oriented, keyed on profile_id — no slot asymmetry.
+      No new feature computation. No use of game T data. Audit is read-only over
+      VIEWs whose I3 compliance was established in the predecessor PRs.
   - number: "6"
-    how_upheld: "All SQL queries stored verbatim in JSON artifact under sql_queries."
+    how_upheld: >
+      All three SQL templates (NULL census, sentinel census, constants detection)
+      stored verbatim in JSON sql_queries. The per-column sentinel queries are
+      reconstructible from the template + the _missingness_spec dict (also stored
+      in the artifact).
   - number: "7"
     how_upheld: >
-      Scope criteria (player_count=2, leaderboard='random_map') sourced from 01_03_02
-      systematic profile. profile_id precision threshold is the IEEE 754 double
-      safe-integer boundary. All cleaning thresholds derived empirically from 01_02
-      and 01_03 artifacts, not assumed.
+      Thresholds (5%/40%/80%) follow the operational starting heuristics in
+      temp/null_handling_recommendations.md §1.2; cite Schafer & Graham 2002 for
+      the <5% MCAR boundary and van Buuren 2018 for the warning against rigid
+      global thresholds. Each threshold-driven recommendation surfaces as a
+      downstream decision per §3.1; the audit recommends, the downstream step
+      decides. Per-column mechanism justifications cite either a prior step's
+      artifact (with path) or a sentinel-meaning interpretation explicitly grounded
+      in domain context.
   - number: "9"
     how_upheld: >
-      Cleaning and VIEW creation only. Feature-inclusion decisions for opening and
-      age-uptime columns explicitly deferred to Phase 02. No aggregations computed.
-thesis_mapping:
-  - "Chapter 4 — Data and Methodology > 4.2 Data Cleaning"
-research_log_entry: "Required on completion."
+      All facts derive from this step's SQL or from cited predecessor artifacts.
+      No raw tables, no VIEWs, no schema YAMLs are modified. Audit is purely
+      additive: extends artifact JSON, adds two new ledger files. No future-step
+      citations.
+gate:
+  artifact_check: >
+    JSON has "missingness_audit" block with two VIEW ledger arrays, each containing
+    one row per column in the VIEW (full-coverage Option B) and the _missingness_spec
+    used. The two new ledger files (CSV + JSON) exist at the paths above. MD has a
+    "Missingness Ledger" section per VIEW + a final "Decisions surfaced for downstream
+    cleaning (01_04_02+)" section reproducing DS-AOESTATS-01..08 with current
+    observed rates filled in.
+  continue_predicate: >
+    Every column in each VIEW appears in the ledger (full-coverage Option B).
+    Every column with non-zero missingness has a _missingness_spec entry; zero-
+    missingness rows carry mechanism=N/A, recommendation=RETAIN_AS_IS, and
+    justification="Zero missingness observed; no action needed." regardless of
+    spec. Constant columns (n_distinct=1) carry mechanism=N/A,
+    recommendation=DROP_COLUMN with constants-detection justification.
+    Every ledger row has non-empty mechanism_justification, recommendation,
+    recommendation_justification, and explicit carries_semantic_content boolean.
+    Existing zero-NULL assertions (game_id, started_timestamp, p0_profile_id,
+    p1_profile_id, p0_winner, p1_winner in matches_1v1_clean; profile_id,
+    game_id, started_timestamp in player_history_all) still pass.
+  halt_predicate: >
+    Any column in the VIEW missing from the ledger (full-coverage violation);
+    any column with non-zero missingness lacking a _missingness_spec entry; any
+    ledger row missing mandatory fields; any zero-NULL identity assertion failure;
+    any contradictory pairing of mechanism="N/A" with non-N/A justification.
+research_log_entry: >
+  Required on completion: list per-VIEW row counts in ledger, reference the
+  artifact paths, summarise decisions surfaced for downstream resolution.
 ```
 
 ---

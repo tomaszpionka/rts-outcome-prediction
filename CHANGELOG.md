@@ -19,6 +19,84 @@ merged to `master`.
 
 ### Removed
 
+## [3.10.3] — 2026-04-17 (PR #TBD: fix/01-04-null-audit)
+
+### Added
+- Consolidated 01_04_01 missingness audit across all 3 datasets (sc2egset, aoestats,
+  aoe2companion) with two coordinated census passes (SQL NULL + sentinel) plus runtime
+  constants detection feeding a 17-column missingness ledger per VIEW.
+- New artifact files per dataset: `01_04_01_missingness_ledger.csv` and
+  `01_04_01_missingness_ledger.json` (full-coverage Option B — every VIEW column
+  gets a row; zero-missingness rows tagged RETAIN_AS_IS / mechanism=N/A;
+  constants tagged DROP_COLUMN / mechanism=N/A; identity columns routed via B5
+  branch with n_distinct=null per W6 budget skip).
+- 5-value recommendation enum (DROP_COLUMN, FLAG_FOR_IMPUTATION, RETAIN_AS_IS,
+  EXCLUDE_TARGET_NULL_ROWS, CONVERT_SENTINEL_TO_NULL) with 4-tier override priority
+  (identity → constants → F1 zero-missingness → spec/fallback → target post-step).
+- `is_primary_feature` and `carries_semantic_content` boolean columns surfaced
+  to ledger CSV/JSON for downstream Phase 02 consumption (W8).
+- Per-dataset `decisions_surfaced` blocks in ROADMAP.md and artifact JSON/MD
+  surfacing open questions for 01_04_02+ (DS-SC2-01..10, DS-AOESTATS-01..08,
+  DS-AOEC-01..08). B6 deferral: CONVERT_SENTINEL_TO_NULL recommendations are
+  marked non-binding for sentinel-with-semantic-content cases — downstream
+  chooses without prejudice from the audit.
+- Methodology citations block in each dataset's ROADMAP entry (Rubin 1976,
+  Little & Rubin 2019, van Buuren 2018, Sambasivan 2021, Schafer & Graham 2002,
+  Davis 2024, sklearn v1.8 MissingIndicator, CRISP-DM, Manual 01 §3 + §4).
+
+### Changed
+- All 3 datasets now use uniform DB connection convention `con = db.con` then
+  `con.execute(...)` (W4):
+  - sc2egset: 58 existing `con.con.execute(...)` calls converted to
+    `con.execute(...)` via two-step rename (`con = get_notebook_db(...)` →
+    `db = get_notebook_db(...)` + `con = db.con`).
+  - aoestats: `con = db._con` (private attribute) → `con = db.con` (public
+    @property); existing `con.execute(...)` call sites unchanged.
+  - aoe2companion: already conformant.
+- ROADMAP.md 01_04_01 step blocks replaced per dataset with new YAML covering
+  `methodology_citations`, `decisions_surfaced`, `outputs.data_artifacts`
+  (including new ledger files), and updated gate condition.
+- Description-only cleanup of plan-code annotations (`R02`/`R04`/`R05`/`R07`/
+  `W03`/`W04`) from
+  `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml`
+  per `feedback_no_plan_codes_in_docs` (N1; no DDL/type/nullability changes).
+
+### Fixed
+- F1: aoestats `_consolidate_ledger` no longer carries stale spec justification
+  text when runtime n_total_missing=0; mechanism overridden to N/A and
+  recommendation to RETAIN_AS_IS regardless of spec contents.
+- F2: aoestats removed legacy `col != "winner"` exception that hardcoded
+  winner→MAR even when winner had 0 NULLs.
+- B5: identity-column branch added FIRST in `_consolidate_ledger` if/elif chain
+  to avoid pandas dtype-dependent NA propagation when `n_distinct=None` (W6 skip).
+- W3 (post-execution): aoec `_IDENTITY_COLS_M1` extended to include `profileId`
+  to dodge DuckDB COUNT(DISTINCT) artifact returning 0 on window-function VIEW.
+
+### Removed
+- N/A (audit is additive on existing artifacts; no VIEW DDL changes; no schema
+  YAML semantic changes; no STEP_STATUS bumps).
+
+### Added (NOTE-3 + W2 refactor)
+- `src/rts_predict/common/missingness_audit.py` — shared missingness-audit
+  helpers extracted from 3 inline notebook definitions (`_build_sentinel_predicate`,
+  `_sentinel_census`, `_detect_constants`, `_recommend`, `_consolidate_ledger`);
+  new `build_audit_views_block` helper for canonical `views.<view_name>:` JSON shape;
+  100% unit-test coverage at `tests/rts_predict/common/test_missingness_audit.py`.
+
+### Changed (NOTE-3 + W2 refactor)
+- All 3 cleaning notebooks (`01_04_01_data_cleaning.py`) now import helpers from
+  `rts_predict.common.missingness_audit` instead of defining them inline. Inline
+  `missingness_audit.views` JSON block standardized to canonical
+  `views.<view_name>: {total_rows, columns_audited, ledger}` shape across all 3
+  datasets (W2 fix); aoec `_recommend` body upgraded from contracted to canonical
+  (recommendation codes unchanged, free-text `recommendation_justification` for
+  affected rows now carries the full B6 deferral sentence and expanded §3.1
+  references). **aoec inline `missingness_audit.<view>.n_cols` field renamed to
+  `views.<view>.columns_audited` as part of W2 canonicalization** (per WARNING-2
+  critique fix — explicit because downstream consumers referencing `n_cols` would
+  otherwise break silently). aoestats `missingness_audit.ledger_<view_name>` flat
+  keys replaced by canonical `views.<view_name>:` shape (W2 fix; no data change).
+
 ## [3.10.2] — 2026-04-16 (PR #TBD: fix/01-04-aoestats-ingame-cols)
 
 ### Fixed
