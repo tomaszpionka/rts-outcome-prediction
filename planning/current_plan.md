@@ -401,7 +401,7 @@ FROM player_history_all;
 
 Mirror the sc2egset 01_04_02 step block (sc2egset ROADMAP.md lines 999-1115) structure with aoestats-specific contents. The full block to be inserted in `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md` immediately after the 01_04_01 step block (after line 939, before the `## Phase 02` placeholder header on line 945).
 
-**WARNING-4 critique fix — fence guidance for executor:** The block below begins with the `### Step 01_04_02 -- Data Cleaning Execution` markdown header on its own line, then a YAML code-fenced block. The plan's outer `~~~yaml ... ~~~` is a typographical container ONLY (using tildes here to avoid nested-backtick confusion). When pasting into ROADMAP.md, copy from the `### Step 01_04_02` heading through the closing ` ``` ` of the YAML block — do NOT include the plan's outer fence wrapper. The sc2egset 01_04_02 ROADMAP step block is the exact format reference.
+**WARNING-4 critique fix — fence guidance for executor:** The block below begins with the `### Step 01_04_02 -- Data Cleaning Execution` markdown header on its own line, then a YAML code-fenced block. The plan's outer ` ```yaml ... ``` ` is a plan-typography container ONLY. When pasting into ROADMAP.md, copy from the `### Step 01_04_02` heading through the closing ` ``` ` of the YAML block — do NOT include the plan's outer fence wrapper. The sc2egset 01_04_02 ROADMAP step block is the exact format reference.
 
 ```yaml
 ### Step 01_04_02 -- Data Cleaning Execution
@@ -516,9 +516,11 @@ gate:
     started_timestamp, p0/p1_profile_id, p0/p1_winner, team1_wins in
     matches_1v1_clean; profile_id, game_id, started_timestamp, winner in
     player_history_all). Forbidden columns absent (DS-AOESTATS-04/-08
-    drops + I3 pre-existing exclusions). NULLIF effects match ledger
-    counts (4730 / 188 / 118 / 5937). is_unrated indicator counts equal
-    NULLIF NULL counts (consistency). Row counts unchanged. CONSORT
+    drops + I3 pre-existing exclusions). NULLIF effects match ledger-derived
+    expected_p0_unrated / expected_p1_unrated / expected_avg_elo_sentinel /
+    expected_unrated values within ±1 row (loaded at runtime per I7).
+    is_unrated indicator counts equal NULLIF NULL counts (consistency).
+    Row counts unchanged. CONSORT
     column-count table reproduces drop counts per DS-AOESTATS-01..08.
     STEP_STATUS.yaml has 01_04_02: complete. PIPELINE_SECTION_STATUS for
     01_04 transitions to complete (no further 01_04_NN steps defined in
@@ -630,7 +632,7 @@ After the executor runs the notebook and validates artifacts:
 6. All zero-NULL assertions PASS (Section 3.1).
 7. All forbidden-column assertions PASS (Section 3.3a + 3.3b).
 8. All new-column assertions PASS (Section 3.4): 3 new BOOLEAN columns present.
-9. NULLIF effect counts MATCH ledger counts within ±1 row (Section 3.6): `p0_old_rating IS NULL` count ≈ 4,730; `p1_old_rating IS NULL` count ≈ 188; `avg_elo IS NULL` count ≈ 118; `old_rating IS NULL` (player_history_all) ≈ 5,937.
+9. NULLIF effect counts MATCH ledger-derived expected values within ±1 row (Section 3.6): `p0_old_rating IS NULL` count = expected_p0_unrated (ledger row 16); `p1_old_rating IS NULL` count = expected_p1_unrated (ledger row 20); `avg_elo IS NULL` count = expected_avg_elo_sentinel (ledger row 11); `old_rating IS NULL` (player_history_all) = expected_unrated (ledger row 34). All loaded at runtime per Invariant I7.
 10. is_unrated indicator counts EQUAL NULLIF NULL counts (consistency).
 11. Row counts UNCHANGED: `matches_1v1_clean.COUNT(*) = 17,814,947`; `player_history_all.COUNT(*) = 107,626,399`.
 12. CONSORT column-count table in artifact JSON reproduces drop counts: matches_1v1_clean (21→20; -3 +2); player_history_all (13→14; -0 +1 +1 modified).
