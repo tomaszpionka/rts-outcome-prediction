@@ -122,6 +122,31 @@ No changes to recommendation logic, ledger schema, override priority,
 or _recommend() function. Notebook re-executed end-to-end; all 12 gate
 criteria remain PASS.
 
+### NOTE-2 sanity check: password n_distinct=1 explained
+
+Reviewer-deep NOTE-2 asked for a sanity-check on aoec matches_1v1_clean
+`password` n_distinct=1 with 22.4% non-NULL rows ("implies a single
+password value in 13.6M rows"). Direct query against the DB confirms
+this is a SCHEMA finding, not a parse artifact:
+
+```sql
+SELECT password, COUNT(*) FROM matches_1v1_clean GROUP BY password;
+-- True : 13,695,200
+-- NULL : 47,367,192
+```
+
+`password` is BOOLEAN (verified via DESCRIBE), not VARCHAR. The reviewer's
+intuition (a "password value" string) doesn't apply: the column is a
+boolean indicator of "lobby has a password" (True) vs "lobby does not"
+(NULL coercion in raw → NULL in VIEW). All 13.7M password-protected
+lobbies in matches_1v1_clean carry `password=True`; n_distinct=1 in the
+non-NULL slice is therefore correct and expected, not a parse failure.
+
+The DROP_COLUMN recommendation via the 40-80% MAR-non-primary path
+(77.57% NULL) remains correct: in a ranked 1v1 context, password
+presence/absence is unlikely to be predictively meaningful. No code
+change needed; closing NOTE-2.
+
 ---
 
 ## 2026-04-16 — [Phase 01 / Step 01_04_00] Source Normalization to Canonical Long Skeleton

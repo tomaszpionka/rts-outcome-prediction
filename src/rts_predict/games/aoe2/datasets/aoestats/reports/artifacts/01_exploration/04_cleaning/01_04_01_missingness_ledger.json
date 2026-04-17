@@ -52,14 +52,14 @@
     },
     "team_0_elo": {
       "mechanism": "MCAR",
-      "justification": "ELO=-1 sentinel = isolated parse failures. 01_02_04 census min=-1, n_zero=4824.",
+      "justification": "ELO=-1 sentinel = isolated parse failures in raw matches_raw. 01_02_04 census: min=-1, n_zero=4824 in matches_raw scope. W4 spec-vs-ledger note: this spec entry records the design intent at the raw-table level (mechanism=MCAR, sentinel=-1). The ledger may report n_sentinel=0 / RETAIN_AS_IS / mechanism=N/A in matches_1v1_clean if the upstream filter (WHERE p0.winner != p1.winner restricting to ranked-1v1 decisive games) excludes the sentinel-bearing rows. Spec is preserved for documentation continuity; ledger reflects empirical post-filter observation. Both are correct per the override priority \u2014 see DS-AOESTATS-01 for the scope-expansion contingency.",
       "sentinel_value": -1,
       "carries_semantic_content": false,
       "is_primary_feature": true
     },
     "team_1_elo": {
       "mechanism": "MCAR",
-      "justification": "Symmetric to team_0_elo. 01_02_04 census min=-1, n_zero=192.",
+      "justification": "Symmetric to team_0_elo. 01_02_04 census: min=-1, n_zero=192 in matches_raw scope. Same W4 spec-vs-ledger note: sentinel may be filtered out in matches_1v1_clean scope (ledger reports RETAIN_AS_IS / mechanism=N/A); spec preserved for design intent.",
       "sentinel_value": -1,
       "carries_semantic_content": false,
       "is_primary_feature": true
