@@ -86,10 +86,10 @@ For each DS, recommendation cites the empirical ledger row + the rule from the 0
 | DS ID | Column(s) | Ledger evidence | Recommended decision | DDL effect | Justification |
 |---|---|---|---|---|---|
 | **DS-AOESTATS-01** | `team_0_elo`, `team_1_elo` (sentinel=-1, ABSENT in 1v1 scope) | `n_sentinel=0` in ledger; `pct_missing_total=0.0`. Ledger `recommendation=RETAIN_AS_IS / mechanism=N/A` (F1 zero-missingness override). | **NO-OP (RETAIN_AS_IS).** Both columns kept as-is. Add a documentation comment in the DDL noting that the upstream 1v1 ranked-decisive filter excludes the rows that carried sentinel=-1; if scope ever broadens, re-audit. | None | F1 override fired in ledger; sentinel empirically absent in this VIEW's filtered scope. Spec retains `mechanism=MCAR/sentinel=-1` for design intent (carried from raw matches_raw). |
-| **DS-AOESTATS-02** | `p0_old_rating`, `p1_old_rating` in `matches_1v1_clean`; `old_rating` in `player_history_all` (sentinel=0) | Ledger: `n_sentinel=4730` (p0, 0.0266%) / `n_sentinel=188` (p1, 0.0011%) / `n_sentinel=5937` (player_history_all old_rating, 0.0055%); `mechanism=MAR`; `recommendation=CONVERT_SENTINEL_TO_NULL` (non-binding because `carries_semantic_content=True`). | **CONVERT_SENTINEL_TO_NULL via NULLIF + ADD `is_unrated` indicator flag.** Apply to all 3 columns symmetrically. | `matches_1v1_clean`: `NULLIF(p0_old_rating, 0) AS p0_old_rating`, `NULLIF(p1_old_rating, 0) AS p1_old_rating`, `(p0_old_rating = 0) AS p0_is_unrated`, `(p1_old_rating = 0) AS p1_is_unrated`. `player_history_all`: `NULLIF(old_rating, 0) AS old_rating`, `(old_rating = 0) AS is_unrated`. | Mirrors the sc2egset DS-SC2-10 pattern (NULLIF + indicator) at <0.03% rate per ledger. NULLIF makes `IS NULL` semantics consistent for Phase 02 imputation; `is_unrated` flag preserves the missingness-as-signal information per scikit-learn `MissingIndicator` doctrine cited in 01_04_01. **NOTE:** This is the pragmatic recommendation — the alternative "retain as unrated category" remains in the Open Questions section. |
-| **DS-AOESTATS-03** | `avg_elo` (sentinel=0) in `matches_1v1_clean` | Ledger: `n_sentinel=118` (0.0007%); `mechanism=MAR`; `recommendation=CONVERT_SENTINEL_TO_NULL` (non-binding because `carries_semantic_content=True`). | **CONVERT_SENTINEL_TO_NULL via NULLIF.** No companion flag (avg_elo is a derived statistic; the underlying p0/p1 unrated-flags already capture the semantic content). | `NULLIF(avg_elo, 0) AS avg_elo` | Lowest sentinel rate (0.0007%); negligible. NULLIF makes the column safely usable in Phase 02 averaging operations without the 0-sentinel skewing means. The `p0_is_unrated`/`p1_is_unrated` indicators (DS-AOESTATS-02) already convey the unrated subgroup membership. |
-| **DS-AOESTATS-04** | `raw_match_type` (7,055 NULLs in matches_1v1_clean, 0.0396%) | Ledger: `n_null=7055`; `mechanism=MCAR`; `recommendation=RETAIN_AS_IS` (rate < 5% Schafer & Graham boundary). Ledger n_distinct=1.0 implies cardinality of the **non-null** values is 1 in the filtered scope. | **DROP_COLUMN.** | `matches_1v1_clean`: remove `raw_match_type` from SELECT. | Ledger `n_distinct=1.0` (over non-NULL rows in filtered scope) means the column is effectively constant in the 1v1-ranked-decisive scope; the upstream `leaderboard='random_map'` + `COUNT(*)=2` filters already enforce ranked 1v1, making `raw_match_type` informationally redundant. The 7,055 NULLs are MCAR but contribute no signal beyond what the upstream filter already encodes. Mirror of sc2egset DS-SC2-08 (constants-detection branch → DROP_COLUMN). |
-| **DS-AOESTATS-05** | `team1_wins` (target, BIGINT/BOOLEAN) | Ledger: `n_null=0`; `recommendation=RETAIN_AS_IS / mechanism=N/A`; F1 override fired. | **NO-OP (RETAIN_AS_IS).** | None | Zero NULLs verified. The `WHERE p0.winner != p1.winner` upstream exclusion in 01_04_01 already enforces decisiveness — there is no Undecided/Tie analog in aoestats (CRITICAL ASYMMETRY #5). No `is_decisive_result` flag is needed because the column is already strict 0/1. |
+| **DS-AOESTATS-02** | `p0_old_rating`, `p1_old_rating` in `matches_1v1_clean`; `old_rating` in `player_history_all` (sentinel=0) | Ledger: `n_sentinel=4730` (p0, 0.0266% of 17,814,947 matches_1v1_clean rows) / `n_sentinel=188` (p1, 0.0011% of 17,814,947) / `n_sentinel=5937` (player_history_all old_rating, 0.0055% of 107,626,399 rows); `mechanism=MAR`; `recommendation=CONVERT_SENTINEL_TO_NULL` (non-binding because `carries_semantic_content=True`). | **CONVERT_SENTINEL_TO_NULL via NULLIF + ADD `is_unrated` indicator flag.** Apply to all 3 columns symmetrically. | `matches_1v1_clean`: `NULLIF(p0_old_rating, 0) AS p0_old_rating`, `NULLIF(p1_old_rating, 0) AS p1_old_rating`, `(p0_old_rating = 0) AS p0_is_unrated`, `(p1_old_rating = 0) AS p1_is_unrated`. `player_history_all`: `NULLIF(old_rating, 0) AS old_rating`, `(old_rating = 0) AS is_unrated`. | Mirrors the sc2egset DS-SC2-10 pattern (NULLIF + indicator) at <0.03% rate per ledger. NULLIF makes `IS NULL` semantics consistent for Phase 02 imputation; `is_unrated` flag preserves the missingness-as-signal information per scikit-learn `MissingIndicator` doctrine cited in 01_04_01. **NOTE:** This is the pragmatic recommendation — the alternative "retain as unrated category" remains in the Open Questions section. |
+| **DS-AOESTATS-03** | `avg_elo` (sentinel=0) in `matches_1v1_clean` | Ledger: `n_sentinel=118` (0.0007% of 17,814,947 matches_1v1_clean rows; matches_raw scope had n_zero=121 — 3-row delta is the 1v1 filter discarding 3 sentinel rows); `mechanism=MAR`; `recommendation=CONVERT_SENTINEL_TO_NULL` (non-binding because `carries_semantic_content=True`). | **CONVERT_SENTINEL_TO_NULL via NULLIF.** No companion flag (avg_elo is a derived statistic; the underlying p0/p1 unrated-flags already capture the semantic content). | `NULLIF(avg_elo, 0) AS avg_elo` | Lowest sentinel rate (0.0007%); negligible. NULLIF makes the column safely usable in Phase 02 averaging operations without the 0-sentinel skewing means. The `p0_is_unrated`/`p1_is_unrated` indicators (DS-AOESTATS-02) already convey the unrated subgroup membership. |
+| **DS-AOESTATS-04** | `raw_match_type` (7,055 NULLs in matches_1v1_clean, 0.0396% of 17,814,947 rows) | Ledger: `n_null=7055`; `mechanism=MCAR`; `recommendation=RETAIN_AS_IS` (rate < 5% Schafer & Graham boundary). Ledger n_distinct=1.0 implies cardinality of the **non-null** values is 1 in the filtered scope. | **DROP_COLUMN** (NOTE-1 critique fix: explicit override of ledger's RETAIN_AS_IS — the constants-detection branch (W7 fix in 01_04_01 framework) is not mutually exclusive with rate-based recommendations and overrides when n_distinct=1 in the cleaned scope). | `matches_1v1_clean`: remove `raw_match_type` from SELECT. | Ledger `n_distinct=1.0` (over non-NULL rows in filtered scope) means the column is effectively constant in the 1v1-ranked-decisive scope; the upstream `leaderboard='random_map'` + `COUNT(*)=2` filters already enforce ranked 1v1, making `raw_match_type` informationally redundant. The 7,055 NULLs are MCAR but contribute no signal beyond what the upstream filter already encodes. Mirror of sc2egset DS-SC2-08 (constants-detection branch → DROP_COLUMN). |
+| **DS-AOESTATS-05** | `team1_wins` (target, **BOOLEAN** — verified per ledger row 22 + DDL `p1.winner AS team1_wins`) | Ledger: `n_null=0`; `recommendation=RETAIN_AS_IS / mechanism=N/A`; F1 override fired. | **NO-OP (RETAIN_AS_IS).** | None | Zero NULLs verified. The `WHERE p0.winner != p1.winner` upstream exclusion in 01_04_01 already enforces decisiveness — there is no Undecided/Tie analog in aoestats (CRITICAL ASYMMETRY #5). No `is_decisive_result` flag is needed because the column is already strict 0/1. |
 | **DS-AOESTATS-06** | `winner` in `player_history_all` | Ledger: `n_null=0`; `recommendation=RETAIN_AS_IS / mechanism=N/A`. | **NO-OP (RETAIN_AS_IS).** | None | Zero NULLs verified by 01_04_01 (round-2 reviewer-deep B3 fix). Re-asserted in this step's assertion battery. The 01_04_01 audit framework's target-override post-step would automatically flip this to `EXCLUDE_TARGET_NULL_ROWS` if NULLs surface in future loads — no Phase 02 code change required. |
 | **DS-AOESTATS-07** | `overviews_raw` (singleton metadata, 1 row) | 01_04_01 audit: out-of-analytical-scope; not used by any VIEW. | **FORMALLY DECLARE OUT-OF-ANALYTICAL-SCOPE in the cleaning registry + JSON artifact.** No DDL change. | None | Documentation-only resolution. The cleaning registry rule records this declaration so downstream Phase 02 / 03 / etc. cannot inadvertently treat the table as a feature source. |
 | **DS-AOESTATS-08** | `leaderboard`, `num_players` (constants in `matches_1v1_clean`) | Ledger `n_distinct=1` for both; `recommendation=DROP_COLUMN / mechanism=N/A`. | **DROP_COLUMN both.** | `matches_1v1_clean`: remove `leaderboard` and `num_players` from SELECT. RETAIN both in `player_history_all` (where they are NOT constants — `player_history_all` covers all leaderboards and player_counts). | Ledger constants-detection. Mirrors sc2egset DS-SC2-08 (12 go_* constants) pattern. The upstream `WHERE m.leaderboard='random_map'` and `COUNT(*)=2` filters reduce these columns to single values in this VIEW scope — zero information content, drop. |
@@ -301,11 +301,18 @@ FROM matches_1v1_clean;
 
 ```sql
 -- p0_is_unrated, p1_is_unrated, is_unrated all BOOLEAN
+-- Plus team1_wins type assertion (NOTE-3 critique fix: explicit BOOLEAN
+-- assertion catches any executor mistake of writing the schema YAML with
+-- wrong type for the prediction target).
 SELECT column_name, data_type
 FROM information_schema.columns
-WHERE (table_name = 'matches_1v1_clean' AND column_name IN ('p0_is_unrated', 'p1_is_unrated'))
+WHERE (table_name = 'matches_1v1_clean' AND column_name IN ('p0_is_unrated', 'p1_is_unrated', 'team1_wins'))
    OR (table_name = 'player_history_all' AND column_name = 'is_unrated');
--- Expected: 3 rows, all data_type='BOOLEAN'
+-- Expected: 4 rows, all data_type='BOOLEAN'
+--   matches_1v1_clean.p0_is_unrated     BOOLEAN
+--   matches_1v1_clean.p1_is_unrated     BOOLEAN
+--   matches_1v1_clean.team1_wins        BOOLEAN  (target — derived from p1.winner)
+--   player_history_all.is_unrated       BOOLEAN
 ```
 
 ### 3.5 No-new-NULLs assertions
@@ -331,11 +338,17 @@ SELECT
     COUNT(*) FILTER (WHERE p1_is_unrated = FALSE AND p1_old_rating IS NULL) AS p1_inconsistent,
     COUNT(*) FILTER (WHERE avg_elo IS NULL) AS avg_elo_null_after
 FROM matches_1v1_clean;
--- Expected per ledger:
---   p0_or_null_after = 4730   p0_unrated_flag = 4730   p0_inconsistent = 0
---   p1_or_null_after = 188    p1_unrated_flag = 188    p1_inconsistent = 0
---   avg_elo_null_after = 118
--- (Counts loaded from ledger at runtime; assertions parameterized — Invariant I7)
+-- WARNING-3 critique fix: expected counts are loaded from the 01_04_01
+-- ledger CSV at runtime per Invariant I7 — DO NOT hardcode literals here.
+-- Sample ledger-derived expectations (placeholders only — values come from
+-- ledger row 16/20/11 at notebook runtime):
+--   p0_or_null_after  = expected_p0_unrated  (loaded from ledger row 16: matches_1v1_clean.p0_old_rating.n_sentinel)
+--   p0_unrated_flag   = expected_p0_unrated  (same source — these MUST be equal post-NULLIF)
+--   p0_inconsistent   = 0                     (consistency invariant)
+--   p1_or_null_after  = expected_p1_unrated  (loaded from ledger row 20)
+--   p1_unrated_flag   = expected_p1_unrated  (same)
+--   p1_inconsistent   = 0
+--   avg_elo_null_after = expected_avg_elo_sentinel  (loaded from ledger row 11)
 
 -- player_history_all
 SELECT
@@ -343,7 +356,9 @@ SELECT
     COUNT(*) FILTER (WHERE is_unrated = TRUE) AS unrated_flag,
     COUNT(*) FILTER (WHERE is_unrated = FALSE AND old_rating IS NULL) AS inconsistent
 FROM player_history_all;
--- Expected: or_null_after = 5937, unrated_flag = 5937, inconsistent = 0
+-- Expected: or_null_after = expected_unrated  (loaded from ledger row 34: player_history_all.old_rating.n_sentinel)
+--           unrated_flag  = expected_unrated  (same)
+--           inconsistent  = 0
 ```
 
 ### 3.7 CONSORT column-count flow (Section 3.7 from sc2egset)
@@ -384,7 +399,9 @@ FROM player_history_all;
 
 ## Section 4 — New ROADMAP step entry for 01_04_02
 
-Mirror the sc2egset 01_04_02 step block (lines 999-1115) structure with aoestats-specific contents. The full YAML block to be inserted in `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md` immediately after the 01_04_01 step block (after line 939, before the `## Phase 02` placeholder header on line 945):
+Mirror the sc2egset 01_04_02 step block (sc2egset ROADMAP.md lines 999-1115) structure with aoestats-specific contents. The full block to be inserted in `src/rts_predict/games/aoe2/datasets/aoestats/reports/ROADMAP.md` immediately after the 01_04_01 step block (after line 939, before the `## Phase 02` placeholder header on line 945).
+
+**WARNING-4 critique fix — fence guidance for executor:** The block below begins with the `### Step 01_04_02 -- Data Cleaning Execution` markdown header on its own line, then a YAML code-fenced block. The plan's outer `~~~yaml ... ~~~` is a typographical container ONLY (using tildes here to avoid nested-backtick confusion). When pasting into ROADMAP.md, copy from the `### Step 01_04_02` heading through the closing ` ``` ` of the YAML block — do NOT include the plan's outer fence wrapper. The sc2egset 01_04_02 ROADMAP step block is the exact format reference.
 
 ```yaml
 ### Step 01_04_02 -- Data Cleaning Execution
@@ -709,7 +726,7 @@ The user's pattern (per the task brief) is to approve quickly + run 3 strict adv
 - [x] `source_artifacts` non-empty (frontmatter)
 - [x] `invariants_touched` populated: I3, I5, I6, I7, I8, I9, I10
 - [x] No forbidden taxonomy terms ("Stage", "Experiment" as work-unit, "Milestone", "Workstream", "Component" as work-unit, "Section" unqualified)
-- [x] CRITICAL ASYMMETRY items #1-#7 from user task brief addressed: (1) target name `team1_wins` BIGINT; (2) `notes:` vocabulary KEPT; (3) DS-AOESTATS-08 listed in resolution table; (4) DS-AOESTATS-01 sentinel-absent + DS-AOESTATS-02/03 NULLIF; (5) no `is_decisive_result` analog; (6) no APM analog; (7) no go_* analog.
+- [x] CRITICAL ASYMMETRY items #1-#7 from user task brief addressed: (1) target name `team1_wins` BOOLEAN (per ledger row 22 + DDL `p1.winner AS team1_wins`); (2) `notes:` vocabulary KEPT; (3) DS-AOESTATS-08 listed in resolution table; (4) DS-AOESTATS-01 sentinel-absent + DS-AOESTATS-02/03 NULLIF; (5) no `is_decisive_result` analog; (6) no APM analog; (7) no go_* analog.
 - [x] Sandbox notebook path specified: `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_02_data_cleaning_execution.py`
 - [x] Artifacts target specified: `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/`
 - [x] WARNING-5 / NOTE-2 lesson incorporated (grep ROADMAP for 01_04_03+ before PIPELINE_SECTION_STATUS bump)
