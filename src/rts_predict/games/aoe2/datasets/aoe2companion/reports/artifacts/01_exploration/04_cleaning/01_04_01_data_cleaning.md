@@ -38,8 +38,8 @@
 
 | Leaderboard | internalLeaderboardId | N rows |
 |-------------|----------------------|--------|
-| rm_1v1 | 6 | 53,686,164 |
 | qp_rm_1v1 | 18 | 7,376,228 |
+| rm_1v1 | 6 | 53,686,164 |
 
 ### V8 Leaderboard Diversity (player_history_all)
 

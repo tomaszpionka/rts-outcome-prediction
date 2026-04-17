@@ -960,192 +960,15 @@ _missingness_spec = {
 print(f"_missingness_spec loaded: {len(_missingness_spec)} columns declared")
 
 
-def _build_sentinel_predicate(col, sentinel_value):
-    """Construct the SQL predicate for sentinel matching."""
-    if sentinel_value is None:
-        return None, None
-    if isinstance(sentinel_value, list):
-        quoted = []
-        for v in sentinel_value:
-            if isinstance(v, str):
-                quoted.append("'" + v.replace("'", "''") + "'")
-            else:
-                quoted.append(repr(v))
-        return f'IN ({", ".join(quoted)})', repr(sentinel_value)
-    if isinstance(sentinel_value, str):
-        escaped = sentinel_value.replace("'", "''")
-        return f"= '{escaped}'", repr(sentinel_value)
-    return f"= {sentinel_value!r}", repr(sentinel_value)
-
-
-def _sentinel_census(view_name, total_rows, spec):
-    """Run sentinel COUNT(*) FILTER per spec'd column. Returns list of dicts."""
-    rows = []
-    for col, meta in spec.items():
-        sentinel_value = meta["sentinel_value"]
-        predicate, sentinel_repr = _build_sentinel_predicate(col, sentinel_value)
-        if predicate is None:
-            n_sentinel = 0
-        else:
-            sql = f'SELECT COUNT(*) FILTER (WHERE "{col}" {predicate}) FROM {view_name}'
-            n_sentinel = con.execute(sql).fetchone()[0]
-        pct_sentinel = round(100.0 * n_sentinel / total_rows, 4) if total_rows > 0 else 0.0
-        rows.append({
-            "column": col,
-            "sentinel_value": sentinel_repr,
-            "n_sentinel": int(n_sentinel),
-            "pct_sentinel": float(pct_sentinel),
-        })
-    return rows
-
-
-def _detect_constants(view_name, columns, identity_cols=frozenset()):
-    """Per-column n_distinct check. Returns {col: n_distinct}.
-
-    Identity columns are skipped (constants-detection runtime budget W6).
-    """
-    out = {}
-    for col in columns:
-        if col in identity_cols:
-            out[col] = None
-            continue
-        sql = f'SELECT COUNT(DISTINCT "{col}") FROM {view_name}'
-        out[col] = int(con.execute(sql).fetchone()[0])
-    return out
-
-
-def _recommend(col, mechanism, pct, is_primary, n_null, n_sentinel):
-    """Decision tree per temp/null_handling_recommendations.md S3.1."""
-    if n_sentinel > 0 and n_null == 0 and pct < 5.0:
-        return "CONVERT_SENTINEL_TO_NULL", (
-            f"Low sentinel rate ({pct:.4f}%); convert sentinel to NULL via "
-            f"NULLIF in 01_04_02+ DDL pass per Rule S3 (negligible rate). "
-            f"NOTE: if carries_semantic_content=True, recommendation is non-binding."
-        )
-    if pct == 0.0:
-        return "RETAIN_AS_IS", "Zero missingness observed; no action needed."
-    if pct > 80.0:
-        return "DROP_COLUMN", (
-            f"NULL+sentinel rate {pct:.2f}% exceeds 80% (Rule S4 / van Buuren 2018). "
-            f"Imputation indefensible at this rate."
-        )
-    if pct > 40.0:
-        if mechanism == "MNAR":
-            return "DROP_COLUMN", (
-                f"Rate {pct:.2f}% in 40-80% MNAR band; no defensible imputation."
-            )
-        if is_primary:
-            return "FLAG_FOR_IMPUTATION", (
-                f"Rate {pct:.2f}% in 40-80%; primary feature exception per Rule S4. "
-                f"Phase 02: conditional imputation + add_indicator."
-            )
-        return "DROP_COLUMN", (
-            f"Rate {pct:.2f}% in 40-80%; non-primary feature; cost/benefit favors "
-            f"simplicity per Rule S4."
-        )
-    if pct > 5.0:
-        return "FLAG_FOR_IMPUTATION", (
-            f"Rate {pct:.2f}% in 5-40%; flag for Phase 02 imputation."
-        )
-    return "RETAIN_AS_IS", (
-        f"Rate {pct:.2f}% < 5% (Schafer & Graham 2002 boundary citation). "
-        f"Listwise deletion or simple imputation acceptable in Phase 02."
-    )
-
-
-def _consolidate_ledger(view_name, df_null, sentinel_rows, spec, dtype_map,
-                        total_rows, constants_map, target_cols, identity_cols=frozenset()):
-    """Merge NULL census + sentinel census + constants detection + spec."""
-    sentinel_map = {r["column"]: r for r in sentinel_rows}
-    ledger = []
-    for _, nrow in df_null.iterrows():
-        col = nrow["column"] if "column" in nrow else nrow["column_name"]
-        n_null = int(nrow["null_count"])
-        pct_null = float(nrow.get("null_pct", round(100.0 * n_null / total_rows, 4)))
-        srow = sentinel_map.get(col, {"sentinel_value": None, "n_sentinel": 0, "pct_sentinel": 0.0})
-        n_sentinel = int(srow["n_sentinel"])
-        pct_sentinel = float(srow["pct_sentinel"])
-        n_total_missing = n_null + n_sentinel
-        pct_missing_total = round(pct_null + pct_sentinel, 4)
-        spec_entry = spec.get(col)
-        n_distinct = constants_map.get(col, None)
-
-        if col in identity_cols:
-            mechanism = "N/A"
-            mech_just = (
-                f"Identity column; n_distinct check skipped per W6 (constants-detection "
-                f"runtime budget). Zero NULLs by definition (asserted upstream)."
-            )
-            carries_sem = False
-            is_primary = False
-            rec = "RETAIN_AS_IS"
-            rec_just = "Identity column; no missingness possible by upstream assertion."
-        elif n_distinct == 1 and n_null == 0 and n_sentinel == 0:
-            mechanism = "N/A"
-            mech_just = (
-                f"True constant column; n_distinct=1 across {total_rows:,} rows "
-                f"(zero NULLs, zero sentinels). No information content for prediction."
-            )
-            carries_sem = False
-            is_primary = False
-            rec = "DROP_COLUMN"
-            rec_just = "True constant column; n_distinct=1; no information content."
-        elif n_total_missing == 0:
-            mechanism = "N/A"
-            mech_just = "Zero missingness observed; no action needed."
-            carries_sem = bool(spec_entry["carries_semantic_content"]) if spec_entry else False
-            is_primary = bool(spec_entry["is_primary_feature"]) if spec_entry else False
-            rec = "RETAIN_AS_IS"
-            rec_just = "Zero missingness observed; no action needed."
-        elif spec_entry is not None:
-            mechanism = spec_entry["mechanism"]
-            mech_just = spec_entry["justification"]
-            carries_sem = bool(spec_entry["carries_semantic_content"])
-            is_primary = bool(spec_entry["is_primary_feature"])
-            rec, rec_just = _recommend(col, mechanism, pct_missing_total,
-                                       is_primary, n_null, n_sentinel)
-        else:
-            mechanism = "MAR"
-            mech_just = (
-                f"No _missingness_spec entry; conservative MAR assumption. "
-                f"Effective missingness {pct_missing_total:.2f}% "
-                f"(NULL: {pct_null:.2f}%, sentinel: {pct_sentinel:.2f}%)."
-            )
-            carries_sem = False
-            is_primary = False
-            rec, rec_just = _recommend(col, mechanism, pct_missing_total,
-                                       is_primary, n_null, n_sentinel)
-
-        if col in target_cols and n_total_missing > 0:
-            rec = "EXCLUDE_TARGET_NULL_ROWS"
-            rec_just = (
-                "Per Rule S2: target NULLs/sentinels excluded from prediction "
-                "scope, retained in history for feature computation. "
-                "NEVER impute target."
-            )
-
-        ledger.append({
-            "view": view_name,
-            "column": col,
-            "dtype": dtype_map.get(col, "UNKNOWN"),
-            "n_total": int(total_rows),
-            "n_null": n_null,
-            "pct_null": pct_null,
-            "sentinel_value": srow["sentinel_value"],
-            "n_sentinel": n_sentinel,
-            "pct_sentinel": pct_sentinel,
-            "pct_missing_total": pct_missing_total,
-            "n_distinct": n_distinct,
-            "mechanism": mechanism,
-            "mechanism_justification": mech_just,
-            "recommendation": rec,
-            "recommendation_justification": rec_just,
-            "carries_semantic_content": carries_sem,
-            "is_primary_feature": is_primary,
-        })
-    return pd.DataFrame(ledger)
-
-print("Missingness audit helpers defined.")
+from rts_predict.common.missingness_audit import (
+    _build_sentinel_predicate,
+    _sentinel_census,
+    _detect_constants,
+    _recommend,
+    _consolidate_ledger,
+    build_audit_views_block,
+)
+print("Helper functions imported from rts_predict.common.missingness_audit.")
 
 # %%
 # Pass 2+3: sentinel census + constants detection + ledger for matches_1v1_clean
@@ -1159,10 +982,10 @@ _dtype_m1 = {
 }
 
 print(f"Pass 2: sentinel census for {_VIEW_M1} ...")
-sentinel_rows_m1 = _sentinel_census(_VIEW_M1, total_rows_m1, _missingness_spec)
+sentinel_rows_m1 = _sentinel_census(_VIEW_M1, total_rows_m1, _missingness_spec, con)
 
 print(f"Pass 3: constants detection for {_VIEW_M1} (skipping identity cols: {_IDENTITY_COLS_M1}) ...")
-constants_m1 = _detect_constants(_VIEW_M1, list(_dtype_m1.keys()), identity_cols=_IDENTITY_COLS_M1)
+constants_m1 = _detect_constants(_VIEW_M1, list(_dtype_m1.keys()), con, identity_cols=_IDENTITY_COLS_M1)
 
 df_null_m1_for_ledger = pd.DataFrame(null_results_m1)
 df_ledger_m1 = _consolidate_ledger(
@@ -1239,10 +1062,10 @@ _dtype_ph = {
 }
 
 print(f"Pass 2: sentinel census for {_VIEW_PH} ...")
-sentinel_rows_ph_spec = _sentinel_census(_VIEW_PH, total_rows_ph, _missingness_spec)
+sentinel_rows_ph_spec = _sentinel_census(_VIEW_PH, total_rows_ph, _missingness_spec, con)
 
 print(f"Pass 3: constants detection for {_VIEW_PH} (skipping identity cols: {_IDENTITY_COLS_PH}) ...")
-constants_ph = _detect_constants(_VIEW_PH, list(_dtype_ph.keys()), identity_cols=_IDENTITY_COLS_PH)
+constants_ph = _detect_constants(_VIEW_PH, list(_dtype_ph.keys()), con, identity_cols=_IDENTITY_COLS_PH)
 
 df_null_ph_for_ledger = pd.DataFrame(null_results_ph)
 df_ledger_ph = _consolidate_ledger(
@@ -1760,16 +1583,10 @@ artifact["missingness_audit"] = {
         }
         for col, m in _missingness_spec.items()
     },
-    "matches_1v1_clean": {
-        "total_rows": int(total_rows_m1),
-        "n_cols": len(df_ledger_m1),
-        "ledger": df_ledger_m1.to_dict(orient="records"),
-    },
-    "player_history_all": {
-        "total_rows": int(total_rows_ph),
-        "n_cols": len(df_ledger_ph),
-        "ledger": df_ledger_ph.to_dict(orient="records"),
-    },
+    "views": build_audit_views_block({
+        _VIEW_M1: {"total_rows": int(total_rows_m1), "df_ledger": df_ledger_m1},
+        _VIEW_PH: {"total_rows": int(total_rows_ph), "df_ledger": df_ledger_ph},
+    })["views"],
     "decisions_surfaced": _decisions_surfaced_list,
 }
 

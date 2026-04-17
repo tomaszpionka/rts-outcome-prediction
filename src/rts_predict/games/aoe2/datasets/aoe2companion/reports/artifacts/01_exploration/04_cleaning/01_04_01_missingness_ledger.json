@@ -38,12 +38,12 @@
     },
     "per_view_identity_cols": {
       "matches_1v1_clean": [
-        "profileId",
-        "matchId"
+        "matchId",
+        "profileId"
       ],
       "player_history_all": [
-        "profileId",
-        "matchId"
+        "matchId",
+        "profileId"
       ]
     }
   },
@@ -525,7 +525,7 @@
       "pct_missing_total": 0.0,
       "n_distinct": 1.0,
       "mechanism": "N/A",
-      "mechanism_justification": "True constant column; n_distinct=1 across 61,062,392 rows (zero NULLs, zero sentinels). No information content for prediction.",
+      "mechanism_justification": "True constant column; n_distinct=1 across 61,062,392 rows (zero NULLs, zero sentinels). No information content for prediction. Recommend drop in 01_04_02+.",
       "recommendation": "DROP_COLUMN",
       "recommendation_justification": "True constant column; n_distinct=1; no information content.",
       "carries_semantic_content": false,
@@ -774,7 +774,7 @@
       "mechanism": "MAR",
       "mechanism_justification": "Schema-evolution column (patch-dependent). 01_02_04 reports null_pct=49.30%.",
       "recommendation": "FLAG_FOR_IMPUTATION",
-      "recommendation_justification": "Rate 37.18% in 5-40%; flag for Phase 02 imputation.",
+      "recommendation_justification": "Rate 37.18% in 5-40%; flag for Phase 02 imputation (conditional for MAR, simple for MCAR per Rules from \u00a73.1).",
       "carries_semantic_content": false,
       "is_primary_feature": false
     },
@@ -1173,7 +1173,7 @@
       "mechanism": "MAR",
       "mechanism_justification": "Unranked matches lack rating. In matches_1v1_clean (ranked scope), effective NULL rate is ~26% -- primary feature, not dropped per Rule S4 exception. The matches_1v1_clean VIEW asserts `rating >= 0` upstream, so the -1 sentinel is filtered before the audit sees it; n_sentinel=0 in the ledger reflects upstream filtering, not absence of the encoding. Source: 01_03_03 + this audit.",
       "recommendation": "FLAG_FOR_IMPUTATION",
-      "recommendation_justification": "Rate 26.20% in 5-40%; flag for Phase 02 imputation.",
+      "recommendation_justification": "Rate 26.20% in 5-40%; flag for Phase 02 imputation (conditional for MAR, simple for MCAR per Rules from \u00a73.1).",
       "carries_semantic_content": true,
       "is_primary_feature": true
     },
@@ -1247,7 +1247,7 @@
       "pct_missing_total": 0.0,
       "n_distinct": 1.0,
       "mechanism": "N/A",
-      "mechanism_justification": "True constant column; n_distinct=1 across 61,062,392 rows (zero NULLs, zero sentinels). No information content for prediction.",
+      "mechanism_justification": "True constant column; n_distinct=1 across 61,062,392 rows (zero NULLs, zero sentinels). No information content for prediction. Recommend drop in 01_04_02+.",
       "recommendation": "DROP_COLUMN",
       "recommendation_justification": "True constant column; n_distinct=1; no information content.",
       "carries_semantic_content": false,
@@ -1513,7 +1513,7 @@
       "pct_missing_total": 0.4578,
       "n_distinct": 118.0,
       "mechanism": "MAR",
-      "mechanism_justification": "No _missingness_spec entry; conservative MAR assumption. Effective missingness 0.46% (NULL: 0.46%, sentinel: 0.00%).",
+      "mechanism_justification": "No _missingness_spec entry; conservative MAR assumption. Observed effective missingness 0.46% (NULL: 0.46%, sentinel: 0.00%).",
       "recommendation": "RETAIN_AS_IS",
       "recommendation_justification": "Rate 0.46% < 5% (Schafer & Graham 2002 boundary citation). Listwise deletion or simple imputation acceptable in Phase 02.",
       "carries_semantic_content": false,
@@ -1572,7 +1572,7 @@
       "mechanism": "MAR",
       "mechanism_justification": "Unranked matches lack rating. In matches_1v1_clean (ranked scope), effective NULL rate is ~26% -- primary feature, not dropped per Rule S4 exception. The matches_1v1_clean VIEW asserts `rating >= 0` upstream, so the -1 sentinel is filtered before the audit sees it; n_sentinel=0 in the ledger reflects upstream filtering, not absence of the encoding. Source: 01_03_03 + this audit.",
       "recommendation": "FLAG_FOR_IMPUTATION",
-      "recommendation_justification": "Rate 39.63% in 5-40%; flag for Phase 02 imputation.",
+      "recommendation_justification": "Rate 39.63% in 5-40%; flag for Phase 02 imputation (conditional for MAR, simple for MCAR per Rules from \u00a73.1).",
       "carries_semantic_content": true,
       "is_primary_feature": true
     },
@@ -1629,7 +1629,7 @@
       "mechanism": "MAR",
       "mechanism_justification": "Team number; sentinel 255 per matches_raw schema YAML notes.",
       "recommendation": "FLAG_FOR_IMPUTATION",
-      "recommendation_justification": "Rate 5.02% in 5-40%; flag for Phase 02 imputation.",
+      "recommendation_justification": "Rate 5.02% in 5-40%; flag for Phase 02 imputation (conditional for MAR, simple for MCAR per Rules from \u00a73.1).",
       "carries_semantic_content": true,
       "is_primary_feature": false
     },
@@ -1724,7 +1724,7 @@
       "mechanism": "MAR",
       "mechanism_justification": "Player chose not to disclose country. Source: 01_02_04 distribution.",
       "recommendation": "FLAG_FOR_IMPUTATION",
-      "recommendation_justification": "Rate 8.30% in 5-40%; flag for Phase 02 imputation.",
+      "recommendation_justification": "Rate 8.30% in 5-40%; flag for Phase 02 imputation (conditional for MAR, simple for MCAR per Rules from \u00a73.1).",
       "carries_semantic_content": false,
       "is_primary_feature": false
     },
@@ -1741,7 +1741,7 @@
       "pct_missing_total": 0.0,
       "n_distinct": 1.0,
       "mechanism": "N/A",
-      "mechanism_justification": "True constant column; n_distinct=1 across 264,132,745 rows (zero NULLs, zero sentinels). No information content for prediction.",
+      "mechanism_justification": "True constant column; n_distinct=1 across 264,132,745 rows (zero NULLs, zero sentinels). No information content for prediction. Recommend drop in 01_04_02+.",
       "recommendation": "DROP_COLUMN",
       "recommendation_justification": "True constant column; n_distinct=1; no information content.",
       "carries_semantic_content": false,
