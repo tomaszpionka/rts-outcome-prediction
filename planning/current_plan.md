@@ -83,7 +83,7 @@ For each DS-SC2-NN, I cite the ledger row (view + column + n_sentinel + pct_miss
 
 **Question (from ROADMAP):** Convert MMR=0 to NULL and drop, OR retain MMR=0 as explicit `unranked` categorical alongside `is_mmr_missing`, OR run rated-subset only as sensitivity arm?
 
-**Decision:** **DROP `MMR` from both VIEWs; RETAIN `is_mmr_missing` as a derived boolean.** Convert MMR=0 to NULL via NULLIF inside `matches_flat_clean` and `player_history_all` SELECT lists, then drop the resulting MMR column from both. The `is_mmr_missing` boolean is the only signal preserved (it captures the rated vs unrated distinction, which is the dominant axis at 83.95%).
+**Decision:** **DROP `MMR` from both VIEWs; RETAIN `is_mmr_missing` as a derived boolean.** Remove `mf.MMR` from the SELECT list of both VIEWs; do NOT use NULLIF (MMR is dropped, so converting it to NULL first would be a no-op). The `is_mmr_missing` derived column reads directly from `mf.MMR` in the source `matches_flat` VIEW (which is unchanged per I9 and the structural-reference assumption), so the boolean signal is preserved without needing MMR in the cleaned VIEWs. The boolean captures the rated vs unrated distinction, which is the dominant axis at 83.95%.
 
 **Rationale:**
 - Ledger justification text: *"NULL+sentinel rate 83.95% exceeds 80% (Rule S4 / van Buuren 2018). Imputation indefensible at this rate."*
@@ -156,7 +156,7 @@ For each DS-SC2-NN, I cite the ledger row (view + column + n_sentinel + pct_miss
 
 **Rationale:**
 - Ledger recommendation `EXCLUDE_TARGET_NULL_ROWS` is correct **for the target VIEW** (`matches_flat_clean`, where these rows are already excluded). For the **history VIEW**, excluding the rows entirely would lose 26 games of valid context (player skill, race chosen, opponent encountered, map played, started_timestamp) — context that should still feed feature engineering even when the outcome was technically a draw.
-- Per Manual §4.2 (preserve raw + flag rather than delete), the cleanest pattern is to retain the rows with their literal result and add a flag (`is_decisive_result`) so Phase 02 can choose its denominator policy without modifying the VIEW.
+- Per Manual §4.2 (preserve raw + flag rather than delete) AND per the audit's **B6 deferral framing** (sentinel-with-semantic-content cases — `result IN ('Undecided', 'Tie')` carries genuine game-state meaning), the audit explicitly marks `EXCLUDE_TARGET_NULL_ROWS` as non-binding and surfaces the question for downstream resolution. The planner here exercises that B6 deferral by choosing the retain-with-flag arm: preserve the literal result + add `is_decisive_result` so Phase 02 can choose its denominator policy without modifying the VIEW.
 - Alternative considered (NULLIF result to NULL when `result NOT IN ('Win','Loss')`): rejected because it conflates `Win/Loss with NULL outcome` (which can mean either Undecided or Tie or true data missingness) and loses the Undecided-vs-Tie distinction. Keeping the literal string preserves provenance.
 - Alternative considered (re-encode `Undecided`/`Tie` to a single 'DRAW' bucket via CASE WHEN): rejected because it makes the 4-distinct-value column 3-valued for no clear analytical gain; Phase 02 can map to 'DRAW' on read if needed.
 - Alternative considered (drop rows with target IN ('Undecided','Tie')): rejected per the rationale above — losing 26 games of context.
@@ -249,8 +249,7 @@ Per ledger constants-detection branch, the following columns are reported `n_dis
 11. `go_teamsTogether` (BOOLEAN)
 12. `go_userDifficulty` (BIGINT)
 
-(That's actually 12 in `matches_flat_clean` per direct count of ledger rows where `n_distinct == 1.0` and column starts with `go_`.) Verifying from CSV: rows 12, 17, 18, 19, 20, 21, 22, 23, 24, 25, 50 — checking again:
-- `go_advancedSharedControl`, `go_battleNet`, `go_cooperative`, `go_fog`, `go_heroDuplicatesAllowed`, `go_lockTeams`, `go_noVictoryOrDefeat`, `go_observers`, `go_practice`, `go_randomRaces`, `go_teamsTogether`, `go_userDifficulty` = **12 constants**.
+**Verified count:** 12 `go_*` constant columns in matches_flat_clean (direct CSV grep: ledger rows where `n_distinct == 1.0` and column name starts with `go_` returns exactly the 12 listed above). Identical 12 in player_history_all.
 
 **In `player_history_all` (12 constants):** same set.
 
@@ -288,7 +287,7 @@ Per ledger constants-detection branch, the following columns are reported `n_dis
 - **Alternative considered (NULLIF → NULL, retain column):** rejected because column becomes 99.9955% one value + 0.0045% NULL — effectively constant.
 - **Alternative considered (retain 0 + `is_handicap_anomalous` flag):** the flag is currently in the VIEW but its base rate is 0.0045% — it would never be selected as a feature by any reasonable Phase 02 pipeline. Dropping the column avoids carrying a near-constant.
 - **Alternative considered (drop the 2 anomalous replays entirely via replay-level CTE):** rejected as too aggressive — these replays are otherwise valid 1v1_decisive records; flagging or dropping the column is sufficient.
-- **Override of audit recommendation rationale:** The audit's `CONVERT_SENTINEL_TO_NULL` recommendation is explicitly tagged "non-binding" because `carries_semantic_content=True`. The planner's override here applies the same logic that DS-SC2-10 (APM) and DS-SC2-09 (handicap) were left non-binding for: a low-rate sentinel in an effectively-constant column does not warrant DDL machinery. Drop is cleaner.
+- **Override of audit recommendation rationale:** The audit's `CONVERT_SENTINEL_TO_NULL` recommendation is explicitly tagged "non-binding" because `carries_semantic_content=True` (B6 deferral). DROP is the right resolution here per the same logic that drives DS-SC2-08 (constants policy): a column with `n_distinct=1` (or n_distinct=2 with 99.9955% one value, as here) is effectively a TRUE-constant by W7's relaxed definition. The 12 go_* columns flagged by W7 are dropped wholesale; handicap belongs to that family — 2 outliers do not justify carrying a column that's otherwise constant. The B6 deferral framework allows planner overrides for semantic-content sentinels; this override applies the constants-policy reasoning rather than the low-rate-NULLIF reasoning.
 
 **DDL effect:**
 - `matches_flat_clean`: remove `mf.handicap` and `is_handicap_anomalous` from SELECT.
@@ -384,19 +383,18 @@ Columns currently present (per current DDL, Section 1 lines 519-590) → cleanin
 | **go_teamsTogether** | **DROP** (constant) | DS-SC2-08 |
 | **go_userDifficulty** | **DROP** (constant) | DS-SC2-08 |
 
-**Total cleaning: 49 cols → 30 cols (drop 19, no new cols added).**
+**Total cleaning: 49 cols → 28 cols (drop 21, no new cols added).**
 
 Drop count by source:
 - DS-SC2-01 (MMR): 1
 - DS-SC2-02 (highestLeague): 1
 - DS-SC2-03 (clanTag): 1
-- DS-SC2-06 (map size + flag): 3
-- DS-SC2-07 (mapAuthorName): 1
-- DS-SC2-08 (constants): 12
-- DS-SC2-09 (handicap + flag): 2
-- **Sum: 21 — wait, recount.**
+- DS-SC2-06 (gd_mapSizeX, gd_mapSizeY, is_map_size_missing): 3
+- DS-SC2-07 (gd_mapAuthorName): 1
+- DS-SC2-08 (12 go_* constants): 12
+- DS-SC2-09 (handicap, is_handicap_anomalous): 2
 
-Recount drops above: MMR=1, handicap=1, is_handicap_anomalous=1, highestLeague=1, clanTag=1, gd_mapSizeX=1, gd_mapSizeY=1, is_map_size_missing=1, gd_mapAuthorName=1, 12 constants = **21 drops**, current 49 cols → **28 cols**. (Verifies: 49 - 21 = 28.)
+**Total drops: 21. Final column count: 49 − 21 = 28.**
 
 ### `player_history_all` — final column set
 
@@ -462,8 +460,14 @@ Per Manual §4.4 (re-run all data invariants post-cleaning). The notebook will e
 
 ### 3.3 Forbidden-column assertions
 
-- For `matches_flat_clean`: assert dropped columns are absent: `MMR`, `handicap`, `is_handicap_anomalous`, `highestLeague`, `clanTag`, `gd_mapSizeX`, `gd_mapSizeY`, `is_map_size_missing`, `gd_mapAuthorName`, and the 12 `go_*` constants. Plus the 4 I3 cols already excluded (APM, SQ, supplyCappedPercent, header_elapsedGameLoops). Plus `details_gameSpeed`, `gd_gameSpeed` (constants from 01_04_01). Plus `gd_isBlizzardMap` (duplicate). Plus 4 cosmetic colour cols.
-- For `player_history_all`: assert dropped columns are absent: `MMR`, `handicap`, `highestLeague`, `clanTag`, and the 12 `go_*` constants.
+**Two sub-categories** to keep the cleaning_registry honest:
+
+**(3.3a) Newly dropped in 01_04_02** — assert these are absent post-DDL:
+- For `matches_flat_clean` (21 cols): `MMR`, `handicap`, `is_handicap_anomalous`, `highestLeague`, `clanTag`, `gd_mapSizeX`, `gd_mapSizeY`, `is_map_size_missing`, `gd_mapAuthorName`, and the 12 `go_*` constants.
+- For `player_history_all` (16 cols): `MMR`, `handicap`, `highestLeague`, `clanTag`, and the 12 `go_*` constants.
+
+**(3.3b) Verify still absent — pre-existing exclusions from prior PRs / 01_04_01** (NOT counted as 01_04_02 actions in the cleaning_registry):
+- For `matches_flat_clean` only: 4 I3 cols (APM, SQ, supplyCappedPercent, header_elapsedGameLoops) excluded by PRs #138/#139 and 01_04_01; `details_gameSpeed`, `gd_gameSpeed` (constants from prior cleaning); `gd_isBlizzardMap` (duplicate); 4 cosmetic colour cols. These were never SELECTed in the current matches_flat_clean DDL — assertions are defense-in-depth verification, not new cleaning actions.
 
 ### 3.4 New-column assertions
 
@@ -688,8 +692,11 @@ research_log_entry: "Required on completion."
 22. **Cell — Cleaning registry update** (Section 3.8) — Build the 9 new rule-rows.
 23. **Cell — Build artifact JSON** (Section 3.9) — Single dict with all sections; write to `artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json`.
 24. **Cell — Build markdown report** — Mirror 01_04_01 markdown format; write to `01_04_02_post_cleaning_validation.md`. Sections: Summary, Per-DS Resolutions (table + rationale), Cleaning Registry (table), CONSORT Column-Count Flow, Subgroup Impact, Validation Results.
-25. **Cell — Update player_history_all schema YAML** — Re-run `DESCRIBE player_history_all`; rewrite `data/db/schemas/views/player_history_all.yaml` with new column list (drop MMR, handicap, highestLeague, clanTag, 12 go_* constants; add is_decisive_result, is_apm_unparseable; update APM description). Generated_date 2026-04-17. Step "01_04_02".
-26. **Cell — Create matches_flat_clean schema YAML (NEW)** — Mirror player_history_all YAML structure. `DESCRIBE matches_flat_clean`; write to `data/db/schemas/views/matches_flat_clean.yaml`.
+25. **Cell — Update player_history_all schema YAML** — Re-run `DESCRIBE player_history_all`; rewrite `data/db/schemas/views/player_history_all.yaml` with new column list (drop MMR, handicap, highestLeague, clanTag, 12 go_* constants; add is_decisive_result, is_apm_unparseable; update APM description). Generated_date 2026-04-17. Step "01_04_02". **CRITICAL I3 metadata for new flag columns (BLOCKER-4 / BLOCKER-5 fixes):**
+    - `is_decisive_result` entry MUST include `notes: "POST_GAME_HISTORICAL — derived from result IN ('Win','Loss'). For any prediction at game T, Phase 02 MUST filter match_time < T before aggregating any function of this flag (e.g., decisive-rate features). Use as historical-context signal only; never as a within-game feature for matches_flat_clean prediction VIEW."`
+    - `is_apm_unparseable` entry MUST include `notes: "IN_GAME_HISTORICAL — derived from APM = 0 (an in-game-derived signal). Inherits APM's IN_GAME provenance. For any prediction at game T, Phase 02 MUST filter match_time < T before aggregating. The flag exists in player_history_all only (NOT in matches_flat_clean) precisely to enforce I3."`
+    - Update the YAML's invariants block to add a new provenance category 'POST_GAME_HISTORICAL' alongside the existing 'PRE_GAME' / 'IN_GAME_HISTORICAL' descriptions, with a Phase-02-must-filter-by-match_time-T constraint stated explicitly.
+26. **Cell — Create matches_flat_clean schema YAML (NEW)** — Mirror **the existing `player_history_all.yaml` flat-list shape** (top-level `table:`, `dataset:`, `columns: - name: ...` entries); the richer `docs/templates/duckdb_schema_template.yaml` Section A/`value:`/`required:` shape is NOT used here because no current schema YAML in the project follows it. `DESCRIBE matches_flat_clean`; write to `data/db/schemas/views/matches_flat_clean.yaml`. **Column ordering in YAML:** match the DDL SELECT-list order from `CREATE OR REPLACE matches_flat_clean` cell 14 verbatim (no re-sorting); this gives downstream reviewers a line-by-line diff that mirrors the SQL.
 27. **Cell — Close connection** — `db.close()`.
 28. **Cell — Final summary print** — Column counts before/after, drops applied, 9 new cleaning registry rules, gate predicate verdict.
 
@@ -716,7 +723,7 @@ research_log_entry: "Required on completion."
     completed_at: "2026-04-17"
 ```
 
-2. **PIPELINE_SECTION_STATUS.yaml** — Per the derivation comments in the file ("Pipeline section is complete when ALL its steps are complete"), 01_04 transitions from `in_progress` to `complete` **iff no further 01_04_NN steps are planned**. Per Manual 01 §4 the canonical Pipeline Section 01_04 contents are: cleaning registry (§4.1), non-destructive cleaning (§4.2), CONSORT impact (§4.3), post-validation (§4.4), missing data handling (§4.5), reporting standards (§4.6). Steps 01_04_00 (canonical normalisation), 01_04_01 (audit), 01_04_02 (execution + post-validation) cover all six manual sections. **Per planner judgement, 01_04 is closeable after 01_04_02 — no 01_04_03 is required.**
+2. **PIPELINE_SECTION_STATUS.yaml** — Per the derivation comments in the file ("Pipeline section is complete when ALL its steps are complete"), 01_04 transitions from `in_progress` to `complete` **iff no further 01_04_NN steps are planned**. Per Manual 01 §4 the canonical Pipeline Section 01_04 contents are: cleaning registry (§4.1), non-destructive cleaning (§4.2), CONSORT impact (§4.3), post-validation (§4.4), missing data handling (§4.5), reporting standards (§4.6). Steps 01_04_00 (canonical normalisation), 01_04_01 (audit), 01_04_02 (execution + post-validation) cover all six manual sections. **WARNING-5 critique fix:** the executor MUST grep `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` for any pre-listed 01_04_03+ step block before bumping PIPELINE_SECTION_STATUS — if any such block exists (currently believed to be none), 01_04 stays `in_progress` and the gate condition's PIPELINE_SECTION line is dropped from this PR. **Prior-revert context:** commit 7d0463d reverted a premature 01_04 closure because notebooks were not re-run after IN-GAME removals; this PR addresses that by re-executing the notebook end-to-end as part of 01_04_02 (cell 27+), so the prior reversion's reasoning no longer applies. **Per-dataset scope note:** PIPELINE_SECTION_STATUS.yaml is per-dataset (sc2egset only); the 01_04 closure here applies to sc2egset alone — aoestats and aoec datasets keep `01_04: in_progress` until their own 01_04_02 work lands in independent PRs (per user Option A).
 
 ```yaml
   "01_04":
