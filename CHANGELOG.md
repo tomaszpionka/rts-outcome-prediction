@@ -19,6 +19,45 @@ merged to `master`.
 
 ### Removed
 
+## [3.14.0] — 2026-04-18 (PR #TBD: feat/01-04-03-aoe2-minimal-history)
+
+### Added
+- **Phase 01 Step 01_04_03 — aoe2 datasets (both in one PR).** Completes the 3/3
+  dataset cross-dataset harmonization substrate for Phase 02+ rating-system
+  backtesting (sc2egset shipped in PR #152; aoestats + aoe2companion ship here).
+- **aoestats `matches_history_minimal` VIEW** — 8-col × 35,629,894 rows (= 2 ×
+  17,814,947 matches). UNION ALL pivot from 1-row-per-match (p0/p1 cols) to
+  2-rows-per-match. `started_at` via `CAST(started_timestamp AT TIME ZONE 'UTC'
+  AS TIMESTAMP)` (TIMESTAMPTZ → canonical TIMESTAMP). Slot-bias gate:
+  `AVG(won::INT) = 0.5` exactly (UNION erases upstream team1_wins ≈ 52.27% slot
+  asymmetry at output level). 13/13 gates PASS.
+- **aoe2companion `matches_history_minimal` TABLE** — 8-col × 61,062,392 rows
+  (= 2 × 30,531,196 matches). Self-join on matchId (sc2egset pattern). `started_at`
+  pass-through (already TIMESTAMP). Numeric-tail regex `[0-9]+` prefix gate with
+  round-trip cast (matchId is INTEGER; variable decimal width). 12/12 gates PASS.
+  **DuckDB 1.5.1 workaround**: TABLE (not VIEW) due to self-join-on-VIEW-with-
+  window-function InternalException; 3-step materialization via staging tables.
+  Documented in schema YAML `object_type_note`.
+- Schema YAMLs for both datasets' `matches_history_minimal` with per-dataset
+  polymorphic faction warning (aoestats ~50 civ names; aoec ~56 civ names).
+- 2 jupytext-paired notebooks (19 cells aoestats, 18 cells aoec) + 4 artifacts
+  (JSON + MD each). All SQL literals verbatim in validation JSON `sql_queries`
+  (I6). DESCRIBE snapshot captured (R2-WARNING-3 fix inherited from sc2egset).
+
+### Changed
+- Both aoe2 datasets' `STEP_STATUS.yaml`: 01_04_03 added and closed to complete.
+- Both aoe2 datasets' `PIPELINE_SECTION_STATUS.yaml`: 01_04 flipped in_progress →
+  complete (net zero relative to pre-PR state).
+- Both `ROADMAP.md`: 01_04_03 step block inserted after 01_04_02.
+- Both `research_log.md`: 01_04_03 entry prepended.
+
+### Fixed
+- (User-directed single adversarial round per "less ceremony" directive; 0
+  BLOCKERs surfaced pre-execution. 3 WARNINGs were documentation gaps caught
+  by execution-time gates — all 25 gates PASSED.)
+
+### Removed
+
 ## [3.13.0] — 2026-04-18 (PR #152: feat/01-04-03-sc2egset-minimal-history)
 
 ### Added
