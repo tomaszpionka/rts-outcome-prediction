@@ -1,202 +1,194 @@
 ---
 category: A
 date: 2026-04-18
-branch: feat/01-04-04-identity-resolution
+branch: feat/01-04-04-sc2egset-worldwide-identity
 phase: "01"
 pipeline_section: "01_04"
-step: "01_04_04"
-datasets: [sc2egset, aoestats, aoe2companion]
-game: mixed
-title: "01_04_04 Identity Resolution — 3-dataset exploration"
+step: "01_04_04b"
+parent_step: "01_04_04"
+dataset: sc2egset
+game: sc2
+title: "sc2egset worldwide identity augmentation — 5-signal Fellegi-Sunter classifier + Union-Find composition"
 manual_reference: "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md §4 + §5"
-invariants_touched: [I2, I3, I6, I7, I8, I9]
-predecessors: ["01_04_01", "01_04_02 + 2026-04-18 duration ADDENDUM (PR #155)", "01_04_03 9-col (PR #154)"]
-plans_merged_from:
-  - sc2egset planner a13b6543780c5c13b (5 tasks, 5 DS-SC2-IDENTITY decisions, 8 SQL queries, 3 PNGs)
-  - aoestats planner a17b1b9e235934e7a (3 tasks — intra-dataset, civ-fingerprint JSD, cross-dataset preview)
-  - aoe2companion planner a78278bf0361e934c (8 tasks, 6 JSON blocks, ATTACH-based cross-dataset preview)
+invariants_touched: [I2, I3, I6, I7, I9]
+predecessors: ["01_04_04 (PR #157)"]
 ---
 
-# 01_04_04 Identity Resolution — 3-dataset exploration
+# sc2egset 01_04_04b — Worldwide Player Identity Resolution
 
 ## Problem Statement
 
-Phase 02+ rating-system backtesting groups matches by a per-player primary key. The right key differs per dataset and is not yet empirically characterized:
+PR #157 (01_04_04) surfaced the problem but deferred resolution:
+- toon_id is region×realm-scoped (0 cross-region) → useless alone for worldwide identity
+- LOWER(nickname) has 30.6% within-region collision (6× Christen 2012 5% threshold)
+- Case-sensitive `nickname`: 1,106 distinct vs 1,045 LOWER → 61 case-variant pairs
+- 246 case-sensitive multi-region nicknames; 294 Class A overlap / 15,474 Class B disjoint / 317 Class C degenerate
 
-- **sc2egset:** `toon_id` is region-scoped per Battle.net model (account → region → realm → toon). A physical player active on multiple regions has N distinct toon_ids. Using `toon_id` alone would split multi-region players into N cold-start Elo entities; using `LOWER(nickname)` alone would merge common-handle collisions ("Player", "SC2", "Default"). Neither is documented at this corpus.
-- **aoestats:** Unique structural constraint — **no nickname column exists in any raw table**. `profile_id` (BIGINT) is the only identity signal. Invariant #2 (lowercased nickname as canonical) is natively unmeetable; either bridge to aoe2companion OR use a behavioral fingerprint (civ usage pattern, rating trajectory).
-- **aoe2companion:** Has `profileId` + `name` + `country`. Quantify profileId↔name stability (rename history), name↔profileId collisions (common handles), and cross-table join integrity (`matches_raw` vs `profiles_raw` vs `ratings_raw`).
+User directive (2026-04-18): **resolve empirically now at Phase 01.04 using behavioral fingerprints** rather than defer to Phase 02 (circularity — Elo-backtest validates identity key, but needs it first).
 
-Cross-dataset question: do aoestats `profile_id` (DOUBLE→BIGINT) and aoe2companion `profileId` (INTEGER) share a namespace (e.g., both from aoe2insights.com API)? If yes, aoe2companion's `name` column could serve as I2 canonical nickname for aoestats via join. Empirical feasibility check only; full cross-dataset mapping deferred.
+Goal: deterministic 5-signal classifier producing `player_id_worldwide` per (region, realm, toon_id) entity such that physical players active on multiple servers get a single continuous Elo trajectory.
 
 ## Scope
 
-**Exploration only** — produces census + decision-recommendation artifacts per dataset. No new VIEWs, no raw-table modifications, no schema YAML changes.
+sc2egset only. Follow-up sub-step `01_04_04b`. No raw mutation (I9). Optional new VIEW `player_identity_worldwide` gated on T06 go/no-go rule. No cross-dataset work (aoestats bridge deferred to future CROSS PR per VERDICT A).
 
-Each dataset gets its own 01_04_04 notebook + JSON + MD + optional CSVs/PNGs. Findings route to Phase 02 planner as `DS-*-IDENTITY-*` decision ledgers.
-
-**In scope:**
-- Per-dataset identity cardinality + NULL + sentinel audit
-- Per-dataset structural uniqueness (multi-region for sc2; rename-history for aoec; stability-proxy for aoestats)
-- Cross-dataset feasibility preview (aoestats ↔ aoec; small-sample ≤ 1,000 matches)
-- Routing decisions to Phase 02
-
-**Out of scope:**
-- Canonical identity VIEW creation (Phase 02 deliverable per I2 — feature-engineering time, not cleaning time)
-- Full cross-dataset identity mapping (separate CROSS PR if feasibility warrants)
-- Upstream YAML modifications (I9)
-- Thesis §4.2.2 [REVIEW] marker closure (Category F follow-up after evidence lands)
+**Hard constraints (user directives):**
+- Case-sensitive `nickname` throughout. Never LOWER.
+- Case-variant pairs stay SPLIT unless behavioral AND literal case match.
+- Empirical thresholds only (I7 — no magic numbers).
+- Hahn et al. 2020 DIRECTLY applies (APM-JSD is THE canonical SC2 fingerprint, not adjacent like aoestats civ-JSD).
 
 ## Literature Context
 
-- **Fellegi, I. P. & Sunter, A. B. (1969).** *A theory for record linkage.* JASA 64(328). Probabilistic-match framework — motivates agreement-pattern tabulation (nickname × region × temporal window) in sc2egset Class A/B/C classification + aoec match pairs. Already in bibliography.
-- **Christen, P. (2012).** *Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection.* Springer. Four-stage pipeline (blocking → comparison → classification → evaluation) maps onto cross-dataset feasibility approach. Already in bibliography.
-- **Winkler, W. E. (2006).** *Overview of Record Linkage and Current Research Directions.* US Census Bureau. EM algorithm for m/u probability estimation without ground truth — applicable if follow-up CROSS PR proceeds.
-- **Hahn, Siqueira Ruela, & Rebelo Moreira (2020).** *Identifying Players in StarCraft via Behavioural Fingerprinting.* IEEE CoG. RTS behavioral-fingerprint stability — motivates aoestats civ-fingerprint JSD approach in absence of nickname.
-- Manual `01_DATA_EXPLORATION_MANUAL.md` §4 (cleaning census) + §5 (panel-EDA feed-forward).
+- **Hahn et al. (2020)** — *Characterization of Gaming Behavior in StarCraft II: APM distributions are idiosyncratic per player, stable across sessions.* Direct empirical warrant for APM-JSD as same-player signal.
+- **Fellegi & Sunter (1969)** — probabilistic record-linkage framework; MERGE/SPLIT/UNCERTAIN = their M/U/P.
+- **Christen (2012) Ch. 5** — blocking (case-sensitive nickname); 5% false-merge threshold.
+- **Tarjan (1975)** — Union-Find with path-compression + union-by-rank; O(α(n)·n).
+- **Lin (1991)** — Jensen-Shannon divergence (symmetric, bounded, zero-mass safe).
 
 ## Assumptions & Unknowns
 
-**Shared:**
-- **A1:** 86,400s threshold irrelevant here (duration-only). Identity thresholds are per-dataset empirical.
-- **A2:** DuckDB 1.5.1 cross-DB `ATTACH ... (READ_ONLY)` works for aoestats ↔ aoec feasibility joins (empirically tested by aoec planner).
-- **A3:** STEP_STATUS 01_04_04 is a NEW step. Per derivation chain: 01_04 auto-flips `complete → in_progress` when 01_04_04 added as `not_started`; restores to `complete` on gate pass. PHASE_STATUS 01 unchanged (01_05/01_06 still `not_started`).
+**Assumptions:**
+- `replay_players_raw` retains raw clanTag (VARCHAR) + MMR (INT, 0=unrated sentinel). matches_flat_clean drops both; raw retains.
+- `player_history_all.APM` NULLIF-cleaned per 01_04_02 DS-SC2-10.
+- Entities with `n_games_with_nonnull_APM < 5` insufficient for APM-JSD (CLT floor).
+- Union-Find deterministic under sorted pair iteration `(nickname, toon_a_str, toon_b_str)`.
 
-**sc2egset-specific:**
-- Sentinel `-1` claim (user-supplied) UNVERIFIED for sc2egset — univariate census (01_02_04) reports `zero_count=0` for toon_id in replay_players_raw. **Probe, don't assume.**
-- 6 region values + 9 realm values (vs Battle.net canonical 5×2) — `Unknown` (~12.83%) is a data-quality concern; some tournaments predate full metadata capture.
-
-**aoestats-specific:**
-- NO nickname column — confirmed via planner inspection of `players_raw.yaml` (14 cols; no name/display/nickname field).
-- `-1` sentinel claim (user-supplied) UNVERIFIED for aoestats. `01_02_04` reports `zero_count=0` in players_raw. Empirically confirm during T01.
-- 13.95% `replay_summary_raw` non-empty — probe JSON parseability for hidden name extraction (feasibility probe only).
-
-**aoec-specific:**
-- `profileId = -1` confirmed as AI / anonymized (12.95M AI rows + 19.23k status='player' per 01_03_02).
-- `profiles_raw` is 45.0% coverage of rm_1v1 match players (per 01_03_03 finding) — cannot be primary identity source; fall back to per-row matches_raw identity.
-
-**Cross-dataset:**
-- Window choice for feasibility: intersect aoestats (2022-08-29..2026-02-06) × aoec (2020-08-01..2026-04-04) = 2022-08-29..2026-02-06. Pick most recent complete week common to both: 2026-01-25..2026-01-31 (conservative choice before aoestats end date).
-- Cross-dataset heuristic: 60s temporal window + civ-set equality + 50-ELO rating proximity. Weak blocker by design (Christen Ch. 4); reports evidence not adjudication.
+**Unknowns resolved at runtime:**
+- How many of 16,085 pairs have APM-support ≥ 5 on both sides (T02).
+- Empirical APM-JSD threshold via same-entity null p95 vs cross-entity control p05 (T03).
+- Which of 5 signals discriminate (T03 diagnostic).
+- MERGE/SPLIT/UNCERTAIN counts per sub-universe (T04).
+- T06 sub-case: VIEW creation vs DEFER to Phase 02.
 
 ## Execution Steps
 
-### T01 — Register 01_04_04 step in all 3 datasets + revert PIPELINE_SECTION_STATUS 01_04 to in_progress
+### T01 — Candidate block construction (case-sensitive blocking)
 
-For each dataset:
-1. Append `### Step 01_04_04 — Identity Resolution` block to `reports/ROADMAP.md` (after existing 01_04_03 block).
-2. Add `01_04_04: {name: "Identity Resolution", pipeline_section: "01_04", status: not_started}` to `STEP_STATUS.yaml`.
-3. Flip `PIPELINE_SECTION_STATUS.yaml` `01_04.status: complete → in_progress` (derivation-chain consistency).
+Create notebook `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_04b_worldwide_identity.py`. Cells A-F:
+- A: imports + read-only DB connection
+- B: I0 sanity (44,817 / 44,418 / 44,817 row counts)
+- C: `ENTITY_SUPPORT_SQL` — per-`(region, realm, toon_id)` aggregates (n_games, n_games_with_apm, n_games_with_race, n_clantags, first/last game). Expected 2,495 entities.
+- D: `PAIR_ENUMERATION_SQL` — two sub-universes: cross-region same-case-nick pairs + within-region collision pairs. Report case-sensitive vs LOWER delta
+- E: temporal class re-attach (A/B/C) using case-sensitive nickname
+- F: entity APM-support histogram PNG
 
-PHASE_STATUS.yaml: unchanged.
+### T02 — Per-pair agreement signals (5 channels)
 
-Parent-level (not in any dataset's scope) — add to `reports/research_log.md` a CROSS stub entry for 01_04_04 + branch setup note.
+Cells G-M:
+- G: **APM-JSD** (direct Hahn 2020). Shared deciles of pooled non-null APM; Laplace-smoothed; JSD base-2 in [0,1]. Same-entity null (5-fold split, seed=42) + 1,000-pair cross-entity control. Skip pairs where either entity <5 games.
+- H: **race_overlap** — sum of min(p_a[r], p_b[r]) over 3 races; Bhattacharyya-like
+- I: **clanTag status** — {AGREE, OVERLAP, DISJOINT, ONE_EMPTY, BOTH_EMPTY_AGREE}
+- J: **MMR trajectory overlap** — p10-p90 interval overlap; skip entities <5 rated games
+- K: **temporal_class** — A/B/C from T01
+- L: assemble `pairs_with_signals_df` → CSV
+- M: 4-panel signal-distribution PNG
 
-### T02 — Per-dataset notebooks (3 parallel executors)
+### T03 — Empirical threshold derivation (I7)
 
-Each dataset's executor produces:
-- `sandbox/<game>/<dataset>/01_exploration/04_cleaning/01_04_04_identity_resolution.py` + `.ipynb`
-- `src/rts_predict/games/<game>/datasets/<dataset>/reports/artifacts/01_exploration/04_cleaning/01_04_04_identity_resolution.{json,md}`
-- Dataset-specific supplementary artifacts (CSVs for sc2egset; PNGs for sc2egset; nothing additional for aoestats/aoec)
+Cells N-T:
+- N: APM-JSD threshold = midpoint(null_p95, control_p05). Discrimination check: if null_p95 ≥ control_p05 AND median entity ≥20 games → HALT.
+- O: race threshold (same procedure, reversed direction)
+- P: MMR threshold (same)
+- Q: clanTag Bayesian decision table (4 statuses → P(same|status))
+- R: temporal Bayesian decision table (A=AGREE, B=NEUTRAL, C=NEUTRAL+downweight)
+- S: thresholds JSON with full provenance (Hahn 2020 cited)
+- T: 3-panel threshold visualization PNG
 
-**sc2egset (5 tasks, see sibling planner output for full detail):**
-- **Cell A** I0 sanity (row-count checks)
-- **Cell B** single-key census (K1..K5: toon_id, (region,realm,toon_id), LOWER(nickname), (LOWER(nickname),region), (LOWER(nickname),region,realm))
-- **Cell C** toon_id cross-region audit (Battle.net scoping test)
-- **Cell D** nickname cross-region audit (multi-account evidence)
-- **Cell E** temporal-overlap classification (Fellegi-Sunter agreement pattern: Class A=overlap, B=disjoint, C=degenerate)
-- **Cell F** within-region handle-collision audit (common-handle evidence)
-- **Cell G** userID refutation cross-check
-- **Cell H** region/realm sanity (Unknown bucket)
-- **Cell I** robustness on matches_flat_clean (±1% delta tolerance)
-- **Cell J** 3 PNG plots (key cardinality bars, toon region heatmap, nickname cross-region stacked)
-- **Cell K** DS-SC2-IDENTITY-01..05 decision ledger
-- **Cell L** JSON + MD writers (Invariant I6: all SQL verbatim)
+### T04 — MERGE/SPLIT/UNCERTAIN classification
 
-Expected numbers: `n_distinct(toon_id) / n_distinct(LOWER(nickname)) ≈ 2.26` (from 01_02_04 baseline; ±0.05 tolerance).
+Cells U-Y:
+- U: per-pair 5-element agreement vector
+- V: composite rule:
+  - `n_agree ≥ 3 AND n_disagree ≤ 1` → MERGE
+  - `n_disagree ≥ 3 AND n_agree ≤ 1` → SPLIT
+  - otherwise → UNCERTAIN
+  - **Case-variant guard:** nickname_a != nickname_b (same LOWER, different case) → decision downgrade one level
+  - **Within-region collision special-case:** same server + handle, MERGE only if temporal_class=A_overlap
+- W: self-pair sanity (split-half same entity → MERGE). HALT if >5% fail.
+- X: decision-distribution PNG (MERGE/SPLIT/UNCERTAIN × cross-region/within-region × temporal_class)
+- Y: UNCERTAIN audit CSV for manual review
 
-**aoestats (3 tasks):**
-- **T01 intra-dataset:** sentinel/NULL audit across 4 columns × 3 tables; per-profile activity distribution; duplicate census (489 anchor ±10); rating-trajectory monotonicity probe (10k reservoir sample, seed 20260418); replay_summary_raw JSON-parseability feasibility probe
-- **T02 civ-fingerprint JSD:** within-profile (first-half vs second-half) JSD distribution + 10,000-random-pair cross-profile control; literature thresholds 0.10/0.30/0.50; 10-profile concrete-example table
-- **T03 cross-dataset preview:** 1,000-match reservoir sample from 2026-01-25..2026-01-31 window; 60s temporal block + civ-set + 50-ELO; report agreement rate + 95% bootstrap CI + verdict (A=strong, B=weak, C=infeasible)
+### T05 — Union-Find composition → player_id_worldwide
 
-**aoe2companion (8 tasks, most detailed):**
-- **T01** cardinality baseline (3 tables: matches_raw, ratings_raw, profiles_raw)
-- **T02** name-history-per-profileId profile (rename detection, binned 2-name / 3-5 / 6+)
-- **T03** name→profileId collision (alias detection)
-- **T04** join integrity across 3 raw tables (set-difference audit)
-- **T05** (profileId, country) temporal stability
-- **T06** cross-dataset feasibility via ATTACH READ_ONLY to aoestats DB; 2026-01-25..2026-01-31 window
-- **T07** compose MD + JSON + synthesis (OBS-N → IMPL-N → ACTION-N)
-- **T08** ROADMAP + research_log + STEP_STATUS update
+Cells Z-FF:
+- Z: Extract `UnionFind` to `src/rts_predict/common/union_find.py` + tests at `tests/rts_predict/common/test_union_find.py` (per sandbox "no inline defs" rule). Standard path-compression + union-by-rank with type hints.
+- AA: Apply MERGE edges deterministically (sorted by nickname, toon_a, toon_b)
+- BB: Extract components → player_id_worldwide = `"sc2egset::wid::" + sha256(representative_nick + "|" + canonical_region)[:16]`. Representative = entity with most games in component.
+- CC: `entity_to_wid_df` CSV
+- DD: `component_detail` CSV
+- EE: component-size-distribution PNG
+- FF: sanity checks (unique WID per component, every entity mapped exactly once)
 
-### T03 — Close status + research_log (parent + 3 parallel updates)
+### T06 — VIEW decision gate
 
-For each dataset:
-1. Update `STEP_STATUS.yaml` 01_04_04 → complete (completed_at date).
-2. Restore `PIPELINE_SECTION_STATUS.yaml` 01_04 → complete.
-3. Prepend dated research_log entry with findings + per-dataset DS-IDENTITY-* decisions.
+Cell GG evaluates:
+- `uncertain_rate = n_uncertain / n_class_ab`
+- **IF** uncertain_rate < 0.10 AND n_self_pair_failures=0 AND apm_jsd_discriminates → **sub-case A: CREATE VIEW**
+- **ELSE** → **sub-case B: DEFER**
 
-Parent-level:
-- Update `reports/research_log.md` with CROSS synthesis entry reconciling cross-dataset feasibility verdict (aoestats T03 ↔ aoec T06 must agree; if disagree, flag for adversarial review).
+Sub-case A (HH-A, II-A, JJ-A): CREATE OR REPLACE VIEW player_identity_worldwide (5 cols) + schema YAML with I2/I3/I9/I10 invariants. PIPELINE_SECTION 01_04 flip-then-flip-back.
 
-### T04 — CHANGELOG + version bump (parent)
+Sub-case B (HH-B): emit `defer_decision` artifact; no VIEW; no status change.
 
-3.15.0 → 3.16.0 (minor bump for new phase-step content).
+Cell KK: append DS-SC2-IDENTITY-01 ADDENDUM to new 01_04_04b JSON (not overwriting 01_04_04).
+
+### T07 — Artifacts + research_log + status
+
+Cells LL-QQ:
+- LL: assemble `01_04_04b_worldwide_identity.json` (all sections + ≥8 SQL queries verbatim + ≥5 literature citations)
+- MM: MD report
+- NN: research_log addendum (prepend dated entry, remove [REVIEW] if sub-case A, keep if B)
+- OO: STEP_STATUS new step `01_04_04b: complete`. PHASE_STATUS unchanged.
+- PP: ROADMAP.md append sub-step block under Step 01_04_04
+- QQ: final gate checks
 
 ## File Manifest
 
-Per dataset (× 3):
-- `sandbox/<game>/<dataset>/01_exploration/04_cleaning/01_04_04_identity_resolution.py` + `.ipynb` (NEW)
-- `reports/artifacts/01_exploration/04_cleaning/01_04_04_identity_resolution.{json,md}` (NEW)
-- `reports/ROADMAP.md` (append 01_04_04 block)
-- `reports/STEP_STATUS.yaml` (add 01_04_04)
-- `reports/PIPELINE_SECTION_STATUS.yaml` (01_04: in_progress → complete roundtrip)
-- `reports/research_log.md` (prepend entry)
+**NEW:**
+- `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_04b_worldwide_identity.{py,ipynb}`
+- `src/rts_predict/common/union_find.py` + `tests/rts_predict/common/test_union_find.py`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_04b_worldwide_identity.{json,md}`
+- 7 CSVs under `reports/artifacts/01_exploration/04_cleaning/01_04_04b_*.csv`:
+  pairs_with_signals, apm_same_entity_null, apm_cross_entity_control, pair_decisions, uncertain_pairs_for_review, entity_to_wid_mapping, component_detail
+- 5 PNGs under `reports/artifacts/01_exploration/04_cleaning/plots/01_04_04b_*.png`:
+  entity_apm_support, signal_distributions, thresholds, decision_distribution, component_size_distribution
+- **(Sub-case A only)** `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_identity_worldwide.yaml`
 
-Dataset-specific:
-- sc2egset: 2 CSVs (cross_region_nicknames, within_region_handle_collisions) + 3 PNGs under `artifacts/.../plots/`
-
-Parent:
-- `planning/current_plan.md` (this file; committed on branch at plan step)
-- `reports/research_log.md` (CROSS entry)
-- `CHANGELOG.md` ([3.16.0] entry)
-- `pyproject.toml` (3.15.0 → 3.16.0)
+**MODIFIED:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (append 01_04_04b sub-step)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (add 01_04_04b)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (flip-then-flip-back if sub-case A; byte-identical if sub-case B)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (prepend)
 
 **NOT touched (I9):**
-- All 3 datasets' raw `*.yaml` under `data/db/schemas/raw/`
-- All 3 datasets' view `*.yaml` under `data/db/schemas/views/`
-- No new DuckDB VIEWs or TABLEs
+- All sc2egset raw tables + all view YAMLs except new one (sub-case A)
+- aoestats + aoec files
+- PHASE_STATUS.yaml
 
 ## Gate Condition
 
-Per dataset (all HALTING):
-
-1. Artifact JSON + MD exist and parse; all SQL verbatim in `sql_queries` block (I6).
-2. Decisions ledger populated (sc2egset: 5 DS-SC2-IDENTITY-*; aoestats: 3+ DS-AOESTATS-IDENTITY-*; aoec: 5+ DS-AOEC-IDENTITY-*).
-3. Verdict/recommendation explicitly stated in MD "Synthesis" section.
-4. I9 empty diff on all upstream YAMLs (verified by `git diff --stat master..HEAD`).
-5. `ruff check` + `mypy` + jupytext drift checks pass on notebook.
-
-Cross-dataset gate:
-6. aoestats T03 and aoec T06 feasibility verdicts agree (both A / both B / both C). If disagree, HALT and dispatch adversarial — methodology asymmetry.
-7. Parent research_log CROSS entry ties the 3 dataset findings together.
+- 7 CSVs + 5 PNGs non-empty
+- JSON has ≥8 sql_queries + ≥5 literature citations
+- `pytest tests/rts_predict/common/test_union_find.py` passes
+- Self-pair self-recognition ≥95% MERGE (T04 Cell W)
+- ≥3 of 5 signals discriminate (T03)
+- At least one multi-region component (T05 sanity)
+- Every entity mapped to exactly one player_id_worldwide
+- STEP_STATUS 01_04_04b = complete
+- PIPELINE_SECTION 01_04 = complete (end state)
+- **Sub-case A:** VIEW exists in DuckDB; schema YAML with 5 cols + I2/I3/I9/I10
+- **Sub-case B:** `defer_decision` block with rule-violation reason
+- I9 empty diff on all upstream sc2egset view + raw YAMLs
 
 ## Open Questions
 
-Resolved at planning integration:
-- **Q-cross-dataset-window:** Use 2026-01-25..2026-01-31 (most recent complete week in aoestats×aoec coverage intersection).
-- **Q-threshold-consistency:** aoestats civ-fingerprint thresholds 0.10/0.30/0.50 documented as literature-anchored; flag in MD for per-game calibration if needed.
-- **Q-step-status-pattern:** All 3 datasets revert 01_04 → in_progress at T01, restore at T03 (derivation-chain rule + 01_04_02/03 ADDENDUM precedent).
-- **Q-verdict-rubric:** Both aoestats T03 and aoec T06 use same verdict framework: A=strong (>50% overlap), B=partial (10-50%), C=disjoint (<10%).
-
-Deferred:
-- Whether a canonical `player_identity_canonical` VIEW should ship in Phase 01 (before 01_05) or wait for Phase 02 — defer until sc2egset T02 Cell D evidence lands.
-- Whether Phase 02 will ratify cross-dataset CROSS PR vs keep datasets isolated — defer until T06/T03 verdicts converge.
-- Thesis §4.2.2 [REVIEW] marker closure — Category F follow-up.
+- **Q1:** Include `component_size` in VIEW? Planner recommends NO (keep 5 cols minimal; metadata in CSV).
+- **Q2:** UNCERTAIN pairs flag in sibling VIEW? Planner recommends NO (conservative SPLIT; revisit Phase 02 if needed).
+- **Q3:** 5-game APM support floor too strict? Review T02 histogram before T03.
+- **Q4:** Within-region collisions — same signals or separate analysis? Current plan uses same signals + within-region special-case in T04 V. User may split to T04a/T04b.
+- **Q5:** Commit cadence — planner recommends 3 commits (T01-T02, T03-T05, T06-T07).
 
 ## Adversarial instruction
 
-Category A plan. Single pre-exec adversarial round (per user "less ceremony" directive). Reviewer-adversarial focuses on cross-plan consistency (decision rubric agreement, scope-boundary discipline between the 3 datasets, cross-dataset feasibility methodology convergence). Skip multi-round unless BLOCKERs fire.
-
-Execution dispatches 3 parallel executors (one per dataset) after adversarial APPROVE.
+Category A — single pre-execution adversarial round per "less ceremony" directive. Focus: APM-JSD threshold derivation vs Hahn 2020, case-variant guard mechanism, UNCERTAIN loopback, VIEW+YAML+ROADMAP scope in T06/T07 sub-case A.

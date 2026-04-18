@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- [Current Plan](current_plan.md) — _no active plan_
+- [Current Plan](current_plan.md) — sc2egset worldwide identity augmentation (01_04_04 follow-up)
 
 ## Agent routing
 
