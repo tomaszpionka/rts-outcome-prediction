@@ -22,9 +22,25 @@ merged to `master`.
 ## [3.14.0] — 2026-04-18 (PR #TBD: feat/01-04-03-aoe2-minimal-history)
 
 ### Added
-- **Phase 01 Step 01_04_03 — aoe2 datasets (both in one PR).** Completes the 3/3
-  dataset cross-dataset harmonization substrate for Phase 02+ rating-system
-  backtesting (sc2egset shipped in PR #152; aoestats + aoe2companion ship here).
+- **Phase 01 Step 01_04_03 — aoe2 datasets + sc2egset 9-col extension.** Completes
+  the 3/3 dataset cross-dataset harmonization substrate for Phase 02+ rating-system
+  backtesting. Originally scoped as aoe2-only; extended mid-PR per user directive
+  to bump ALL 3 datasets' `matches_history_minimal` from 8 → 9 cols by adding
+  `duration_seconds` BIGINT (POST_GAME_HISTORICAL). sc2egset's 8-col view from
+  PR #152 is updated in-place; aoestats + aoe2companion new at 9 cols.
+- **`duration_seconds` column (9-col extension — all 3 datasets):**
+  - sc2egset: `CAST(ANY_VALUE(header_elapsedGameLoops) / 22.4 AS BIGINT)` via JOIN
+    to aggregated `player_history_all`. 22.4 = SC2 "Faster" game-speed loops/sec,
+    empirical via `details.gameSpeed` cardinality=1 (W02). Max 6,073s; no outliers.
+  - aoestats: `CAST(r.duration / 1_000_000_000 AS BIGINT)` via JOIN to `matches_raw`.
+    Raw `duration` is Arrow `duration[ns]` → BIGINT nanoseconds per DuckDB 1.5.1
+    (`pre_ingestion.py:271`). 56 outliers (28 corrupted matches) reported.
+  - aoe2companion: `CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT)`
+    in `_mhm_base` staging. 142 wall-clock outliers + 358 clock-skew rows reported.
+- **Gate +5 split** (R1 post-exec fix): +5a HALTING canary (`max ≤ 1_000_000_000`
+  catches nanosecond-unit regression) + +5b REPORT-ONLY (outlier count, no halt).
+  Enables data-quality outliers to pass through visibly without masking unit bugs.
+- **Gate +6** (aoec-specific HALTING): `finished` NULL fraction ≤ 1%.
 - **aoestats `matches_history_minimal` VIEW** — 8-col × 35,629,894 rows (= 2 ×
   17,814,947 matches). UNION ALL pivot from 1-row-per-match (p0/p1 cols) to
   2-rows-per-match. `started_at` via `CAST(started_timestamp AT TIME ZONE 'UTC'

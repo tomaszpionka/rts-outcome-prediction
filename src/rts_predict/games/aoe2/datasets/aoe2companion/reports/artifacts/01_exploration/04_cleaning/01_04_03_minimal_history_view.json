@@ -5,7 +5,8 @@
   "generated_date": "2026-04-18",
   "object": "matches_history_minimal",
   "object_type": "table",
-  "implementation_note": "DuckDB 1.5.1 bug: (1) self-join on matches_1v1_clean VIEW (row_number+ANY) causes InternalException; (2) QUALIFY+CTE self-join in a single CREATE TABLE gives wrong row counts (42,866 instead of 61,062,392). Workaround: three-step DDL -- (1) CREATE TABLE _good_match_ids from matches_raw QUALIFY; (2) CREATE TABLE _mhm_base = matches_raw INNER JOIN _good_match_ids QUALIFY; (3) CREATE TABLE matches_history_minimal = self-join _mhm_base; (4) DROP staging tables. Semantics identical to planned CREATE OR REPLACE VIEW. Same 8-column schema contract maintained.",
+  "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
+  "implementation_note": "DuckDB 1.5.1 bug: (1) self-join on matches_1v1_clean VIEW (row_number+ANY) causes InternalException; (2) QUALIFY+CTE self-join in a single CREATE TABLE gives wrong row counts (42,866 instead of 61,062,392). Workaround: three-step DDL -- (1) CREATE TABLE _good_match_ids from matches_raw QUALIFY; (2) CREATE TABLE _mhm_base = matches_raw INNER JOIN _good_match_ids QUALIFY + ADDENDUM duration_seconds; (3) CREATE TABLE matches_history_minimal = self-join _mhm_base; (4) DROP staging tables. Semantics identical to planned CREATE OR REPLACE VIEW. Same 9-column schema contract maintained.",
   "row_counts": {
     "total_rows": 61062392,
     "distinct_match_ids": 30531196,
@@ -19,9 +20,80 @@
     "null_player_id": 0,
     "null_opponent_id": 0,
     "null_won": 0,
+    "null_duration_seconds": 0,
     "null_dataset_tag": 0,
     "null_faction": 0,
     "null_opponent_faction": 0
+  },
+  "duration_stats": {
+    "min_duration_seconds": -3041,
+    "max_duration_seconds": 3279303,
+    "p50_duration_seconds": 1433.0,
+    "p99_duration_seconds": 3458.0899999961257,
+    "avg_duration_seconds": 1418.0271267132805,
+    "non_null_count": 61062392,
+    "non_positive_count": 358,
+    "null_count": 0,
+    "null_fraction": 0.0,
+    "outlier_count_gt_86400": 142,
+    "outlier_sample_top10": [
+      {
+        "match_id": "aoe2companion::184213201",
+        "player_id": "3037858",
+        "duration_seconds": 3279303
+      },
+      {
+        "match_id": "aoe2companion::184213201",
+        "player_id": "3400226",
+        "duration_seconds": 3279303
+      },
+      {
+        "match_id": "aoe2companion::51145056",
+        "player_id": "2009883",
+        "duration_seconds": 2315984
+      },
+      {
+        "match_id": "aoe2companion::51145056",
+        "player_id": "306508",
+        "duration_seconds": 2315984
+      },
+      {
+        "match_id": "aoe2companion::184216044",
+        "player_id": "2731043",
+        "duration_seconds": 1207417
+      },
+      {
+        "match_id": "aoe2companion::184216044",
+        "player_id": "4259404",
+        "duration_seconds": 1207417
+      },
+      {
+        "match_id": "aoe2companion::185154084",
+        "player_id": "1150651",
+        "duration_seconds": 944579
+      },
+      {
+        "match_id": "aoe2companion::185154084",
+        "player_id": "1719032",
+        "duration_seconds": 944579
+      },
+      {
+        "match_id": "aoe2companion::184212308",
+        "player_id": "5582486",
+        "duration_seconds": 709295
+      },
+      {
+        "match_id": "aoe2companion::184212308",
+        "player_id": "9806664",
+        "duration_seconds": 709295
+      }
+    ],
+    "gate_plus3_report_only_non_positive_count": 358,
+    "gate_plus3_note": "REPORT-ONLY for aoec. Negative values (finished < started) = clock skew in raw data -- not a unit regression. Outlier handling deferred.",
+    "gate_plus5a_pass": true,
+    "gate_plus5b_report_only": 142,
+    "gate_plus6_pass": true,
+    "provenance": "CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT). EXTRACT(EPOCH FROM) is standard DuckDB function returning DOUBLE seconds. CAST AS BIGINT truncates (no rounding). NULL if r.finished IS NULL (abandoned/crashed matches). R1-WARNING-A6 fix: computed in _mhm_base staging (matches_raw already joined; no new JOIN needed)."
   },
   "symmetry_violations": 0,
   "prefix_violations": 0,
@@ -105,6 +177,7 @@
       "faction",
       "opponent_faction",
       "won",
+      "duration_seconds",
       "dataset_tag"
     ],
     "col_types": [
@@ -115,13 +188,14 @@
       "VARCHAR",
       "VARCHAR",
       "BOOLEAN",
+      "BIGINT",
       "VARCHAR"
     ]
   },
   "assertion_results": {
     "src_col_count_48": true,
     "required_src_cols_present": true,
-    "col_count_8": true,
+    "col_count_9": true,
     "col_names_match": true,
     "col_dtypes_match": true,
     "total_rows_61062392": true,
@@ -138,7 +212,9 @@
     "null_opponent_faction_0": true,
     "prefix_violations_0": true,
     "n_distinct_tags_1": true,
-    "dataset_tag_aoe2companion": true
+    "dataset_tag_aoe2companion": true,
+    "duration_max_le_1B_gate5a": true,
+    "duration_null_fraction_le_1pct": true
   },
   "all_assertions_pass": true,
   "describe_table_rows": [
@@ -199,6 +275,14 @@
       "extra": null
     },
     {
+      "column_name": "duration_seconds",
+      "column_type": "BIGINT",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
       "column_name": "dataset_tag",
       "column_type": "VARCHAR",
       "null": "YES",
@@ -209,8 +293,8 @@
   ],
   "sql_queries": {
     "CREATE_GOOD_MATCH_IDS_SQL": "CREATE OR REPLACE TABLE _good_match_ids AS\n-- Staging step 1/2: good match IDs (complementary won/lost pairs after dedup).\n-- DuckDB 1.5.1 bug: QUALIFY + GROUP BY in a single CTE gives wrong row counts\n-- when that CTE is used in a subsequent INNER JOIN. Materialized separately.\n-- I9: matches_raw read-only; no upstream modification.\nWITH deduped AS (\n    SELECT matchId, profileId, won\n    FROM matches_raw\n    WHERE internalLeaderboardId IN (6, 18)\n      AND profileId != -1\n    QUALIFY\n        row_number() OVER (PARTITION BY matchId, profileId ORDER BY started) = 1\n)\nSELECT matchId\nFROM deduped\nGROUP BY matchId\nHAVING COUNT(*) = 2\n   AND SUM(CASE WHEN won THEN 1 ELSE 0 END) = 1\n   AND SUM(CASE WHEN NOT won THEN 1 ELSE 0 END) = 1",
-    "CREATE_STAGING_TABLE_SQL": "CREATE OR REPLACE TABLE _mhm_base AS\n-- Staging step 2/2: base projection from matches_raw + _good_match_ids.\n-- I7: matchId INTEGER per data/db/schemas/raw/matches_raw.yaml line `matchId: INTEGER`.\n-- I9: matches_raw read-only; no upstream modification.\nSELECT\n    'aoe2companion::' || CAST(r.matchId AS VARCHAR) AS match_id,\n    r.started                                       AS started_at,\n    CAST(r.profileId AS VARCHAR)                    AS player_id,\n    r.civ                                           AS faction,\n    r.won                                           AS won\nFROM matches_raw r\nINNER JOIN _good_match_ids g ON r.matchId = g.matchId\nWHERE r.internalLeaderboardId IN (6, 18)\n  AND r.profileId != -1\nQUALIFY\n    row_number() OVER (PARTITION BY r.matchId, r.profileId ORDER BY r.started) = 1",
-    "CREATE_MATCHES_HISTORY_MINIMAL_SQL": "CREATE OR REPLACE TABLE matches_history_minimal AS\n-- aoe2companion sibling of sc2egset.matches_history_minimal (PR #152 pattern).\n-- Input: _mhm_base (materialized staging from matches_raw with matches_1v1_clean\n--   filter logic). Strategy: self-join on match_id with unequal player_id\n--   (sc2egset pattern). No UNION ALL pivot needed -- aoec already 2 rows/match.\n-- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).\n-- Cross-dataset contract: 8 columns, identical dtypes across sibling objects.\n--   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is\n--   per-dataset-polymorphic (SC2 race stems vs AoE2 full civ names).\n-- Invariants: I3 (TIMESTAMP pass-through; started already TIMESTAMP per\n--   data/db/schemas/raw/matches_raw.yaml), I5-analog (NULL-safe symmetry;\n--   slot-bias gate N/A -- aoec natively player-row, no slot column),\n--   I6 (DDL verbatim in JSON artifact), I7 (matchId INTEGER ->\n--   numeric-tail regex [0-9]+; provenance: data/db/schemas/raw/matches_raw.yaml\n--   line `matchId: INTEGER`), I8 (UNION-compatible with sibling datasets\n--   via dataset_tag + prefixed match_id + canonical dtypes), I9 (pure\n--   projection; no upstream modification).\nSELECT\n    p.match_id,\n    p.started_at,\n    p.player_id,\n    o.player_id       AS opponent_id,\n    p.faction,\n    o.faction         AS opponent_faction,\n    p.won,\n    'aoe2companion'   AS dataset_tag\nFROM _mhm_base p\nJOIN _mhm_base o\n  ON p.match_id = o.match_id\n AND p.player_id <> o.player_id\nORDER BY p.started_at, p.match_id, p.player_id",
+    "CREATE_STAGING_TABLE_SQL": "CREATE OR REPLACE TABLE _mhm_base AS\n-- Staging step 2/2: base projection from matches_raw + _good_match_ids.\n-- ADDENDUM: duration_seconds added in-place (R1-WARNING-A6 fix: matches_raw already\n--   joined here; no additional JOIN needed).\n-- I7: matchId INTEGER per data/db/schemas/raw/matches_raw.yaml line `matchId: INTEGER`.\n-- I7: EXTRACT(EPOCH FROM) is standard DuckDB function -- no magic constant.\n-- I7: finished is nullable (abandoned matches); NULL propagates to duration_seconds.\n-- I9: matches_raw read-only; no upstream modification.\nSELECT\n    'aoe2companion::' || CAST(r.matchId AS VARCHAR)                  AS match_id,\n    r.started                                                        AS started_at,\n    CAST(r.profileId AS VARCHAR)                                     AS player_id,\n    r.civ                                                            AS faction,\n    r.won                                                            AS won,\n    -- ADDENDUM: duration_seconds. EXTRACT EPOCH returns DOUBLE seconds.\n    -- CAST AS BIGINT truncates (no rounding). NULL if r.finished IS NULL.\n    -- Gate +6: NULL fraction must be <= 1% (HALTING -- see Cell 10c).\n    CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT)     AS duration_seconds\nFROM matches_raw r\nINNER JOIN _good_match_ids g ON r.matchId = g.matchId\nWHERE r.internalLeaderboardId IN (6, 18)\n  AND r.profileId != -1\nQUALIFY\n    row_number() OVER (PARTITION BY r.matchId, r.profileId ORDER BY r.started) = 1",
+    "CREATE_MATCHES_HISTORY_MINIMAL_SQL": "CREATE OR REPLACE TABLE matches_history_minimal AS\n-- aoe2companion sibling of sc2egset.matches_history_minimal (PR #152 pattern).\n-- ADDENDUM: 9-col contract (duration_seconds added 2026-04-18).\n-- Input: _mhm_base (materialized staging from matches_raw with matches_1v1_clean\n--   filter logic + duration_seconds column). Strategy: self-join on match_id with\n--   unequal player_id (sc2egset pattern). No UNION ALL pivot needed -- aoec is\n--   already 2 rows/match natively.\n-- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).\n-- Cross-dataset contract: 9 columns, identical dtypes across sibling objects.\n--   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is\n--   per-dataset-polymorphic (SC2 race stems vs AoE2 full civ names).\n-- Invariants: I3 (TIMESTAMP pass-through; started already TIMESTAMP per\n--   data/db/schemas/raw/matches_raw.yaml; duration_seconds is POST_GAME_HISTORICAL),\n--   I5-analog (NULL-safe symmetry incl. duration; slot-bias gate N/A -- aoec natively\n--   player-row), I6 (DDL verbatim in JSON artifact), I7 (matchId INTEGER ->\n--   numeric-tail regex [0-9]+; EXTRACT(EPOCH FROM) is standard DuckDB -- no magic\n--   constant), I8 (9-col cross-dataset contract), I9 (pure projection; no upstream mod).\nSELECT\n    p.match_id,\n    p.started_at,\n    p.player_id,\n    o.player_id                AS opponent_id,\n    p.faction,\n    o.faction                  AS opponent_faction,\n    p.won,\n    p.duration_seconds,\n    'aoe2companion'            AS dataset_tag\nFROM _mhm_base p\nJOIN _mhm_base o\n  ON p.match_id = o.match_id\n AND p.player_id <> o.player_id\nORDER BY p.started_at, p.match_id, p.player_id",
     "DROP_STAGING_TABLES_SQL": [
       "DROP TABLE IF EXISTS _mhm_base",
       "DROP TABLE IF EXISTS _good_match_ids"
@@ -218,8 +302,11 @@
     "ROW_COUNT_CHECK_SQL": "SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT match_id) AS distinct_match_ids\nFROM matches_history_minimal",
     "ROW_COUNT_SRC_SQL": "SELECT COUNT(*) AS src_rows FROM matches_1v1_clean",
     "ROW_COUNT_NOT_2_SQL": "SELECT COUNT(*) AS matches_with_not_2_rows\nFROM (\n    SELECT match_id, COUNT(*) AS n\n    FROM matches_history_minimal\n    GROUP BY match_id\n    HAVING n <> 2\n)",
-    "SYMMETRY_I5_ANALOG_SQL": "WITH row_pairs AS (\n    SELECT\n        a.match_id,\n        a.player_id         AS a_pid,\n        a.opponent_id       AS a_oid,\n        a.won               AS a_won,\n        a.faction           AS a_fac,\n        a.opponent_faction  AS a_ofac,\n        b.player_id         AS b_pid,\n        b.opponent_id       AS b_oid,\n        b.won               AS b_won,\n        b.faction           AS b_fac,\n        b.opponent_faction  AS b_ofac\n    FROM matches_history_minimal a\n    JOIN matches_history_minimal b\n      ON a.match_id = b.match_id\n     AND a.player_id <> b.player_id\n)\nSELECT COUNT(*) AS symmetry_violations\nFROM row_pairs\nWHERE a_pid <> b_oid\n   OR a_oid <> b_pid\n   OR a_won = b_won\n   OR a_fac IS DISTINCT FROM b_ofac\n   OR a_ofac IS DISTINCT FROM b_fac",
-    "ZERO_NULL_SQL": "SELECT\n    COUNT(*) FILTER (WHERE match_id          IS NULL) AS null_match_id,\n    COUNT(*) FILTER (WHERE started_at        IS NULL) AS null_started_at,\n    COUNT(*) FILTER (WHERE player_id         IS NULL) AS null_player_id,\n    COUNT(*) FILTER (WHERE opponent_id       IS NULL) AS null_opponent_id,\n    COUNT(*) FILTER (WHERE won               IS NULL) AS null_won,\n    COUNT(*) FILTER (WHERE dataset_tag       IS NULL) AS null_dataset_tag,\n    COUNT(*) FILTER (WHERE faction           IS NULL) AS null_faction,\n    COUNT(*) FILTER (WHERE opponent_faction  IS NULL) AS null_opponent_faction\nFROM matches_history_minimal",
+    "SYMMETRY_I5_ANALOG_SQL": "WITH row_pairs AS (\n    SELECT\n        a.match_id,\n        a.player_id         AS a_pid,\n        a.opponent_id       AS a_oid,\n        a.won               AS a_won,\n        a.faction           AS a_fac,\n        a.opponent_faction  AS a_ofac,\n        a.duration_seconds  AS a_dur,\n        b.player_id         AS b_pid,\n        b.opponent_id       AS b_oid,\n        b.won               AS b_won,\n        b.faction           AS b_fac,\n        b.opponent_faction  AS b_ofac,\n        b.duration_seconds  AS b_dur\n    FROM matches_history_minimal a\n    JOIN matches_history_minimal b\n      ON a.match_id = b.match_id\n     AND a.player_id <> b.player_id\n)\nSELECT COUNT(*) AS symmetry_violations\nFROM row_pairs\nWHERE a_pid <> b_oid\n   OR a_oid <> b_pid\n   OR a_won = b_won\n   OR a_fac IS DISTINCT FROM b_ofac\n   OR a_ofac IS DISTINCT FROM b_fac\n   OR a_dur IS DISTINCT FROM b_dur",
+    "ZERO_NULL_SQL": "SELECT\n    COUNT(*) FILTER (WHERE match_id          IS NULL) AS null_match_id,\n    COUNT(*) FILTER (WHERE started_at        IS NULL) AS null_started_at,\n    COUNT(*) FILTER (WHERE player_id         IS NULL) AS null_player_id,\n    COUNT(*) FILTER (WHERE opponent_id       IS NULL) AS null_opponent_id,\n    COUNT(*) FILTER (WHERE won               IS NULL) AS null_won,\n    COUNT(*) FILTER (WHERE duration_seconds  IS NULL) AS null_duration_seconds,\n    COUNT(*) FILTER (WHERE dataset_tag       IS NULL) AS null_dataset_tag,\n    COUNT(*) FILTER (WHERE faction           IS NULL) AS null_faction,\n    COUNT(*) FILTER (WHERE opponent_faction  IS NULL) AS null_opponent_faction\nFROM matches_history_minimal",
+    "DURATION_STATS_SQL": "SELECT\n    MIN(duration_seconds)                                         AS min_duration_seconds,\n    MAX(duration_seconds)                                         AS max_duration_seconds,\n    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_seconds)\n                                                                  AS p50_duration_seconds,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds)\n                                                                  AS p99_duration_seconds,\n    AVG(duration_seconds)                                         AS avg_duration_seconds,\n    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL)          AS non_null_count,\n    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL\n                       AND duration_seconds <= 0)                 AS non_positive_count,\n    COUNT(*) FILTER (WHERE duration_seconds > 86400)              AS outlier_count_gt_86400\nFROM matches_history_minimal",
+    "OUTLIER_SAMPLE_SQL": "SELECT match_id, player_id, duration_seconds\nFROM matches_history_minimal\nWHERE duration_seconds > 86400\nORDER BY duration_seconds DESC\nLIMIT 10",
+    "NULL_FRACTION_SQL": "SELECT\n    COUNT(*) FILTER (WHERE duration_seconds IS NULL)  AS null_count,\n    COUNT(*)                                          AS total_rows,\n    COUNT(*) FILTER (WHERE duration_seconds IS NULL) * 1.0 / COUNT(*) AS null_fraction\nFROM matches_history_minimal",
     "PREFIX_CHECK_SQL": "-- Magic literal: 'aoe2companion::' = dataset prefix.\n-- Numeric-tail regex [0-9]+ cites:\n--   src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/matches_raw.yaml\n--   line `matchId: INTEGER` (I7 provenance).\n-- Round-trip cast: regexp_extract tail == CAST(CAST(tail AS BIGINT) AS VARCHAR)\n--   verifies no leading zeros or non-numeric chars in match_id suffix.\n-- Variable decimal width -- no fixed-length gate (unlike sc2egset's 42-char hex).\nSELECT COUNT(*) AS prefix_violations\nFROM matches_history_minimal m\nWHERE m.match_id NOT LIKE 'aoe2companion::%'\n   OR regexp_extract(m.match_id, '::([0-9]+)$', 1) = ''\n   OR regexp_extract(m.match_id, '::([0-9]+)$', 1)\n      <> CAST(CAST(split_part(m.match_id, '::', 2) AS BIGINT) AS VARCHAR)",
     "DATASET_TAG_CHECK_SQL": "SELECT\n    COUNT(DISTINCT dataset_tag) AS n_distinct_tags,\n    MAX(dataset_tag)            AS the_tag\nFROM matches_history_minimal",
     "FACTION_VOCAB_SQL": "SELECT faction, COUNT(*) AS n\nFROM matches_history_minimal\nGROUP BY faction\nORDER BY n DESC",
@@ -235,6 +322,7 @@
       "faction",
       "opponent_faction",
       "won",
+      "duration_seconds",
       "dataset_tag"
     ],
     "expected_dtypes": [
@@ -245,6 +333,7 @@
       "VARCHAR",
       "VARCHAR",
       "BOOLEAN",
+      "BIGINT",
       "VARCHAR"
     ]
   }

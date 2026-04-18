@@ -8,6 +8,46 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Branch:** feat/01-04-03-aoe2-minimal-history
+**Scope:** Extended `matches_history_minimal` from 8 cols → 9 cols by adding `duration_seconds` BIGINT (POST_GAME_HISTORICAL).
+
+### Derivation (R1-BLOCKER-A1 fix)
+`CAST(r.duration / 1_000_000_000 AS BIGINT)` per row — both UNION halves (p0_half + p1_half) JOIN `matches_raw r` on `r.game_id = m.game_id` to pull `duration`.
+
+**Unit correction:** `matches_raw.duration` is **Arrow duration[ns] → BIGINT NANOSECONDS** per DuckDB 1.5.1 mapping (cite: `aoestats/pre_ingestion.py:271` + research_log.md:684,867,988,996). Originally proposed plan said "pass-through seconds" — this was wrong (would ship values ~1e9× too large). Plan R1 caught it; fixed to `/1_000_000_000`.
+
+### Gate split (Gate +5)
+- **Gate +5a (HALTING)** — unit regression canary: `max(duration_seconds) <= 1_000_000_000`. PASS (max 5,574,815s ≈ 64.5 days, well below 1B).
+- **Gate +5b (REPORT-ONLY)** — outlier count: rows with `duration_seconds > 86400`. Reported: **56 rows** (= 28 corrupted matches × 2 player-rows, 0.00008% of dataset). These are raw-data corruption in `matches_raw.duration` — deferred to 01_04_02 augmentation PR (follow-up) for proper flagging/filtering.
+
+### Duration stats (aoestats)
+- min: 3s
+- p50: 2,455s (~40.9 min)
+- p99: 5,729s (~95.5 min)
+- max: 5,574,815s (~64.5 days — 28 corrupted-raw-data matches)
+- null_count: 0
+- outlier_count_gt_86400: 56 (28 matches × 2 rows)
+
+### Gate summary — ALL PASS (18 gates: 13 original + 5 duration)
+- All 13 original gates (incl. slot-bias AVG=0.5): PASS
+- Gate +1..+4 (9-col shape, duration symmetry, non-NULL, non-negative): PASS
+- Gate +5a (unit regression HALTING): PASS
+- Gate +5b (outlier REPORT-ONLY): 56 rows reported
+- all_assertions_pass: True (23 assertions total)
+
+### I7 provenance
+1_000_000_000 divisor cites `aoestats/pre_ingestion.py:271` (Arrow `duration[ns]` → BIGINT nanoseconds per DuckDB 1.5.1).
+
+### Deferred follow-ups (per user-approved sequencing)
+- **01_04_02 augmentation PR:** add `duration_seconds` + `is_duration_suspicious` to `matches_1v1_clean` clean view (would flag the 28 corrupted matches at cleaning stage; 01_04_03 then pure pass-through).
+- **01_04_04 Identity Resolution PR:** aoestats `profile_id` stability + cross-dataset mapping to aoe2companion `profileId`.
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
 
 **Category:** A (science)

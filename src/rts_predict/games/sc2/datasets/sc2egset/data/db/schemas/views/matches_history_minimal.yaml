@@ -3,6 +3,7 @@ dataset: sc2egset
 game: sc2
 object_type: view
 step: '01_04_03'
+schema_version: '9-col (ADDENDUM: duration_seconds added 2026-04-18)'
 row_count: 44418
 describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json
 generated_date: '2026-04-18'
@@ -62,6 +63,25 @@ columns:
     have complementary `won` values (exactly one TRUE, one FALSE).
   notes: TARGET. Direct projection of matches_flat_clean.result; prediction label
     for downstream experiments.
+- name: duration_seconds
+  type: BIGINT
+  nullable: true
+  description: 'Match duration in seconds (POST_GAME_HISTORICAL). For sc2egset: CAST(player_history_all.header_elapsedGameLoops
+    / 22.4 AS BIGINT). Aggregated per replay via ANY_VALUE before joining (player_history_all
+    has 2 rows per replay; value is constant per replay). Both rows of a match have
+    identical duration_seconds (symmetric). I7 provenance for 22.4 loops/sec: details.gameSpeed
+    cardinality=1 in sc2egset (W02 census, research_log.md:333) + Blizzard ''Faster''
+    constant (Liquipedia SC2 Game Speed). Calibration caveat (A-D1): assumes Faster
+    speed for all replays; non-Faster replays would underestimate duration (~30% error).
+    Accepted for thesis-level precision.'
+  notes: 'POST_GAME_HISTORICAL. Available only after match end. DO NOT use as PRE_GAME
+    feature for predicting match T outcome (I3 violation). Useful for retrospective
+    analysis: rating-update weighting, learning-curve measurement, game-length-conditioned
+    BTL. Phase 02 feature extractors that drop POST_GAME_HISTORICAL tokens will auto-exclude.
+    Unit: seconds (canonical cross-dataset unit). Source: player_history_all.header_elapsedGameLoops
+    / 22.4 (sc2egset-specific). Cross-dataset I7 provenance: sc2egset 22.4 loops/sec
+    (this dataset); aoestats /1e9 nanoseconds via pre_ingestion.py:271; aoec EXTRACT
+    EPOCH from matches_raw.started/finished.'
 - name: dataset_tag
   type: VARCHAR
   nullable: false
@@ -71,8 +91,10 @@ columns:
 provenance:
   source_tables:
   - matches_flat_clean
+  - player_history_all
   join_key: self-join on matches_flat_clean via replay_id; player_id = toon_id; opponent_id
-    from sibling row where mfc.toon_id <> opp.toon_id
+    from sibling row where mfc.toon_id <> opp.toon_id. LEFT JOIN to duration_per_replay
+    (aggregated player_history_all) on replay_id.
   filter: 'Inherited from matches_flat_clean: true_1v1_decisive (2 players, 1 Win
     + 1 Loss) + mmr_valid.'
   scope: 22,209 true 1v1 decisive replays, 44,418 player-rows. Cross-dataset harmonization
@@ -80,37 +102,37 @@ provenance:
   created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
 invariants:
 - id: I3
-  description: TIMESTAMP-typed temporal anchor enables chronologically faithful ordering
-    (upstream VARCHAR details_timeUTC has 7 distinct sub-second precision variants
-    22-28 chars; lex ordering would be non-monotonic). TRY_CAST to TIMESTAMP in the
-    VIEW normalizes. No windowed aggregations, no shift(), no future joins. Phase
-    02 consumers use started_at as the strict-less-than anchor for match_time < T
-    feature computation.
+  description: 'TIMESTAMP-typed temporal anchor enables chronologically faithful ordering.
+    duration_seconds is POST_GAME_HISTORICAL (machine-grep-able token in notes): DO
+    NOT use as PRE_GAME feature for match T. Phase 02 feature extractors that drop
+    POST_GAME_HISTORICAL tokens will auto-exclude this column.'
 - id: I5
   description: Player-row symmetry (I5-analog). Every match_id has exactly 2 rows.
     (player_id, opponent_id) appears once in each direction. The two `won` values
-    are complementary. faction and opponent_faction are mirror images. Assertion SQL
-    uses IS DISTINCT FROM for NULL-safe comparison (R1-BLOCKER-3 fix).
+    are complementary. faction and opponent_faction are mirror images. duration_seconds
+    is identical for both rows (symmetric LEFT JOIN). Assertion SQL uses IS DISTINCT
+    FROM for NULL-safe comparison.
 - id: I6
   description: CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in
     01_04_03_minimal_history_view.json sql_queries block. DESCRIBE result captured
     in validation JSON describe_table_rows for reproducibility of the nullable flags
     written to this YAML.
 - id: I7
-  description: Magic literals in PREFIX_CHECK_SQL (`32` hex chars, `42` total length)
-    cite upstream data/db/schemas/views/matches_long_raw.yaml join_key regex [0-9a-f]{32}
-    for provenance.
+  description: 'Magic literals: PREFIX_CHECK_SQL `32` hex chars / `42` total length
+    cite upstream data/db/schemas/views/matches_long_raw.yaml join_key regex [0-9a-f]{32}.
+    duration_seconds constant 22.4 loops/sec cites: details.gameSpeed cardinality=1
+    in sc2egset (W02 census, research_log.md:333) + Blizzard ''Faster'' game-speed
+    constant (Liquipedia SC2 Game Speed).'
 - id: I8
-  description: 'Cross-dataset comparability: 8-column names + dtypes are the cross-dataset
-    contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
-    per-dataset-polymorphic -- column name and dtype cross-dataset, values per-dataset
-    ontology. aoestats sibling PR must project its 1-row-per-match matches_1v1_clean
-    to 2-rows-per-match via UNION ALL of p0/p1 SELECTs (with awareness of team1_wins
-    ~52.27% slot asymmetry); aoe2companion similarly. match_id prefixed ''sc2egset::''.'
+  description: 'Cross-dataset comparability: 9-column names + dtypes are the cross-dataset
+    contract (ADDENDUM: extended from 8 to 9 cols; duration_seconds BIGINT added).
+    Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is per-dataset-polymorphic.
+    duration_seconds unit is seconds across all datasets (sc2egset /22.4 loops; aoestats
+    /1e9 ns; aoec EXTRACT EPOCH).'
 - id: I9
   description: Pure non-destructive projection. No raw table modified. matches_flat_clean
-    unchanged. Only matches_history_minimal VIEW created via CREATE OR REPLACE. Inputs
-    (matches_flat_clean, matches_flat) read-only.
+    unchanged. player_history_all is read-only (SELECT only). Only matches_history_minimal
+    VIEW created via CREATE OR REPLACE.
 provenance_categories_note: This view inherits provenance categories from matches_flat_clean.
   Per-column 'notes' field uses the single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME,
-  TARGET) established in 01_04_02.
+  TARGET, POST_GAME_HISTORICAL) -- POST_GAME_HISTORICAL added in ADDENDUM.

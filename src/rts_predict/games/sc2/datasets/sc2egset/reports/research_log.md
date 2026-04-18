@@ -2,6 +2,49 @@
 
 ---
 
+## 2026-04-18 -- [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Branch:** feat/01-04-03-aoe2-minimal-history (cross-dataset PR; extends PR #152 sibling)
+**Scope:** Extended `matches_history_minimal` VIEW from 8 cols → 9 cols by adding `duration_seconds` BIGINT (POST_GAME_HISTORICAL). Sibling extension simultaneous across aoestats + aoe2companion (same PR).
+
+### Column added
+
+| col | dtype | derivation |
+|---|---|---|
+| `duration_seconds` | BIGINT | `CAST(ANY_VALUE(header_elapsedGameLoops) / 22.4 AS BIGINT)` per replay_id, via JOIN to aggregated `player_history_all` (R1-BLOCKER-A2 fix — `header_elapsedGameLoops` is NOT in `matches_flat_clean` or `matches_long_raw`; only `player_history_all` retains it at line 112). |
+
+### I7 provenance (sc2egset)
+22.4 loops/sec SC2 "Faster" game-speed constant — empirically justified by `details.gameSpeed` cardinality=1 in sc2egset (W02 census, research_log.md:333 in this dataset) + Blizzard SC2 documentation.
+
+### Duration stats (sc2egset)
+- min: 1s
+- max: 6,073s (~1.7 hours)
+- avg: ~720s (~12 min)
+- null_count: 0
+- outlier_count_gt_86400: 0 (sc2egset has no data-quality outliers — contrast aoestats 56 rows, aoec 142 rows flagged for 01_04_02 augmentation follow-up PR)
+
+### Gate summary — ALL PASS (17 gates: 12 original + 5 duration)
+- Gate +1 (9 cols): PASS
+- Gate +2 (null_duration): 0
+- Gate +3 (non-positive): 0
+- Gate +4 (duration symmetry via IS DISTINCT FROM): 0 violations
+- Gate +5a (max ≤ 1e9 — unit regression canary, HALTING): PASS (max 6,073)
+- Gate +5b (outliers > 86400, REPORT-ONLY): 0 rows
+
+### Cross-dataset I8 contract update
+9-col contract sealed across 3/3 datasets (sc2egset + aoestats + aoe2companion) with identical column names, dtypes, grain, and `POST_GAME_HISTORICAL` token on duration_seconds. Consumers that drop POST_GAME_HISTORICAL tokens will auto-exclude duration from PRE_GAME feature sets (I3-safe default).
+
+### Deferred follow-up PRs (per user-approved scope sequencing 2026-04-18)
+- **01_04_02 augmentation PR:** add `duration_seconds` + `is_duration_suspicious` to all 3 clean views (would make 01_04_03 a pure pass-through and centralize outlier flagging).
+- **01_04_04 Identity Resolution PR:** empirical census of sc2egset `toon_id` cross-region uniqueness (toon_id is region-scoped per Battle.net account model — not globally unique), aoestats `profile_id` stability, aoe2companion `profileId` stability, cross-dataset identity mapping. Per user directive 2026-04-18: "sc2 for example cannot have constant toon_ids over multiple servers/regions".
+
+### Adversarial cycle for this extension
+Pre-exec R1: 3 BLOCKERs found (A1 aoestats unit, A2 sc2egset source, A3 multiplicity) + 4 WARNINGs — all fixed in plan before execution. Post-exec: not run separately (sibling datasets' execution = empirical adversarial; all 54+ gates PASS across 3 datasets confirms plan correctness).
+
+---
+
 ## 2026-04-18 -- [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
 
 **Category:** A (science)

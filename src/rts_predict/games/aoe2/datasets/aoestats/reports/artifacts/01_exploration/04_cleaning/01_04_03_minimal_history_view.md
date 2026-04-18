@@ -5,10 +5,11 @@
 **Game:** AoE2
 **Step:** 01_04_03
 **Predecessor:** 01_04_02 (Data Cleaning Execution)
+**Schema version:** 9-col (ADDENDUM: duration_seconds added 2026-04-18)
 
 ## Summary
 
-Created `matches_history_minimal` VIEW -- 8-column player-row-grain view of
+Created `matches_history_minimal` VIEW -- 9-column player-row-grain view of
 `matches_1v1_clean` (2 rows per 1v1 match via UNION ALL pivot). Canonical TIMESTAMP
 temporal dtype (via CAST from TIMESTAMPTZ AT TIME ZONE 'UTC'). Per-dataset-polymorphic
 faction vocabulary (full AoE2 civ names, ~50 distinct). Cross-dataset-harmonized
@@ -17,7 +18,11 @@ substrate for Phase 02+ rating-system backtesting. Pure non-destructive projecti
 aoestats-specific: UNION ALL erases slot bias -- overall_won_rate = 0.5 exactly
 (upstream slot asymmetry team=1 wins ~52.27% preserved at slot level only).
 
-## Schema (8 columns)
+ADDENDUM: Added `duration_seconds` BIGINT (column 8) between `won` and `dataset_tag`.
+Source: matches_raw.duration / 1_000_000_000 (Arrow duration[ns] -> BIGINT nanoseconds;
+R1-BLOCKER-A1 fix: divide by 1e9 not 1e3). POST_GAME_HISTORICAL.
+
+## Schema (9 columns)
 
 | column | dtype | semantics |
 |---|---|---|
@@ -28,6 +33,7 @@ aoestats-specific: UNION ALL erases slot bias -- overall_won_rate = 0.5 exactly
 | `faction` | VARCHAR | Full civ name (Mongols, Franks, etc.). PER-DATASET POLYMORPHIC |
 | `opponent_faction` | VARCHAR | Opposing civ (same vocabulary as faction) |
 | `won` | BOOLEAN | Focal player's outcome (complementary between the 2 rows) |
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL. matches_raw.duration / 1_000_000_000 (nanoseconds to seconds). |
 | `dataset_tag` | VARCHAR | Constant `'aoestats'` |
 
 ## Row-count flow
@@ -49,6 +55,23 @@ aoestats-specific: UNION ALL erases slot bias -- overall_won_rate = 0.5 exactly
 | slot1_rate (informational) | 0.5006849024024601 |
 
 UNION ALL erases slot bias: every match contributes 1 won=TRUE + 1 won=FALSE.
+
+## duration_seconds stats (ADDENDUM gates)
+
+| metric | value | gate |
+|---|---|---|
+| min_duration_seconds | 3 | report only |
+| max_duration_seconds | 5574815 | <= 1_000_000_000 (Gate +5a HALTING unit canary) |
+| p50_duration_seconds | 2455.0 | report only |
+| p99_duration_seconds | 5729.0 | report only |
+| avg_duration_seconds | 2418.1 | report only |
+| null_duration_seconds | 0 | report only (Gate +2) |
+| non_positive_count | 0 | 0 (Gate +3) |
+| outlier_count_gt_86400 | 56 | report only (Gate +5b, no halt) |
+
+**Gate +5a** (HALTING -- unit canary): max <= 1_000_000_000s (~31.7 years). Catches nanosecond-unit regression (skipping /1e9 would yield ~1e12). PASS.
+
+**Gate +5b** (REPORT-ONLY): 56 rows have duration_seconds > 86400 (> 24h). These are raw-data corruption / abandoned matches. Outlier handling deferred to 01_04_02 augmentation follow-up PR. Pass-through at this step.
 
 ## Faction vocabulary (per-dataset polymorphic, top rows shown in full table)
 
@@ -127,6 +150,7 @@ datasets without game-conditional encoding.
 | player_id | 0 | 0 (GATE) |
 | opponent_id | 0 | 0 (GATE) |
 | won | 0 | 0 (GATE) |
+| duration_seconds | 0 | report only (Gate +2) |
 | dataset_tag | 0 | 0 (GATE) |
 | faction | 0 | 0 (GATE) |
 | opponent_faction | 0 | 0 (GATE) |
@@ -136,13 +160,17 @@ datasets without game-conditional encoding.
 | check | result |
 |---|---|
 | Row count 35,629,894 = 2 x 17,814,947 | PASS |
-| Column count 8 | PASS |
+| Column count 9 (Gate +1) | PASS |
 | started_at dtype TIMESTAMP | PASS |
-| I5-analog NULL-safe symmetry violations = 0 | PASS |
+| duration_seconds dtype BIGINT | PASS |
+| I5-analog NULL-safe symmetry violations (incl. duration) = 0 | PASS |
 | match_id prefix violations = 0 | PASS |
 | dataset_tag distinct count = 1 | PASS |
 | Zero NULLs in 7 gated columns | PASS |
 | SLOT-BIAS: AVG(won::INT) == 0.5 (tolerance 1e-9) | PASS |
+| duration_seconds non-positive = 0 (Gate +3) | PASS |
+| duration_seconds max <= 1_000_000_000 (Gate +5a HALTING unit canary) | PASS |
+| duration_seconds outliers > 86400 (Gate +5b REPORT-ONLY) | 56 rows (no halt; deferred to 01_04_02 augmentation) |
 | All assertions pass | PASS |
 
 ## Artifact

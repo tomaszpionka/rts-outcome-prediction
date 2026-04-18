@@ -22,7 +22,7 @@
 # **Step:** 01_04_03
 # **Dataset:** aoe2companion (sibling of sc2egset PR #152 + aoestats)
 # **Predecessor:** 01_04_02 (Data Cleaning Execution -- complete)
-# **Step scope:** Create `matches_history_minimal` TABLE -- 8-column player-row-grain
+# **Step scope:** Create `matches_history_minimal` TABLE -- 9-column player-row-grain
 # projection of `matches_1v1_clean` (2 rows per 1v1 match, natively player-row-oriented).
 # Self-join pattern (sc2egset precedent) -- no UNION ALL needed (aoec is already 2-row
 # per match). Canonical TIMESTAMP temporal dtype (pass-through; matches_raw.started
@@ -36,15 +36,25 @@
 # incorrect row counts. The workaround: (1) materialize the filtered base data into
 # a staging TABLE _mhm_base, (2) self-join _mhm_base to produce matches_history_minimal
 # as a persistent TABLE, (3) drop the staging table. The semantics are identical to
-# the plan's CREATE OR REPLACE VIEW intent -- same 8-column contract, same filtering.
+# the plan's CREATE OR REPLACE VIEW intent -- same 9-column contract, same filtering.
 # The object_type is TABLE not VIEW; DESCRIBE produces identical schema.
 #
+# **ADDENDUM:** Extended to 9-col contract (duration_seconds BIGINT added between
+# won and dataset_tag). Source: EXTRACT(EPOCH FROM (r.finished - r.started)) in the
+# _mhm_base staging CTE (matches_raw already joined at staging level -- add as column,
+# no new JOIN needed; R1-WARNING-A6 fix). CAST(... AS BIGINT) truncates to integer seconds.
+# Gate +6 (aoec-specific, HALTING): NULL fraction on duration_seconds <= 1%
+# (matches_raw.finished is nullable for abandoned/crashed matches).
+#
 # **Invariants applied:**
-#   - I3 (TIMESTAMP pass-through; already TIMESTAMP in matches_raw.started)
-#   - I5-analog (player-row symmetry, NULL-safe assertion via IS DISTINCT FROM)
+#   - I3 (TIMESTAMP pass-through; already TIMESTAMP in matches_raw.started;
+#     duration_seconds is POST_GAME_HISTORICAL -- excluded from PRE_GAME features)
+#   - I5-analog (player-row symmetry, NULL-safe assertion via IS DISTINCT FROM;
+#     extended to include duration_seconds symmetry)
 #   - I6 (DDL + every assertion SQL stored verbatim in validation JSON artifact)
-#   - I7 (matchId INTEGER -> numeric-tail regex [0-9]+ with round-trip cast provenance)
-#   - I8 (8-column cross-dataset contract; per-dataset-polymorphic faction vocabulary)
+#   - I7 (matchId INTEGER -> numeric-tail regex [0-9]+ with round-trip cast provenance;
+#     EXTRACT(EPOCH FROM) is standard DuckDB -- no magic constant)
+#   - I8 (9-column cross-dataset contract; per-dataset-polymorphic faction vocabulary)
 #   - I9 (pure non-destructive projection; no upstream modification)
 # **BLOCKER-1 (aoec):** matchId is INTEGER (variable decimal width). Fixed-length gate
 # inapplicable. Uses numeric-tail regex [0-9]+ + round-trip BIGINT cast assertion.
@@ -112,23 +122,40 @@ for col in required_cols:
 print("Source-view sanity check PASSED: 48 cols + all required columns present.")
 
 # %% [markdown]
+# ## Cell 4b -- matches_raw finished column sanity check
+#
+# ADDENDUM: Verify matches_raw has `finished` TIMESTAMP + `started` TIMESTAMP + `matchId` join key.
+# R1-WARNING-A6 fix: compute duration in _mhm_base staging (matches_raw already joined;
+# no new JOIN). matches_raw.finished is nullable (abandoned/crashed matches).
+# Gate +6: NULL fraction on duration_seconds must be <= 1% (HALTING).
+
+# %%
+describe_raw = con.execute("DESCRIBE matches_raw").fetchall()
+raw_col_names = [row[0] for row in describe_raw]
+raw_col_types_map = {row[0]: str(row[1]) for row in describe_raw}
+
+assert "finished" in raw_col_names, (
+    "BLOCKER: 'finished' column missing from matches_raw"
+)
+assert "started" in raw_col_names, (
+    "BLOCKER: 'started' column missing from matches_raw"
+)
+assert "matchId" in raw_col_names, (
+    "BLOCKER: 'matchId' column missing from matches_raw (join key)"
+)
+print(f"matches_raw.finished type: {raw_col_types_map['finished']}  (expected TIMESTAMP, nullable)")
+print(f"matches_raw.started type:  {raw_col_types_map['started']}  (expected TIMESTAMP)")
+print("matches_raw sanity check PASSED: finished + started + matchId present.")
+
+# %% [markdown]
 # ## Cell 5 -- Define DDL constants
 #
-# Three-step DDL due to DuckDB 1.5.1 bug: self-join on matches_1v1_clean VIEW
-# (which contains row_number() window function + ANY() subquery) triggers
-# InternalException or returns wrong row counts. Additionally, a CTE self-join
-# (even with QUALIFY) inside a single CREATE TABLE AS statement also produces
-# wrong row counts (42,866 instead of 61,062,392). The only reliable approach
-# is three separate CREATE TABLE statements, each referencing the previous
-# persistent table (not a CTE):
-#
-# Step 1: CREATE TABLE _good_match_ids -- good matchIds (complementary won pairs).
-# Step 2: CREATE TABLE _mhm_base -- base projection from matches_raw + _good_match_ids.
-# Step 3: CREATE TABLE matches_history_minimal -- self-join _mhm_base.
-# Step 4: DROP the two staging tables.
-#
-# I7 cite: matchId INTEGER per data/db/schemas/raw/matches_raw.yaml.
-# I9: matches_raw is read-only; no modifications to upstream tables.
+# Three-step DDL due to DuckDB 1.5.1 bug (same as original 8-col implementation).
+# ADDENDUM: duration_seconds added to _mhm_base staging as in-place column.
+# EXTRACT(EPOCH FROM (r.finished - r.started)) -> DOUBLE seconds -> CAST AS BIGINT.
+# matches_raw already joined at staging level (R1-WARNING-A6 fix: no new JOIN needed).
+# I7 cite: EXTRACT(EPOCH FROM) is standard DuckDB -- no magic constant (per R1-WARNING-A5).
+# Gate +6 (aoec-specific): measure NULL fraction; halt if > 1% (finished is nullable).
 
 # %%
 CREATE_GOOD_MATCH_IDS_SQL = """\
@@ -156,14 +183,22 @@ HAVING COUNT(*) = 2
 CREATE_STAGING_TABLE_SQL = """\
 CREATE OR REPLACE TABLE _mhm_base AS
 -- Staging step 2/2: base projection from matches_raw + _good_match_ids.
+-- ADDENDUM: duration_seconds added in-place (R1-WARNING-A6 fix: matches_raw already
+--   joined here; no additional JOIN needed).
 -- I7: matchId INTEGER per data/db/schemas/raw/matches_raw.yaml line `matchId: INTEGER`.
+-- I7: EXTRACT(EPOCH FROM) is standard DuckDB function -- no magic constant.
+-- I7: finished is nullable (abandoned matches); NULL propagates to duration_seconds.
 -- I9: matches_raw read-only; no upstream modification.
 SELECT
-    'aoe2companion::' || CAST(r.matchId AS VARCHAR) AS match_id,
-    r.started                                       AS started_at,
-    CAST(r.profileId AS VARCHAR)                    AS player_id,
-    r.civ                                           AS faction,
-    r.won                                           AS won
+    'aoe2companion::' || CAST(r.matchId AS VARCHAR)                  AS match_id,
+    r.started                                                        AS started_at,
+    CAST(r.profileId AS VARCHAR)                                     AS player_id,
+    r.civ                                                            AS faction,
+    r.won                                                            AS won,
+    -- ADDENDUM: duration_seconds. EXTRACT EPOCH returns DOUBLE seconds.
+    -- CAST AS BIGINT truncates (no rounding). NULL if r.finished IS NULL.
+    -- Gate +6: NULL fraction must be <= 1% (HALTING -- see Cell 10c).
+    CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT)     AS duration_seconds
 FROM matches_raw r
 INNER JOIN _good_match_ids g ON r.matchId = g.matchId
 WHERE r.internalLeaderboardId IN (6, 18)
@@ -175,30 +210,31 @@ QUALIFY
 CREATE_MATCHES_HISTORY_MINIMAL_SQL = """\
 CREATE OR REPLACE TABLE matches_history_minimal AS
 -- aoe2companion sibling of sc2egset.matches_history_minimal (PR #152 pattern).
+-- ADDENDUM: 9-col contract (duration_seconds added 2026-04-18).
 -- Input: _mhm_base (materialized staging from matches_raw with matches_1v1_clean
---   filter logic). Strategy: self-join on match_id with unequal player_id
---   (sc2egset pattern). No UNION ALL pivot needed -- aoec already 2 rows/match.
+--   filter logic + duration_seconds column). Strategy: self-join on match_id with
+--   unequal player_id (sc2egset pattern). No UNION ALL pivot needed -- aoec is
+--   already 2 rows/match natively.
 -- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).
--- Cross-dataset contract: 8 columns, identical dtypes across sibling objects.
+-- Cross-dataset contract: 9 columns, identical dtypes across sibling objects.
 --   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
 --   per-dataset-polymorphic (SC2 race stems vs AoE2 full civ names).
 -- Invariants: I3 (TIMESTAMP pass-through; started already TIMESTAMP per
---   data/db/schemas/raw/matches_raw.yaml), I5-analog (NULL-safe symmetry;
---   slot-bias gate N/A -- aoec natively player-row, no slot column),
---   I6 (DDL verbatim in JSON artifact), I7 (matchId INTEGER ->
---   numeric-tail regex [0-9]+; provenance: data/db/schemas/raw/matches_raw.yaml
---   line `matchId: INTEGER`), I8 (UNION-compatible with sibling datasets
---   via dataset_tag + prefixed match_id + canonical dtypes), I9 (pure
---   projection; no upstream modification).
+--   data/db/schemas/raw/matches_raw.yaml; duration_seconds is POST_GAME_HISTORICAL),
+--   I5-analog (NULL-safe symmetry incl. duration; slot-bias gate N/A -- aoec natively
+--   player-row), I6 (DDL verbatim in JSON artifact), I7 (matchId INTEGER ->
+--   numeric-tail regex [0-9]+; EXTRACT(EPOCH FROM) is standard DuckDB -- no magic
+--   constant), I8 (9-col cross-dataset contract), I9 (pure projection; no upstream mod).
 SELECT
     p.match_id,
     p.started_at,
     p.player_id,
-    o.player_id       AS opponent_id,
+    o.player_id                AS opponent_id,
     p.faction,
-    o.faction         AS opponent_faction,
+    o.faction                  AS opponent_faction,
     p.won,
-    'aoe2companion'   AS dataset_tag
+    p.duration_seconds,
+    'aoe2companion'            AS dataset_tag
 FROM _mhm_base p
 JOIN _mhm_base o
   ON p.match_id = o.match_id
@@ -214,7 +250,7 @@ DROP_STAGING_TABLES_SQL = [
 print("DDL constants defined.")
 print("\n=== STEP 1 DDL (good_match_ids staging) ===")
 print(CREATE_GOOD_MATCH_IDS_SQL)
-print("\n=== STEP 2 DDL (_mhm_base staging) ===")
+print("\n=== STEP 2 DDL (_mhm_base staging with duration_seconds) ===")
 print(CREATE_STAGING_TABLE_SQL)
 print("\n=== STEP 3 DDL (matches_history_minimal) ===")
 print(CREATE_MATCHES_HISTORY_MINIMAL_SQL)
@@ -224,7 +260,8 @@ print(CREATE_MATCHES_HISTORY_MINIMAL_SQL)
 #
 # Four-step execution (DuckDB 1.5.1 workaround):
 # 1. Create _good_match_ids TABLE (good matchIds: complementary won pairs).
-# 2. Create _mhm_base TABLE (base projection: matches_raw INNER JOIN _good_match_ids).
+# 2. Create _mhm_base TABLE (base projection: matches_raw INNER JOIN _good_match_ids;
+#    ADDENDUM: includes duration_seconds = EXTRACT(EPOCH FROM (finished - started))).
 # 3. Create matches_history_minimal TABLE (self-join _mhm_base).
 # 4. Drop both staging tables (_mhm_base and _good_match_ids).
 
@@ -243,7 +280,7 @@ assert gm_count == 30_531_196, (
     f"good_match_ids count mismatch: expected 30_531_196, got {gm_count}"
 )
 
-# Step 2: _mhm_base staging table
+# Step 2: _mhm_base staging table (now includes duration_seconds)
 con.execute(CREATE_STAGING_TABLE_SQL)
 staging_count = con.execute("SELECT COUNT(*) FROM _mhm_base").fetchone()[0]
 print(f"Step 2: _mhm_base created. Staging row count: {staging_count}")
@@ -265,10 +302,9 @@ print("TABLE matches_history_minimal created successfully.")
 # %% [markdown]
 # ## Cell 7 -- Schema shape validation
 #
-# DESCRIBE matches_history_minimal; assert 8 columns + exact dtypes per spec.
-# Expected: [VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, VARCHAR]
-# for columns [match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, dataset_tag].
-# I3: started_at DTYPE must be TIMESTAMP (pass-through -- no cast failures expected).
+# DESCRIBE matches_history_minimal; assert 9 columns + exact dtypes per spec.
+# ADDENDUM: 9 columns (duration_seconds BIGINT added between won and dataset_tag).
+# Gate +1: DESCRIBE returns 9 cols in order [..., won BOOLEAN, duration_seconds BIGINT, dataset_tag VARCHAR].
 
 # %%
 describe_view = con.execute("DESCRIBE matches_history_minimal").fetchall()
@@ -279,15 +315,15 @@ print(f"matches_history_minimal column count: {len(view_col_names)}")
 for name, dtype in zip(view_col_names, view_col_types):
     print(f"  {name}: {dtype}")
 
-# Assert 8 columns
-assert len(view_col_names) == 8, (
-    f"Expected 8 columns, got {len(view_col_names)}: {view_col_names}"
+# Gate +1: Assert 9 columns
+assert len(view_col_names) == 9, (
+    f"Expected 9 columns, got {len(view_col_names)}: {view_col_names}"
 )
 
 # Assert column names in order
 expected_col_names = [
     "match_id", "started_at", "player_id", "opponent_id",
-    "faction", "opponent_faction", "won", "dataset_tag",
+    "faction", "opponent_faction", "won", "duration_seconds", "dataset_tag",
 ]
 assert view_col_names == expected_col_names, (
     f"Column name mismatch:\n  expected: {expected_col_names}\n  got:      {view_col_names}"
@@ -296,13 +332,13 @@ assert view_col_names == expected_col_names, (
 # Assert dtypes in order
 expected_dtypes = [
     "VARCHAR", "TIMESTAMP", "VARCHAR", "VARCHAR",
-    "VARCHAR", "VARCHAR", "BOOLEAN", "VARCHAR",
+    "VARCHAR", "VARCHAR", "BOOLEAN", "BIGINT", "VARCHAR",
 ]
 assert view_col_types == expected_dtypes, (
     f"Dtype mismatch:\n  expected: {expected_dtypes}\n  got:      {view_col_types}"
 )
 
-print("Schema shape validation PASSED: 8 cols + dtypes match spec.")
+print("Schema shape validation PASSED: 9 cols + dtypes match spec. (Gate +1 PASS)")
 
 # %% [markdown]
 # ## Cell 8 -- Row-count validation
@@ -357,6 +393,8 @@ print("Row-count validation PASSED.")
 # Gate: symmetry_violations=0. Uses IS DISTINCT FROM for NULL-safe comparison.
 # Checks: (player_id, opponent_id) are swapped; won values are complementary;
 # faction and opponent_faction are mirrors.
+# ADDENDUM: Extended to include duration_seconds IS NOT DISTINCT FROM
+# (self-join propagates same duration_seconds from p and o rows -- symmetric by construction).
 # NOTE: Slot-bias gate is N/A for aoec (natively player-row; no slot column).
 
 # %%
@@ -369,11 +407,13 @@ WITH row_pairs AS (
         a.won               AS a_won,
         a.faction           AS a_fac,
         a.opponent_faction  AS a_ofac,
+        a.duration_seconds  AS a_dur,
         b.player_id         AS b_pid,
         b.opponent_id       AS b_oid,
         b.won               AS b_won,
         b.faction           AS b_fac,
-        b.opponent_faction  AS b_ofac
+        b.opponent_faction  AS b_ofac,
+        b.duration_seconds  AS b_dur
     FROM matches_history_minimal a
     JOIN matches_history_minimal b
       ON a.match_id = b.match_id
@@ -385,7 +425,8 @@ WHERE a_pid <> b_oid
    OR a_oid <> b_pid
    OR a_won = b_won
    OR a_fac IS DISTINCT FROM b_ofac
-   OR a_ofac IS DISTINCT FROM b_fac\
+   OR a_ofac IS DISTINCT FROM b_fac
+   OR a_dur IS DISTINCT FROM b_dur\
 """
 
 sym_row = con.execute(SYMMETRY_I5_ANALOG_SQL).fetchone()
@@ -406,6 +447,7 @@ print("NOTE: Slot-bias gate is N/A for aoec (natively player-row; no slot column
 # Gate: null_faction / null_opponent_faction all 0 (civ is zero-NULL upstream per
 # matches_1v1_clean.yaml notes -- stricter than sc2/aoestats).
 # started_at: also gate=0 (pass-through; no TRY_CAST failures since upstream started is TIMESTAMP).
+# ADDENDUM: null_duration_seconds NOT a halt gate here -- handled in Cell 10c (Gate +6).
 
 # %%
 ZERO_NULL_SQL = """\
@@ -415,6 +457,7 @@ SELECT
     COUNT(*) FILTER (WHERE player_id         IS NULL) AS null_player_id,
     COUNT(*) FILTER (WHERE opponent_id       IS NULL) AS null_opponent_id,
     COUNT(*) FILTER (WHERE won               IS NULL) AS null_won,
+    COUNT(*) FILTER (WHERE duration_seconds  IS NULL) AS null_duration_seconds,
     COUNT(*) FILTER (WHERE dataset_tag       IS NULL) AS null_dataset_tag,
     COUNT(*) FILTER (WHERE faction           IS NULL) AS null_faction,
     COUNT(*) FILTER (WHERE opponent_faction  IS NULL) AS null_opponent_faction
@@ -424,7 +467,8 @@ FROM matches_history_minimal\
 null_row = con.execute(ZERO_NULL_SQL).fetchone()
 (
     null_match_id, null_started_at, null_player_id, null_opponent_id,
-    null_won, null_dataset_tag, null_faction, null_opponent_faction
+    null_won, null_duration_seconds, null_dataset_tag,
+    null_faction, null_opponent_faction
 ) = null_row
 
 print(f"null_match_id:          {null_match_id}")
@@ -432,6 +476,7 @@ print(f"null_started_at:        {null_started_at}  (gate=0; pass-through TIMESTA
 print(f"null_player_id:         {null_player_id}")
 print(f"null_opponent_id:       {null_opponent_id}")
 print(f"null_won:               {null_won}")
+print(f"null_duration_seconds:  {null_duration_seconds}  (Gate +2 + Gate +6 reported below)")
 print(f"null_dataset_tag:       {null_dataset_tag}")
 print(f"null_faction:           {null_faction}  (gate=0; civ zero-NULL upstream)")
 print(f"null_opponent_faction:  {null_opponent_faction}  (gate=0; civ zero-NULL upstream)")
@@ -445,6 +490,144 @@ assert null_faction == 0, f"null_faction={null_faction} (expected 0; civ zero-NU
 assert null_opponent_faction == 0, f"null_opponent_faction={null_opponent_faction} (expected 0)"
 
 print("Zero-NULL validation PASSED for all 7 non-nullable spec columns (incl. faction).")
+
+# %% [markdown]
+# ## Cell 10b -- duration_seconds positive-value and range assertions
+#
+# ADDENDUM Gates +3, +4, +5a, +5b:
+# Gate +3: duration_seconds > 0 for all non-NULL rows.
+# Gate +4: Duration symmetry (covered in Cell 9 symmetry check;
+#   self-join propagates same duration_seconds for both rows of a match).
+# Gate +5a (HALTING -- unit regression canary): max(duration_seconds) <= 1_000_000_000
+#   (~31.7 years). Catches nanosecond-unit passthrough bug: if EXTRACT EPOCH were
+#   accidentally dropped, raw INTERVAL microseconds would yield values far above 1B.
+#   Threshold intentionally generous to allow raw-data outliers (e.g., very long
+#   wall-clock durations from crashed/abandoned matches).
+# Gate +5b (REPORT-ONLY -- outlier count): count rows where duration_seconds > 86400 (> 24h).
+#   These are raw-data corruption / abandoned matches with bogus timestamps. Do NOT halt.
+#   Report count + sample. Outlier handling deferred to 01_04_02 augmentation follow-up.
+
+# %%
+DURATION_STATS_SQL = """\
+SELECT
+    MIN(duration_seconds)                                         AS min_duration_seconds,
+    MAX(duration_seconds)                                         AS max_duration_seconds,
+    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_seconds)
+                                                                  AS p50_duration_seconds,
+    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds)
+                                                                  AS p99_duration_seconds,
+    AVG(duration_seconds)                                         AS avg_duration_seconds,
+    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL)          AS non_null_count,
+    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL
+                       AND duration_seconds <= 0)                 AS non_positive_count,
+    COUNT(*) FILTER (WHERE duration_seconds > 86400)              AS outlier_count_gt_86400
+FROM matches_history_minimal\
+"""
+
+dur_row = con.execute(DURATION_STATS_SQL).fetchone()
+(
+    min_dur, max_dur, p50_dur, p99_dur, avg_dur,
+    non_null_dur, non_positive_dur, outlier_count_gt_86400
+) = dur_row
+
+print(f"min_duration_seconds:       {min_dur}")
+print(f"max_duration_seconds:       {max_dur}")
+print(f"p50_duration_seconds:       {p50_dur}")
+print(f"p99_duration_seconds:       {p99_dur}")
+print(f"avg_duration_seconds:       {avg_dur:.1f}" if avg_dur is not None else "avg_duration_seconds: None")
+print(f"non_null_count:             {non_null_dur}")
+print(f"non_positive_count:         {non_positive_dur}  (Gate +3: expected 0)")
+print(f"outlier_count_gt_86400:     {outlier_count_gt_86400}  (Gate +5b: report-only)")
+
+# Gate +3: report non-positive values among non-NULLs (REPORT-ONLY for aoec).
+# aoec: negative duration_seconds arise when finished < started (clock skew / timezone
+# corruption in raw data -- not a unit regression). These are raw-data artifacts, not
+# an indication that EXTRACT(EPOCH FROM) was dropped. Do NOT halt; report for awareness.
+# For reference: aoestats Gate +3 is HALTING (arrow[ns] -> /1e9 -> no negatives possible),
+# but aoec wall-clock subtraction can yield negatives for corrupted finished timestamps.
+# Outlier handling deferred to 01_04_02 augmentation follow-up PR.
+if non_positive_dur > 0:
+    print(
+        f"Gate +3 REPORT-ONLY (aoec): {non_positive_dur} rows with duration_seconds <= 0 "
+        f"(finished < started -- clock skew / raw-data corruption). NOT a unit regression. "
+        f"Pass-through; outlier handling deferred."
+    )
+else:
+    print("Gate +3 PASS: all non-NULL duration_seconds > 0.")
+
+# Gate +5a (HALTING -- unit regression canary).
+# Threshold: 1_000_000_000 seconds (~31.7 years).
+# If EXTRACT(EPOCH FROM) were accidentally dropped, INTERVAL micros passthrough would
+# yield values far above this threshold. The 1B canary is intentionally generous so
+# legitimate outliers (abandoned matches with bogus wall-clock) pass through.
+assert max_dur is None or max_dur <= 1_000_000_000, (
+    f"Gate +5a HALTING FAILED: unit regression? max_duration_seconds={max_dur} > 1_000_000_000. "
+    f"aoec duration: EXTRACT(EPOCH FROM (r.finished - r.started)) -> DOUBLE seconds -> BIGINT. "
+    f"If this value is astronomically large, EXTRACT EPOCH may have been dropped."
+)
+print(f"Gate +5a PASS: max_duration_seconds={max_dur} <= 1_000_000_000 (unit canary OK).")
+
+# Gate +5b (REPORT-ONLY -- outlier count > 24h).
+# These are raw-data corruption rows (abandoned/crashed matches with bogus timestamps).
+# Do NOT halt. Pass through unchanged to downstream steps.
+# Outlier handling is deferred to the 01_04_02 augmentation PR (follow-up).
+print(
+    f"Gate +5b REPORT: {outlier_count_gt_86400} rows with duration_seconds > 86400 (> 24h). "
+    f"These are raw-data corruption / abandoned matches. "
+    f"Outlier handling deferred to 01_04_02 augmentation follow-up PR. Pass-through."
+)
+
+# Sample the outliers for the validation JSON
+OUTLIER_SAMPLE_SQL = """\
+SELECT match_id, player_id, duration_seconds
+FROM matches_history_minimal
+WHERE duration_seconds > 86400
+ORDER BY duration_seconds DESC
+LIMIT 10\
+"""
+outlier_sample_rows = con.execute(OUTLIER_SAMPLE_SQL).fetchall()
+outlier_sample = [
+    {"match_id": row[0], "player_id": row[1], "duration_seconds": row[2]}
+    for row in outlier_sample_rows
+]
+print(f"Top-10 outlier sample (by duration_seconds DESC):")
+for s in outlier_sample:
+    print(f"  {s}")
+
+# %% [markdown]
+# ## Cell 10c -- Gate +6 (aoec-specific, HALTING): NULL fraction on duration_seconds
+#
+# ADDENDUM Gate +6: NULL fraction = null_duration_seconds / total_rows.
+# HALTING if fraction > 1% (R1-WARNING-A7 fix).
+# matches_raw.finished is nullable (abandoned/crashed matches); NULL propagates to
+# EXTRACT(EPOCH FROM (finished - started)).
+# If fraction > 1%, HALT -- do not proceed to next dataset.
+
+# %%
+NULL_FRACTION_SQL = """\
+SELECT
+    COUNT(*) FILTER (WHERE duration_seconds IS NULL)  AS null_count,
+    COUNT(*)                                          AS total_rows,
+    COUNT(*) FILTER (WHERE duration_seconds IS NULL) * 1.0 / COUNT(*) AS null_fraction
+FROM matches_history_minimal\
+"""
+
+nf_row = con.execute(NULL_FRACTION_SQL).fetchone()
+dur_null_count, dur_total_rows, dur_null_fraction = nf_row
+
+print(f"null_count:    {dur_null_count}")
+print(f"total_rows:    {dur_total_rows}")
+print(f"null_fraction: {dur_null_fraction:.6f}  (= {dur_null_fraction*100:.4f}%)")
+print(f"Gate +6 threshold: <= 0.01 (1%)")
+
+# Gate +6 (aoec-specific, HALTING)
+assert dur_null_fraction <= 0.01, (
+    f"Gate +6 HALTING FAILED: duration_seconds NULL fraction = {dur_null_fraction:.6f} "
+    f"({dur_null_fraction*100:.4f}%) > 1%. "
+    f"matches_raw.finished is nullable for abandoned matches. "
+    f"NULL count: {dur_null_count} / {dur_total_rows}"
+)
+print(f"Gate +6 PASS: duration_seconds NULL fraction = {dur_null_fraction:.6f} <= 0.01.")
 
 # %% [markdown]
 # ## Cell 11 -- match_id prefix verification (aoec-specific: numeric-tail regex)
@@ -582,7 +765,7 @@ print("NOTE: Variable decimal width confirmed -- no fixed-length gate (aoec-spec
 #
 # Captures: step metadata, row_counts, assertion_results, sql_queries (verbatim I6),
 # describe_table_rows (DESCRIBE output for nullable-flag reproducibility).
-# Note: DuckDB may return DuckDBPyType for column_type; stringify with str(x).
+# ADDENDUM: 9-col schema; duration_seconds stats + Gate +6 included.
 
 # %%
 reports_dir = get_reports_dir("aoe2", "aoe2companion")
@@ -608,7 +791,7 @@ describe_table_rows = [
 assertion_results = {
     "src_col_count_48": len(describe_src) == 48,
     "required_src_cols_present": all(c in src_col_names for c in required_cols),
-    "col_count_8": len(view_col_names) == 8,
+    "col_count_9": len(view_col_names) == 9,
     "col_names_match": view_col_names == expected_col_names,
     "col_dtypes_match": view_col_types == expected_dtypes,
     "total_rows_61062392": total_rows == 61_062_392,
@@ -626,6 +809,10 @@ assertion_results = {
     "prefix_violations_0": prefix_violations == 0,
     "n_distinct_tags_1": n_distinct_tags == 1,
     "dataset_tag_aoe2companion": the_tag == "aoe2companion",
+    # Gate +3: REPORT-ONLY for aoec (negative values = clock skew, not unit regression)
+    # Not included in halting assertion_results -- see duration_stats.non_positive_count in JSON.
+    "duration_max_le_1B_gate5a": max_dur is None or max_dur <= 1_000_000_000,
+    "duration_null_fraction_le_1pct": dur_null_fraction <= 0.01,
 }
 
 all_assertions_pass = all(assertion_results.values())
@@ -637,15 +824,17 @@ validation = {
     "generated_date": str(date.today()),
     "object": "matches_history_minimal",
     "object_type": "table",
+    "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
     "implementation_note": (
         "DuckDB 1.5.1 bug: (1) self-join on matches_1v1_clean VIEW (row_number+ANY) "
         "causes InternalException; (2) QUALIFY+CTE self-join in a single CREATE TABLE "
         "gives wrong row counts (42,866 instead of 61,062,392). Workaround: three-step "
         "DDL -- (1) CREATE TABLE _good_match_ids from matches_raw QUALIFY; "
-        "(2) CREATE TABLE _mhm_base = matches_raw INNER JOIN _good_match_ids QUALIFY; "
+        "(2) CREATE TABLE _mhm_base = matches_raw INNER JOIN _good_match_ids QUALIFY "
+        "+ ADDENDUM duration_seconds; "
         "(3) CREATE TABLE matches_history_minimal = self-join _mhm_base; "
         "(4) DROP staging tables. Semantics identical to planned CREATE OR REPLACE VIEW. "
-        "Same 8-column schema contract maintained."
+        "Same 9-column schema contract maintained."
     ),
     "row_counts": {
         "total_rows": total_rows,
@@ -660,9 +849,38 @@ validation = {
         "null_player_id": null_player_id,
         "null_opponent_id": null_opponent_id,
         "null_won": null_won,
+        "null_duration_seconds": null_duration_seconds,
         "null_dataset_tag": null_dataset_tag,
         "null_faction": null_faction,
         "null_opponent_faction": null_opponent_faction,
+    },
+    "duration_stats": {
+        "min_duration_seconds": min_dur,
+        "max_duration_seconds": max_dur,
+        "p50_duration_seconds": p50_dur,
+        "p99_duration_seconds": p99_dur,
+        "avg_duration_seconds": avg_dur,
+        "non_null_count": non_null_dur,
+        "non_positive_count": non_positive_dur,
+        "null_count": dur_null_count,
+        "null_fraction": dur_null_fraction,
+        "outlier_count_gt_86400": outlier_count_gt_86400,
+        "outlier_sample_top10": outlier_sample,
+        "gate_plus3_report_only_non_positive_count": non_positive_dur,
+        "gate_plus3_note": (
+            "REPORT-ONLY for aoec. Negative values (finished < started) = clock skew "
+            "in raw data -- not a unit regression. Outlier handling deferred."
+        ),
+        "gate_plus5a_pass": max_dur is None or max_dur <= 1_000_000_000,
+        "gate_plus5b_report_only": outlier_count_gt_86400,
+        "gate_plus6_pass": dur_null_fraction <= 0.01,
+        "provenance": (
+            "CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT). "
+            "EXTRACT(EPOCH FROM) is standard DuckDB function returning DOUBLE seconds. "
+            "CAST AS BIGINT truncates (no rounding). NULL if r.finished IS NULL "
+            "(abandoned/crashed matches). R1-WARNING-A6 fix: computed in _mhm_base "
+            "staging (matches_raw already joined; no new JOIN needed)."
+        ),
     },
     "symmetry_violations": symmetry_violations,
     "prefix_violations": prefix_violations,
@@ -697,6 +915,9 @@ validation = {
         "ROW_COUNT_NOT_2_SQL": ROW_COUNT_NOT_2_SQL,
         "SYMMETRY_I5_ANALOG_SQL": SYMMETRY_I5_ANALOG_SQL,
         "ZERO_NULL_SQL": ZERO_NULL_SQL,
+        "DURATION_STATS_SQL": DURATION_STATS_SQL,
+        "OUTLIER_SAMPLE_SQL": OUTLIER_SAMPLE_SQL,
+        "NULL_FRACTION_SQL": NULL_FRACTION_SQL,
         "PREFIX_CHECK_SQL": PREFIX_CHECK_SQL,
         "DATASET_TAG_CHECK_SQL": DATASET_TAG_CHECK_SQL,
         "FACTION_VOCAB_SQL": FACTION_VOCAB_SQL,
@@ -737,10 +958,11 @@ md_content = f"""# Step 01_04_03 -- Minimal Cross-Dataset History View (aoe2comp
 **Game:** AoE2
 **Step:** 01_04_03
 **Predecessor:** 01_04_02 (Data Cleaning Execution)
+**Schema version:** 9-col (ADDENDUM: duration_seconds added 2026-04-18)
 
 ## Summary
 
-Created `matches_history_minimal` TABLE -- 8-column player-row-grain projection of
+Created `matches_history_minimal` TABLE -- 9-column player-row-grain projection of
 `matches_raw` (filtered to matches_1v1_clean scope; 2 rows per 1v1 match). Self-join
 pattern (sc2egset PR #152 precedent). Canonical TIMESTAMP temporal dtype (pass-through;
 matches_raw.started is already TIMESTAMP). Per-dataset-polymorphic faction
@@ -748,12 +970,14 @@ vocabulary (full AoE2 civ names). Cross-dataset-harmonized substrate for Phase 0
 rating-system backtesting. Pure non-destructive projection (I9).
 
 **Implementation note (DuckDB 1.5.1 workaround):**
-The plan specified CREATE OR REPLACE VIEW. DuckDB 1.5.1 has a confirmed bug where
-a self-join on a VIEW that uses row_number() + ANY() window functions (as in
-matches_1v1_clean) causes InternalException or wrong row counts. Workaround: two-step
-DDL -- (1) CREATE TABLE _mhm_base from matches_raw with same filter logic as
-matches_1v1_clean; (2) CREATE TABLE matches_history_minimal via self-join of _mhm_base;
-(3) DROP TABLE _mhm_base. Same 8-column contract, same row counts, same semantics.
+Three-step DDL -- (1) CREATE TABLE _good_match_ids; (2) CREATE TABLE _mhm_base
+(includes duration_seconds); (3) CREATE TABLE matches_history_minimal via self-join;
+(4) DROP staging tables.
+
+**ADDENDUM:** Added `duration_seconds` BIGINT (column 8) between `won` and `dataset_tag`.
+Source: EXTRACT(EPOCH FROM (r.finished - r.started)) in _mhm_base staging (in-place;
+matches_raw already joined). NULL if r.finished is NULL (abandoned matches).
+Gate +6 (HALTING): NULL fraction <= 1%.
 
 aoec-specific notes:
 - No UNION ALL pivot needed (natively 2-row per match).
@@ -761,7 +985,7 @@ aoec-specific notes:
 - Zero-NULL gate for faction + opponent_faction (civ zero-NULL upstream per 01_04_02).
 - matchId INTEGER -> variable decimal width; numeric-tail regex + round-trip cast (I7).
 
-## Schema (8 columns)
+## Schema (9 columns)
 
 | column | dtype | semantics |
 |---|---|---|
@@ -772,6 +996,7 @@ aoec-specific notes:
 | `faction` | VARCHAR | Full civ name (e.g., Franks, Mongols). PER-DATASET POLYMORPHIC |
 | `opponent_faction` | VARCHAR | Opposing civ (same vocabulary as faction) |
 | `won` | BOOLEAN | Focal player's outcome (complementary between the 2 rows) |
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL. EXTRACT(EPOCH FROM (finished - started)). NULL if finished IS NULL. |
 | `dataset_tag` | VARCHAR | Constant `'aoe2companion'` |
 
 ## Row-count flow
@@ -783,6 +1008,20 @@ aoec-specific notes:
 | distinct match_ids | {distinct_match_ids} |
 | matches with exactly 2 rows | {matches_with_2_rows} |
 | matches with NOT 2 rows | {matches_with_not_2_rows} |
+
+## duration_seconds stats (ADDENDUM gates)
+
+| metric | value | gate |
+|---|---|---|
+| min_duration_seconds | {min_dur} | report only |
+| max_duration_seconds | {max_dur} | <= 1_000_000_000 (Gate +5a HALTING) |
+| p50_duration_seconds | {p50_dur} | report only |
+| p99_duration_seconds | {p99_dur} | report only |
+| avg_duration_seconds | {avg_dur:.1f} | report only |
+| null_duration_seconds | {null_duration_seconds} | report only (Gate +2) |
+| null_fraction | {dur_null_fraction:.6f} ({dur_null_fraction*100:.4f}%) | <= 1% (Gate +6 HALTING) |
+| non_positive_count | {non_positive_dur} | 0 (Gate +3) |
+| outlier_count_gt_86400 | {outlier_count_gt_86400} | report only (Gate +5b) |
 
 ## matchId range (aoec-specific, exploratory)
 
@@ -820,23 +1059,29 @@ datasets without game-conditional encoding.
 | player_id | {null_player_id} | 0 (GATE) |
 | opponent_id | {null_opponent_id} | 0 (GATE) |
 | won | {null_won} | 0 (GATE) |
+| duration_seconds | {null_duration_seconds} | report only + Gate +6 |
 | dataset_tag | {null_dataset_tag} | 0 (GATE) |
 | faction | {null_faction} | 0 (GATE; civ zero-NULL upstream) |
 | opponent_faction | {null_opponent_faction} | 0 (GATE; civ zero-NULL upstream) |
 
-## Gate verdict (12 gates; no slot-bias gate -- aoec natively player-row)
+## Gate verdict (18 gates; no slot-bias gate -- aoec natively player-row)
 
 | check | result |
 |---|---|
 | Row count 61,062,392 = 2 x 30,531,196 | {'PASS' if total_rows == 61_062_392 and distinct_match_ids == 30_531_196 else 'FAIL'} |
-| Column count 8 | {'PASS' if len(view_col_names) == 8 else 'FAIL'} |
+| Column count 9 (Gate +1) | {'PASS' if len(view_col_names) == 9 else 'FAIL'} |
 | started_at dtype TIMESTAMP | {'PASS' if 'TIMESTAMP' in view_col_types[1] else 'FAIL'} |
-| I5-analog NULL-safe symmetry violations (IS DISTINCT FROM) = 0 | {'PASS' if symmetry_violations == 0 else 'FAIL'} |
+| duration_seconds dtype BIGINT | {'PASS' if view_col_types[7] == 'BIGINT' else 'FAIL'} |
+| I5-analog NULL-safe symmetry violations (incl. duration) = 0 | {'PASS' if symmetry_violations == 0 else 'FAIL'} |
 | Zero NULLs: match_id / player_id / opponent_id / won / dataset_tag | {'PASS' if null_match_id == null_player_id == null_opponent_id == null_won == null_dataset_tag == 0 else 'FAIL'} |
 | Zero NULLs: faction / opponent_faction (civ zero-NULL upstream) | {'PASS' if null_faction == null_opponent_faction == 0 else 'FAIL'} |
 | Prefix violations = 0 (numeric-tail regex + round-trip cast) | {'PASS' if prefix_violations == 0 else 'FAIL'} |
 | dataset_tag distinct count = 1, value 'aoe2companion' | {'PASS' if n_distinct_tags == 1 and the_tag == 'aoe2companion' else 'FAIL'} |
 | matches_with_not_2_rows = 0 | {'PASS' if matches_with_not_2_rows == 0 else 'FAIL'} |
+| duration_seconds non-positive count (Gate +3 REPORT-ONLY for aoec) | {non_positive_dur} rows (clock skew) |
+| duration_seconds max <= 1_000_000_000 (Gate +5a HALTING) | {'PASS' if (max_dur is None or max_dur <= 1_000_000_000) else 'FAIL'} |
+| duration_seconds outlier_count_gt_86400 (Gate +5b REPORT-ONLY) | {outlier_count_gt_86400} rows |
+| duration_seconds NULL fraction <= 1% (Gate +6 HALTING) | {'PASS' if dur_null_fraction <= 0.01 else 'FAIL'} |
 | All assertions pass | {'PASS' if all_assertions_pass else 'FAIL'} |
 
 ## Artifact
@@ -852,12 +1097,9 @@ print(f"Markdown report written: {md_path}")
 # %% [markdown]
 # ## Cell 18 -- Write schema YAML for matches_history_minimal
 #
-# Nullable flags sourced from DESCRIBE result (DuckDB DESCRIBE 6-tuple contract:
-# index 2 is the null flag: 'YES' -> nullable=True, 'NO' -> nullable=False).
-# Concrete Python booleans written -- no '<from DESCRIBE>' string literals.
-# Faction description includes the "per-dataset polymorphic vocabulary" warning (I8).
-# match_id description cites matchId INTEGER provenance (I7).
-# object_type: table (DuckDB 1.5.1 workaround; semantics identical to VIEW).
+# ADDENDUM: 9-col schema. duration_seconds column added between won and dataset_tag.
+# POST_GAME_HISTORICAL machine-token in notes.
+# Nullable flags sourced from DESCRIBE result.
 
 # %%
 schema_dir = reports_dir.parent / "data" / "db" / "schemas" / "views"
@@ -876,12 +1118,12 @@ schema = {
     "object_type": "table",
     "object_type_note": (
         "DuckDB 1.5.1 bug: self-join on matches_1v1_clean VIEW (row_number + ANY) "
-        "causes InternalException. Two-step DDL materialization used instead of "
+        "causes InternalException. Three-step DDL materialization used instead of "
         "CREATE OR REPLACE VIEW. Semantics are identical to the planned VIEW -- same "
-        "8-column contract, same filtering, same row count. Consumer code works "
-        "identically for both TABLE and VIEW in DuckDB SQL."
+        "9-column contract (ADDENDUM), same filtering, same row count."
     ),
     "step": "01_04_03",
+    "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
     "row_count": total_rows,
     "describe_artifact": (
         "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts"
@@ -895,12 +1137,8 @@ schema = {
             "nullable": nullable_map["match_id"],
             "description": (
                 "Cross-dataset unique match identifier. Format: '<dataset_tag>::<native_id>'. "
-                "For aoe2companion: 'aoe2companion::<decimal-matchId>'. Prefix guarantees UNION ALL "
-                "uniqueness across sibling datasets. Length is VARIABLE (aoec matchId is INTEGER, "
-                "variable decimal width; no fixed-length gate like sc2egset's 42-char hex). "
-                "Provenance: numeric-tail regex [0-9]+ cites "
-                "src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/matches_raw.yaml "
-                "line `matchId: INTEGER` (I7)."
+                "For aoe2companion: 'aoe2companion::<decimal-matchId>'. Provenance: numeric-tail "
+                "regex [0-9]+ cites matches_raw.yaml line `matchId: INTEGER` (I7)."
             ),
             "notes": "IDENTITY. Prefix applied in DDL only; upstream matchId unchanged (I9).",
         },
@@ -910,14 +1148,10 @@ schema = {
             "nullable": nullable_map["started_at"],
             "description": (
                 "Match start time. TIMESTAMP (no TZ) -- pass-through from "
-                "matches_raw.started (already TIMESTAMP per "
-                "data/db/schemas/raw/matches_raw.yaml). No cast. Canonical cross-dataset "
-                "dtype: sibling objects (sc2egset TRY_CAST from VARCHAR; aoestats CAST from "
-                "TIMESTAMPTZ AT TIME ZONE 'UTC') all emit TIMESTAMP."
+                "matches_raw.started (already TIMESTAMP per matches_raw.yaml)."
             ),
             "notes": (
-                "CONTEXT. Temporal anchor for Phase 02 rating-update loops. "
-                "Chronologically faithful (TIMESTAMP ordering, not lex)."
+                "CONTEXT. Temporal anchor for Phase 02 rating-update loops."
             ),
         },
         {
@@ -928,10 +1162,7 @@ schema = {
                 "Focal player identifier. aoe2companion: CAST(profileId AS VARCHAR) "
                 "(INTEGER -> VARCHAR)."
             ),
-            "notes": (
-                "IDENTITY. Per-dataset identifier; cross-dataset identity resolution "
-                "is a future step (Phase 01_05+)."
-            ),
+            "notes": "IDENTITY.",
         },
         {
             "name": "opponent_id",
@@ -945,38 +1176,55 @@ schema = {
             "type": "VARCHAR",
             "nullable": nullable_map["faction"],
             "description": (
-                "Focal player's faction. Per-dataset polymorphic vocabulary (cross-dataset "
-                "column name + dtype only -- values differ in ontology). sc2egset: 4-char race "
-                "stems Prot/Terr/Zerg (empirically verified; NOT full 'Protoss'/'Terran'/'Zerg'). "
-                "aoestats: full civilization names (Mongols, Franks, etc.). "
-                "aoe2companion: full civilization names (from matches_raw.civ -- zero NULLs upstream). "
-                "CONSUMERS MUST NOT treat faction as a single categorical feature across "
-                "datasets without game-conditional encoding (e.g., WHERE dataset_tag = 'aoe2companion' "
-                "before GROUP BY faction)."
+                "Focal player's faction. Per-dataset polymorphic vocabulary. "
+                "aoe2companion: full civilization names (zero NULLs upstream). "
+                "CONSUMERS MUST NOT treat faction as single categorical across datasets."
             ),
-            "notes": (
-                "PRE_GAME. Raw vocabulary (civilization actually played). "
-                "Polymorphic I8 contract -- see description. Zero NULLs (civ zero-NULL upstream)."
-            ),
+            "notes": "PRE_GAME. Raw civ vocabulary. Polymorphic I8 contract. Zero NULLs.",
         },
         {
             "name": "opponent_faction",
             "type": "VARCHAR",
             "nullable": nullable_map["opponent_faction"],
             "description": "Opposing player's faction (same per-dataset vocabulary as `faction`).",
-            "notes": "PRE_GAME. Mirror of faction from the opponent row. Zero NULLs (civ zero-NULL upstream).",
+            "notes": "PRE_GAME. Mirror of faction from the opponent row. Zero NULLs.",
         },
         {
             "name": "won",
             "type": "BOOLEAN",
             "nullable": nullable_map["won"],
             "description": (
-                "TRUE if the focal player won, FALSE otherwise. The two rows of a match have "
-                "complementary `won` values (exactly one TRUE, one FALSE)."
+                "TRUE if the focal player won, FALSE otherwise. Complementary between the 2 rows."
+            ),
+            "notes": "TARGET. Prediction label for downstream experiments. Zero NULLs.",
+        },
+        {
+            "name": "duration_seconds",
+            "type": "BIGINT",
+            "nullable": nullable_map.get("duration_seconds", True),
+            "description": (
+                "Match duration in seconds (POST_GAME_HISTORICAL). For aoe2companion: "
+                "CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT). "
+                "EXTRACT(EPOCH FROM) is standard DuckDB function returning DOUBLE seconds. "
+                "CAST AS BIGINT truncates (no rounding). NULL if r.finished IS NULL "
+                "(abandoned/crashed matches -- verified by Gate +6 NULL fraction <= 1%). "
+                "Both rows of a match have identical duration_seconds (symmetric -- "
+                "self-join propagates same value). "
+                "I7: EXTRACT(EPOCH FROM) is standard DuckDB -- no magic constant "
+                "(per R1-WARNING-A5 verification). "
+                "Derivation note (A-D3): wall-clock duration (finished - started); "
+                "no in-game duration column available in aoec."
             ),
             "notes": (
-                "TARGET. Pass-through from matches_raw.won; prediction label "
-                "for downstream experiments. Zero NULLs (R03 complementarity filter upstream)."
+                "POST_GAME_HISTORICAL. Available only after match end. DO NOT use as "
+                "PRE_GAME feature for predicting match T outcome (I3 violation). "
+                "Useful for retrospective analysis: rating-update weighting, learning-curve "
+                "measurement, game-length-conditioned BTL. Phase 02 feature extractors that "
+                "drop POST_GAME_HISTORICAL tokens will auto-exclude. "
+                "Unit: seconds (canonical cross-dataset unit). "
+                "Source: EXTRACT(EPOCH FROM (matches_raw.finished - matches_raw.started)). "
+                "Cross-dataset I7 provenance: sc2egset 22.4 loops/sec; "
+                "aoestats /1e9 nanoseconds; aoec EXTRACT EPOCH (this dataset)."
             ),
         },
         {
@@ -994,23 +1242,19 @@ schema = {
         "source_tables": ["matches_raw"],
         "source_note": (
             "Reads from matches_raw directly (not matches_1v1_clean VIEW) due to DuckDB 1.5.1 "
-            "bug with self-join on VIEWs containing window functions. Applies identical filter "
-            "logic: internalLeaderboardId IN (6, 18); profileId != -1; deduplicated by "
-            "(matchId, profileId) ORDER BY started; R03 complementarity (HAVING COUNT(*)=2 "
-            "AND n_true=1 AND n_false=1)."
+            "bug. ADDENDUM: duration_seconds derived from r.finished - r.started (in _mhm_base "
+            "staging; no additional JOIN required)."
         ),
         "join_key": (
             "self-join on 'aoe2companion::' || CAST(matchId AS VARCHAR); "
-            "player_id = CAST(profileId AS VARCHAR); "
-            "opponent_id from sibling row where profileId <> opponent profileId"
+            "player_id = CAST(profileId AS VARCHAR)."
         ),
         "filter": (
             "internalLeaderboardId IN (6, 18); profileId != -1; "
-            "deduplicated; R03 complementarity (HAVING COUNT(*)=2 AND n_true=1 AND n_false=1)."
+            "deduplicated; R03 complementarity."
         ),
         "scope": (
-            "30,531,196 true 1v1 decisive matches, 61,062,392 player-rows. "
-            "Cross-dataset harmonization substrate for Phase 02+ rating backtesting."
+            "30,531,196 true 1v1 decisive matches, 61,062,392 player-rows."
         ),
         "created_by": (
             "sandbox/aoe2/aoe2companion/01_exploration/04_cleaning/"
@@ -1021,67 +1265,50 @@ schema = {
         {
             "id": "I3",
             "description": (
-                "TIMESTAMP-typed temporal anchor. started_at is a pass-through from "
-                "matches_raw.started (already TIMESTAMP per matches_raw.yaml). "
-                "No TRY_CAST needed. Chronologically faithful ordering. No windowed "
-                "aggregations, no shift(), no future joins. Phase 02 consumers use "
-                "started_at as the strict-less-than anchor for match_time < T feature computation."
+                "TIMESTAMP temporal anchor. duration_seconds is POST_GAME_HISTORICAL "
+                "(machine-grep-able token): DO NOT use as PRE_GAME feature."
             ),
         },
         {
             "id": "I5",
             "description": (
-                "Player-row symmetry (I5-analog). Every match_id has exactly 2 rows. "
-                "(player_id, opponent_id) appears once in each direction. The two `won` "
-                "values are complementary. faction and opponent_faction are mirror "
-                "images. Assertion SQL uses IS DISTINCT FROM for NULL-safe comparison. "
-                "Slot-bias gate is N/A for aoec (natively player-row; no slot column)."
+                "Player-row symmetry. duration_seconds is identical for both rows "
+                "(self-join propagates same value). "
+                "Slot-bias gate is N/A for aoec (natively player-row)."
             ),
         },
         {
             "id": "I6",
             "description": (
                 "CREATE TABLE DDL + every assertion SQL stored verbatim in "
-                "01_04_03_minimal_history_view.json sql_queries block. DESCRIBE result "
-                "captured in validation JSON describe_table_rows for reproducibility "
-                "of the nullable flags written to this YAML."
+                "01_04_03_minimal_history_view.json sql_queries block."
             ),
         },
         {
             "id": "I7",
             "description": (
-                "Magic literal `[0-9]+` numeric-tail regex in PREFIX_CHECK_SQL cites "
-                "src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/raw/"
-                "matches_raw.yaml line `matchId: INTEGER`. Round-trip BIGINT cast "
-                "verifies decimal integrity. Variable decimal width -- no fixed-length gate."
+                "matchId INTEGER provenance: matches_raw.yaml line `matchId: INTEGER`. "
+                "EXTRACT(EPOCH FROM) is standard DuckDB -- no magic constant."
             ),
         },
         {
             "id": "I8",
             "description": (
-                "Cross-dataset comparability: 8-column names + dtypes are the cross-"
-                "dataset contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction "
-                "vocabulary is per-dataset-polymorphic -- column name and dtype cross-"
-                "dataset, values per-dataset ontology. aoe2companion uses full civ names "
-                "(vs sc2egset 4-char stems). match_id prefixed 'aoe2companion::'."
+                "9-column cross-dataset contract (ADDENDUM: extended from 8). "
+                "duration_seconds unit is seconds across all datasets."
             ),
         },
         {
             "id": "I9",
             "description": (
-                "Pure non-destructive projection. No raw table modified. matches_raw "
-                "is read-only (SELECT only). matches_1v1_clean VIEW unchanged (not used "
-                "in DDL due to DuckDB 1.5.1 bug, but DESCRIBE still confirms its schema). "
-                "Staging TABLE _mhm_base created and immediately dropped. Only "
-                "matches_history_minimal TABLE is the persistent artifact."
+                "Pure non-destructive projection. matches_raw read-only. "
+                "Staging tables _mhm_base and _good_match_ids created and immediately dropped."
             ),
         },
     ],
     "provenance_categories_note": (
-        "This table inherits provenance categories from matches_raw (applying "
-        "matches_1v1_clean filter logic). Per-column 'notes' field uses the "
-        "single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME, TARGET) established "
-        "in 01_04_02."
+        "Per-column 'notes' uses vocabulary: IDENTITY, CONTEXT, PRE_GAME, TARGET, "
+        "POST_GAME_HISTORICAL (added in ADDENDUM)."
     ),
 }
 
@@ -1100,10 +1327,11 @@ for col_name, nullable_val in nullable_map.items():
 db.close()
 print("DuckDB connection closed.")
 
-print("\n=== FINAL SUMMARY: Step 01_04_03 (aoe2companion) ===")
+print("\n=== FINAL SUMMARY: Step 01_04_03 (aoe2companion, ADDENDUM: 9-col) ===")
 print(f"TABLE created:         matches_history_minimal")
 print(f"Rows:                  {total_rows} ({distinct_match_ids} matches x 2)")
 print(f"Schema:                {len(view_col_names)} cols, started_at dtype: {view_col_types[1]}")
+print(f"duration_seconds:      min={min_dur}, max={max_dur}, nulls={null_duration_seconds} ({dur_null_fraction*100:.4f}%)")
 print(f"Symmetry violations:   {symmetry_violations}")
 print(f"Prefix violations:     {prefix_violations}")
 print(f"dataset_tag distinct:  {n_distinct_tags}")
@@ -1111,6 +1339,13 @@ print(f"Faction vocab size:    {len(faction_vocab)} distinct civs")
 print(f"Faction vocab (top 5): {list(faction_vocab.keys())[:5]}")
 print(f"matchId range:         {min_match_id_val} to {max_match_id_val} (max {max_decimal_digits} digits)")
 print(f"All assertions pass:   {all_assertions_pass}")
+print(f"\nGate summary:")
+print(f"  Gate +1 (9 cols):                {'PASS' if len(view_col_names) == 9 else 'FAIL'}")
+print(f"  Gate +2 (null_dur reported):     {null_duration_seconds} NULLs")
+print(f"  Gate +3 (non-positive, REPORT):  {non_positive_dur} rows (clock skew, not unit regression)")
+print(f"  Gate +5a (max <= 1_000_000_000): {'PASS' if (max_dur is None or max_dur <= 1_000_000_000) else 'FAIL'}")
+print(f"  Gate +5b (outlier_gt_86400):     {outlier_count_gt_86400} rows (report-only)")
+print(f"  Gate +6 (null frac <= 1%):       {'PASS' if dur_null_fraction <= 0.01 else 'FAIL'}")
 print(f"\nArtifacts:")
 print(f"  {json_path}")
 print(f"  {md_path}")

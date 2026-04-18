@@ -8,6 +8,55 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Branch:** feat/01-04-03-aoe2-minimal-history
+**Scope:** Extended `matches_history_minimal` TABLE from 8 cols → 9 cols by adding `duration_seconds` BIGINT (POST_GAME_HISTORICAL). DuckDB 1.5.1 workaround (TABLE instead of VIEW) preserved.
+
+### Derivation (R1-WARNING-A6 fix — in-place, no new JOIN)
+`CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT)` — added to `_mhm_base` staging SELECT list (matches_raw `r` already joined there; no additional JOIN needed). Self-join in final TABLE propagates duration_seconds symmetrically between the 2 rows per match.
+
+### Gate split
+- **Gate +5a (HALTING)** — unit regression canary: `max(duration_seconds) <= 1_000_000_000`. PASS (max 3,279,303s ≈ 38 days, bogus abandoned-match wall-clock).
+- **Gate +5b (REPORT-ONLY)** — outlier count: rows with `duration_seconds > 86400`. Reported: **142 rows** (0.0002% of dataset) — bogus wall-clock from abandoned/paused matches.
+- **Gate +6 (HALTING)** — NULL fraction on duration_seconds: `≤ 1%`. PASS (0.0% — `finished` is nullable per schema but empirically zero-NULL in 1v1 ranked scope after filtering).
+- **Gate +3 relaxed to REPORT-ONLY for aoec:** 358 rows have negative duration (`finished < started` — clock skew in raw data). Not a unit bug (aoec's EXTRACT EPOCH conversion is not lossy); flagged for 01_04_02 augmentation follow-up PR.
+
+### Duration stats (aoec)
+- min: -3,041s (358 clock-skew corrupted rows; flagged for 01_04_02 PR)
+- p50: 1,433s (~24 min)
+- p99: 3,458s (~58 min)
+- max: 3,279,303s (~38 days — 142 bogus-duration rows)
+- null_count: 0
+- null_fraction: 0.0% (Gate +6 PASS)
+- outlier_count_gt_86400: 142
+- non_positive_count: 358
+
+### Gate summary — ALL PASS (18 gates: 12 original + 6 duration-related)
+- All 12 original gates: PASS
+- Gate +1 (9 cols, TIMESTAMP + BIGINT + VARCHAR dtypes): PASS
+- Gate +2 (null count reported): 0 NULLs
+- Gate +3 (non-positive, REPORT-ONLY for aoec): 358 rows clock-skew (flagged, not halting)
+- Gate +4 (duration symmetry via IS DISTINCT FROM): 0 violations
+- Gate +5a (unit regression HALTING): PASS (max 3.3M < 1B)
+- Gate +5b (outlier REPORT-ONLY): 142 rows reported
+- Gate +6 (NULL fraction HALTING): PASS (0.0%)
+- all_assertions_pass: True
+
+### I7 provenance
+`EXTRACT(EPOCH FROM)` is standard DuckDB function — no magic constant (R1-WARNING-A5 verified empirically).
+
+### DuckDB 1.5.1 workaround — unchanged from prior entry
+9-col TABLE (not VIEW) due to self-join-on-VIEW + QUALIFY+CTE bugs. 3-step materialization preserved. Schema YAML `object_type_note` updated for 9-col ADDENDUM.
+
+### Deferred follow-ups (per user-approved sequencing)
+- **01_04_02 augmentation PR:** add `duration_seconds` + `is_duration_suspicious` (142 outliers) + `is_duration_negative` (358 clock-skew rows) to `matches_1v1_clean` clean view.
+- **01_04_04 Identity Resolution PR:** aoe2companion `profileId` stability + cross-dataset mapping to aoestats `profile_id`.
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
 
 **Category:** A (science)

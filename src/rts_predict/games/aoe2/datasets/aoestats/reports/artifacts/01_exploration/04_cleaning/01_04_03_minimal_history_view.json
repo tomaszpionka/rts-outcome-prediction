@@ -4,6 +4,7 @@
   "game": "aoe2",
   "generated_date": "2026-04-18",
   "view": "matches_history_minimal",
+  "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
   "row_counts": {
     "total_rows": 35629894,
     "distinct_match_ids": 17814947,
@@ -17,9 +18,77 @@
     "null_player_id": 0,
     "null_opponent_id": 0,
     "null_won": 0,
+    "null_duration_seconds": 0,
     "null_dataset_tag": 0,
     "null_faction": 0,
     "null_opponent_faction": 0
+  },
+  "duration_stats": {
+    "min_duration_seconds": 3,
+    "max_duration_seconds": 5574815,
+    "p50_duration_seconds": 2455.0,
+    "p99_duration_seconds": 5729.0,
+    "avg_duration_seconds": 2418.0936297480985,
+    "non_null_count": 35629894,
+    "non_positive_count": 0,
+    "outlier_count_gt_86400": 56,
+    "outlier_sample_gt_86400": [
+      {
+        "match_id": "aoestats::184213201",
+        "player_id": "3037858",
+        "duration_seconds": 5574815
+      },
+      {
+        "match_id": "aoestats::184213201",
+        "player_id": "3400226",
+        "duration_seconds": 5574815
+      },
+      {
+        "match_id": "aoestats::210909036",
+        "player_id": "10643613",
+        "duration_seconds": 709915
+      },
+      {
+        "match_id": "aoestats::210909036",
+        "player_id": "6925465",
+        "duration_seconds": 709915
+      },
+      {
+        "match_id": "aoestats::226137454",
+        "player_id": "2433161",
+        "duration_seconds": 622652
+      },
+      {
+        "match_id": "aoestats::226137454",
+        "player_id": "14121256",
+        "duration_seconds": 622652
+      },
+      {
+        "match_id": "aoestats::241569078",
+        "player_id": "5857307",
+        "duration_seconds": 370496
+      },
+      {
+        "match_id": "aoestats::241569078",
+        "player_id": "5178204",
+        "duration_seconds": 370496
+      },
+      {
+        "match_id": "aoestats::227257584",
+        "player_id": "1192615",
+        "duration_seconds": 283322
+      },
+      {
+        "match_id": "aoestats::227257584",
+        "player_id": "880072",
+        "duration_seconds": 283322
+      }
+    ],
+    "gate_plus3_pass": true,
+    "gate_plus5a_unit_canary_pass": true,
+    "gate_plus5b_outlier_count_report_only": 56,
+    "deferred_concern": "aoestats has 56 corrupted-duration rows (> 24h). Outlier handling deferred to 01_04_02 augmentation PR (follow-up). Current step treats as pass-through.",
+    "provenance": "CAST(matches_raw.duration / 1_000_000_000 AS BIGINT). aoestats duration is Arrow duration[ns] -> BIGINT NANOSECONDS per DuckDB 1.5.1 behavior (pre_ingestion.py:271, research_log.md:684,867,988,996). R1-BLOCKER-A1 fix: divide by 1_000_000_000 (NOT 1_000). JOIN key: matches_raw.game_id = matches_1v1_clean.game_id."
   },
   "symmetry_violations": 0,
   "prefix_violations": 0,
@@ -105,6 +174,7 @@
       "faction",
       "opponent_faction",
       "won",
+      "duration_seconds",
       "dataset_tag"
     ],
     "col_types": [
@@ -115,13 +185,14 @@
       "VARCHAR",
       "VARCHAR",
       "BOOLEAN",
+      "BIGINT",
       "VARCHAR"
     ]
   },
   "assertion_results": {
     "src_col_count_20": true,
     "required_src_cols_present": true,
-    "col_count_8": true,
+    "col_count_9": true,
     "col_names_match": true,
     "col_dtypes_match": true,
     "total_rows_35629894": true,
@@ -139,7 +210,9 @@
     "prefix_violations_0": true,
     "n_distinct_tags_1": true,
     "dataset_tag_aoestats": true,
-    "slot_bias_overall_05": true
+    "slot_bias_overall_05": true,
+    "duration_non_positive_0": true,
+    "duration_max_le_1B_unit_canary": true
   },
   "all_assertions_pass": true,
   "describe_table_rows": [
@@ -200,6 +273,14 @@
       "extra": null
     },
     {
+      "column_name": "duration_seconds",
+      "column_type": "BIGINT",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
       "column_name": "dataset_tag",
       "column_type": "VARCHAR",
       "null": "YES",
@@ -209,10 +290,12 @@
     }
   ],
   "sql_queries": {
-    "CREATE_MATCHES_HISTORY_MINIMAL_SQL": "CREATE OR REPLACE VIEW matches_history_minimal AS\n-- aoestats sibling of sc2egset.matches_history_minimal (PR #152 pattern).\n-- Input: matches_1v1_clean (1 row/match, p0/p1 cols). UNION ALL -> 2 rows/match.\n-- Invariants: I3 (TIMESTAMP cast from TIMESTAMPTZ), I5-analog (NULL-safe symmetry +\n--   slot-bias gate), I6 (SQL verbatim in JSON), I7 (prefix cites game_id VARCHAR),\n--   I8 (cross-dataset 8-col contract), I9 (no upstream modification).\nWITH p0_half AS (\n    SELECT\n        'aoestats::' || m.game_id                                     AS match_id,\n        CAST(m.started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)     AS started_at,\n        CAST(m.p0_profile_id AS VARCHAR)                              AS player_id,\n        CAST(m.p1_profile_id AS VARCHAR)                              AS opponent_id,\n        m.p0_civ                                                      AS faction,\n        m.p1_civ                                                      AS opponent_faction,\n        m.p0_winner                                                   AS won,\n        'aoestats'                                                    AS dataset_tag\n    FROM matches_1v1_clean m\n),\np1_half AS (\n    SELECT\n        'aoestats::' || m.game_id                                     AS match_id,\n        CAST(m.started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)     AS started_at,\n        CAST(m.p1_profile_id AS VARCHAR)                              AS player_id,\n        CAST(m.p0_profile_id AS VARCHAR)                              AS opponent_id,\n        m.p1_civ                                                      AS faction,\n        m.p0_civ                                                      AS opponent_faction,\n        m.p1_winner                                                   AS won,\n        'aoestats'                                                    AS dataset_tag\n    FROM matches_1v1_clean m\n)\nSELECT * FROM p0_half\nUNION ALL\nSELECT * FROM p1_half\nORDER BY started_at, match_id, player_id",
+    "CREATE_MATCHES_HISTORY_MINIMAL_SQL": "CREATE OR REPLACE VIEW matches_history_minimal AS\n-- aoestats sibling of sc2egset.matches_history_minimal (PR #152 pattern).\n-- Input: matches_1v1_clean (1 row/match, p0/p1 cols). UNION ALL -> 2 rows/match.\n-- ADDENDUM: 9-col contract (duration_seconds added 2026-04-18).\n-- Invariants: I3 (TIMESTAMP cast from TIMESTAMPTZ; duration_seconds POST_GAME_HISTORICAL),\n--   I5-analog (NULL-safe symmetry + slot-bias gate; duration symmetric per UNION halves),\n--   I6 (SQL verbatim in JSON), I7 (game_id VARCHAR passthrough; 1_000_000_000\n--   nanoseconds-to-seconds divisor cites pre_ingestion.py:271 + research_log.md:684),\n--   I8 (cross-dataset 9-col contract), I9 (no upstream modification).\n-- R1-BLOCKER-A1 fix: aoestats duration is Arrow duration[ns] -> BIGINT NANOSECONDS.\n--   Divide by 1_000_000_000 (NOT 1_000) to get seconds.\nWITH p0_half AS (\n    SELECT\n        'aoestats::' || m.game_id                                     AS match_id,\n        CAST(m.started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)     AS started_at,\n        CAST(m.p0_profile_id AS VARCHAR)                              AS player_id,\n        CAST(m.p1_profile_id AS VARCHAR)                              AS opponent_id,\n        m.p0_civ                                                      AS faction,\n        m.p1_civ                                                      AS opponent_faction,\n        m.p0_winner                                                   AS won,\n        -- I7: aoestats duration is Arrow duration[ns] -> BIGINT NANOSECONDS\n        -- per DuckDB 1.5.1 mapping (pre_ingestion.py:271, research_log.md:684,867,988,996).\n        -- Divide by 1_000_000_000 to get seconds (R1-BLOCKER-A1 fix).\n        CAST(r.duration / 1000000000 AS BIGINT)                       AS duration_seconds,\n        'aoestats'                                                    AS dataset_tag\n    FROM matches_1v1_clean m\n    JOIN matches_raw r ON r.game_id = m.game_id\n),\np1_half AS (\n    SELECT\n        'aoestats::' || m.game_id                                     AS match_id,\n        CAST(m.started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)     AS started_at,\n        CAST(m.p1_profile_id AS VARCHAR)                              AS player_id,\n        CAST(m.p0_profile_id AS VARCHAR)                              AS opponent_id,\n        m.p1_civ                                                      AS faction,\n        m.p0_civ                                                      AS opponent_faction,\n        m.p1_winner                                                   AS won,\n        CAST(r.duration / 1000000000 AS BIGINT)                       AS duration_seconds,\n        'aoestats'                                                    AS dataset_tag\n    FROM matches_1v1_clean m\n    JOIN matches_raw r ON r.game_id = m.game_id\n)\nSELECT * FROM p0_half\nUNION ALL\nSELECT * FROM p1_half\nORDER BY started_at, match_id, player_id",
     "ROW_COUNT_CHECK_SQL": "SELECT\n    (SELECT COUNT(*) FROM matches_history_minimal)                  AS total_rows,\n    (SELECT COUNT(DISTINCT match_id) FROM matches_history_minimal)  AS distinct_match_ids,\n    (SELECT COUNT(*) FROM matches_1v1_clean)                        AS src_rows,\n    (SELECT COUNT(*) FROM (\n        SELECT match_id, COUNT(*) AS n\n        FROM matches_history_minimal\n        GROUP BY match_id\n        HAVING n = 2\n     ))                                                             AS matches_with_2_rows,\n    (SELECT COUNT(*) FROM (\n        SELECT match_id, COUNT(*) AS n\n        FROM matches_history_minimal\n        GROUP BY match_id\n        HAVING n <> 2\n     ))                                                             AS matches_with_not_2_rows",
-    "SYMMETRY_I5_ANALOG_SQL": "WITH row_pairs AS (\n    SELECT\n        a.match_id,\n        a.player_id         AS a_pid,\n        a.opponent_id       AS a_oid,\n        a.won               AS a_won,\n        a.faction           AS a_fac,\n        a.opponent_faction  AS a_ofac,\n        b.player_id         AS b_pid,\n        b.opponent_id       AS b_oid,\n        b.won               AS b_won,\n        b.faction           AS b_fac,\n        b.opponent_faction  AS b_ofac\n    FROM matches_history_minimal a\n    JOIN matches_history_minimal b\n      ON a.match_id = b.match_id\n     AND a.player_id <> b.player_id\n)\nSELECT COUNT(*) AS symmetry_violations\nFROM row_pairs\nWHERE a_pid <> b_oid\n   OR a_oid <> b_pid\n   OR a_won = b_won\n   OR a_fac IS DISTINCT FROM b_ofac\n   OR a_ofac IS DISTINCT FROM b_fac",
-    "ZERO_NULL_SQL": "SELECT\n    COUNT(*) FILTER (WHERE match_id          IS NULL) AS null_match_id,\n    COUNT(*) FILTER (WHERE started_at        IS NULL) AS null_started_at,\n    COUNT(*) FILTER (WHERE player_id         IS NULL) AS null_player_id,\n    COUNT(*) FILTER (WHERE opponent_id       IS NULL) AS null_opponent_id,\n    COUNT(*) FILTER (WHERE won               IS NULL) AS null_won,\n    COUNT(*) FILTER (WHERE dataset_tag       IS NULL) AS null_dataset_tag,\n    COUNT(*) FILTER (WHERE faction           IS NULL) AS null_faction,\n    COUNT(*) FILTER (WHERE opponent_faction  IS NULL) AS null_opponent_faction\nFROM matches_history_minimal",
+    "SYMMETRY_I5_ANALOG_SQL": "WITH row_pairs AS (\n    SELECT\n        a.match_id,\n        a.player_id         AS a_pid,\n        a.opponent_id       AS a_oid,\n        a.won               AS a_won,\n        a.faction           AS a_fac,\n        a.opponent_faction  AS a_ofac,\n        a.duration_seconds  AS a_dur,\n        b.player_id         AS b_pid,\n        b.opponent_id       AS b_oid,\n        b.won               AS b_won,\n        b.faction           AS b_fac,\n        b.opponent_faction  AS b_ofac,\n        b.duration_seconds  AS b_dur\n    FROM matches_history_minimal a\n    JOIN matches_history_minimal b\n      ON a.match_id = b.match_id\n     AND a.player_id <> b.player_id\n)\nSELECT COUNT(*) AS symmetry_violations\nFROM row_pairs\nWHERE a_pid <> b_oid\n   OR a_oid <> b_pid\n   OR a_won = b_won\n   OR a_fac IS DISTINCT FROM b_ofac\n   OR a_ofac IS DISTINCT FROM b_fac\n   OR a_dur IS DISTINCT FROM b_dur",
+    "ZERO_NULL_SQL": "SELECT\n    COUNT(*) FILTER (WHERE match_id          IS NULL) AS null_match_id,\n    COUNT(*) FILTER (WHERE started_at        IS NULL) AS null_started_at,\n    COUNT(*) FILTER (WHERE player_id         IS NULL) AS null_player_id,\n    COUNT(*) FILTER (WHERE opponent_id       IS NULL) AS null_opponent_id,\n    COUNT(*) FILTER (WHERE won               IS NULL) AS null_won,\n    COUNT(*) FILTER (WHERE duration_seconds  IS NULL) AS null_duration_seconds,\n    COUNT(*) FILTER (WHERE dataset_tag       IS NULL) AS null_dataset_tag,\n    COUNT(*) FILTER (WHERE faction           IS NULL) AS null_faction,\n    COUNT(*) FILTER (WHERE opponent_faction  IS NULL) AS null_opponent_faction\nFROM matches_history_minimal",
+    "DURATION_STATS_SQL": "SELECT\n    MIN(duration_seconds)                                         AS min_duration_seconds,\n    MAX(duration_seconds)                                         AS max_duration_seconds,\n    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_seconds)\n                                                                  AS p50_duration_seconds,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds)\n                                                                  AS p99_duration_seconds,\n    AVG(duration_seconds)                                         AS avg_duration_seconds,\n    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL)          AS non_null_count,\n    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL\n                       AND duration_seconds <= 0)                 AS non_positive_count,\n    COUNT(*) FILTER (WHERE duration_seconds > 86400)              AS outlier_count_gt_86400\nFROM matches_history_minimal",
+    "OUTLIER_SAMPLE_SQL": "SELECT match_id, player_id, duration_seconds\nFROM matches_history_minimal\nWHERE duration_seconds > 86400\nORDER BY duration_seconds DESC\nLIMIT 10",
     "PREFIX_CHECK_SQL": "-- game_id is VARCHAR (opaque primary key from aoestats API -- no fixed length).\n-- No numeric-tail regex (unlike aoec INTEGER matchId) -- game_id may be any string.\n-- Provenance: src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/views/\n--             matches_1v1_clean.yaml column game_id type: VARCHAR (I7).\nSELECT COUNT(*) AS prefix_violations\nFROM matches_history_minimal\nWHERE match_id NOT LIKE 'aoestats::%'\n   OR regexp_extract(match_id, '::(.+)$', 1) = ''",
     "DATASET_TAG_CHECK_SQL": "SELECT\n    COUNT(DISTINCT dataset_tag) AS n_distinct_tags,\n    MAX(dataset_tag)            AS the_tag\nFROM matches_history_minimal",
     "SLOT_BIAS_GATE_SQL": "SELECT\n    AVG(won::INT)                                          AS overall_won_rate,\n    AVG(won::INT) FILTER (WHERE player_id < opponent_id)  AS slot0_rate,\n    AVG(won::INT) FILTER (WHERE player_id > opponent_id)  AS slot1_rate\nFROM matches_history_minimal",
@@ -229,6 +312,7 @@
       "faction",
       "opponent_faction",
       "won",
+      "duration_seconds",
       "dataset_tag"
     ],
     "expected_dtypes": [
@@ -239,6 +323,7 @@
       "VARCHAR",
       "VARCHAR",
       "BOOLEAN",
+      "BIGINT",
       "VARCHAR"
     ]
   }

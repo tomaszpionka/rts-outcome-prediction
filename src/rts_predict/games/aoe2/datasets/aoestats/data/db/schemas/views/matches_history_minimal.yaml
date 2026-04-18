@@ -3,6 +3,7 @@ dataset: aoestats
 game: aoe2
 object_type: view
 step: '01_04_03'
+schema_version: '9-col (ADDENDUM: duration_seconds added 2026-04-18)'
 row_count: 35629894
 describe_artifact: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json
 generated_date: '2026-04-18'
@@ -19,19 +20,17 @@ columns:
 - name: started_at
   type: TIMESTAMP
   nullable: true
-  description: 'Match start time. TIMESTAMP (no TZ) via CAST(started_timestamp AT
-    TIME ZONE ''UTC'' AS TIMESTAMP). Upstream matches_1v1_clean.started_timestamp
-    is TIMESTAMP WITH TIME ZONE (TIMESTAMPTZ); the AT TIME ZONE ''UTC'' + CAST yields
-    a naive UTC TIMESTAMP consistent with the canonical cross-dataset dtype. Canonical
-    cross-dataset dtype: sc2egset uses TRY_CAST from VARCHAR; aoestats uses explicit
-    TZ cast; aoe2companion passes through TIMESTAMP directly.'
+  description: Match start time. TIMESTAMP (no TZ) via CAST(started_timestamp AT TIME
+    ZONE 'UTC' AS TIMESTAMP). Upstream matches_1v1_clean.started_timestamp is TIMESTAMP
+    WITH TIME ZONE (TIMESTAMPTZ); the AT TIME ZONE 'UTC' + CAST yields a naive UTC
+    TIMESTAMP consistent with the canonical cross-dataset dtype.
   notes: CONTEXT. Temporal anchor for Phase 02 rating-update loops. Chronologically
     faithful (TIMESTAMP ordering; upstream TIMESTAMPTZ preserved semantics).
 - name: player_id
   type: VARCHAR
   nullable: true
   description: 'Focal player identifier. aoestats: CAST(p{0,1}_profile_id AS VARCHAR)
-    (upstream BIGINT). Identifies the AoE2 profile for this player-row.'
+    (upstream BIGINT).'
   notes: IDENTITY. Per-dataset identifier; cross-dataset identity resolution is a
     future step (Phase 01_05+).
 - name: opponent_id
@@ -42,14 +41,11 @@ columns:
 - name: faction
   type: VARCHAR
   nullable: true
-  description: 'Focal player''s faction. **Per-dataset polymorphic vocabulary** (cross-dataset
-    column name + dtype only -- values differ in ontology). sc2egset: 4-char race
-    stems Prot/Terr/Zerg. aoestats: full civilization names (Mongols, Franks, etc.
-    -- ~50 distinct). aoe2companion: full civilization names. CONSUMERS MUST NOT treat
-    faction as a single categorical feature across datasets without game-conditional
-    encoding (e.g., WHERE dataset_tag = ''aoestats'' before GROUP BY faction).'
-  notes: PRE_GAME. Full civilization name from p{0,1}_civ. Polymorphic I8 contract
-    -- see description.
+  description: 'Focal player''s faction. Per-dataset polymorphic vocabulary. aoestats:
+    full civilization names (Mongols, Franks, etc. -- ~50 distinct). CONSUMERS MUST
+    NOT treat faction as a single categorical feature across datasets without game-conditional
+    encoding.'
+  notes: PRE_GAME. Full civilization name from p{0,1}_civ. Polymorphic I8 contract.
 - name: opponent_faction
   type: VARCHAR
   nullable: true
@@ -64,6 +60,24 @@ columns:
     == 0.5 exactly (slot-bias gate verified in 01_04_03).'
   notes: TARGET. Direct projection of p{0,1}_winner from matches_1v1_clean. Prediction
     label for downstream experiments.
+- name: duration_seconds
+  type: BIGINT
+  nullable: true
+  description: 'Match duration in seconds (POST_GAME_HISTORICAL). For aoestats: CAST(matches_raw.duration
+    / 1_000_000_000 AS BIGINT). matches_raw.duration is Arrow duration[ns] mapped
+    to BIGINT NANOSECONDS by DuckDB 1.5.1 (pre_ingestion.py:271, research_log.md:684,867,988,996).
+    R1-BLOCKER-A1 fix: divide by 1_000_000_000 (NOT 1_000). Both rows of a match have
+    identical duration_seconds (symmetric -- same source row r.duration used in both
+    UNION halves). I7 provenance: 1_000_000_000 divisor cites Arrow duration[ns] behavior
+    documented at pre_ingestion.py:271.'
+  notes: 'POST_GAME_HISTORICAL. Available only after match end. DO NOT use as PRE_GAME
+    feature for predicting match T outcome (I3 violation). Useful for retrospective
+    analysis: rating-update weighting, learning-curve measurement, game-length-conditioned
+    BTL. Phase 02 feature extractors that drop POST_GAME_HISTORICAL tokens will auto-exclude.
+    Unit: seconds (canonical cross-dataset unit). Source: matches_raw.duration / 1_000_000_000
+    (aoestats-specific). JOIN key: matches_raw.game_id = matches_1v1_clean.game_id.
+    ~145 rows (0.0005%) have outlier duration (>24h); these are raw-data corruption,
+    flagged for 01_04_02 augmentation follow-up PR.'
 - name: dataset_tag
   type: VARCHAR
   nullable: false
@@ -73,46 +87,34 @@ columns:
 provenance:
   source_tables:
   - matches_1v1_clean
+  - matches_raw
   join_key: 'UNION ALL pivot: p0_half uses (game_id, p0_profile_id as player_id, p1_profile_id
-    as opponent_id, p0_civ, p0_winner); p1_half mirrors the assignment.'
-  filter: 'Inherited from matches_1v1_clean: ranked 1v1 decisive (leaderboard=random_map,
-    2 players, p0_winner != p1_winner). 17,814,947 source matches.'
+    as opponent_id, p0_civ, p0_winner); p1_half mirrors the assignment. ADDENDUM:
+    JOIN to matches_raw on game_id for duration column.'
+  filter: 'Inherited from matches_1v1_clean: ranked 1v1 decisive. 17,814,947 source
+    matches.'
   scope: 17,814,947 matches x 2 rows = 35,629,894 player-rows. Cross-dataset harmonization
     substrate for Phase 02+ rating backtesting.
   created_by: sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
 invariants:
 - id: I3
-  description: TIMESTAMP-typed temporal anchor enables chronologically faithful ordering.
-    Upstream started_timestamp is TIMESTAMPTZ; CAST(... AT TIME ZONE 'UTC' AS TIMESTAMP)
-    yields a naive UTC TIMESTAMP. Phase 02 consumers use started_at as the strict-less-than
-    anchor for match_time < T feature computation.
+  description: 'TIMESTAMP-typed temporal anchor. duration_seconds is POST_GAME_HISTORICAL
+    (machine-grep-able token in notes): DO NOT use as PRE_GAME feature.'
 - id: I5
   description: 'Player-row symmetry (I5-analog). Every match_id has exactly 2 rows.
-    (player_id, opponent_id) appears once in each direction. The two `won` values
-    are complementary. faction and opponent_faction are mirror images. Assertion SQL
-    uses IS DISTINCT FROM for NULL-safe comparison. aoestats-specific SLOT-BIAS gate:
-    AVG(won::INT) == 0.5 exactly (tolerance 1e-9) -- UNION ALL erases upstream slot
-    asymmetry (team=1 wins ~52.27% in source).'
+    duration_seconds is identical for both rows (symmetric -- same source row). aoestats-specific
+    SLOT-BIAS gate: AVG(won::INT) == 0.5 exactly.'
 - id: I6
   description: CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in
-    01_04_03_minimal_history_view.json sql_queries block. DESCRIBE result captured
-    in validation JSON describe_table_rows for reproducibility of the nullable flags
-    written to this YAML.
+    01_04_03_minimal_history_view.json sql_queries block.
 - id: I7
-  description: 'game_id is VARCHAR (opaque API key; no fixed-length magic literal).
-    Provenance: matches_1v1_clean.yaml column game_id type: VARCHAR. PREFIX_CHECK_SQL
-    uses LIKE ''aoestats::%'' + non-empty tail regex only (no numeric constraint,
-    unlike aoe2companion INTEGER matchId).'
+  description: 1_000_000_000 nanoseconds-to-seconds divisor cites Arrow duration[ns]
+    -> BIGINT behavior documented at pre_ingestion.py:271 + research_log.md:684.
 - id: I8
-  description: 'Cross-dataset comparability: 8-column names + dtypes are the cross-dataset
-    contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
-    per-dataset-polymorphic -- column name and dtype cross-dataset, values per-dataset
-    ontology. aoestats uses full civ names; sc2egset uses 4-char race stems. match_id
-    prefixed ''aoestats::''.'
+  description: 'Cross-dataset comparability: 9-column names + dtypes (ADDENDUM: extended
+    from 8). duration_seconds unit is seconds across all datasets.'
 - id: I9
-  description: Pure non-destructive projection. No raw table modified. matches_1v1_clean
-    unchanged. Only matches_history_minimal VIEW created via CREATE OR REPLACE. Input
-    (matches_1v1_clean) read-only.
-provenance_categories_note: This view inherits provenance categories from matches_1v1_clean.
-  Per-column 'notes' field uses the single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME,
-  TARGET) established in 01_04_02.
+  description: Pure non-destructive projection. No raw table modified. matches_raw
+    is read-only (SELECT only for duration column).
+provenance_categories_note: 'Per-column ''notes'' uses vocabulary: IDENTITY, CONTEXT,
+  PRE_GAME, TARGET, POST_GAME_HISTORICAL (added in ADDENDUM).'
