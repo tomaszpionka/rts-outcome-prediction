@@ -19,6 +19,52 @@ merged to `master`.
 
 ### Removed
 
+## [3.17.0] — 2026-04-18 (PR #TBD: feat/01-04-04-sc2egset-worldwide-identity)
+
+### Added
+- **sc2egset 01_04_04b — `player_identity_worldwide` VIEW (decomposition-based)**.
+  Follow-up to PR #157 identity-resolution step. Exposes the full Battle.net
+  `R-S2-G-P` qualifier of each toon_id as `player_id_worldwide`, with
+  segments parsed into queryable integer columns (region_code, realm_code,
+  profile_id) + human-readable labels. 7 cols, 2,494 rows. Non-destructive
+  (I9).
+- **Empirical resolution of 01_04_04 open questions:**
+  - `userID` cardinality=16 = local Battle.net profile slot indices stored
+    in SC2 replay header (NOT a player identifier)
+  - 2 empty-toon_id outlier rows characterized as observer-profile ghost
+    entries from two distinct tournaments (IEM Katowice 2017, HomeStory Cup
+    XIX 2019) ~850 days apart — not systematic; isolated parsing anomalies
+  - 273 toon_ids have multiple nicknames across the 2016–2024 span
+    (clan-tag changes, e.g., Serral as `<mYi>Serral` / `<ENCE>Serral` /
+    `<BASKGG>Serral`); VIEW uses ROW_NUMBER() to pick most-frequent
+    nickname per toon_id
+- Schema YAML with 7 cols + I2/I6/I7/I9/I10 invariants + explicit
+  region-scoping limitation note (multi-region human = multiple
+  player_id_worldwide; upgrade path documented via future manual
+  tournament-roster curation if ever warranted).
+- Validation JSON with 8 SQL queries verbatim + 6 literature URLs +
+  outlier investigation block.
+
+### Changed
+- sc2egset `STEP_STATUS.yaml` adds `01_04_04b: complete`.
+- sc2egset `PIPELINE_SECTION_STATUS.yaml` 01_04 flip complete → in_progress
+  → complete (roundtrip).
+- sc2egset `ROADMAP.md` appends 01_04_04b sub-step block.
+- sc2egset `research_log.md` prepends 01_04_04b entry.
+
+### Fixed
+- R1 drafted 5-signal Fellegi-Sunter behavioral classifier (APM-JSD / race /
+  clanTag / MMR / temporal) — rejected for scope drift into
+  behavioral-fingerprinting when the structural question was simpler.
+- R2 drafted external-bridge catalog (Liquipedia / Aligulac / sc2pulse /
+  Blizzard OAuth) — rejected by web-verified adversarial: no external
+  source exposes (nickname → region-scoped profile-id) at bulk scale.
+- R3 drafted sha256 composite stub — rejected for redundant encoding (toon_id
+  already contains the region+realm segments being re-hashed).
+- R4 (shipped): decomposition VIEW, the simplest honest answer.
+
+### Removed
+
 ## [3.16.0] — 2026-04-18 (PR #TBD: feat/01-04-04-identity-resolution)
 
 ### Added

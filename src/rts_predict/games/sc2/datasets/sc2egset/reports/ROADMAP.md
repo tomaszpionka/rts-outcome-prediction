@@ -1264,6 +1264,138 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_04_04 -- Identity Resolution
+
+```yaml
+step_number: "01_04_04"
+name: "Identity Resolution"
+description: >
+  Exploratory record-linkage census on sc2egset identity columns (toon_id,
+  nickname, region, realm, userID, playerID). Classifies the Phase-01
+  hypothesis "toon_id > nickname as multi-account trace" into Fellegi-
+  Sunter-style agreement patterns. Produces 8-query SQL ledger + 5
+  DS-SC2-IDENTITY-* decisions routed to Phase 02. No VIEW DDL; no raw
+  modification (I9).
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4 (cleaning census pattern) + Section 5 (panel-EDA feed-forward)"
+dataset: "sc2egset"
+question: >
+  What fraction of the observed toon_id > nickname asymmetry in sc2egset
+  is produced by multi-region accounts (Battle.net server-scoping), and
+  what fraction by common-handle collisions? Feeds thesis §4.2.2 [REVIEW]
+  marker closure.
+method: >
+  Five-key uniqueness census (toon_id; (region,realm,toon_id);
+  LOWER(nickname); (LOWER(nickname),region); (LOWER(nickname),region,realm))
+  + toon_id cross-region audit + nickname cross-region detail list with
+  temporal windows + Fellegi-Sunter Class A/B/C temporal-overlap
+  classification + within-region handle-collision audit + userID
+  refutation cross-check + region/realm sanity + robustness cross-check
+  against matches_flat_clean.
+stratification: "By candidate identity key; by region/realm label."
+predecessors:
+  - "01_04_01"
+  - "01_04_02"
+  - "01_04_03"
+methodology_citations:
+  - "Fellegi, I. P. & Sunter, A. B. (1969). A Theory for Record Linkage. JASA 64(328)."
+  - "Christen, P. (2012). Data Matching. Springer (Ch. 5 false-merge rate thresholds)."
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.2 (non-destructive cleaning), §5 (panel-EDA feed-forward)"
+  - ".claude/scientific-invariants.md Invariant #2 (canonical identifier)"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_04_identity_resolution.py"
+inputs:
+  duckdb_views:
+    - "matches_flat (44,817 rows, IDENTITY cols intact)"
+    - "matches_flat_clean (44,418 rows, robustness cross-check)"
+    - "matches_long_raw (44,817 rows, canonical skeleton)"
+  prior_artifacts:
+    - "artifacts/01_exploration/02_eda/01_02_04_univariate_census.md (2.26 baseline)"
+    - "artifacts/01_exploration/03_profiling/01_03_01_systematic_profile.md"
+    - "artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md (DS-SC2-01..10 precedent)"
+outputs:
+  duckdb_views: []  # none; exploration only (I9)
+  schema_yamls: []  # none
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_04_identity_resolution.json (8 SQL queries verbatim per I6)"
+    - "artifacts/01_exploration/04_cleaning/01_04_04_cross_region_nicknames.csv (246 rows)"
+    - "artifacts/01_exploration/04_cleaning/01_04_04_within_region_handle_collisions.csv (451 rows)"
+    - "artifacts/01_exploration/04_cleaning/plots/01_04_04_key_cardinality_bars.png"
+    - "artifacts/01_exploration/04_cleaning/plots/01_04_04_toon_region_heatmap.png"
+    - "artifacts/01_exploration/04_cleaning/plots/01_04_04_nickname_cross_region_stacked.png"
+  report: "artifacts/01_exploration/04_cleaning/01_04_04_identity_resolution.md"
+reproducibility: >
+  All 8 SQL queries stored verbatim in validation JSON sql_queries block
+  (I6). Deterministic census; no random sampling in sc2egset slice.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      No in-game columns used for identity derivation (APM/SQ excluded).
+      Nickname, region, realm, toon_id all PRE_GAME or IDENTITY per 01_04_02
+      classification.
+  - number: "6"
+    how_upheld: >
+      All SQL stored verbatim in validation JSON sql_queries. 8 keys:
+      single_key_census, toon_id_cross_region_audit, nickname_cross_region_audit,
+      temporal_overlap_classification, within_region_handle_collision,
+      userid_refutation, region_realm_sanity, robustness_crosscheck.
+  - number: "7"
+    how_upheld: >
+      2.26 ratio baseline cites 01_02_04 census (toon_id=2495, nickname=1106);
+      5% within-region collision threshold cites Christen 2012 Ch. 5;
+      ±1% robustness delta cites 399/44,817=0.89% empirical basis.
+  - number: "8"
+    how_upheld: >
+      Decision ledger language identical to aoestats + aoe2companion sibling
+      01_04_04 plans; verdict rubric (A/B/C) cross-dataset consistent.
+  - number: "9"
+    how_upheld: >
+      Pure read-only analysis. No raw-table mutation. No new VIEW created.
+      All 3 sc2egset view YAMLs byte-identical post-execution.
+gate:
+  artifact_check: >
+    JSON + MD + 2 CSVs + 3 PNGs all exist non-empty.
+  continue_predicate: >
+    Ratio K1/K_cs = 2.2559 within 2.257 +/- 0.05 (I7 baseline). 0 cross-region
+    toon_ids (Battle.net scoping). 5 DS-SC2-IDENTITY-* decisions populated.
+    I9 empty diff on all sc2egset view + raw YAMLs. STEP_STATUS 01_04_04
+    -> complete; PIPELINE_SECTION 01_04 -> complete (roundtrip restore).
+  halt_predicate: >
+    Ratio drift > 0.05 (upstream change / SQL bug); cross-region toon_id
+    count > 0 (data-pipeline bug OR Battle.net legacy). Manual revert of
+    PIPELINE_SECTION_STATUS before aborting.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.2.2 Rozpoznanie tozsamosci gracza (operational evidence closes [REVIEW] marker)"
+  - "Chapter 4 -- Data and Methodology > 4.4.1 Per-player split justification (feeds Phase 02 grouping-key choice)"
+research_log_entry: "Required on completion."
+decisions_surfaced:
+  - id: "DS-SC2-IDENTITY-01"
+    scope: "Phase 02 canonical player primary key"
+    evidence: "K1=2495 toon_ids; K_cs=1106 case-sensitive nicks; K4=(LOWER(nick),region)=1473; K5=1487; 0 cross-region toon_ids; 294 Class A cross-region-overlap nickname pairs; 451/1473=30.6% within-region collision rate"
+    recommendation: "REJECT toon_id-alone AND REJECT LOWER(nickname)-alone; use composite key with behavioral disambiguation -- deferred to Phase 02"
+    routed_to: "Phase 02 / 02_07 Rating Systems"
+  - id: "DS-SC2-IDENTITY-02"
+    scope: "LOWER(nickname)-alone as primary key"
+    evidence: "30.6% within-region LOWER(nickname) collision rate (451/1473) >> Christen 2012 5% threshold"
+    recommendation: "REJECT"
+    routed_to: "Phase 02 / 02_07"
+  - id: "DS-SC2-IDENTITY-03"
+    scope: "Class A/B temporal-overlap pairs handling"
+    evidence: "294 Class A (overlap, multi-account candidate); 15,474 Class B (disjoint, migration OR different player); 317 Class C (degenerate)"
+    recommendation: "Phase 02 entity-resolution: Class A MERGE candidates (pending behavioral-fingerprint disambiguation); Class B conservative-separate; Class C insufficient evidence"
+    routed_to: "Phase 02 / 02_07"
+  - id: "DS-SC2-IDENTITY-04"
+    scope: "region='Unknown' bucket (~12.83% of rows)"
+    evidence: "Unknown region is a valid value, not a sentinel -- pre-metadata-capture tournaments"
+    recommendation: "Treat Unknown as distinct region value; do NOT merge with known regions"
+    routed_to: "Phase 02 / 02_03 Cold Starts"
+  - id: "DS-SC2-IDENTITY-05"
+    scope: "Composite canonical identity VIEW design (player_identity_canonical)"
+    evidence: "Multi-signal required: (region, realm, toon_id) granular base + optional nickname-based MERGE for Class A overlap + behavioral-fingerprint confirmation (APM per Hahn et al. 2020)"
+    recommendation: "Design player_identity_canonical VIEW in Phase 02 after running 01_04_04 augmentation PR for sc2egset worldwide-identity classifier"
+    routed_to: "Phase 02 / 02_07 + 01_04_04 augmentation PR (this branch: feat/01-04-04-sc2egset-worldwide-identity)"
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)
@@ -1306,3 +1438,35 @@ Steps to be defined when Phase 05 gate is met.
 Per `docs/PHASES.md`, Phase 07 is a gate marker with no Pipeline Sections.
 This dataset's Phase 07 gate is met when all thesis sections fed by this
 dataset have reached FINAL status in `thesis/WRITING_STATUS.md`.
+
+### Step 01_04_04b -- Stub worldwide identity VIEW (decomposition-based)
+
+```yaml
+step_number: "01_04_04b"
+name: "Worldwide Identity VIEW (decomposition-based)"
+description: >
+  Create player_identity_worldwide VIEW that decomposes toon_id (full Battle.net R-S2-G-P qualifier)
+  into human-readable columns (region_code, realm_code, profile_id, region_label, realm_label,
+  nickname_case_sensitive). Investigate 2 empty-toon_id outlier rows. No hashing, no composite
+  encoding -- toon_id IS the worldwide identifier (region-scoped per Blizzard design).
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+parent_step: "01_04_04"
+plan_version: "R4"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_04b_worldwide_identity.py"
+completed_at: "2026-04-18"
+outputs:
+  view: "player_identity_worldwide (2,494 rows, 7 cols)"
+  schema_yaml: "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_identity_worldwide.yaml"
+  artifacts:
+    - "reports/artifacts/01_exploration/04_cleaning/01_04_04b_worldwide_identity.json"
+    - "reports/artifacts/01_exploration/04_cleaning/01_04_04b_worldwide_identity.md"
+key_findings:
+  - "toon_id stores full Battle.net R-S2-G-P qualifier -- no hashing needed"
+  - "273 toon_ids have multiple nicknames; VIEW picks modal nickname per toon_id"
+  - "userID cardinality=16 = local Battle.net profile slot indices (0..15), NOT player IDs"
+  - "2 empty-toon_id rows are observer-profile ghost entries (handicap=0, color_rgba=0)"
+  - "Outliers from 2 different tournaments (IEM 2017, HSC 2019) -- not systematic"
+  - "No external bridge available for cross-region toon_id merge (R2 confirmed)"
+```
+
