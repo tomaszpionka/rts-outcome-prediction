@@ -1,0 +1,116 @@
+table: matches_history_minimal
+dataset: sc2egset
+game: sc2
+object_type: view
+step: '01_04_03'
+row_count: 44418
+describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json
+generated_date: '2026-04-18'
+columns:
+- name: match_id
+  type: VARCHAR
+  nullable: true
+  description: 'Cross-dataset unique match identifier. Format: ''<dataset_tag>::<native_id>''.
+    For sc2egset: ''sc2egset::<32-char-hex-replay_id>''. Prefix guarantees UNION ALL
+    uniqueness across sibling datasets. Length contract = 42 chars (10 prefix + 32
+    hex) derived from src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml
+    join_key regex [0-9a-f]{32} (I7 provenance).'
+  notes: IDENTITY. Prefix applied in this VIEW only; upstream replay_id unchanged
+    (I9).
+- name: started_at
+  type: TIMESTAMP
+  nullable: true
+  description: 'Match start time. TIMESTAMP (no TZ) via TRY_CAST(matches_flat_clean.details_timeUTC
+    AS TIMESTAMP). Canonical cross-dataset dtype: sibling VIEWs (aoestats, aoe2companion)
+    MUST emit TIMESTAMP (aoestats CAST from TIMESTAMPTZ AT TIME ZONE ''UTC''; aoe2companion
+    pass-through). DuckDB TRY_CAST handles variable sub-second precision (7 observed
+    length variants 22-28 chars in upstream VARCHAR).'
+  notes: CONTEXT. Temporal anchor for Phase 02 rating-update loops. Chronologically
+    faithful (TIMESTAMP ordering, not lex).
+- name: player_id
+  type: VARCHAR
+  nullable: true
+  description: 'Focal player identifier. sc2egset: Battle.net toon_id.'
+  notes: IDENTITY. Per-dataset identifier; cross-dataset identity resolution is a
+    future step (Phase 01_05+).
+- name: opponent_id
+  type: VARCHAR
+  nullable: true
+  description: Opposing player identifier. Same grain and provenance as player_id.
+  notes: IDENTITY.
+- name: faction
+  type: VARCHAR
+  nullable: true
+  description: 'Focal player''s faction. Per-dataset polymorphic vocabulary (cross-dataset
+    column name + dtype only -- values differ in ontology). sc2egset: 4-char race
+    stems Prot/Terr/Zerg (empirically verified; NOT full ''Protoss''/''Terran''/''Zerg'').
+    aoestats: full civilization names (Mongols, Franks, etc.). aoe2companion: full
+    civilization names. CONSUMERS MUST NOT treat faction as a single categorical feature
+    across datasets without game-conditional encoding (e.g., WHERE dataset_tag = ''sc2egset''
+    before GROUP BY faction).'
+  notes: PRE_GAME. Raw vocabulary (race actually played, not selectedRace which includes
+    'Random'). Polymorphic I8 contract -- see description.
+- name: opponent_faction
+  type: VARCHAR
+  nullable: true
+  description: Opposing player's faction (same per-dataset vocabulary as `faction`).
+  notes: PRE_GAME. Mirror of faction from the opponent row.
+- name: won
+  type: BOOLEAN
+  nullable: true
+  description: TRUE if the focal player won, FALSE otherwise. The two rows of a match
+    have complementary `won` values (exactly one TRUE, one FALSE).
+  notes: TARGET. Direct projection of matches_flat_clean.result; prediction label
+    for downstream experiments.
+- name: dataset_tag
+  type: VARCHAR
+  nullable: false
+  description: Dataset discriminator for UNION ALL across sibling datasets. Constant
+    'sc2egset' in this VIEW.
+  notes: IDENTITY. Matches the prefix before '::' in match_id.
+provenance:
+  source_tables:
+  - matches_flat_clean
+  join_key: self-join on matches_flat_clean via replay_id; player_id = toon_id; opponent_id
+    from sibling row where mfc.toon_id <> opp.toon_id
+  filter: 'Inherited from matches_flat_clean: true_1v1_decisive (2 players, 1 Win
+    + 1 Loss) + mmr_valid.'
+  scope: 22,209 true 1v1 decisive replays, 44,418 player-rows. Cross-dataset harmonization
+    substrate for Phase 02+ rating backtesting.
+  created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
+invariants:
+- id: I3
+  description: TIMESTAMP-typed temporal anchor enables chronologically faithful ordering
+    (upstream VARCHAR details_timeUTC has 7 distinct sub-second precision variants
+    22-28 chars; lex ordering would be non-monotonic). TRY_CAST to TIMESTAMP in the
+    VIEW normalizes. No windowed aggregations, no shift(), no future joins. Phase
+    02 consumers use started_at as the strict-less-than anchor for match_time < T
+    feature computation.
+- id: I5
+  description: Player-row symmetry (I5-analog). Every match_id has exactly 2 rows.
+    (player_id, opponent_id) appears once in each direction. The two `won` values
+    are complementary. faction and opponent_faction are mirror images. Assertion SQL
+    uses IS DISTINCT FROM for NULL-safe comparison (R1-BLOCKER-3 fix).
+- id: I6
+  description: CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in
+    01_04_03_minimal_history_view.json sql_queries block. DESCRIBE result captured
+    in validation JSON describe_table_rows for reproducibility of the nullable flags
+    written to this YAML.
+- id: I7
+  description: Magic literals in PREFIX_CHECK_SQL (`32` hex chars, `42` total length)
+    cite upstream data/db/schemas/views/matches_long_raw.yaml join_key regex [0-9a-f]{32}
+    for provenance.
+- id: I8
+  description: 'Cross-dataset comparability: 8-column names + dtypes are the cross-dataset
+    contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
+    per-dataset-polymorphic -- column name and dtype cross-dataset, values per-dataset
+    ontology. aoestats sibling PR must project its 1-row-per-match matches_1v1_clean
+    to 2-rows-per-match via UNION ALL of p0/p1 SELECTs (with awareness of team1_wins
+    ~52.27% slot asymmetry); aoe2companion similarly. match_id prefixed ''sc2egset::''.'
+- id: I9
+  description: Pure non-destructive projection. No raw table modified. matches_flat_clean
+    unchanged. Only matches_history_minimal VIEW created via CREATE OR REPLACE. Inputs
+    (matches_flat_clean, matches_flat) read-only.
+provenance_categories_note: This view inherits provenance categories from matches_flat_clean.
+  Per-column 'notes' field uses the single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME,
+  TARGET) established in 01_04_02.

@@ -2,6 +2,109 @@
 
 ---
 
+## 2026-04-18 -- [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
+
+**Category:** A (science)
+**Dataset:** sc2egset (pattern-establisher)
+**Step scope:** Create `matches_history_minimal` VIEW — 8-column player-row-grain projection of `matches_flat_clean` with canonical TIMESTAMP temporal dtype. Cross-dataset-harmonized substrate for Phase 02+ rating-system backtesting (Elo, Glicko, Glicko-2, TrueSkill, Aligulac race-conditioned, Bradley–Terry, Neural BTL). Non-destructive (I9); reverted 01_04 to `in_progress` during execution, back to `complete` on gate pass.
+
+### Schema (8 columns, 2 rows per match)
+
+| column | dtype | semantics |
+|---|---|---|
+| match_id | VARCHAR | `'sc2egset::' + 32-char hex replay_id` (length = 42) |
+| started_at | TIMESTAMP | `TRY_CAST` of `details_timeUTC`; canonical cross-dataset dtype |
+| player_id | VARCHAR | Battle.net toon_id |
+| opponent_id | VARCHAR | Opposing toon_id |
+| faction | VARCHAR | Raw race stems `Prot`/`Terr`/`Zerg` (4-char; NOT full names). PER-DATASET POLYMORPHIC |
+| opponent_faction | VARCHAR | Opposing race (mirror) |
+| won | BOOLEAN | Focal player's outcome (complementary between the 2 rows) |
+| dataset_tag | VARCHAR | Constant `'sc2egset'` |
+
+### Row-count flow
+- Source `matches_flat_clean`: 44,418 rows / 22,209 replays (1v1 decisive)
+- `matches_history_minimal`: 44,418 rows / 22,209 distinct match_ids / 2 rows per match_id
+
+### Gate verdict — all PASS
+
+| # | Criterion | Result |
+|---|---|---|
+| G1 | Artifacts exist (.py, .ipynb, .json, .md, .yaml) | PASS |
+| G2 | DESCRIBE 8 cols; dtypes `[VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, VARCHAR]` | PASS |
+| G3 | Row counts 44,418 / 22,209 / 22,209 / 0 | PASS |
+| G4 | I5-analog symmetry violations (IS DISTINCT FROM, NULL-safe) | 0 |
+| G5 | I8 prefix violations (length == 42) | 0 |
+| G6 | dataset_tag distinct == 1, value `'sc2egset'` | PASS |
+| G7 | Zero NULLs in match_id / player_id / opponent_id / won / dataset_tag | PASS |
+| G8 | started_at dtype TIMESTAMP; null_started_at reported (=0) | PASS |
+| G9 | I9 upstream YAML byte-identical (`git diff --stat` empty for matches_flat_clean.yaml, player_history_all.yaml, matches_long_raw.yaml) | PASS |
+| G11 | Validation JSON `all_assertions_pass: true`; `sql_queries` block verbatim; `describe_table_rows` captured | PASS |
+
+### Faction vocabulary (empirical)
+
+| faction | count |
+|---|---|
+| `Prot` | 16,121 |
+| `Zerg` | 15,527 |
+| `Terr` | 12,770 |
+
+4-char stems confirmed (not full `Protoss`/`Terran`/`Zerg`). Upstream `matches_flat_clean.race` nullable semantics preserved; faction nullable: true.
+
+### Temporal sanity
+- `min_started_at`: `2016-01-07 02:21:46.002000`
+- `max_started_at`: `2024-12-01 23:48:45.251161`
+- `null_started_at`: 0 (zero TRY_CAST failures)
+- `distinct_started_at`: 22,164
+
+### Cross-dataset contract established (I8) — limits explicit
+aoestats and aoe2companion follow-up PRs must emit views with:
+- identical 8-column names and order
+- canonical TIMESTAMP `started_at` (aoestats CAST AT TIME ZONE 'UTC' from TIMESTAMPTZ; aoe2companion pass-through)
+- same grain (2 rows per match) — aoestats UNIONs `p0/p1` halves of its 1-row-per-match clean view (team1_wins ~52.27% slot-asymmetry awareness required)
+- NULL-safe IS DISTINCT FROM symmetry assertion
+- dataset_tag literals `'aoestats'` / `'aoe2companion'`
+- match_id prefixes `'aoestats::'` / `'aoe2companion::'`
+- `faction` values per-dataset polymorphic (SC2 race stems vs AoE2 civ names); consumers MUST game-condition
+
+### aoestats sibling PR column mapping (deferred execution)
+- `aoestats.p{0,1}_profile_id → player_id`
+- `aoestats.p{0,1}_civ → faction` (raw per-dataset polymorphic civ vocabulary)
+- `aoestats.p{0,1}_winner → won` (TARGET — aoestats YAML flags `p_winner` as POST_GAME_HISTORICAL; acceptable here since `won` IS the prediction target in `matches_history_minimal`)
+
+### Decisions taken
+- Source = `matches_flat_clean` (built-in 1v1-decisive filter; avoids double projection).
+- match_id prefix applied in-view (not upstream) — preserves I9.
+- `faction = race` (actual), NOT `selectedRace` (which includes `'Random'`).
+- `started_at` TIMESTAMP-cast in-view (R1-BLOCKER-2 fix; resolves 3-way dtype split VARCHAR/TIMESTAMPTZ/TIMESTAMP at the contract level).
+- I5-analog symmetry SQL uses `IS DISTINCT FROM` (R1-BLOCKER-3 fix; NULL-safe).
+- Minimal view excludes MMR / is_mmr_missing / map / version: Phase 02 consumers join from `matches_flat_clean` on `(match_id, player_id)`.
+- Polymorphic `faction` column chosen over separate `sc2_race` / `aoe2_civ` for substrate simplicity; game-conditional encoding happens in Phase 02 feature extractors (dataset_tag is the ontological disambiguator).
+
+### Decisions deferred
+- Faction enum harmonization (Phase 02; current contract is explicit polymorphism).
+- Canonical nickname resolution (Phase 01_05+).
+
+### Adversarial review cycle (Cat A, up-to-3 cap per user directive)
+- R1: 5 BLOCKERs / 7 WARNINGs → REQUIRE_REVISION
+- R2: all R1 fixes FIX-VERIFIED; 3 new WARNINGs + 5 NOTEs → APPROVE_WITH_WARNINGS
+- R3: all R2 fixes FIX-VERIFIED; 2 cosmetic NOTEs → APPROVE_WITH_WARNINGS
+
+### Artifacts produced
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json` (NEW)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md` (NEW)
+- `data/db/schemas/views/matches_history_minimal.yaml` (NEW)
+- DuckDB VIEW `matches_history_minimal` (NEW)
+
+### Thesis mapping
+- Chapter 4 — Data and Methodology > 4.1.1 SC2EGSet > Cross-dataset harmonization substrate
+- Chapter 4 — Data and Methodology > 4.3 Rating System Backtesting Design (downstream consumer)
+
+### Open follow-ups
+- aoestats, aoe2companion sibling PRs produce matching views.
+- Phase 02 defines canonical UNION ALL view.
+
+---
+
 ## 2026-04-17 -- [Phase 01 / Step 01_04_02] Data Cleaning Execution
 
 **Category:** A (science)

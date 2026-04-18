@@ -1114,6 +1114,120 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+### Step 01_04_03 -- Minimal Cross-Dataset History View
+
+```yaml
+step_number: "01_04_03"
+name: "Minimal Cross-Dataset History View"
+description: >
+  Create matches_history_minimal VIEW: 8-column player-row-grain projection
+  of matches_flat_clean (2 rows per 1v1 match). Cross-dataset-harmonized
+  substrate for Phase 02+ rating-system backtesting. Canonical TIMESTAMP
+  temporal dtype; per-dataset-polymorphic faction vocabulary. Pattern-
+  establisher -- aoestats and aoe2companion emit identically-shaped sibling
+  views in follow-up PRs (I8).
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4.2 (non-destructive cleaning), Section 4.4 (post-cleaning validation)"
+dataset: "sc2egset"
+question: >
+  What is the minimum cross-dataset-harmonized shape for per-player match
+  history required by Phase 02 rating-system backtesting? Does a pure
+  projection of matches_flat_clean with TIMESTAMP-cast started_at satisfy
+  the I3/I5-analog/I6/I7/I8/I9 contract?
+method: >
+  CREATE OR REPLACE VIEW on top of matches_flat_clean via self-join on
+  replay_id to materialize (player_row, opponent_row) symmetric pairs.
+  match_id prefixed 'sc2egset::' for cross-dataset UNION uniqueness.
+  started_at via TRY_CAST to canonical TIMESTAMP dtype. Faction strings
+  raw (per-dataset polymorphic vocabulary). Validate: row-count parity,
+  schema shape, I5-analog NULL-safe symmetry (IS DISTINCT FROM), prefix
+  uniqueness, dataset_tag constancy, temporal sanity.
+stratification: "By match_id (2 symmetric rows); by faction for vocabulary documentation."
+predecessors:
+  - "01_04_02"
+methodology_citations:
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.2 (non-destructive cleaning)"
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.4 (post-cleaning validation)"
+  - "Tukey, J. W. (1977). Exploratory Data Analysis. Addison-Wesley. (raw-string vocabulary documentation)"
+  - "Schafer, J. L., & Graham, J. W. (2002). Missing data: Our view of the state of the art. Psychological Methods."
+  - "van Buuren, S. (2018). Flexible Imputation of Missing Data (2nd ed.). CRC Press."
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py"
+inputs:
+  duckdb_views:
+    - "matches_flat_clean (44,418 rows / 22,209 replays -- from 01_04_02)"
+  prior_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json"
+  schema_yamls:
+    - "data/db/schemas/views/matches_flat_clean.yaml"
+outputs:
+  duckdb_views:
+    - "matches_history_minimal (NEW -- 8 cols, 44,418 rows)"
+  schema_yamls:
+    - "data/db/schemas/views/matches_history_minimal.yaml (NEW)"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md"
+reproducibility: >
+  CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in the
+  validation JSON sql_queries block (I6). DESCRIBE result captured in the
+  validation JSON describe_table_rows for reproducibility of nullable flags
+  written to schema YAML.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      TIMESTAMP cast (via TRY_CAST) enables chronologically faithful ordering.
+      Upstream VARCHAR details_timeUTC has 7 distinct sub-second precision
+      lengths (22-28 chars); lex ordering would be non-monotonic across
+      formats. Phase 02 consumers use TIMESTAMP started_at as strict-
+      less-than anchor.
+  - number: "5"
+    how_upheld: >
+      Player-row symmetry (I5-analog). SYMMETRY_I5_ANALOG_SQL uses
+      IS DISTINCT FROM for NULL-safe comparison. Every match_id has exactly
+      2 rows; (player_id, opponent_id) pair appears in both directions; won
+      values are complementary; faction / opponent_faction are mirrored.
+  - number: "6"
+    how_upheld: >
+      DDL + every assertion SQL + DESCRIBE snapshot in validation JSON.
+  - number: "7"
+    how_upheld: >
+      Magic literals 32 / 42 in PREFIX_CHECK_SQL cite
+      src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml
+      join_key regex [0-9a-f]{32} for provenance.
+  - number: "8"
+    how_upheld: >
+      8-column cross-dataset contract: identical column names + dtypes;
+      canonical TIMESTAMP temporal dtype (no TZ); per-dataset-polymorphic
+      faction vocabulary (consumers MUST game-condition). aoestats sibling
+      PR projects 1-row-per-match to 2-rows with p0/p1 UNION ALL (team1_wins
+      slot-asymmetry awareness required).
+  - number: "9"
+    how_upheld: >
+      Pure non-destructive projection. No upstream modification. Only new
+      VIEW created.
+gate:
+  artifact_check: >
+    Validation JSON + MD exist. matches_history_minimal.yaml exists with
+    8 columns (started_at TIMESTAMP) + invariants block + I8 per-dataset-
+    polymorphic faction warning.
+  continue_predicate: >
+    VIEW exists with 8 columns matching spec. 44,418 rows = 22,209 x 2.
+    Zero NULL-safe symmetry violations. Zero prefix violations. dataset_tag
+    constancy = 1. Zero NULLs in match_id / player_id / opponent_id / won /
+    dataset_tag. STEP_STATUS 01_04_03 -> complete. PIPELINE_SECTION_STATUS
+    01_04 -> complete.
+  halt_predicate: >
+    Symmetry violation > 0; row-count discrepancy; prefix violation; NULL in
+    non-nullable spec column; column count != 8; started_at dtype != TIMESTAMP;
+    upstream YAML byte-diff detected. ON HALT: manually revert
+    PIPELINE_SECTION_STATUS 01_04 -> complete before aborting.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet > Cross-dataset harmonization substrate"
+  - "Chapter 4 -- Data and Methodology > 4.3 Rating System Backtesting Design (downstream consumer)"
+research_log_entry: "Required on completion."
+```
+
 ---
 
 ## Phase 02 — Feature Engineering (placeholder)
