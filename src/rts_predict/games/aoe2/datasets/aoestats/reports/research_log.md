@@ -8,6 +8,69 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Step 01_04_02] ADDENDUM: duration_seconds + is_duration_suspicious (22-col extension)
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Branch:** feat/01-04-02-duration-augmentation
+**Scope:** Extended `matches_1v1_clean` from 20 cols to 22 cols by adding `duration_seconds` BIGINT
+(POST_GAME_HISTORICAL) and `is_duration_suspicious` BOOLEAN.
+
+### Derivation
+
+`CAST(m.duration / 1000000000 AS BIGINT) AS duration_seconds` — source is `matches_raw.duration`
+which is BIGINT NANOSECONDS (Arrow `duration[ns]` -> BIGINT per DuckDB 1.5.1; cites
+`aoestats/pre_ingestion.py:271`). No new JOIN required — `matches_raw` already aliased as `m`
+in the existing DDL.
+
+`(CAST(m.duration / 1000000000 AS BIGINT) > 86400) AS is_duration_suspicious` — threshold 86,400s
+(24h) is the cross-dataset canonical sanity bound (I8 contract; ~25× p99 = 5,729s from 01_04_03
+Gate+5b; research_log.md 2026-04-18 01_04_03 entry).
+
+### Gate Results (all PASS)
+
+1. DESCRIBE returns 22 cols; last 2 = `duration_seconds BIGINT` + `is_duration_suspicious BOOLEAN` — PASS
+2. Row count 17,814,947 unchanged — PASS
+3. `COUNT(*) FILTER (WHERE duration_seconds IS NULL) == 0` — PASS
+4. `MAX(duration_seconds) = 5,574,815 <= 1,000,000,000` (unit canary) — PASS
+5. `COUNT(*) FILTER (WHERE is_duration_suspicious) == 28` (expected 28 ±1) — PASS (exact: 28)
+6. Schema YAML: 22 col entries + `schema_version: "22-col (ADDENDUM: duration added 2026-04-18)"` + I3/I7 — PASS
+7. `git diff --stat` empty on `player_history_all.yaml`, `matches_history_minimal.yaml`, `matches_raw.yaml` — PASS
+8. Validation JSON `all_assertions_pass: true` + full DDL in `sql_queries` — PASS
+
+### Duration Stats (aoestats matches_1v1_clean)
+
+- min: 3s
+- p50: 2,455s (~40.9 min)
+- p99: 5,729s (~95.5 min)
+- max: 5,574,815s (~64.5 days — 28 corrupted-raw-data matches)
+- null_count: 0
+- suspicious_count (>86400s): 28 matches (0.00016% of dataset)
+
+### Suspicious Game IDs (28 matches, duration > 86400s)
+
+All 28 game_ids stored verbatim in artifact `01_04_02_duration_augmentation_validation.json`
+under `suspicious_game_ids`. Top-5 by duration (from artifact):
+184213201, 210909036, 226137454, 241569078, 227257584.
+
+These are raw-data corruption in `matches_raw.duration` — deferred to Phase 02 outlier
+filtering via `is_duration_suspicious` flag (Phase 02 will exclude or weight accordingly).
+
+### I7 Provenance
+
+- Divisor 1,000,000,000: cites `aoestats/pre_ingestion.py:271` (Arrow `duration[ns]` -> BIGINT
+  NANOSECONDS per DuckDB 1.5.1).
+- Threshold 86,400s: cross-dataset 24h canonical sanity bound. Justified as ~25× p99 (5,729s).
+  I8 contract: identical threshold in sc2egset and aoe2companion clean views.
+
+### Artifacts
+
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation_validation.json`
+- `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation_validation.md`
+- `src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/views/matches_1v1_clean.yaml` (updated to 22 cols)
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
 
 **Category:** A (science)

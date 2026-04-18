@@ -23,8 +23,7 @@ paths:
 **Literature sections** (WRITING_STATUS.md shows "Feeds from: —"):
 1. Read section description in `thesis/THESIS_STRUCTURE.md`
 2. Read plan's seed bibliography; verify each reference via WebSearch
-3. Discover additional references (see Literature Search Protocol in
-   `thesis/plans/idea_audit.md`)
+3. Discover additional references (see Literature Search Protocol below)
 4. Draft in `thesis/chapters/XX_*.md`
 5. Run Critical Review Checklist — Literature variant (below)
 6. Plant `[REVIEW:]` and `[NEEDS CITATION]` flags
@@ -71,6 +70,47 @@ citation checking, methodology alignment, and flag resolution.
 - `[UNVERIFIED: source?]` — number not traceable to artifact
 - `[NEEDS JUSTIFICATION]` — threshold without derivation
 - `[NEEDS CITATION]` — claim requires literature reference
+
+## Literature Search Protocol
+
+Applies to writer-thesis when drafting any section that cites papers
+(literature sections always; data-fed sections for their literature
+portions).
+
+1. Start from the plan's seed bibliography. WebSearch each reference
+   before using it — do not cite a paper you could not retrieve or
+   verify.
+2. Discover additional references via minimum 3 WebSearch queries per
+   section, each with a distinct formulation (topic-specific example
+   for §2.6: "classifier comparison binary classification statistical
+   test"; "Friedman test Holm correction multiple classifiers"; "Brier
+   score decomposition Murphy probabilistic forecasting").
+3. Preferred sources, in order:
+   - Conference proceedings: NeurIPS, ICML, AAAI, IJCAI, IEEE CIG/CoG,
+     KDD, WWW, AIIDE.
+   - Journals: JMLR, IEEE Trans. Games, Machine Learning (Springer),
+     PLOS ONE, Entropy.
+   - Canonical textbooks: Bishop (2006), Hastie et al. (2009), Murphy
+     (2012/2022), Goodfellow et al. (2016).
+   - Dataset papers: Scientific Data, data descriptor venues.
+   - Official documentation: game engine, API, protocol specs.
+4. Non-peer-reviewed sources are permitted only when no peer-reviewed
+   alternative exists. Tag with `[REVIEW: grey-literature — <url>]`.
+   Wikipedia is never cited in final prose; use it only to discover
+   primary sources.
+5. Citation density target: 2–4 references per page. Literature
+   surveys (Ch 2–3) at the higher end; framing sections (Ch 1) at the
+   lower end.
+6. WebSearch failure handling:
+   - If a search returns nothing relevant, widen the query (remove
+     specific terms) and try again.
+   - If two widened queries both return nothing, plant
+     `[NEEDS CITATION]` in the draft with a parenthetical note of the
+     queries attempted. Do NOT invent a citation.
+   - If WebSearch fails for infrastructure reasons (rate limit, error),
+     plant `[UNVERIFIED: WebSearch unavailable]` and continue.
+   - Pass 2 in Claude Chat resolves all `[NEEDS CITATION]` /
+     `[UNVERIFIED:]` flags.
 
 ## Writing Quality
 - Third person or first person plural; academic register

@@ -3,181 +3,213 @@ dataset: sc2egset
 game: sc2
 object_type: view
 step: '01_04_02'
+schema_version: '30-col (ADDENDUM: duration added 2026-04-18)'
 row_count: 44418
 describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json
-generated_date: '2026-04-17'
+addendum_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json
+generated_date: '2026-04-18'
 columns:
 - name: replay_id
   type: VARCHAR
   nullable: true
-  description: Canonical join key extracted via regexp. NULLIF empty-string guard applied.
-  notes: "IDENTITY. Canonical join key extracted via regexp. NULLIF empty-string guard\
-    \ applied."
+  description: Canonical join key extracted via regexp. NULLIF empty-string guard
+    applied.
+  notes: IDENTITY. Canonical join key extracted via regexp. NULLIF empty-string guard
+    applied.
 - name: filename
   type: VARCHAR
   nullable: true
   description: Replay file path relative to raw_dir. Invariant I10.
-  notes: "IDENTITY. Replay file path relative to raw_dir. Invariant I10."
+  notes: IDENTITY. Replay file path relative to raw_dir. Invariant I10.
 - name: toon_id
   type: VARCHAR
   nullable: true
   description: Battle.net toon/account identifier. Player identity key.
-  notes: "IDENTITY. Battle.net toon/account identifier. Player identity key."
+  notes: IDENTITY. Battle.net toon/account identifier. Player identity key.
 - name: nickname
   type: VARCHAR
   nullable: true
   description: Player nickname.
-  notes: "IDENTITY. Player nickname."
+  notes: IDENTITY. Player nickname.
 - name: playerID
   type: INTEGER
   nullable: true
   description: In-game player id.
-  notes: "IDENTITY. In-game player id."
+  notes: IDENTITY. In-game player id.
 - name: userID
   type: BIGINT
   nullable: true
   description: User id.
-  notes: "IDENTITY. User id."
+  notes: IDENTITY. User id.
 - name: result
   type: VARCHAR
   nullable: true
   description: Game result (Win or Loss only -- Undecided/Tie excluded by true_1v1_decisive
     CTE). Prediction target.
-  notes: "TARGET. Game result (Win or Loss only -- Undecided/Tie excluded by true_1v1_decisive\
-    \ CTE). Prediction target."
+  notes: TARGET. Game result (Win or Loss only -- Undecided/Tie excluded by true_1v1_decisive
+    CTE). Prediction target.
 - name: is_mmr_missing
   type: BOOLEAN
   nullable: true
   description: TRUE if MMR=0 (unrated professional). MNAR. MMR dropped in 01_04_02
     (DS-SC2-01); this flag preserves the rated/unrated signal.
-  notes: "PRE_GAME. TRUE if MMR=0 (unrated professional). MNAR. MMR dropped in 01_04_02\
-    \ (DS-SC2-01); this flag preserves the rated/unrated signal."
+  notes: PRE_GAME. TRUE if MMR=0 (unrated professional). MNAR. MMR dropped in 01_04_02
+    (DS-SC2-01); this flag preserves the rated/unrated signal.
 - name: race
   type: VARCHAR
   nullable: true
   description: Actual race played (Protoss, Zerg, Terran abbreviated).
-  notes: "PRE_GAME. Actual race played (Protoss, Zerg, Terran abbreviated)."
+  notes: PRE_GAME. Actual race played (Protoss, Zerg, Terran abbreviated).
 - name: selectedRace
   type: VARCHAR
   nullable: true
   description: Selected race. Empty string normalised to 'Random'.
-  notes: "PRE_GAME. Selected race. Empty string normalised to 'Random'."
+  notes: PRE_GAME. Selected race. Empty string normalised to 'Random'.
 - name: region
   type: VARCHAR
   nullable: true
   description: Battle.net region label.
-  notes: "PRE_GAME. Battle.net region label."
+  notes: PRE_GAME. Battle.net region label.
 - name: realm
   type: VARCHAR
   nullable: true
   description: Realm label.
-  notes: "PRE_GAME. Realm label."
+  notes: PRE_GAME. Realm label.
 - name: isInClan
   type: BOOLEAN
   nullable: true
   description: Whether the player is in a clan.
-  notes: "PRE_GAME. Whether the player is in a clan."
+  notes: PRE_GAME. Whether the player is in a clan.
 - name: startDir
   type: INTEGER
   nullable: true
   description: Starting direction code (lobby assignment).
-  notes: "PRE_GAME. Starting direction code (lobby assignment)."
+  notes: PRE_GAME. Starting direction code (lobby assignment).
 - name: startLocX
   type: INTEGER
   nullable: true
   description: Starting x location on map.
-  notes: "PRE_GAME. Starting x location on map."
+  notes: PRE_GAME. Starting x location on map.
 - name: startLocY
   type: INTEGER
   nullable: true
   description: Starting y location on map.
-  notes: "PRE_GAME. Starting y location on map."
+  notes: PRE_GAME. Starting y location on map.
 - name: metadata_mapName
   type: VARCHAR
   nullable: true
   description: Human-readable map name.
-  notes: "PRE_GAME. Human-readable map name."
+  notes: PRE_GAME. Human-readable map name.
 - name: gd_maxPlayers
   type: BIGINT
   nullable: true
   description: Max players in game description.
-  notes: "PRE_GAME. Max players in game description."
+  notes: PRE_GAME. Max players in game description.
 - name: gd_mapFileSyncChecksum
   type: BIGINT
   nullable: true
   description: Map file sync checksum.
-  notes: "PRE_GAME. Map file sync checksum."
+  notes: PRE_GAME. Map file sync checksum.
 - name: details_isBlizzardMap
   type: BOOLEAN
   nullable: true
   description: Blizzard-authored map flag (from details struct).
-  notes: "PRE_GAME. Blizzard-authored map flag (from details struct)."
+  notes: PRE_GAME. Blizzard-authored map flag (from details struct).
 - name: details_timeUTC
   type: VARCHAR
   nullable: true
   description: UTC timestamp of game. Temporal anchor for I3 ordering.
-  notes: "CONTEXT. UTC timestamp of game. Temporal anchor for I3 ordering."
+  notes: CONTEXT. UTC timestamp of game. Temporal anchor for I3 ordering.
 - name: header_version
   type: VARCHAR
   nullable: true
   description: SC2 version string.
-  notes: "CONTEXT. SC2 version string."
+  notes: CONTEXT. SC2 version string.
 - name: metadata_baseBuild
   type: VARCHAR
   nullable: true
   description: Base build string.
-  notes: "CONTEXT. Base build string."
+  notes: CONTEXT. Base build string.
 - name: metadata_dataBuild
   type: VARCHAR
   nullable: true
   description: Data build string.
-  notes: "CONTEXT. Data build string."
+  notes: CONTEXT. Data build string.
 - name: metadata_gameVersion
   type: VARCHAR
   nullable: true
   description: Game version.
-  notes: "CONTEXT. Game version."
+  notes: CONTEXT. Game version.
 - name: go_amm
   type: BOOLEAN
   nullable: true
   description: 'Game option: automated match making. Variable cardinality (n_distinct=2).'
-  notes: "CONTEXT. Game option: automated match making. Variable cardinality (n_distinct=2)."
+  notes: 'CONTEXT. Game option: automated match making. Variable cardinality (n_distinct=2).'
 - name: go_clientDebugFlags
   type: BIGINT
   nullable: true
   description: 'Game option: client debug flags. Variable cardinality (n_distinct=2).'
-  notes: "CONTEXT. Game option: client debug flags. Variable cardinality (n_distinct=2)."
+  notes: 'CONTEXT. Game option: client debug flags. Variable cardinality (n_distinct=2).'
 - name: go_competitive
   type: BOOLEAN
   nullable: true
   description: 'Game option: competitive mode. Variable cardinality (n_distinct=2).'
-  notes: "CONTEXT. Game option: competitive mode. Variable cardinality (n_distinct=2)."
+  notes: 'CONTEXT. Game option: competitive mode. Variable cardinality (n_distinct=2).'
+- name: duration_seconds
+  type: BIGINT
+  nullable: true
+  description: Game duration in seconds. Derived from player_history_all.header_elapsedGameLoops
+    / 22.4 (SC2 Faster loops/sec constant, I7) aggregated per replay_id. ADDENDUM
+    2026-04-18.
+  notes: 'POST_GAME_HISTORICAL. Game duration in seconds. Derived from player_history_all.header_elapsedGameLoops
+    / 22.4 (I7: details.gameSpeed cardinality=1 in sc2egset, research_log.md:333;
+    Blizzard SC2 Faster=22.4 loops/sec). SAFE as player-history aggregate (match_time
+    < T). UNSAFE as direct game-T feature. Added in 01_04_02 ADDENDUM 2026-04-18.'
+- name: is_duration_suspicious
+  type: BOOLEAN
+  nullable: true
+  description: TRUE where duration_seconds > 86,400s (24h sanity bound). Expected
+    0 for sc2egset (max=6,073s confirmed by 01_04_03 ADDENDUM). Threshold identical
+    across sc2egset, aoestats, aoe2companion (I8). ADDENDUM 2026-04-18.
+  notes: 'POST_GAME_HISTORICAL. TRUE where duration_seconds > 86400s. Threshold: ~25x
+    p99 for sc2egset (p99=1,884s, max=6,073s); identical across all 3 datasets (I8
+    cross-dataset comparability). Expected 0 rows for sc2egset. Added in 01_04_02
+    ADDENDUM 2026-04-18.'
 provenance:
   source_tables:
   - replay_players_raw
   - replays_meta_raw
+  - player_history_all
   join_key: NULLIF(regexp_extract(filename, '([0-9a-f]{32})\.SC2Replay\.json', 1),
     '') AS replay_id
   filter: true_1v1_decisive CTE (exactly 2 players, 1 Win + 1 Loss); mmr_valid CTE
     (no MMR<0 player in replay)
   scope: True 1v1 decisive replays only. 22,209 replays, 44,418 rows (2 per replay).
   created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_data_cleaning_execution.py
+  addendum_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_duration_augmentation.py
 invariants:
 - id: I3
   description: 'matches_flat_clean is the prediction-target VIEW. ALL columns must
     be PRE_GAME (available before game T starts). IN_GAME_HISTORICAL and POST_GAME_HISTORICAL
-    columns are excluded by construction. Verified by assertions: APM/SQ/supplyCappedPercent/header_elapsedGameLoops/result-derived-flags
-    absent.'
+    columns are excluded by construction from direct feature use. ADDENDUM 2026-04-18:
+    duration_seconds + is_duration_suspicious are POST_GAME_HISTORICAL (tokens in
+    notes field). header_elapsedGameLoops is NOT directly exposed; it is aggregated
+    via a JOIN to player_history_all. I3 is preserved: no IN_GAME_HISTORICAL column
+    is directly present. Phase 02 must apply match_time < T filter before using POST_GAME_HISTORICAL
+    columns as historical aggregates.'
   provenance_categories:
   - TARGET: THE prediction label itself (Win/Loss/Undecided/Tie). Singleton sentinel
       -- only the result column carries this tag. Never aggregate without temporal
       exclusion (match_time < T); using it as a direct game-T feature IS target leakage.
   - POST_GAME_HISTORICAL: The game-T outcome itself or any feature derived from it
-      (e.g., is_decisive_result, future Phase-02 win-rate aggregates). SAFE only when
-      used as a player-history aggregate FILTERED by match_time < T. UNSAFE as direct
-      game-T feature. NOT PRESENT in this VIEW by construction (I3).
+      (e.g., is_decisive_result, future Phase-02 win-rate aggregates, duration_seconds,
+      is_duration_suspicious). SAFE only when used as a player-history aggregate FILTERED
+      by match_time < T. UNSAFE as direct game-T feature. NOT PRESENT in this VIEW
+      as direct features -- all POST_GAME_HISTORICAL cols are available for historical
+      aggregation only.
   - IN_GAME_HISTORICAL: Available during/after game completion (e.g., APM, SQ, supplyCappedPercent,
-      header_elapsedGameLoops). NOT PRESENT in this VIEW by construction (I3).
+      header_elapsedGameLoops). NOT PRESENT in this VIEW by construction (I3). header_elapsedGameLoops
+      is accessed only via aggregation in duration_per_replay CTE -- not exposed directly.
   - PRE_GAME: Available before game T starts (e.g., race, map, skill flags). Safe
       to use as feature for game T without temporal filtering.
   - IDENTITY: Stable identifiers (replay_id, toon_id, profileId). No temporal constraint;
@@ -186,14 +218,21 @@ invariants:
       for temporal purposes; available before game T.
 - id: I5
   description: 'Every replay_id has exactly 2 rows: 1 with result=''Win'', 1 with
-    result=''Loss''. Verified by symmetry assertion in 01_04_02 (0 violations).'
+    result=''Loss''. ADDENDUM 2026-04-18: both rows have identical duration_seconds
+    + is_duration_suspicious (verified by IS DISTINCT FROM check = 0 violations in
+    duration_augmentation gate 6).'
 - id: I6
-  description: DDL is reproducible from raw + 01_04_00 + 01_04_01 + this notebook
-    (01_04_02). All SQL stored verbatim in 01_04_02_post_cleaning_validation.json
+  description: DDL is reproducible from raw + 01_04_00 + 01_04_01 + 01_04_02 + this
+    notebook. Original DDL stored verbatim in 01_04_02_post_cleaning_validation.json
+    sql_queries block. ADDENDUM DDL stored verbatim in 01_04_02_duration_augmentation.json
     sql_queries block.
+- id: I7
+  description: '22.4 loops/sec divisor: SC2 Faster game-speed constant. Provenance:
+    details.gameSpeed cardinality=1 in sc2egset (W02 census, research_log.md:333);
+    Blizzard SC2 documentation. Established in 01_04_03 ADDENDUM.'
 - id: I9
-  description: 01_04_02 modifies the column SET (drops/adds), never the values. No
-    imputation, scaling, or encoding. Phase 02 owns those transforms.
+  description: 01_04_02 (including this ADDENDUM) modifies the column SET, never the
+    values. No imputation, scaling, or encoding. Phase 02 owns those transforms.
 - id: I10
   description: All replay_id derivation traces back to filename relative to raw_dir
     per Invariant I10.

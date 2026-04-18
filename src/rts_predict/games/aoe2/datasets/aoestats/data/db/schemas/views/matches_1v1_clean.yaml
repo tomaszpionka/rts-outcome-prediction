@@ -3,9 +3,10 @@ dataset: aoestats
 game: aoe2
 object_type: view
 step: '01_04_02'
+schema_version: '22-col (ADDENDUM: duration added 2026-04-18)'
 row_count: 17814947
-describe_artifact: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json
-generated_date: '2026-04-17'
+describe_artifact: src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation_validation.json
+generated_date: '2026-04-18'
 columns:
 - name: game_id
   type: VARCHAR
@@ -123,6 +124,25 @@ columns:
     strict 0/1 -- no Undecided/Tie analog in aoestats (CRITICAL ASYMMETRY). WARNING
     (I5): team=1 wins ~52.27% of matches (slot asymmetry). Phase 02 MUST randomise
     focal/opponent assignment before training.'
+- name: duration_seconds
+  type: BIGINT
+  nullable: true
+  description: 'Match duration in seconds (BIGINT). NULL count: 0. Range: 3s to 5,574,815s.
+    28 matches > 86400s (suspicious).'
+  notes: 'POST_GAME_HISTORICAL. Match duration in seconds. Derived from matches_raw.duration
+    (Arrow duration[ns] -> BIGINT nanoseconds per DuckDB 1.5.1; divisor 1_000_000_000
+    cites aoestats/pre_ingestion.py:271). I3: NOT a direct feature for game T; safe
+    only as aggregated historical stat filtered by match_time < T. I7: divisor 1_000_000_000
+    empirically verified (max 5,574,815s << 1e9). ADDENDUM 2026-04-18.'
+- name: is_duration_suspicious
+  type: BOOLEAN
+  nullable: true
+  description: TRUE if duration_seconds > 86400 (24h canary threshold). 28 matches
+    flagged (0.00016% of dataset).
+  notes: 'POST_GAME_HISTORICAL. TRUE where duration_seconds > 86400 (24h threshold).
+    I7: 86400s = cross-dataset canonical sanity bound (~25x p99; I8 contract). Provenance:
+    01_04_03 Gate+5b (research_log.md 2026-04-18). Flags raw-data corruption for Phase
+    02 outlier filtering. ADDENDUM 2026-04-18.'
 provenance:
   source_tables:
   - matches_raw
@@ -147,10 +167,8 @@ provenance:
     reason: POST-GAME; I3 violation
   - name: p1_new_rating
     reason: POST-GAME; I3 violation
-  - name: duration
-    reason: POST-GAME; I3 violation
   - name: irl_duration
-    reason: POST-GAME; I3 violation
+    reason: POST-GAME; I3 violation (wall-clock duplicate of duration)
   - name: match_rating_diff
     reason: POST-GAME; I3 violation
   - name: p0_match_rating_diff
@@ -181,42 +199,29 @@ provenance:
     reason: Near-dead (99.99994% single value) in scope
 invariants:
 - id: I3
-  description: 'All columns are PRE_GAME, IDENTITY, or TARGET. No IN-GAME or POST-GAME
-    columns present (post-game columns removed in prior PRs; in-game columns never
-    included). p0_winner / p1_winner are POST_GAME_HISTORICAL but used only for target
-    derivation (team1_wins = p1.winner) within this VIEW; they are not direct feature
-    inputs for game T. Temporal anchor: started_timestamp exposed for downstream I3-compliant
-    feature queries against player_history_all.'
-  provenance_categories:
-  - TARGET: THE prediction label itself (Win/Loss/Undecided/Tie). Singleton sentinel
-      -- only the result column carries this tag. Never aggregate without temporal
-      exclusion (match_time < T); using it as a direct game-T feature IS target leakage.
-  - POST_GAME_HISTORICAL: The game-T outcome itself or any feature derived from it
-      (e.g., is_decisive_result, future Phase-02 win-rate aggregates). SAFE only when
-      used as a player-history aggregate FILTERED by match_time < T. UNSAFE as direct
-      game-T feature. The TARGET singleton is conceptually a sub-class of this category
-      but tagged separately for sentinel-clarity.
-  - IN_GAME_HISTORICAL: Available during/after game completion (e.g., APM, SQ, supplyCappedPercent,
-      header_elapsedGameLoops, is_apm_unparseable). SAFE only when used as a player-history
-      aggregate FILTERED by match_time < T. UNSAFE as direct game-T feature.
-  - PRE_GAME: Available before game T starts (e.g., MMR, leaderboard, race, map).
-      Safe to use as feature for game T without temporal filtering.
-  - IDENTITY: Stable identifiers (replay_id, toon_id, profileId). No temporal constraint;
-      not a feature input but a join key.
-  - CONTEXT: Game/match metadata (started_timestamp, mapName, gameLoops). PRE_GAME-equivalent
-      for temporal purposes; available before game T.
+  description: 'All columns are PRE_GAME, IDENTITY, TARGET, or POST_GAME_HISTORICAL.
+    No IN-GAME or POST-GAME direct-feature columns present. p0_winner / p1_winner
+    are POST_GAME_HISTORICAL used only for target derivation. duration_seconds and
+    is_duration_suspicious are POST_GAME_HISTORICAL; exposed for Phase 02 outlier
+    filtering (history aggregation with match_time < T). Temporal anchor: started_timestamp
+    for downstream I3-compliant feature queries.'
 - id: I5
   description: 1-row-per-match invariant (asserted in 01_04_02). NOT 2-rows-per-replay
-    like sc2egset. p0/p1 columns are symmetric (NULLIF + is_unrated applied identically
-    to both slots). Phase 02 MUST randomise focal/opponent assignment before training
-    to avoid slot asymmetry (team=1 wins ~52.27% per 01_04_01 audit).
+    like sc2egset. p0/p1 columns are symmetric. Phase 02 MUST randomise focal/opponent
+    assignment (team=1 wins ~52.27% per 01_04_01 audit).
 - id: I6
-  description: VIEW DDL stored verbatim in 01_04_02_post_cleaning_validation.json
+  description: v2 DDL stored verbatim in 01_04_02_post_cleaning_validation.json sql_queries.
+    v3 DDL (ADDENDUM) stored verbatim in 01_04_02_duration_augmentation_validation.json
     sql_queries.
+- id: I7
+  description: duration_seconds divisor 1_000_000_000 cites aoestats/pre_ingestion.py:271
+    (Arrow duration[ns] -> BIGINT per DuckDB 1.5.1). is_duration_suspicious threshold
+    86400s = 24h cross-dataset canonical sanity bound (~25x p99 from 01_04_03 Gate+5b;
+    I8 contract).
 - id: I9
   description: No features computed. VIEW is a JOIN projection of matches_raw x players_raw
-    with column drops (DS-AOESTATS-04/08) and NULLIF transformations (DS-AOESTATS-02/03).
-    No imputation, scaling, or encoding. Phase 02 owns those transforms.
+    with column drops (DS-AOESTATS-04/08), NULLIF transformations (DS-AOESTATS-02/03),
+    and ADDENDUM duration derivation. No imputation, scaling, or encoding.
 - id: I10
-  description: No filename derivation changes. The aoestats raw tables already satisfy
-    I10 from 01_02_02 ingestion.
+  description: No filename derivation changes. aoestats raw tables satisfy I10 from
+    01_02_02.

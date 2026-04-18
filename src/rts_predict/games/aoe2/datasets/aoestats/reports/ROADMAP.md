@@ -1069,6 +1069,35 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+#### ADDENDUM 2026-04-18 — duration_seconds + is_duration_suspicious
+
+Extends `matches_1v1_clean` from 20 cols to 22 cols. STEP_STATUS stays `complete`
+(column-only addendum per precedent of 01_04_03 addendum pattern).
+
+New columns added to `matches_1v1_clean`:
+
+| Column | Type | Classification | Derivation |
+|---|---|---|---|
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL | `CAST(m.duration / 1000000000 AS BIGINT)` — divisor cites `aoestats/pre_ingestion.py:271` (Arrow `duration[ns]` -> BIGINT per DuckDB 1.5.1) |
+| `is_duration_suspicious` | BOOLEAN | POST_GAME_HISTORICAL | `duration_seconds > 86400` — 24h cross-dataset canonical sanity bound (I8 contract; ~25x p99 from 01_04_03 Gate+5b) |
+
+**Gate results (all PASS):**
+- 22 cols confirmed (DESCRIBE); last 2 = `duration_seconds BIGINT` + `is_duration_suspicious BOOLEAN`
+- Row count 17,814,947 unchanged
+- `COUNT(*) FILTER (WHERE duration_seconds IS NULL) == 0`
+- `MAX(duration_seconds) = 5,574,815 <= 1,000,000,000` (unit canary PASS)
+- `COUNT(*) FILTER (WHERE is_duration_suspicious) == 28` (expected 28 from 01_04_03 56 player-rows / 2)
+- Schema YAML: `schema_version: "22-col (ADDENDUM: duration added 2026-04-18)"` + 22 col entries + I3/I7 invariants
+
+**New validation artifact:** `artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation_validation.json` + `.md`
+
+**Suspicious matches (28 game_ids with duration_seconds > 86400):** See validation artifact
+`suspicious_game_ids` list. Top example: game_id 184213201 (~64.5 days = raw-data corruption).
+
+**Duration stats:**
+- min: 3s, p50: 2,455s (~40.9 min), p99: 5,729s (~95.5 min), max: 5,574,815s (~64.5 days)
+- null_count: 0, suspicious_count: 28 (0.00016% of dataset)
+
 ---
 
 ### Step 01_04_03 -- Minimal Cross-Dataset History View

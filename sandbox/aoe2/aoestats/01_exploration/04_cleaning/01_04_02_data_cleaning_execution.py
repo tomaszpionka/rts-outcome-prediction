@@ -1578,3 +1578,546 @@ print("  - STEP_STATUS.yaml: add 01_04_02: complete")
 print("  - PIPELINE_SECTION_STATUS.yaml: bump 01_04 in_progress -> complete")
 print("  - ROADMAP.md: append 01_04_02 step block")
 print("  - research_log.md: append 2026-04-17 [01_04_02] entry")
+
+# %% [markdown]
+# ---
+# ## ADDENDUM 2026-04-18 — duration_seconds + is_duration_suspicious
+#
+# **Scope:** Extends `matches_1v1_clean` from 20 → 22 cols by adding:
+#   - `duration_seconds` BIGINT — POST_GAME_HISTORICAL (match duration in seconds)
+#   - `is_duration_suspicious` BOOLEAN — TRUE where `duration_seconds > 86400`
+#
+# **Source:** `matches_raw.duration` BIGINT NANOSECONDS (Arrow duration[ns] → BIGINT
+# per DuckDB 1.5.1; cite `aoestats/pre_ingestion.py:271`). Divisor 1_000_000_000.
+#
+# **I3 classification:** POST_GAME_HISTORICAL — duration is known only after match
+# completion. Safe only when aggregated with `match_time < T`. NOT a direct feature
+# for game T. Exposed here as a historical fact for Phase 02 outlier filtering.
+#
+# **I7 threshold:** 86,400s (24h) is the cross-dataset canonical sanity bound
+# (I8 contract; ~25× p99 derived from 01_04_03 Gate +5b research_log.md:2026-04-18).
+#
+# **Expected counts (from 01_04_03 findings):** 28 suspicious matches
+# (= 56 player-rows in matches_history_minimal / 2 since aoestats is 1-row-per-match).
+
+# %% [markdown]
+# ## Cell 26 -- Re-open DuckDB connection (writable; required for CREATE OR REPLACE VIEW)
+
+# %%
+db2 = get_notebook_db("aoe2", "aoestats", read_only=False)
+con2 = db2.con
+print("DuckDB connection re-opened (read-write) for ADDENDUM.")
+
+# Verify starting column count (should be 20 from Cell 8/11)
+pre_aug_cols = con2.execute("DESCRIBE matches_1v1_clean").df()
+pre_aug_row_count = con2.execute("SELECT COUNT(*) FROM matches_1v1_clean").fetchone()[0]
+print(f"Pre-augmentation matches_1v1_clean: {len(pre_aug_cols)} cols, {pre_aug_row_count:,} rows")
+assert len(pre_aug_cols) == 20, f"Expected 20 cols pre-augmentation, got {len(pre_aug_cols)}"
+assert pre_aug_row_count == 17814947, (
+    f"Expected 17,814,947 rows, got {pre_aug_row_count}"
+)
+print("Pre-augmentation baseline confirmed: 20 cols, 17,814,947 rows.")
+
+# %% [markdown]
+# ## Cell 27 -- Define matches_1v1_clean v3 DDL (22 cols)
+#
+# Changes from v2 (20-col):
+# - Adds INNER JOIN to matches_raw r (the VIEW already has m aliased to matches_raw;
+#   we re-alias as m and add duration from m directly — no additional JOIN needed).
+# - Adds CAST(m.duration / 1000000000 AS BIGINT) AS duration_seconds
+# - Adds (CAST(m.duration / 1000000000 AS BIGINT) > 86400) AS is_duration_suspicious
+#
+# Note: The existing DDL already JOINs matches_raw as `m`. We extend by projecting
+# two new columns from the existing `m` alias — no new JOIN table required.
+
+# %%
+CREATE_MATCHES_1V1_CLEAN_V3_SQL = """
+CREATE OR REPLACE VIEW matches_1v1_clean AS
+-- Purpose: Prediction-target VIEW. Ranked 1v1 decisive matches only.
+-- Row multiplicity: 1 row per match (NOT 2-per-match like sc2egset matches_flat_clean).
+-- Target column: team1_wins (BOOLEAN; 0/1 strict -- no Undecided/Tie analog in aoestats).
+-- Column set: 22 cols (post ADDENDUM 2026-04-18: +duration_seconds, +is_duration_suspicious).
+-- Predecessor: v2 (20 cols, 01_04_02 2026-04-17); all DS-AOESTATS-01..08 applied.
+-- I3: duration_seconds is POST_GAME_HISTORICAL -- safe only for history aggregation (match_time < T).
+-- I7: 86400s threshold = cross-dataset 24h canary (~25x p99); cites 01_04_03 Gate+5b.
+-- I7: 1_000_000_000 divisor cites aoestats/pre_ingestion.py:271 (Arrow duration[ns] -> BIGINT).
+WITH ranked_1v1 AS (
+    SELECT m.game_id
+    FROM matches_raw m
+    INNER JOIN (
+        SELECT game_id
+        FROM players_raw
+        GROUP BY game_id
+        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2
+    ) pc ON m.game_id = pc.game_id
+    WHERE m.leaderboard = 'random_map'
+),
+p0 AS (SELECT * FROM players_raw WHERE team = 0),
+p1 AS (SELECT * FROM players_raw WHERE team = 1)
+SELECT
+    -- IDENTITY
+    m.game_id,
+    m.started_timestamp,
+
+    -- DS-AOESTATS-08: leaderboard DROPPED (constant n_distinct=1 in this scope)
+    m.map,
+    m.mirror,
+    -- DS-AOESTATS-08: num_players DROPPED (constant n_distinct=1 in this scope)
+    m.patch,
+    -- DS-AOESTATS-04: raw_match_type DROPPED (n_distinct=1; redundant with upstream filter)
+    m.replay_enhanced,
+
+    -- ELO (DS-AOESTATS-03: avg_elo NULLIF applied)
+    NULLIF(m.avg_elo, 0) AS avg_elo,
+    -- DS-AOESTATS-01: team_0_elo / team_1_elo RETAIN_AS_IS (sentinel=-1 absent in scope)
+    m.team_0_elo,
+    m.team_1_elo,
+
+    -- Player 0 (DS-AOESTATS-02: NULLIF + is_unrated indicator)
+    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,
+    p0.civ AS p0_civ,
+    NULLIF(p0.old_rating, 0) AS p0_old_rating,
+    (p0.old_rating = 0) AS p0_is_unrated,
+    p0.winner AS p0_winner,
+
+    -- Player 1 (DS-AOESTATS-02: symmetric NULLIF + is_unrated)
+    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,
+    p1.civ AS p1_civ,
+    NULLIF(p1.old_rating, 0) AS p1_old_rating,
+    (p1.old_rating = 0) AS p1_is_unrated,
+    p1.winner AS p1_winner,
+
+    -- TARGET (DS-AOESTATS-05: RETAIN_AS_IS, F1 override)
+    p1.winner AS team1_wins,
+
+    -- ADDENDUM 2026-04-18: duration cols (POST_GAME_HISTORICAL; I3 safe for history only)
+    -- Source: matches_raw.duration BIGINT NANOSECONDS (Arrow duration[ns] per DuckDB 1.5.1)
+    -- I7 provenance: divisor 1_000_000_000 cites aoestats/pre_ingestion.py:271
+    CAST(m.duration / 1000000000 AS BIGINT) AS duration_seconds,
+    -- I7 provenance: 86400s = 24h cross-dataset canonical sanity bound (~25x p99, I8)
+    (CAST(m.duration / 1000000000 AS BIGINT) > 86400) AS is_duration_suspicious
+FROM ranked_1v1 r
+INNER JOIN matches_raw m ON m.game_id = r.game_id
+INNER JOIN p0 ON p0.game_id = r.game_id
+INNER JOIN p1 ON p1.game_id = r.game_id
+WHERE p0.winner != p1.winner;
+"""
+
+print("matches_1v1_clean v3 DDL defined.")
+print("Expected output: 22 columns, 17,814,947 rows.")
+
+# %% [markdown]
+# ## Cell 28 -- Execute v3 DDL + column-count gate
+
+# %%
+con2.execute(CREATE_MATCHES_1V1_CLEAN_V3_SQL)
+print("matches_1v1_clean VIEW replaced (v3, 22 cols).")
+
+post_aug_cols = con2.execute("DESCRIBE matches_1v1_clean").df()
+print(f"Post-augmentation column count: {len(post_aug_cols)}")
+print(f"Column names: {post_aug_cols['column_name'].tolist()}")
+
+# Gate 1: 22 columns
+assert len(post_aug_cols) == 22, f"Expected 22 cols, got {len(post_aug_cols)}"
+print("Gate 1 PASS: 22 cols confirmed.")
+
+# Gate 1b: last 2 cols are duration_seconds BIGINT + is_duration_suspicious BOOLEAN
+last_two = post_aug_cols.tail(2)[["column_name", "column_type"]].values.tolist()
+print(f"Last 2 cols: {last_two}")
+assert last_two[0][0] == "duration_seconds", (
+    f"Expected duration_seconds as col 21, got {last_two[0][0]}"
+)
+assert last_two[0][1] == "BIGINT", (
+    f"Expected BIGINT for duration_seconds, got {last_two[0][1]}"
+)
+assert last_two[1][0] == "is_duration_suspicious", (
+    f"Expected is_duration_suspicious as col 22, got {last_two[1][0]}"
+)
+assert last_two[1][1] == "BOOLEAN", (
+    f"Expected BOOLEAN for is_duration_suspicious, got {last_two[1][1]}"
+)
+print("Gate 1b PASS: last 2 cols are duration_seconds BIGINT + is_duration_suspicious BOOLEAN.")
+
+# Gate 2: row count unchanged
+post_aug_row_count = con2.execute("SELECT COUNT(*) FROM matches_1v1_clean").fetchone()[0]
+print(f"Post-augmentation row count: {post_aug_row_count:,}")
+assert post_aug_row_count == 17814947, (
+    f"Expected 17,814,947 rows, got {post_aug_row_count}"
+)
+print("Gate 2 PASS: row count 17,814,947 unchanged.")
+
+# %% [markdown]
+# ## Cell 29 -- Duration statistics + Gates 3, 4, 5
+
+# %%
+DURATION_STATS_SQL = """
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) FILTER (WHERE duration_seconds IS NULL) AS null_duration,
+    MIN(duration_seconds) AS min_duration,
+    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_seconds) AS p50_duration,
+    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds) AS p99_duration,
+    MAX(duration_seconds) AS max_duration,
+    COUNT(*) FILTER (WHERE is_duration_suspicious = TRUE) AS suspicious_count
+FROM matches_1v1_clean
+"""
+r_dur = con2.execute(DURATION_STATS_SQL).fetchone()
+total_rows, null_dur, min_dur, p50_dur, p99_dur, max_dur, suspicious_count = r_dur
+
+print("Duration statistics for matches_1v1_clean (22-col view):")
+print(f"  total_rows:       {total_rows:,}")
+print(f"  null_duration:    {null_dur}")
+print(f"  min:              {min_dur}s")
+print(f"  p50:              {p50_dur:.0f}s (~{p50_dur/60:.1f} min)")
+print(f"  p99:              {p99_dur:.0f}s (~{p99_dur/60:.1f} min)")
+print(f"  max:              {max_dur:,}s (~{max_dur/86400:.1f} days)")
+print(f"  suspicious (>86400s): {suspicious_count}")
+
+# Gate 3: NULL count == 0
+assert null_dur == 0, f"Gate 3 FAIL: duration_seconds NULL count = {null_dur}, expected 0"
+print("Gate 3 PASS: duration_seconds NULL count == 0.")
+
+# Gate 4: unit regression canary -- max <= 1_000_000_000
+assert max_dur <= 1_000_000_000, (
+    f"Gate 4 FAIL: max duration_seconds = {max_dur}, expected <= 1_000_000_000 "
+    f"(nanosecond passthrough would give ~5.5e9)"
+)
+print(f"Gate 4 PASS: max duration_seconds = {max_dur:,} <= 1_000_000_000 (unit correct).")
+
+# Gate 5: suspicious count == 28 (±1 tolerance)
+EXPECTED_SUSPICIOUS = 28
+assert abs(suspicious_count - EXPECTED_SUSPICIOUS) <= 1, (
+    f"Gate 5 FAIL: suspicious_count = {suspicious_count}, expected {EXPECTED_SUSPICIOUS} (±1)"
+)
+print(f"Gate 5 PASS: is_duration_suspicious count = {suspicious_count} "
+      f"(expected {EXPECTED_SUSPICIOUS} ±1).")
+
+# %% [markdown]
+# ## Cell 30 -- Suspicious game_id sample (audit trail)
+
+# %%
+SUSPICIOUS_SAMPLE_SQL = """
+SELECT
+    game_id,
+    duration_seconds,
+    ROUND(duration_seconds / 86400.0, 2) AS duration_days,
+    started_timestamp
+FROM matches_1v1_clean
+WHERE is_duration_suspicious = TRUE
+ORDER BY duration_seconds DESC
+LIMIT 30
+"""
+suspicious_df = con2.execute(SUSPICIOUS_SAMPLE_SQL).df()
+print(f"Suspicious matches (duration_seconds > 86400) -- {len(suspicious_df)} rows returned:")
+print(suspicious_df.to_string(index=False))
+
+# %% [markdown]
+# ## Cell 31 -- Update schema YAML + validation artifact + close connection
+
+# %%
+reports_dir2 = get_reports_dir("aoe2", "aoestats")
+schema_dir2 = reports_dir2.parent / "data" / "db" / "schemas" / "views"
+mvc_yaml_path2 = schema_dir2 / "matches_1v1_clean.yaml"
+artifact_dir2 = reports_dir2 / "artifacts" / "01_exploration" / "04_cleaning"
+
+# --- Build augmented column list ---
+ADDENDUM_COL_NOTES = {
+    "duration_seconds": (
+        "POST_GAME_HISTORICAL. Match duration in seconds. "
+        "Derived from matches_raw.duration (Arrow duration[ns] -> BIGINT nanoseconds per "
+        "DuckDB 1.5.1; divisor 1_000_000_000 cites aoestats/pre_ingestion.py:271). "
+        "I3: NOT a direct feature for game T; safe only as aggregated historical stat "
+        "filtered by match_time < T. "
+        "I7: divisor 1_000_000_000 empirically verified (max 5,574,815s << 1e9). "
+        "ADDENDUM 2026-04-18.",
+        "Match duration in seconds (BIGINT). NULL count: 0. "
+        "Range: 3s to 5,574,815s. 28 matches > 86400s (suspicious).",
+    ),
+    "is_duration_suspicious": (
+        "POST_GAME_HISTORICAL. TRUE where duration_seconds > 86400 (24h threshold). "
+        "I7: 86400s = cross-dataset canonical sanity bound (~25x p99; I8 contract). "
+        "Provenance: 01_04_03 Gate+5b (research_log.md 2026-04-18). "
+        "Flags raw-data corruption for Phase 02 outlier filtering. "
+        "ADDENDUM 2026-04-18.",
+        "TRUE if duration_seconds > 86400 (24h canary threshold). "
+        "28 matches flagged (0.00016% of dataset).",
+    ),
+}
+
+describe_v3 = con2.execute("DESCRIBE matches_1v1_clean").df()
+columns_yaml_v3 = []
+for _, row in describe_v3.iterrows():
+    col_name = row["column_name"]
+    col_type = row["column_type"]
+    nullable_str = row.get("null", "YES")
+    nullable = nullable_str == "YES"
+    if col_name in CLEAN_COL_NOTES:
+        notes_val, desc_val = CLEAN_COL_NOTES[col_name]
+    elif col_name in ADDENDUM_COL_NOTES:
+        notes_val, desc_val = ADDENDUM_COL_NOTES[col_name]
+    else:
+        notes_val = f"CONTEXT. {col_name}."
+        desc_val = f"{col_name}."
+    columns_yaml_v3.append({
+        "name": col_name,
+        "type": col_type,
+        "nullable": nullable,
+        "description": desc_val,
+        "notes": notes_val,
+    })
+
+invariants_block_v3 = [
+    {
+        "id": "I3",
+        "description": (
+            "All columns are PRE_GAME, IDENTITY, TARGET, or POST_GAME_HISTORICAL. "
+            "No IN-GAME or POST-GAME direct-feature columns present. "
+            "p0_winner / p1_winner are POST_GAME_HISTORICAL used only for target derivation. "
+            "duration_seconds and is_duration_suspicious are POST_GAME_HISTORICAL; "
+            "exposed for Phase 02 outlier filtering (history aggregation with match_time < T). "
+            "Temporal anchor: started_timestamp for downstream I3-compliant feature queries."
+        ),
+    },
+    {
+        "id": "I5",
+        "description": (
+            "1-row-per-match invariant (asserted in 01_04_02). NOT 2-rows-per-replay like sc2egset. "
+            "p0/p1 columns are symmetric. Phase 02 MUST randomise focal/opponent assignment "
+            "(team=1 wins ~52.27% per 01_04_01 audit)."
+        ),
+    },
+    {
+        "id": "I6",
+        "description": (
+            "v2 DDL stored verbatim in 01_04_02_post_cleaning_validation.json sql_queries. "
+            "v3 DDL (ADDENDUM) stored verbatim in "
+            "01_04_02_duration_augmentation_validation.json sql_queries."
+        ),
+    },
+    {
+        "id": "I7",
+        "description": (
+            "duration_seconds divisor 1_000_000_000 cites aoestats/pre_ingestion.py:271 "
+            "(Arrow duration[ns] -> BIGINT per DuckDB 1.5.1). "
+            "is_duration_suspicious threshold 86400s = 24h cross-dataset canonical sanity "
+            "bound (~25x p99 from 01_04_03 Gate+5b; I8 contract)."
+        ),
+    },
+    {
+        "id": "I9",
+        "description": (
+            "No features computed. VIEW is a JOIN projection of matches_raw x players_raw "
+            "with column drops (DS-AOESTATS-04/08), NULLIF transformations (DS-AOESTATS-02/03), "
+            "and ADDENDUM duration derivation. No imputation, scaling, or encoding."
+        ),
+    },
+    {
+        "id": "I10",
+        "description": (
+            "No filename derivation changes. aoestats raw tables satisfy I10 from 01_02_02."
+        ),
+    },
+]
+
+mvc_yaml_v3_content = {
+    "table": "matches_1v1_clean",
+    "dataset": "aoestats",
+    "game": "aoe2",
+    "object_type": "view",
+    "step": "01_04_02",
+    "schema_version": "22-col (ADDENDUM: duration added 2026-04-18)",
+    "row_count": int(post_aug_row_count),
+    "describe_artifact": (
+        "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/"
+        "04_cleaning/01_04_02_duration_augmentation_validation.json"
+    ),
+    "generated_date": "2026-04-18",
+    "columns": columns_yaml_v3,
+    "provenance": {
+        "source_tables": ["matches_raw", "players_raw"],
+        "filter": (
+            "Ranked 1v1 decisive matches only: leaderboard='random_map'; "
+            "COUNT(DISTINCT players_raw.team)=2; COUNT(players_raw rows per game_id)=2; "
+            "p0.winner != p1.winner (decisive -- no ties)."
+        ),
+        "scope": "Ranked 1v1 decisive matches only. Prediction scope only (not full feature history).",
+        "row_multiplicity": "1 row per match (NOT 2-per-match like sc2egset).",
+        "created_by": "sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_02_data_cleaning_execution.py",
+        "excluded_columns": [
+            {"name": "leaderboard", "reason": "Constant (n_distinct=1) in 1v1 ranked scope; DS-AOESTATS-08"},
+            {"name": "num_players", "reason": "Constant (n_distinct=1) in 1v1 ranked scope; DS-AOESTATS-08"},
+            {"name": "raw_match_type", "reason": "n_distinct=1 in non-NULL scope; redundant with upstream filter; DS-AOESTATS-04"},
+            {"name": "new_rating", "reason": "POST-GAME; I3 violation"},
+            {"name": "p0_new_rating", "reason": "POST-GAME; I3 violation"},
+            {"name": "p1_new_rating", "reason": "POST-GAME; I3 violation"},
+            {"name": "irl_duration", "reason": "POST-GAME; I3 violation (wall-clock duplicate of duration)"},
+            {"name": "match_rating_diff", "reason": "POST-GAME; I3 violation"},
+            {"name": "p0_match_rating_diff", "reason": "POST-GAME; I3 violation"},
+            {"name": "p1_match_rating_diff", "reason": "POST-GAME; I3 violation"},
+            {"name": "p0_opening", "reason": "IN-GAME; I3 violation"},
+            {"name": "p1_opening", "reason": "IN-GAME; I3 violation"},
+            {"name": "p0_feudal_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "p1_feudal_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "p0_castle_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "p1_castle_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "p0_imperial_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "p1_imperial_age_uptime", "reason": "IN-GAME; I3 violation"},
+            {"name": "game_type", "reason": "Constant (cardinality=1) in scope"},
+            {"name": "game_speed", "reason": "Constant (cardinality=1) in scope"},
+            {"name": "starting_age", "reason": "Near-dead (99.99994% single value) in scope"},
+        ],
+    },
+    "invariants": invariants_block_v3,
+}
+
+import yaml as _yaml  # noqa: E402  (yaml already imported above; explicit re-import for clarity)
+with open(mvc_yaml_path2, "w") as f:
+    _yaml.dump(mvc_yaml_v3_content, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+print(f"matches_1v1_clean.yaml updated (22-col): {mvc_yaml_path2}")
+print(f"  Columns in YAML: {len(columns_yaml_v3)}")
+
+# --- Build augmentation validation artifact JSON ---
+aug_validation_artifact = {
+    "step": "01_04_02",
+    "step_addendum": "duration_augmentation",
+    "dataset": "aoestats",
+    "generated_date": "2026-04-18",
+    "addendum_description": (
+        "Extends matches_1v1_clean from 20 -> 22 cols by adding "
+        "duration_seconds BIGINT (POST_GAME_HISTORICAL) and "
+        "is_duration_suspicious BOOLEAN (threshold 86400s)."
+    ),
+    "duration_stats": {
+        "total_rows": int(total_rows),
+        "null_duration": int(null_dur),
+        "min_duration_seconds": int(min_dur),
+        "p50_duration_seconds": float(p50_dur),
+        "p99_duration_seconds": float(p99_dur),
+        "max_duration_seconds": int(max_dur),
+        "suspicious_count_gt_86400": int(suspicious_count),
+    },
+    "suspicious_game_ids": suspicious_df["game_id"].tolist(),
+    "gate_results": {
+        "gate_1_col_count_22": bool(len(post_aug_cols) == 22),
+        "gate_1b_last2_cols_correct": bool(
+            last_two[0][0] == "duration_seconds"
+            and last_two[0][1] == "BIGINT"
+            and last_two[1][0] == "is_duration_suspicious"
+            and last_two[1][1] == "BOOLEAN"
+        ),
+        "gate_2_row_count_17814947": bool(post_aug_row_count == 17814947),
+        "gate_3_duration_null_count_0": bool(null_dur == 0),
+        "gate_4_max_duration_le_1e9": bool(max_dur <= 1_000_000_000),
+        "gate_5_suspicious_count_28_pm1": bool(abs(suspicious_count - 28) <= 1),
+    },
+    "sql_queries": {
+        "create_matches_1v1_clean_v3": CREATE_MATCHES_1V1_CLEAN_V3_SQL,
+        "duration_stats": DURATION_STATS_SQL,
+        "suspicious_sample": SUSPICIOUS_SAMPLE_SQL,
+    },
+    "i7_provenance": {
+        "divisor": "1_000_000_000",
+        "divisor_cite": "aoestats/pre_ingestion.py:271 (Arrow duration[ns] -> BIGINT per DuckDB 1.5.1)",
+        "threshold_seconds": 86400,
+        "threshold_justification": "24h cross-dataset canonical sanity bound (~25x p99 from 01_04_03 Gate+5b; I8 contract)",
+    },
+}
+
+aug_all_pass = all(aug_validation_artifact["gate_results"].values())
+aug_validation_artifact["all_assertions_pass"] = aug_all_pass
+print(f"All augmentation gate assertions pass: {aug_all_pass}")
+if not aug_all_pass:
+    failed_gates = [k for k, v in aug_validation_artifact["gate_results"].items() if not v]
+    raise AssertionError(f"GATE FAILURE -- failed gates: {failed_gates}")
+
+aug_json_path = artifact_dir2 / "01_04_02_duration_augmentation_validation.json"
+import json as _json  # noqa: E402  (json already imported above; explicit re-import)
+with open(aug_json_path, "w") as f:
+    _json.dump(aug_validation_artifact, f, indent=2, default=str)
+print(f"Augmentation validation artifact written: {aug_json_path}")
+
+# --- Write markdown report ---
+suspicious_table_rows = "\n".join(
+    f"| {row.game_id} | {int(row.duration_seconds):,} | {row.duration_days:.2f} | {row.started_timestamp} |"
+    for row in suspicious_df.itertuples()
+)
+suspicious_table = (
+    "| game_id | duration_seconds | duration_days | started_timestamp |\n"
+    "|---|---|---|---|\n"
+    + suspicious_table_rows
+)
+
+gate_table_rows = "\n".join(
+    f"| {k} | {'PASS' if v else 'FAIL'} |"
+    for k, v in aug_validation_artifact["gate_results"].items()
+)
+gate_table = "| Gate | Status |\n|---|---|\n" + gate_table_rows
+
+aug_md_content = f"""# Step 01_04_02 ADDENDUM -- duration_seconds + is_duration_suspicious
+
+**Generated:** 2026-04-18
+**Dataset:** aoestats
+**Addendum to:** 01_04_02 Data Cleaning Execution
+
+## Summary
+
+Extends `matches_1v1_clean` from 20 cols -> 22 cols by adding:
+- `duration_seconds` BIGINT (POST_GAME_HISTORICAL): match duration in seconds.
+  Derived from `matches_raw.duration` (Arrow duration[ns] -> BIGINT nanoseconds per DuckDB 1.5.1).
+  Divisor: 1,000,000,000 (cites `aoestats/pre_ingestion.py:271`).
+- `is_duration_suspicious` BOOLEAN: TRUE where `duration_seconds > 86400` (24h threshold).
+  Threshold cites I8 cross-dataset contract and 01_04_03 Gate+5b empirical finding.
+
+Row count: 17,814,947 (unchanged).
+
+## Duration Statistics
+
+| Metric | Value |
+|---|---|
+| total_rows | {total_rows:,} |
+| null_duration | {null_dur} |
+| min_duration_seconds | {int(min_dur):,}s |
+| p50_duration_seconds | {int(p50_dur):,}s (~{p50_dur/60:.1f} min) |
+| p99_duration_seconds | {int(p99_dur):,}s (~{p99_dur/60:.1f} min) |
+| max_duration_seconds | {max_dur:,}s (~{max_dur/86400:.1f} days) |
+| suspicious_count (>86400s) | {suspicious_count} |
+
+## Suspicious Matches (duration_seconds > 86400)
+
+{suspicious_table}
+
+## Gate Results
+
+{gate_table}
+
+## SQL Queries (Invariant I6)
+
+All DDL and assertion SQL stored verbatim in `01_04_02_duration_augmentation_validation.json`
+under the `sql_queries` key.
+
+### CREATE OR REPLACE VIEW matches_1v1_clean (v3, 22 cols)
+
+```sql
+{CREATE_MATCHES_1V1_CLEAN_V3_SQL}
+```
+
+## I7 Provenance
+
+- **Divisor 1,000,000,000:** cites `aoestats/pre_ingestion.py:271`
+  (Arrow `duration[ns]` -> BIGINT nanoseconds per DuckDB 1.5.1).
+- **Threshold 86,400s (24h):** cross-dataset canonical sanity bound.
+  ~25x p99 ({int(p99_dur):,}s) from 01_04_03 Gate+5b (research_log.md 2026-04-18).
+  I8 contract: identical threshold in sc2egset and aoe2companion.
+"""
+
+aug_md_path = artifact_dir2 / "01_04_02_duration_augmentation_validation.md"
+with open(aug_md_path, "w") as f:
+    f.write(aug_md_content)
+print(f"Augmentation markdown report written: {aug_md_path}")
+
+# Close connection
+db2.close()
+print("DuckDB connection closed.")
+print(f"\n=== ADDENDUM COMPLETE ===")
+print(f"matches_1v1_clean: 20 -> 22 cols (+duration_seconds, +is_duration_suspicious)")
+print(f"All gates passed: {aug_all_pass}")

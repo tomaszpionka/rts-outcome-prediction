@@ -4,8 +4,8 @@ game: aoe2
 object_type: view
 step: '01_04_02'
 row_count: 61062392
-describe_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json
-generated_date: '2026-04-17'
+describe_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json
+generated_date: '2026-04-18'
 columns:
 - name: matchId
   type: INTEGER
@@ -289,6 +289,34 @@ columns:
     are simultaneously NULL (allowCheats, lockSpeed, lockTeams, recordGame, sharedExploration,
     teamPositions, teamTogether, turboMode, fullTechTree, population). Spans entire
     date range, <0.02% of rows; informational only.
+- name: duration_seconds
+  type: BIGINT
+  nullable: true
+  description: 'Match duration in seconds (finished - started). Source: MIN(finished)
+    per matchId from matches_raw.'
+  notes: 'POST_GAME_HISTORICAL. Derived: CAST(EXTRACT(EPOCH FROM (r.finished - d.started))
+    AS BIGINT). Threshold 86400s: I7 provenance from 01_04_03 Gate+5b (~25x p99=3458s);
+    Tukey (1977) EDA sanity bound; I8 cross-dataset canonical. SAFE only as player-history
+    aggregate filtered match_time < T (I3). NULL fraction: 0.0% (finished empirically
+    non-NULL in 1v1 ranked scope). Added 2026-04-18 ADDENDUM.'
+- name: is_duration_suspicious
+  type: BOOLEAN
+  nullable: true
+  description: TRUE if duration_seconds > 86400 (24h sanity bound exceeded; bogus
+    wall-clock).
+  notes: 'POST_GAME_HISTORICAL. Derived flag: (duration_seconds > 86400). Expected
+    TRUE count: 142. Threshold 86400s: I7 provenance (01_04_03 Gate+5b; Tukey 1977).
+    I8: identical threshold across all 3 datasets. SAFE only as player-history aggregate
+    filtered match_time < T (I3). Added 2026-04-18 ADDENDUM.'
+- name: is_duration_negative
+  type: BOOLEAN
+  nullable: true
+  description: TRUE if duration_seconds < 0 (strict; clock skew in raw data).
+  notes: 'POST_GAME_HISTORICAL. Derived flag: (duration_seconds < 0), strict inequality.
+    Expected TRUE count: 342. Zero-duration rows (16) are UNFLAGGED (0 < 0 = FALSE).
+    Q2 resolved: strict < 0, not <= 0. Phase 02 handles zero-duration known state.
+    aoec-specific (sc2/aoestats duration cannot go negative). SAFE only as player-history
+    aggregate filtered match_time < T (I3). Added 2026-04-18 ADDENDUM.'
 provenance:
   source_tables:
   - matches_raw
@@ -321,12 +349,16 @@ provenance:
   - name: ratingDiff
     reason: Prior I3 exclusion, POST-GAME
   - name: finished
-    reason: Prior I3 exclusion, POST-GAME
+    reason: 'Prior I3 exclusion, POST-GAME. ADDENDUM 2026-04-18: MIN(finished) per
+      matchId used as source for duration_seconds derivation via aggregated subquery
+      JOIN -- finished itself remains excluded from direct column projection.'
 invariants:
 - id: I3
-  description: 'No new POST-GAME columns introduced. ratingDiff and finished remain
-    excluded (verified by Section 3.3b assertion). rating_was_null derives from the
-    PRE_GAME rating column only. Temporal anchor: started exposed for downstream I3-compliant
+  description: 'No new IN-GAME or future-leaking columns introduced. ratingDiff and
+    finished remain excluded. rating_was_null derives from PRE_GAME rating only. ADDENDUM
+    2026-04-18: duration_seconds, is_duration_suspicious, is_duration_negative are
+    POST_GAME_HISTORICAL -- tagged correctly; safe only as player-history aggregate
+    filtered match_time < T. Temporal anchor: started exposed for downstream I3-compliant
     feature queries against player_history_all.'
   provenance_categories:
   - TARGET: THE prediction label itself (Win/Loss/Undecided/Tie). Singleton sentinel
@@ -358,9 +390,13 @@ invariants:
     via ledger_val() helper. No magic numbers in notebook code. Plan cites ledger
     values as expected guidance; notebook derives them.
 - id: I9
-  description: Raw tables UNTOUCHED. Only VIEW DDL changes via CREATE OR REPLACE.
+  description: 'Raw tables UNTOUCHED. Only VIEW DDL changes via CREATE OR REPLACE.
     leaderboards_raw + profiles_raw declared out-of-scope but not dropped (no DROP
-    TABLE statements). No imputation, scaling, or encoding.
+    TABLE). No imputation, scaling, or encoding. ADDENDUM 2026-04-18: duration_seconds
+    + flags added via JOIN to aggregated matches_raw subquery; raw table itself not
+    modified.'
 - id: I10
   description: No filename derivation changes. The aoec raw tables already satisfy
     I10 from 01_02_02 ingestion.
+schema_version: '51-col (ADDENDUM: duration_seconds + is_duration_suspicious + is_duration_negative
+  added 2026-04-18)'

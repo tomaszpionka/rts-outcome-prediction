@@ -2,6 +2,54 @@
 
 ---
 
+## 2026-04-18 -- [Phase 01 / Step 01_04_02] Data Cleaning Execution — ADDENDUM: duration_seconds + is_duration_suspicious (28 → 30 cols)
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Branch:** feat/01-04-02-duration-augmentation
+**Scope:** ADDENDUM to 01_04_02. Extended `matches_flat_clean` VIEW from 28 → 30 columns by adding `duration_seconds` BIGINT and `is_duration_suspicious` BOOLEAN (both POST_GAME_HISTORICAL). STEP_STATUS stays complete per addendum precedent.
+
+### Columns added
+
+| col | dtype | token | derivation |
+|---|---|---|---|
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL | `CAST(ANY_VALUE(header_elapsedGameLoops) / 22.4 AS BIGINT)` per replay_id via LEFT JOIN to aggregated `player_history_all` |
+| `is_duration_suspicious` | BOOLEAN | POST_GAME_HISTORICAL | `duration_seconds > 86400` |
+
+### I7 provenance (22.4 loops/sec)
+SC2 "Faster" game-speed constant — empirically justified by `details.gameSpeed` cardinality=1 in sc2egset (W02 census, research_log.md:333) + Blizzard SC2 documentation. Established in 01_04_03 ADDENDUM.
+
+### I8 provenance (86,400s threshold)
+Cross-dataset canonical sanity bound (~25x p99 for sc2egset). Identical across sc2egset, aoestats, aoe2companion.
+
+### Duration stats (sc2egset)
+- min: 1s
+- p50: 651s (~10.9 min)
+- p99: 1,876s (~31 min)
+- max: 6,073s (~1.7 hours)
+- null_count: 0
+- suspicious_count (>86400s): 0 (sc2egset has no duration outliers)
+
+### Gate summary — ALL 9 GATES PASS
+- Gate 1 (30 cols): PASS
+- Gate 2 (last 2 = duration_seconds BIGINT + is_duration_suspicious BOOLEAN): PASS
+- Gate 3 (row count 44,418 unchanged): PASS
+- Gate 4 (null duration_seconds = 0): PASS
+- Gate 5 (MAX <= 1e9 unit canary): PASS (max=6,073)
+- Gate 6 (I5 symmetry, IS DISTINCT FROM violations = 0): PASS
+- Gate 6b (suspicious_count = 0, sc2egset HALTING): PASS
+- Gate 7 (schema YAML: 30 cols + schema_version + I3/I7 invariants): PASS
+- Gate 8 (I9: upstream YAMLs untouched): PASS
+- Gate 9 (JSON all_assertions_pass: true + SQL verbatim): PASS
+
+### Artifacts produced
+- `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_duration_augmentation.py` + `.ipynb`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.md`
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml` (UPDATED to 30 cols + schema_version)
+
+---
+
 ## 2026-04-18 -- [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
 
 **Category:** A (science)

@@ -1,0 +1,66 @@
+{
+  "step": "01_04_02_duration_augmentation",
+  "step_label": "ADDENDUM to 01_04_02",
+  "dataset": "aoe2companion",
+  "generated_date": "2026-04-18",
+  "scope": "Extends matches_1v1_clean VIEW 48 -> 51 cols by adding duration_seconds BIGINT, is_duration_suspicious BOOLEAN, is_duration_negative BOOLEAN.",
+  "threshold_justification": "86400s (24h) threshold: I7 provenance from 01_04_03 Gate+5b (empirically ~25x p99=3458s); Tukey (1977) EDA sanity bound; I8 cross-dataset canonical threshold (identical across sc2egset/aoestats/aoe2companion). is_duration_negative: strict < 0 per Q2 resolution (16 zero-duration rows documented as known state for Phase 02; NOT flagged by either new flag).",
+  "duration_stats": {
+    "min_duration_seconds": -3041,
+    "p50_duration_seconds": 1433,
+    "p99_duration_seconds": 3458,
+    "max_duration_seconds": 3279303,
+    "null_count": 0,
+    "null_fraction_pct": 0.0,
+    "suspicious_count_gt_86400": 142,
+    "negative_count_strict_lt0": 342,
+    "zero_duration_count": 16,
+    "zero_duration_note": "16 zero-duration rows: unflagged by both new flags (0 > 86400 = FALSE; 0 < 0 = FALSE). Known state -- Phase 02 handles these."
+  },
+  "consort_flow_columns": {
+    "matches_1v1_clean": {
+      "cols_before_addendum": 48,
+      "cols_added": 3,
+      "cols_after_addendum": 51,
+      "new_cols": [
+        "duration_seconds BIGINT (POST_GAME_HISTORICAL)",
+        "is_duration_suspicious BOOLEAN (duration_seconds > 86400)",
+        "is_duration_negative BOOLEAN (duration_seconds < 0, strict)"
+      ]
+    }
+  },
+  "consort_flow_matches": {
+    "rows_before_addendum": 61062392,
+    "rows_after_addendum": 61062392,
+    "note": "Column-only addendum: row counts unchanged."
+  },
+  "all_assertions_pass": true,
+  "gate_results": {
+    "gate_1_col_count_51": true,
+    "gate_1_last3_duration_seconds_bigint": true,
+    "gate_1_last3_is_duration_suspicious_boolean": true,
+    "gate_1_last3_is_duration_negative_boolean": true,
+    "gate_2_row_count_61062392": true,
+    "gate_2_match_count_30531196": true,
+    "gate_3_null_fraction_leq_1pct": true,
+    "gate_4_max_duration_leq_1B": true,
+    "gate_5_suspicious_count_142": true,
+    "gate_6_negative_count_342_strict_lt0": true,
+    "gate_10_r03_complementarity_intact": true,
+    "gate_10_legacy_cols_present": true,
+    "i3_forbidden_cols_absent": true
+  },
+  "sql_queries": {
+    "preflight_join_test": "\nSELECT COUNT(*) FROM matches_1v1_clean m\nLEFT JOIN (\n    SELECT matchId, MIN(finished) AS finished\n    FROM matches_raw\n    GROUP BY matchId\n) r ON r.matchId = m.matchId\n",
+    "create_matches_1v1_clean_v3": "\nCREATE OR REPLACE VIEW matches_1v1_clean AS\n-- Purpose: Prediction-target VIEW. Ranked 1v1 decisive matches only.\n-- Row multiplicity: 2 rows per match (player-row-oriented; one row per player).\n-- Target column: won (BOOLEAN strict TRUE/FALSE; R03 complementarity: 1 TRUE + 1 FALSE per match).\n-- Column set: 51 PRE_GAME + IDENTITY + TARGET + CONTEXT + POST_GAME_HISTORICAL cols (post 01_04_02 ADDENDUM).\n-- Addendum (2026-04-18): +3 cols: duration_seconds BIGINT, is_duration_suspicious BOOLEAN,\n--   is_duration_negative BOOLEAN. Source: LEFT JOIN aggregated matches_raw subquery.\n-- All cleaning decisions (DS-AOEC-01..08) documented in 01_04_02_post_cleaning_validation.json.\n-- NOTE: Uses explicit column list (no SELECT * EXCLUDE) + subquery IN pattern (not CTE JOIN)\n--       to avoid DuckDB internal errors with multi-column aggregation.\nSELECT\n    d.matchId,\n    d.started,\n    d.leaderboard,\n    d.name,\n    -- DS-AOEC-01: server DROPPED (MNAR 97.39%)\n    d.internalLeaderboardId,\n    d.privacy,\n    -- DS-AOEC-03b: mod DROPPED (n_distinct=1 constant)\n    d.map,\n    d.difficulty,\n    d.startingAge,\n    d.fullTechTree,\n    d.allowCheats,\n    d.empireWarsMode,\n    d.endingAge,\n    d.gameMode,\n    d.lockSpeed,\n    d.lockTeams,\n    d.mapSize,\n    d.population,\n    d.hideCivs,\n    d.recordGame,\n    d.regicideMode,\n    d.gameVariant,\n    d.resources,\n    d.sharedExploration,\n    d.speed,\n    d.speedFactor,\n    d.suddenDeathMode,\n    -- DS-AOEC-02: antiquityMode DROPPED (MAR 60.06%, 40-80% non-primary band)\n    d.civilizationSet,\n    d.teamPositions,\n    d.teamTogether,\n    d.treatyLength,\n    d.turboMode,\n    d.victory,\n    d.revealMap,\n    -- DS-AOEC-01: scenario DROPPED (MAR 100%)\n    -- DS-AOEC-01: password DROPPED (MAR 77.57%)\n    -- DS-AOEC-01: modDataset DROPPED (MAR 100%)\n    d.profileId,\n    d.rating,\n    -- DS-AOEC-04: rating_was_null BOOLEAN flag (missingness-as-signal; sklearn MissingIndicator pattern)\n    (d.rating IS NULL) AS rating_was_null,\n    d.color,\n    d.colorHex,\n    d.slot,\n    -- DS-AOEC-03b: status DROPPED (n_distinct=1 constant)\n    d.team,\n    d.won,\n    d.country,\n    d.shared,\n    d.verified,\n    d.civ,\n    d.filename,\n    CASE\n        WHEN d.allowCheats IS NULL AND d.lockSpeed IS NULL AND d.lockTeams IS NULL\n         AND d.recordGame IS NULL AND d.sharedExploration IS NULL\n         AND d.teamPositions IS NULL AND d.teamTogether IS NULL\n         AND d.turboMode IS NULL AND d.fullTechTree IS NULL AND d.population IS NULL\n        THEN TRUE ELSE FALSE\n    END AS is_null_cluster,\n    -- ADDENDUM 2026-04-18: duration_seconds + outlier flags (POST_GAME_HISTORICAL)\n    -- Source: LEFT JOIN aggregated matches_raw subquery (MIN(finished) per matchId)\n    -- I7 provenance: 86400s threshold from 01_04_03 Gate+5b (empirically ~25x p99=3458s);\n    --   Tukey (1977) EDA sanity bound; I8 cross-dataset canonical threshold.\n    -- I3: POST_GAME_HISTORICAL -- SAFE only as player-history aggregate filtered match_time < T.\n    CAST(EXTRACT(EPOCH FROM (r.finished - d.started)) AS BIGINT) AS duration_seconds,\n    (CAST(EXTRACT(EPOCH FROM (r.finished - d.started)) AS BIGINT) > 86400) AS is_duration_suspicious,\n    (CAST(EXTRACT(EPOCH FROM (r.finished - d.started)) AS BIGINT) < 0)     AS is_duration_negative\nFROM (\n    SELECT\n        matchId, started, leaderboard, name,\n        internalLeaderboardId, privacy, map, difficulty, startingAge, fullTechTree,\n        allowCheats, empireWarsMode, endingAge, gameMode, lockSpeed, lockTeams,\n        mapSize, population, hideCivs, recordGame, regicideMode, gameVariant,\n        resources, sharedExploration, speed, speedFactor, suddenDeathMode,\n        civilizationSet, teamPositions, teamTogether, treatyLength, turboMode,\n        victory, revealMap, profileId, rating, color, colorHex, slot,\n        team, won, country, shared, verified, civ, filename,\n        ROW_NUMBER() OVER (\n            PARTITION BY matchId, profileId\n            ORDER BY started\n        ) AS rn\n    FROM matches_raw\n    WHERE internalLeaderboardId IN (6, 18)\n      AND profileId != -1\n) d\nLEFT JOIN (\n    SELECT matchId, MIN(finished) AS finished\n    FROM matches_raw\n    GROUP BY matchId\n) r ON r.matchId = d.matchId\nWHERE d.rn = 1\n  AND d.matchId IN (\n    SELECT matchId\n    FROM (\n        SELECT matchId, profileId, won,\n               ROW_NUMBER() OVER (\n                   PARTITION BY matchId, profileId\n                   ORDER BY started\n               ) AS rn\n        FROM matches_raw\n        WHERE internalLeaderboardId IN (6, 18)\n          AND profileId != -1\n    ) sub\n    WHERE rn = 1\n    GROUP BY matchId\n    HAVING COUNT(*) = 2\n       AND SUM(CASE WHEN won = TRUE THEN 1 ELSE 0 END) = 1\n       AND SUM(CASE WHEN won = FALSE THEN 1 ELSE 0 END) = 1\n);\n",
+    "describe": "DESCRIBE matches_1v1_clean",
+    "row_count": "SELECT COUNT(*) AS rows, COUNT(DISTINCT matchId) AS n_matches FROM matches_1v1_clean",
+    "null_fraction": "SELECT COUNT(*) FILTER (WHERE duration_seconds IS NULL) AS null_count, COUNT(*) AS total FROM matches_1v1_clean",
+    "max_duration": "SELECT MAX(duration_seconds) AS max_dur FROM matches_1v1_clean",
+    "suspicious_count": "SELECT COUNT(*) FILTER (WHERE is_duration_suspicious = TRUE) AS suspicious_count FROM matches_1v1_clean",
+    "negative_count": "SELECT COUNT(*) FILTER (WHERE is_duration_negative = TRUE) AS negative_count FROM matches_1v1_clean",
+    "zero_duration": "SELECT COUNT(*) FILTER (WHERE duration_seconds = 0) AS zero_count FROM matches_1v1_clean",
+    "duration_stats": "\nSELECT\n    MIN(duration_seconds) AS min_dur,\n    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY duration_seconds) AS p50_dur,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds) AS p99_dur,\n    MAX(duration_seconds) AS max_dur,\n    COUNT(*) FILTER (WHERE duration_seconds IS NULL) AS null_count,\n    COUNT(*) FILTER (WHERE is_duration_suspicious = TRUE) AS suspicious_count,\n    COUNT(*) FILTER (WHERE is_duration_negative = TRUE) AS negative_count\nFROM matches_1v1_clean\n",
+    "r03_check": "\nSELECT matchId, COUNT(*) AS n,\n       SUM(CASE WHEN won = TRUE THEN 1 ELSE 0 END) AS n_true,\n       SUM(CASE WHEN won = FALSE THEN 1 ELSE 0 END) AS n_false\nFROM matches_1v1_clean\nGROUP BY matchId\nHAVING COUNT(*) != 2\n    OR SUM(CASE WHEN won = TRUE THEN 1 ELSE 0 END) != 1\n    OR SUM(CASE WHEN won = FALSE THEN 1 ELSE 0 END) != 1\n"
+  }
+}
