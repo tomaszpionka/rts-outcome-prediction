@@ -32,8 +32,8 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 |---------|--------|------------|-------|
 | §1.1 Background and motivation | `DRAFTED` | — | Literature + framing. Gate 0 voice calibration draft. |
 | §1.2 Problem statement | `DRAFTABLE` | — | Literature + framing |
-| §1.3 Research questions | `DRAFTABLE` | — | Draft now; finalize after experiments |
-| §1.4 Scope and limitations | `DRAFTABLE` | — | Draft now; revise after AoE2 assessment |
+| §1.3 Research questions | `DRAFTED` | — | Literature + framing. Drafted 2026-04-17. 4 RQs operationalized; 9 inline citations; 2 [REVIEW] flags. ~5.0k chars Polish. Finalize after Phase 03–04. |
+| §1.4 Scope and limitations | `DRAFTED` | — | Literature + framing. Drafted 2026-04-17. 7 inline citations; 1 [REVIEW] flag (AoE2 roadmap). ~4.6k chars Polish. Revise after AoE2 lit review. |
 | §1.5 Thesis outline | `BLOCKED` | All chapters | Write last |
 
 ## Chapter 2 — Theoretical Background
@@ -52,7 +52,7 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 | Section | Status | Feeds from | Notes |
 |---------|--------|------------|-------|
 | §3.1 Traditional sports prediction | `DRAFTABLE` | — | Literature |
-| §3.2 StarCraft prediction literature | `DRAFTABLE` | — | Key papers identified |
+| §3.2 StarCraft prediction literature | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 28 distinct keys / ~46 inline citations, 6 [REVIEW] flags. ~14.8k chars Polish. 15 new bibtex entries appended. Tarassoli2024 flagged as SC-Phi2 misattribution; deferred to user morning review. |
 | §3.3 MOBA and other esports | `DRAFTABLE` | — | Literature |
 | §3.4 AoE2 prediction | `BLOCKED` | AoE2 lit review | Future |
 | §3.5 Research gap | `BLOCKED` | §3.1-§3.4 | Skeleton draftable from §3.1-§3.3; full draft blocked on §3.4 (AoE2 lit review) |
