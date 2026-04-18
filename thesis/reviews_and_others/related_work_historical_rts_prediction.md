@@ -327,7 +327,7 @@ Fourth, **the comparative dimension is entirely novel.** No paper in the pre-202
 }
 
 @inproceedings{CetinTas2023,
-  author = {Çetin Taş, İsmail and Müngen, Ahmet Anıl},
+  author = {Çetin Taş, İclal and Müngen, Ahmet Anıl},
   title = {Regression Analysis of {Age of Empires II DE} Match Results with Machine Learning},
   booktitle = {2023 8th International Conference on Computer Science and Engineering (UBMK)},
   publisher = {IEEE},
