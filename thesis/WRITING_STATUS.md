@@ -61,10 +61,12 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 
 | Section | Status | Feeds from | Notes |
 |---------|--------|------------|-------|
-| §4.1.1 SC2EGSet description | `BLOCKED` | Phase 01 (Data Exploration) | Steps 01_01–01_07 done; awaiting Step 01_08 (game settings + field completeness audit) |
+| §4.1 Opening framing + §4.1.1 SC2EGSet description | `DRAFTED` | Phase 01 (Data Exploration, sections 01_01–01_04 for sc2egset) | Drafted 2026-04-17. ~18.5k znaków polskich. 5 [REVIEW] flags. Phase 01 sections 01_01–01_04 fully cited; sections 01_05 (Temporal & Panel EDA), 01_06 (Decision Gates) deferred — flagged where claims await them. Tabela 4.1 (CONSORT flow) present. |
+| §4.1.2 AoE2 datasets (aoestats + aoe2companion) | `DRAFTED` | Phase 01 (Data Exploration, sections 01_01–01_04 for both AoE2 datasets) | Drafted 2026-04-17. ~22.5k znaków polskich. 4 [REVIEW] flags. Dual-corpus framing §4.1.2.0 + aoestats §4.1.2.1 + aoe2companion §4.1.2.2 + closing forward-ref to §4.1.3. Tabela 4.2 + 4.3 (CONSORT flows) present. |
+| §4.1.3 Data asymmetry acknowledgement | `DRAFTED` | Phase 01 (cross-corpus synthesis) | Drafted 2026-04-17. ~5.7k znaków polskich. 1 [REVIEW] flag. Hosts canonical Tabela 4.4a (Skala i akwizycja) + Tabela 4.4b (Asymetria analityczna). 3 new bibtex entries added: Rubin1976, vanBuuren2018, SchaferGraham2002. |
 | §4.4.4 Evaluation metrics | `DRAFTABLE` | — | Literature |
 
-Remaining 11 sections all `BLOCKED` — waiting on Phase 01–04 (SC2) and AoE2 roadmap phases.
+Remaining 9 sections all `BLOCKED` — waiting on Phase 01 (01_05+), Phase 02–04 (SC2) and AoE2 roadmap phases.
 
 ## Chapter 5 — Experiments and Results
 

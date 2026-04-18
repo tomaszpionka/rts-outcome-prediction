@@ -19,6 +19,65 @@ merged to `master`.
 
 ### Removed
 
+## [3.12.0] — 2026-04-17 (PR #TBD: docs/thesis-4.1-data-chapter)
+
+### Added
+- **Thesis §4.1 Data chapter fully drafted** in Polish (46.7k chars across §4.1.1 SC2EGSet
+  + §4.1.2 AoE2 datasets + §4.1.3 Cross-dataset asymmetry), relocating the corpus
+  statistics that Sprint 7 retrospective adversarial had cut from §2.2.5 / §2.3.4
+  to their methodologically correct home. All numerical claims traced to Phase 01
+  artifacts via a durable 145-line crosswalk (`temp/plan_4.1_crosswalk.md`).
+- §4.1.1 SC2EGSet description (~18.5k chars, 5 subsections) covering Bialecki2023
+  citation + Zenodo provenance, 22,390 replays / 22,209 true 1v1 decisive corpus
+  scale, tournament date range (2016-2022), 28-col matches_flat_clean schema, 3
+  event streams (tracker 62M + game 608M + message 52K events), 83.95% MMR=0
+  sentinel rate, 51.96% side=0 asymmetry, and narrow-population limitations.
+  Includes Tabela 4.1 (CONSORT flow).
+- §4.1.2 AoE2 datasets description (~22.5k chars) with §4.1.2.0 dual-corpus framing
+  (triple-methodological-validation rationale), §4.1.2.1 aoestats (~10k chars; 17.8M
+  matches, 52.27% team=1 asymmetry, schema-evolution columns post-2024-03 patch),
+  §4.1.2.2 aoe2companion (~9k chars; 30.5M matches / 61M player-rows, 47.18%
+  team=1 asymmetry, BIGINT profile_id), plus §4.1.2 closing forward-ref paragraph.
+  Includes Tabela 4.2 (aoestats CONSORT) and Tabela 4.3 (aoec CONSORT).
+- §4.1.3 Cross-dataset asymmetry section (~5.7k chars) hosting canonical Tabela 4.4a
+  (Skala i akwizycja — 7 rows × 3 corpora) and Tabela 4.4b (Asymetria analityczna —
+  13 rows × 3 corpora). Tables are rows-as-dimensions per Q5 LOCKED decision.
+- 3 new bibtex entries: `Rubin1976` (Biometrika 63:3 MCAR/MAR/MNAR taxonomy),
+  `vanBuuren2018` (Flexible Imputation 2nd ed.), `SchaferGraham2002` (Psychological
+  Methods 7:2 MCAR boundary thresholds). Total bibtex: 84 → 87 entries.
+- `temp/plan_4.1_crosswalk.md` — durable 145-line artifact-to-claim crosswalk with
+  8-column schema (prose_form + artifact_form + normalized_value + path + anchor +
+  datatype + hedging_needed + consuming_subsection).
+
+### Changed
+- `thesis/WRITING_STATUS.md` — §4.1.1, §4.1.2, §4.1.3 all moved from `BLOCKED`
+  (per prior Phase 01 §01_08 / AoE2-roadmap preconditions) to `DRAFTED` (user
+  explicitly overrode prior BLOCKED status because Phase 01 §01_04 is mature for
+  all 3 datasets). Remaining-BLOCKED count reduced from 11 to 9 sections.
+- `thesis/chapters/REVIEW_QUEUE.md` — 3 new Pending entries (§4.1.1 5 [REVIEW]
+  flags; §4.1.2 4 [REVIEW] flags; §4.1.3 1 [REVIEW] flag; 8 total Pass-2 queue
+  items for this batch).
+
+### Fixed
+- **Adversarial cycle discipline:** per user standing directive "after every review,
+  run planner-science, apply fixes, then once again adversarial review and so on",
+  this PR went through **6 total adversarial rounds** (3 plan-side + 3 execution-side):
+  - Plan round 1 verdict REQUIRE_REVISION (3 BLOCKERs + 10 WARNINGs)
+  - Plan round 2 verdict APPROVE_WITH_MINOR_FIXES (4 mechanical)
+  - Plan round 3 verdict APPROVE_FOR_EXECUTION
+  - Execution round 1 verdict REQUIRE_REVISION (4 BLOCKERs)
+  - Execution round 2 verdict APPROVE_WITH_MINOR_FIXES (1 residual)
+  - Execution round 3 verdict APPROVE_FOR_COMMIT
+- Round-1 execution caught fabricated "16,05% rated" + "99,97% rated" numbers not
+  present in artifacts — replaced with sentinel rates (83,95% MMR=0; 0,0007% avg_elo=0).
+- Round-1 execution caught "n/d" cell in Tabela 4.4b contradicting prose; replaced
+  with 47,18%/52,82% aoec asymmetry citation.
+- Round-2 execution caught residual "max ~24,85 mln" speculation in Tabela 4.4b;
+  cell simplified to "`profile_id` (BIGINT)" matching Pass-2 deferral in prose.
+
+### Removed
+- None in this PR.
+
 ## [3.11.0] — 2026-04-17 (PR #146: feat/01-04-02-aoe2companion)
 
 ### Added
