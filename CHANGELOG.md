@@ -19,6 +19,40 @@ merged to `master`.
 
 ### Removed
 
+## [3.15.0] — 2026-04-18 (PR #TBD: feat/01-04-02-duration-augmentation)
+
+### Added
+- **01_04_02 augmentation across 3 datasets: `duration_seconds` + outlier flags at cleaning stage.**
+  Moves duration derivation upstream from 01_04_03 minimal history view. Centralizes outlier
+  flagging + POST_GAME_HISTORICAL token at the canonical clean-view layer so all downstream
+  consumers inherit the signal uniformly.
+- **sc2egset `matches_flat_clean`**: 28 → 30 cols. Adds `duration_seconds BIGINT` +
+  `is_duration_suspicious BOOLEAN`. Source: `player_history_all.header_elapsedGameLoops / 22.4`
+  via aggregated LEFT JOIN. 0 suspicious rows (no outliers).
+- **aoestats `matches_1v1_clean`**: 20 → 22 cols. Adds same 2 cols. Source:
+  `matches_raw.duration / 1_000_000_000` (Arrow duration[ns] → BIGINT nanoseconds).
+  28 suspicious matches confirmed (matches 01_04_03 empirical 56 player-rows ÷ 2).
+- **aoe2companion `matches_1v1_clean`**: 48 → 51 cols. Adds 3 cols including
+  `is_duration_negative BOOLEAN` (strict `< 0`) for 342 clock-skew rows. Source:
+  `EXTRACT(EPOCH FROM (matches_raw.finished - matches_raw.started))`. 142 suspicious
+  + 342 negative + 16 zero-duration (documented as known state for Phase 02).
+- Parallel 3-planner + 3-executor dispatch pattern: combined plan integration + single
+  adversarial round per user directive. New jupytext notebooks for sc2egset + aoec
+  (separate from original 01_04_02 notebooks); aoestats amends existing notebook.
+
+### Changed
+- Schema YAMLs for all 3 datasets' clean views now carry `schema_version` line and
+  POST_GAME_HISTORICAL invariant extensions (I3 + I7 provenance).
+- All 3 datasets' ROADMAP blocks have 01_04_02 addendum sections documenting duration
+  provenance + expected outlier counts.
+- All 3 datasets' research_log files have ADDENDUM entries prepended (reverse-chronological).
+
+### Fixed
+- Threshold 86,400s (24h) applied canonically across 3 datasets for I8 cross-dataset
+  comparability (was implicit in 01_04_03 Gate +5b; now explicit cleaning contract).
+
+### Removed
+
 ## [3.14.0] — 2026-04-18 (PR #TBD: feat/01-04-03-aoe2-minimal-history)
 
 ### Added
