@@ -22,17 +22,27 @@
 # **Step:** 01_04_03
 # **Dataset:** sc2egset (pattern-establisher; aoestats + aoe2companion follow in sibling PRs)
 # **Predecessor:** 01_04_02 (Data Cleaning Execution -- complete)
-# **Step scope:** Create `matches_history_minimal` VIEW -- 8-column player-row-grain
+# **Step scope:** Create `matches_history_minimal` VIEW -- 9-column player-row-grain
 # projection of `matches_flat_clean` (2 rows per 1v1 match). Canonical TIMESTAMP
 # temporal dtype. Per-dataset-polymorphic faction vocabulary. Cross-dataset-harmonized
 # substrate for Phase 02+ rating-system backtesting. Pure projection (I9).
 # **Invariants applied:**
-#   - I3 (TIMESTAMP cast enables chronologically faithful ordering)
-#   - I5-analog (player-row symmetry, NULL-safe assertion via IS DISTINCT FROM)
+#   - I3 (TIMESTAMP cast enables chronologically faithful ordering;
+#     duration_seconds is POST_GAME_HISTORICAL -- excluded from PRE_GAME features)
+#   - I5-analog (player-row symmetry, NULL-safe assertion via IS DISTINCT FROM;
+#     extended to include duration_seconds symmetry)
 #   - I6 (DDL + every assertion SQL stored verbatim in validation JSON artifact)
-#   - I7 (magic literals 32/42 cite matches_long_raw.yaml join_key regex provenance)
-#   - I8 (8-column cross-dataset contract; per-dataset-polymorphic faction vocabulary)
+#   - I7 (magic literals 32/42 cite matches_long_raw.yaml join_key regex provenance;
+#     22.4 loops/sec cites details.gameSpeed cardinality=1 from sc2egset W02 census)
+#   - I8 (9-column cross-dataset contract; per-dataset-polymorphic faction vocabulary)
 #   - I9 (pure non-destructive projection; no upstream modification)
+# **ADDENDUM:** Extended to 9-col contract (duration_seconds BIGINT added between
+# won and dataset_tag) per user directive 2026-04-18. Column 8 = duration_seconds
+# POST_GAME_HISTORICAL; sourced from player_history_all.header_elapsedGameLoops
+# (matches_long_raw and matches_flat_clean exclude it per I3). Aggregated per replay
+# before join to avoid row multiplication (player_history_all has 2 rows per replay).
+# 22.4 loops/sec: SC2 "Faster" game-speed constant (Liquipedia); details.gameSpeed
+# cardinality=1 in sc2egset (W02 census, research_log.md:333).
 # **Date:** 2026-04-18
 
 # %% [markdown]
@@ -94,10 +104,36 @@ for col in required_cols:
 print("Source-view sanity check PASSED: 28 cols + all required columns present.")
 
 # %% [markdown]
+# ## Cell 4b -- player_history_all sanity check
+#
+# ADDENDUM: Verify player_history_all has header_elapsedGameLoops.
+# This is the source for duration_seconds (matches_long_raw + matches_flat_clean
+# exclude it per I3; player_history_all retains it at line 112 of its YAML schema).
+
+# %%
+describe_pha = con.execute("DESCRIBE player_history_all").fetchall()
+pha_col_names = [row[0] for row in describe_pha]
+print(f"player_history_all column count: {len(pha_col_names)}")
+
+assert "header_elapsedGameLoops" in pha_col_names, (
+    "BLOCKER: header_elapsedGameLoops missing from player_history_all"
+)
+assert "replay_id" in pha_col_names, (
+    "BLOCKER: replay_id missing from player_history_all"
+)
+
+print("player_history_all sanity check PASSED: header_elapsedGameLoops + replay_id present.")
+
+# %% [markdown]
 # ## Cell 5 -- Define DDL constant
 #
-# CREATE OR REPLACE VIEW DDL verbatim from plan spec (R1-BLOCKER-2 + R1-WARNING-1 fix:
-# TRY_CAST to TIMESTAMP inline). Stored as constant for I6 verbatim embedding.
+# CREATE OR REPLACE VIEW DDL (ADDENDUM: 9-col contract, duration_seconds added).
+# duration_per_replay CTE aggregates header_elapsedGameLoops per replay_id before
+# joining to avoid row multiplication (player_history_all has 2 rows per replay;
+# value is constant per replay so ANY_VALUE is safe).
+# I7 provenance for 22.4 loops/sec: details.gameSpeed cardinality=1 in sc2egset
+# (W02 census, research_log.md:333) + Blizzard "Faster" constant (Liquipedia SC2 Game Speed).
+# raw_match_id alias exists in base CTE (line 121 of original notebook).
 
 # %%
 CREATE_MATCHES_HISTORY_MINIMAL_SQL = """\
@@ -105,16 +141,18 @@ CREATE OR REPLACE VIEW matches_history_minimal AS
 -- Purpose: Minimal cross-dataset-harmonized history view for rating-system
 --   backtesting (Phase 02+ consumer).
 -- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).
--- Cross-dataset contract: 8 columns, identical dtypes across sibling views.
+-- Cross-dataset contract: 9 columns, identical dtypes across sibling views.
 --   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
 --   per-dataset-polymorphic (SC2 race stems vs AoE2 civ names).
--- Invariants: I3 (TIMESTAMP cast enables faithful chronological ordering),
---   I5-analog (player-row symmetry, NULL-safe assertion), I6 (DDL verbatim
---   in JSON artifact), I7 (magic numbers 32 / 42 cite
---   data/db/schemas/views/matches_long_raw.yaml provenance regex
---   [0-9a-f]{32}), I8 (UNION-compatible with sibling
---   datasets via dataset_tag + prefixed match_id + canonical dtypes), I9
---   (pure projection of matches_flat_clean; no upstream modification).
+-- Invariants: I3 (TIMESTAMP cast enables faithful chronological ordering;
+--   duration_seconds is POST_GAME_HISTORICAL -- excluded from PRE_GAME features),
+--   I5-analog (player-row symmetry, NULL-safe assertion; duration_seconds
+--   symmetric between row pairs), I6 (DDL verbatim in JSON artifact),
+--   I7 (magic numbers 32/42 cite matches_long_raw.yaml join_key regex
+--   [0-9a-f]{32}; 22.4 loops/sec cites details.gameSpeed cardinality=1
+--   from sc2egset W02 census, research_log.md:333 + Blizzard Faster constant),
+--   I8 (UNION-compatible with sibling datasets via dataset_tag + prefixed
+--   match_id + canonical 9-col dtypes), I9 (pure projection; no upstream mod).
 WITH base AS (
     SELECT
         'sc2egset::' || mfc.replay_id              AS match_id,
@@ -124,6 +162,22 @@ WITH base AS (
         mfc.race                                   AS faction,
         (mfc.result = 'Win')                       AS won
     FROM matches_flat_clean mfc
+),
+duration_per_replay AS (
+    -- Aggregate header_elapsedGameLoops to 1 value per replay before join.
+    -- player_history_all has 2 rows per replay; value is constant per replay.
+    -- I7 provenance for 22.4 loops/sec: details.gameSpeed cardinality=1 in
+    -- sc2egset (W02 census, research_log.md:333) + Blizzard Faster constant
+    -- (Liquipedia SC2 Game Speed). matches_long_raw and matches_flat_clean
+    -- exclude header_elapsedGameLoops per I3; player_history_all retains it.
+    -- A-D1 caveat: assumes Faster speed (22.4 loops/sec) for all replays;
+    -- non-Faster replays would underestimate duration. Accepted for thesis-level
+    -- precision; flagged in schema YAML notes.
+    SELECT
+        replay_id,
+        ANY_VALUE(header_elapsedGameLoops) AS game_loops
+    FROM player_history_all
+    GROUP BY replay_id
 )
 SELECT
     p.match_id,
@@ -133,11 +187,14 @@ SELECT
     p.faction,
     o.faction                                      AS opponent_faction,
     p.won,
+    CAST(dpr.game_loops / 22.4 AS BIGINT)          AS duration_seconds,
     'sc2egset'                                     AS dataset_tag
 FROM base p
 JOIN base o
   ON p.match_id = o.match_id
  AND p.player_id <> o.player_id
+LEFT JOIN duration_per_replay dpr
+  ON dpr.replay_id = p.raw_match_id
 ORDER BY p.started_at, p.match_id, p.player_id\
 """
 
@@ -154,9 +211,12 @@ print("VIEW matches_history_minimal created successfully.")
 # %% [markdown]
 # ## Cell 7 -- Schema shape validation
 #
-# DESCRIBE matches_history_minimal; assert 8 columns + exact dtypes per spec.
-# Expected: [VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, VARCHAR]
-# for columns [match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, dataset_tag].
+# DESCRIBE matches_history_minimal; assert 9 columns + exact dtypes per spec.
+# ADDENDUM: 9 columns now (duration_seconds BIGINT added between won and dataset_tag).
+# Expected: [VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, BIGINT, VARCHAR]
+# for columns [match_id, started_at, player_id, opponent_id, faction, opponent_faction,
+#              won, duration_seconds, dataset_tag].
+# Gate +1: DESCRIBE returns 9 cols in order [..., won BOOLEAN, duration_seconds BIGINT, dataset_tag VARCHAR].
 
 # %%
 describe_view = con.execute("DESCRIBE matches_history_minimal").fetchall()
@@ -167,15 +227,15 @@ print(f"matches_history_minimal column count: {len(view_col_names)}")
 for name, dtype in zip(view_col_names, view_col_types):
     print(f"  {name}: {dtype}")
 
-# Assert 8 columns
-assert len(view_col_names) == 8, (
-    f"Expected 8 columns, got {len(view_col_names)}: {view_col_names}"
+# Gate +1: Assert 9 columns
+assert len(view_col_names) == 9, (
+    f"Expected 9 columns, got {len(view_col_names)}: {view_col_names}"
 )
 
 # Assert column names in order
 expected_col_names = [
     "match_id", "started_at", "player_id", "opponent_id",
-    "faction", "opponent_faction", "won", "dataset_tag",
+    "faction", "opponent_faction", "won", "duration_seconds", "dataset_tag",
 ]
 assert view_col_names == expected_col_names, (
     f"Column name mismatch:\n  expected: {expected_col_names}\n  got:      {view_col_names}"
@@ -184,13 +244,13 @@ assert view_col_names == expected_col_names, (
 # Assert dtypes in order
 expected_dtypes = [
     "VARCHAR", "TIMESTAMP", "VARCHAR", "VARCHAR",
-    "VARCHAR", "VARCHAR", "BOOLEAN", "VARCHAR",
+    "VARCHAR", "VARCHAR", "BOOLEAN", "BIGINT", "VARCHAR",
 ]
 assert view_col_types == expected_dtypes, (
     f"Dtype mismatch:\n  expected: {expected_dtypes}\n  got:      {view_col_types}"
 )
 
-print("Schema shape validation PASSED: 8 cols + dtypes match spec.")
+print("Schema shape validation PASSED: 9 cols + dtypes match spec. (Gate +1 PASS)")
 
 # %% [markdown]
 # ## Cell 8 -- Row-count validation
@@ -238,8 +298,9 @@ print("Row-count validation PASSED.")
 # %% [markdown]
 # ## Cell 9 -- Symmetry (I5-analog, NULL-safe)
 #
-# Gate: symmetry_violations=0. Uses IS DISTINCT FROM for NULL-safe comparison
-# (R1-BLOCKER-3 fix -- prior = operator would false-pass NULL-asymmetric rows).
+# Gate: symmetry_violations=0. Uses IS DISTINCT FROM for NULL-safe comparison.
+# ADDENDUM: Extended symmetry check includes duration_seconds IS NOT DISTINCT FROM
+# (duration must be identical for both rows of a match -- POST_GAME_HISTORICAL symmetric).
 
 # %%
 SYMMETRY_I5_ANALOG_SQL = """\
@@ -251,11 +312,13 @@ WITH row_pairs AS (
         a.won               AS a_won,
         a.faction           AS a_fac,
         a.opponent_faction  AS a_ofac,
+        a.duration_seconds  AS a_dur,
         b.player_id         AS b_pid,
         b.opponent_id       AS b_oid,
         b.won               AS b_won,
         b.faction           AS b_fac,
-        b.opponent_faction  AS b_ofac
+        b.opponent_faction  AS b_ofac,
+        b.duration_seconds  AS b_dur
     FROM matches_history_minimal a
     JOIN matches_history_minimal b
       ON a.match_id = b.match_id
@@ -267,7 +330,8 @@ WHERE a_pid <> b_oid
    OR a_oid <> b_pid
    OR a_won = b_won
    OR a_fac IS DISTINCT FROM b_ofac
-   OR a_ofac IS DISTINCT FROM b_fac\
+   OR a_ofac IS DISTINCT FROM b_fac
+   OR a_dur IS DISTINCT FROM b_dur\
 """
 
 sym_row = con.execute(SYMMETRY_I5_ANALOG_SQL).fetchone()
@@ -285,6 +349,8 @@ print("Symmetry (I5-analog, NULL-safe) PASSED.")
 #
 # Gate: null_match_id / null_player_id / null_opponent_id / null_won / null_dataset_tag all 0.
 # null_started_at: report only (TRY_CAST failure count; I7 -- not a gate threshold).
+# ADDENDUM: null_duration_seconds reported (LEFT JOIN may produce NULLs for replays
+# missing from player_history_all; expected=0 but report-only for sc2egset).
 
 # %%
 ZERO_NULL_SQL = """\
@@ -294,6 +360,7 @@ SELECT
     COUNT(*) FILTER (WHERE player_id    IS NULL) AS null_player_id,
     COUNT(*) FILTER (WHERE opponent_id  IS NULL) AS null_opponent_id,
     COUNT(*) FILTER (WHERE won          IS NULL) AS null_won,
+    COUNT(*) FILTER (WHERE duration_seconds IS NULL) AS null_duration_seconds,
     COUNT(*) FILTER (WHERE dataset_tag  IS NULL) AS null_dataset_tag,
     COUNT(*) FILTER (WHERE faction          IS NULL) AS null_faction_info,
     COUNT(*) FILTER (WHERE opponent_faction IS NULL) AS null_opponent_faction_info
@@ -303,7 +370,8 @@ FROM matches_history_minimal\
 null_row = con.execute(ZERO_NULL_SQL).fetchone()
 (
     null_match_id, null_started_at, null_player_id, null_opponent_id,
-    null_won, null_dataset_tag, null_faction_info, null_opponent_faction_info
+    null_won, null_duration_seconds, null_dataset_tag,
+    null_faction_info, null_opponent_faction_info
 ) = null_row
 
 print(f"null_match_id:             {null_match_id}")
@@ -311,6 +379,7 @@ print(f"null_started_at:           {null_started_at}  (report only -- TRY_CAST f
 print(f"null_player_id:            {null_player_id}")
 print(f"null_opponent_id:          {null_opponent_id}")
 print(f"null_won:                  {null_won}")
+print(f"null_duration_seconds:     {null_duration_seconds}  (Gate +2)")
 print(f"null_dataset_tag:          {null_dataset_tag}")
 print(f"null_faction_info:         {null_faction_info}  (report only)")
 print(f"null_opponent_faction_info:{null_opponent_faction_info}  (report only)")
@@ -322,6 +391,50 @@ assert null_won == 0, f"null_won={null_won} (expected 0)"
 assert null_dataset_tag == 0, f"null_dataset_tag={null_dataset_tag} (expected 0)"
 
 print("Zero-NULL validation PASSED for all 5 non-nullable spec columns.")
+print(f"duration_seconds NULLs: {null_duration_seconds}  (Gate +2 reported)")
+
+# %% [markdown]
+# ## Cell 10b -- duration_seconds positive-value and range assertions
+#
+# ADDENDUM Gates +3, +4, +5:
+# Gate +3: duration_seconds > 0 for all non-NULL rows.
+# Gate +4: Duration symmetry (covered in Cell 9 symmetry check).
+# Gate +5 (HALTING): max(duration_seconds) <= 86400 (24 hours sanity bound).
+#   Protects against nanosecond-unit regression: if max > 86400, unit is wrong.
+
+# %%
+DURATION_STATS_SQL = """\
+SELECT
+    MIN(duration_seconds)                                         AS min_duration_seconds,
+    MAX(duration_seconds)                                         AS max_duration_seconds,
+    AVG(duration_seconds)                                         AS avg_duration_seconds,
+    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL)          AS non_null_count,
+    COUNT(*) FILTER (WHERE duration_seconds IS NOT NULL
+                       AND duration_seconds <= 0)                 AS non_positive_count
+FROM matches_history_minimal\
+"""
+
+dur_row = con.execute(DURATION_STATS_SQL).fetchone()
+min_dur, max_dur, avg_dur, non_null_dur, non_positive_dur = dur_row
+
+print(f"min_duration_seconds: {min_dur}")
+print(f"max_duration_seconds: {max_dur}")
+print(f"avg_duration_seconds: {avg_dur:.1f}")
+print(f"non_null_count:       {non_null_dur}")
+print(f"non_positive_count:   {non_positive_dur}  (Gate +3: expected 0)")
+
+# Gate +3: no non-positive values among non-NULLs
+assert non_positive_dur == 0, (
+    f"Gate +3 FAILED: {non_positive_dur} rows with duration_seconds <= 0"
+)
+print("Gate +3 PASS: all non-NULL duration_seconds > 0.")
+
+# Gate +5 (HALTING): max <= 86400 (24 hours). Catches nanosecond-unit regression.
+assert max_dur is None or max_dur <= 86400, (
+    f"Gate +5 HALTING FAILED: max_duration_seconds={max_dur} > 86400 "
+    f"(unit regression? expected seconds, got nanoseconds?)"
+)
+print(f"Gate +5 PASS: max_duration_seconds={max_dur} <= 86400.")
 
 # %% [markdown]
 # ## Cell 11 -- match_id prefix verification
@@ -428,6 +541,7 @@ print(f"distinct_started_at: {distinct_started_at}")
 #
 # Captures: step metadata, row_counts, assertion_results, sql_queries (verbatim I6),
 # describe_table_rows (DESCRIBE output for nullable-flag reproducibility).
+# ADDENDUM: 9-col schema; duration_seconds stats included.
 # Note: DuckDB may return DuckDBPyType for column_type; stringify with str(x) per R3-NOTE-2.
 
 # %%
@@ -454,7 +568,7 @@ describe_table_rows = [
 assertion_results = {
     "src_col_count_28": len(describe_src) == 28,
     "required_src_cols_present": all(c in src_col_names for c in required_cols),
-    "col_count_8": len(view_col_names) == 8,
+    "col_count_9": len(view_col_names) == 9,
     "col_names_match": view_col_names == expected_col_names,
     "col_dtypes_match": view_col_types == expected_dtypes,
     "total_rows_44418": total_rows == 44418,
@@ -470,6 +584,8 @@ assertion_results = {
     "prefix_violations_0": prefix_violations == 0,
     "n_distinct_tags_1": n_distinct_tags == 1,
     "dataset_tag_sc2egset": the_tag == "sc2egset",
+    "duration_non_positive_0": non_positive_dur == 0,
+    "duration_max_le_86400": max_dur is None or max_dur <= 86400,
 }
 
 all_assertions_pass = all(assertion_results.values())
@@ -480,6 +596,7 @@ validation = {
     "game": "sc2",
     "generated_date": str(date.today()),
     "view": "matches_history_minimal",
+    "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
     "row_counts": {
         "total_rows": total_rows,
         "distinct_match_ids": distinct_match_ids,
@@ -494,9 +611,26 @@ validation = {
         "null_player_id": null_player_id,
         "null_opponent_id": null_opponent_id,
         "null_won": null_won,
+        "null_duration_seconds": null_duration_seconds,
         "null_dataset_tag": null_dataset_tag,
         "null_faction_info": null_faction_info,
         "null_opponent_faction_info": null_opponent_faction_info,
+    },
+    "duration_stats": {
+        "min_duration_seconds": min_dur,
+        "max_duration_seconds": max_dur,
+        "avg_duration_seconds": avg_dur,
+        "non_null_count": non_null_dur,
+        "non_positive_count": non_positive_dur,
+        "gate_plus3_pass": non_positive_dur == 0,
+        "gate_plus5_pass": max_dur is None or max_dur <= 86400,
+        "provenance": (
+            "CAST(header_elapsedGameLoops / 22.4 AS BIGINT). "
+            "22.4 loops/sec: SC2 Faster game-speed constant (Liquipedia). "
+            "details.gameSpeed cardinality=1 in sc2egset (research_log.md:333). "
+            "Source: player_history_all.header_elapsedGameLoops (aggregated per replay "
+            "via ANY_VALUE to avoid row multiplication; player_history_all has 2 rows/replay)."
+        ),
     },
     "symmetry_violations": symmetry_violations,
     "prefix_violations": prefix_violations,
@@ -521,6 +655,7 @@ validation = {
         "ROW_COUNT_CHECK_SQL": ROW_COUNT_CHECK_SQL,
         "SYMMETRY_I5_ANALOG_SQL": SYMMETRY_I5_ANALOG_SQL,
         "ZERO_NULL_SQL": ZERO_NULL_SQL,
+        "DURATION_STATS_SQL": DURATION_STATS_SQL,
         "PREFIX_CHECK_SQL": PREFIX_CHECK_SQL,
         "DATASET_TAG_CHECK_SQL": DATASET_TAG_CHECK_SQL,
         "FACTION_VOCAB_SQL": FACTION_VOCAB_SQL,
@@ -560,16 +695,21 @@ md_content = f"""# Step 01_04_03 -- Minimal Cross-Dataset History View
 **Game:** SC2
 **Step:** 01_04_03
 **Predecessor:** 01_04_02 (Data Cleaning Execution)
+**Schema version:** 9-col (ADDENDUM: duration_seconds added 2026-04-18)
 
 ## Summary
 
-Created `matches_history_minimal` VIEW -- 8-column player-row-grain projection of
+Created `matches_history_minimal` VIEW -- 9-column player-row-grain projection of
 `matches_flat_clean` (2 rows per 1v1 match). Canonical TIMESTAMP temporal dtype
 (via TRY_CAST of `details_timeUTC`). Per-dataset-polymorphic faction vocabulary.
 Cross-dataset-harmonized substrate for Phase 02+ rating-system backtesting.
 Pure non-destructive projection (I9).
 
-## Schema (8 columns)
+ADDENDUM: Added `duration_seconds` BIGINT (column 8) between `won` and `dataset_tag`.
+Source: `player_history_all.header_elapsedGameLoops / 22.4` (SC2 Faster loops/sec).
+POST_GAME_HISTORICAL -- excluded from PRE_GAME features.
+
+## Schema (9 columns)
 
 | column | dtype | semantics |
 |---|---|---|
@@ -580,6 +720,7 @@ Pure non-destructive projection (I9).
 | `faction` | VARCHAR | Raw race stems `Prot`/`Terr`/`Zerg` (4-char; NOT full names). PER-DATASET POLYMORPHIC |
 | `opponent_faction` | VARCHAR | Opposing race (same vocabulary as faction) |
 | `won` | BOOLEAN | Focal player's outcome (complementary between the 2 rows) |
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL. Duration in seconds = header_elapsedGameLoops / 22.4. 22.4 loops/sec: SC2 Faster constant (Liquipedia); details.gameSpeed cardinality=1 (research_log.md:333). |
 | `dataset_tag` | VARCHAR | Constant `'sc2egset'` |
 
 ## Row-count flow
@@ -592,6 +733,17 @@ Pure non-destructive projection (I9).
 | distinct match_ids | {distinct_match_ids} |
 | matches with exactly 2 rows | {matches_with_2_rows} |
 | matches with NOT 2 rows | {matches_with_not_2_rows} |
+
+## duration_seconds stats (ADDENDUM gates)
+
+| metric | value | gate |
+|---|---|---|
+| min_duration_seconds | {min_dur} | report only |
+| max_duration_seconds | {max_dur} | <= 86400 (Gate +5) |
+| avg_duration_seconds | {avg_dur:.1f} | report only |
+| non_null_count | {non_null_dur} | report only |
+| null_duration_seconds | {null_duration_seconds} | report only (Gate +2) |
+| non_positive_count | {non_positive_dur} | 0 (Gate +3) |
 
 ## Faction vocabulary (per-dataset polymorphic)
 
@@ -621,6 +773,7 @@ datasets without game-conditional encoding.
 | player_id | {null_player_id} | 0 (GATE) |
 | opponent_id | {null_opponent_id} | 0 (GATE) |
 | won | {null_won} | 0 (GATE) |
+| duration_seconds | {null_duration_seconds} | report only (Gate +2) |
 | dataset_tag | {null_dataset_tag} | 0 (GATE) |
 | faction | {null_faction_info} | report only |
 | opponent_faction | {null_opponent_faction_info} | report only |
@@ -630,12 +783,15 @@ datasets without game-conditional encoding.
 | check | result |
 |---|---|
 | Row count 44,418 = 2 x 22,209 | {'PASS' if total_rows == 44418 and distinct_match_ids == 22209 else 'FAIL'} |
-| Column count 8 | {'PASS' if len(view_col_names) == 8 else 'FAIL'} |
+| Column count 9 (Gate +1) | {'PASS' if len(view_col_names) == 9 else 'FAIL'} |
 | started_at dtype TIMESTAMP | {'PASS' if 'TIMESTAMP' in view_col_types[1] else 'FAIL'} |
-| I5-analog NULL-safe symmetry violations (IS DISTINCT FROM) = 0 | {'PASS' if symmetry_violations == 0 else 'FAIL'} |
+| duration_seconds dtype BIGINT | {'PASS' if view_col_types[7] == 'BIGINT' else 'FAIL'} |
+| I5-analog NULL-safe symmetry violations (incl. duration) = 0 | {'PASS' if symmetry_violations == 0 else 'FAIL'} |
 | match_id prefix violations = 0; length = 42 | {'PASS' if prefix_violations == 0 else 'FAIL'} |
 | dataset_tag distinct count = 1 | {'PASS' if n_distinct_tags == 1 else 'FAIL'} |
 | Zero NULLs in match_id / player_id / opponent_id / won / dataset_tag | {'PASS' if null_match_id == null_player_id == null_opponent_id == null_won == null_dataset_tag == 0 else 'FAIL'} |
+| duration_seconds non-positive = 0 (Gate +3) | {'PASS' if non_positive_dur == 0 else 'FAIL'} |
+| duration_seconds max <= 86400 (Gate +5 HALTING) | {'PASS' if (max_dur is None or max_dur <= 86400) else 'FAIL'} |
 | All assertions pass | {'PASS' if all_assertions_pass else 'FAIL'} |
 
 ## Artifact
@@ -651,13 +807,9 @@ print(f"Markdown report written: {md_path}")
 # %% [markdown]
 # ## Cell 17 -- Write schema YAML for matches_history_minimal
 #
-# R1-WARNING-4 + R2-WARNING-3 fix: nullable flags sourced from DESCRIBE result.
-# DuckDB DESCRIBE 6-tuple contract: (column_name, column_type, null, key, default, extra).
-# Index 2 is the null flag: 'YES' -> nullable=True, 'NO' -> nullable=False.
-# Concrete Python booleans written -- no '<from DESCRIBE>' string literals.
-#
-# Cell 17 faction description includes the "per-dataset polymorphic vocabulary" warning
-# verbatim as specified in the schema YAML section of the plan.
+# ADDENDUM: 9-col schema. duration_seconds column added between won and dataset_tag.
+# POST_GAME_HISTORICAL machine-token in notes (per I3 token vocabulary).
+# I7 provenance for 22.4 constant cited in notes.
 
 # %%
 schema_dir = reports_dir.parent / "data" / "db" / "schemas" / "views"
@@ -675,6 +827,7 @@ schema = {
     "game": "sc2",
     "object_type": "view",
     "step": "01_04_03",
+    "schema_version": "9-col (ADDENDUM: duration_seconds added 2026-04-18)",
     "row_count": total_rows,
     "describe_artifact": (
         "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts"
@@ -768,6 +921,36 @@ schema = {
             ),
         },
         {
+            "name": "duration_seconds",
+            "type": "BIGINT",
+            "nullable": nullable_map.get("duration_seconds", True),
+            "description": (
+                "Match duration in seconds (POST_GAME_HISTORICAL). For sc2egset: "
+                "CAST(player_history_all.header_elapsedGameLoops / 22.4 AS BIGINT). "
+                "Aggregated per replay via ANY_VALUE before joining (player_history_all has "
+                "2 rows per replay; value is constant per replay). "
+                "Both rows of a match have identical duration_seconds (symmetric). "
+                "I7 provenance for 22.4 loops/sec: details.gameSpeed cardinality=1 in "
+                "sc2egset (W02 census, research_log.md:333) + Blizzard 'Faster' constant "
+                "(Liquipedia SC2 Game Speed). "
+                "Calibration caveat (A-D1): assumes Faster speed for all replays; "
+                "non-Faster replays would underestimate duration (~30% error). "
+                "Accepted for thesis-level precision."
+            ),
+            "notes": (
+                "POST_GAME_HISTORICAL. Available only after match end. DO NOT use as "
+                "PRE_GAME feature for predicting match T outcome (I3 violation). "
+                "Useful for retrospective analysis: rating-update weighting, learning-curve "
+                "measurement, game-length-conditioned BTL. Phase 02 feature extractors that "
+                "drop POST_GAME_HISTORICAL tokens will auto-exclude. "
+                "Unit: seconds (canonical cross-dataset unit). "
+                "Source: player_history_all.header_elapsedGameLoops / 22.4 (sc2egset-specific). "
+                "Cross-dataset I7 provenance: sc2egset 22.4 loops/sec (this dataset); "
+                "aoestats /1e9 nanoseconds via pre_ingestion.py:271; "
+                "aoec EXTRACT EPOCH from matches_raw.started/finished."
+            ),
+        },
+        {
             "name": "dataset_tag",
             "type": "VARCHAR",
             "nullable": False,
@@ -779,10 +962,11 @@ schema = {
         },
     ],
     "provenance": {
-        "source_tables": ["matches_flat_clean"],
+        "source_tables": ["matches_flat_clean", "player_history_all"],
         "join_key": (
             "self-join on matches_flat_clean via replay_id; player_id = toon_id; "
-            "opponent_id from sibling row where mfc.toon_id <> opp.toon_id"
+            "opponent_id from sibling row where mfc.toon_id <> opp.toon_id. "
+            "LEFT JOIN to duration_per_replay (aggregated player_history_all) on replay_id."
         ),
         "filter": (
             "Inherited from matches_flat_clean: true_1v1_decisive (2 players, 1 Win + 1 Loss) "
@@ -800,12 +984,10 @@ schema = {
         {
             "id": "I3",
             "description": (
-                "TIMESTAMP-typed temporal anchor enables chronologically faithful ordering "
-                "(upstream VARCHAR details_timeUTC has 7 distinct sub-second precision "
-                "variants 22-28 chars; lex ordering would be non-monotonic). TRY_CAST "
-                "to TIMESTAMP in the VIEW normalizes. No windowed aggregations, no "
-                "shift(), no future joins. Phase 02 consumers use started_at as the "
-                "strict-less-than anchor for match_time < T feature computation."
+                "TIMESTAMP-typed temporal anchor enables chronologically faithful ordering. "
+                "duration_seconds is POST_GAME_HISTORICAL (machine-grep-able token in notes): "
+                "DO NOT use as PRE_GAME feature for match T. Phase 02 feature extractors "
+                "that drop POST_GAME_HISTORICAL tokens will auto-exclude this column."
             ),
         },
         {
@@ -813,9 +995,9 @@ schema = {
             "description": (
                 "Player-row symmetry (I5-analog). Every match_id has exactly 2 rows. "
                 "(player_id, opponent_id) appears once in each direction. The two `won` "
-                "values are complementary. faction and opponent_faction are mirror "
-                "images. Assertion SQL uses IS DISTINCT FROM for NULL-safe comparison "
-                "(R1-BLOCKER-3 fix)."
+                "values are complementary. faction and opponent_faction are mirror images. "
+                "duration_seconds is identical for both rows (symmetric LEFT JOIN). "
+                "Assertion SQL uses IS DISTINCT FROM for NULL-safe comparison."
             ),
         },
         {
@@ -830,36 +1012,36 @@ schema = {
         {
             "id": "I7",
             "description": (
-                "Magic literals in PREFIX_CHECK_SQL (`32` hex chars, `42` total length) "
-                "cite upstream data/db/schemas/views/matches_long_raw.yaml join_key "
-                "regex [0-9a-f]{32} for provenance."
+                "Magic literals: PREFIX_CHECK_SQL `32` hex chars / `42` total length cite "
+                "upstream data/db/schemas/views/matches_long_raw.yaml join_key regex "
+                "[0-9a-f]{32}. duration_seconds constant 22.4 loops/sec cites: "
+                "details.gameSpeed cardinality=1 in sc2egset (W02 census, research_log.md:333) "
+                "+ Blizzard 'Faster' game-speed constant (Liquipedia SC2 Game Speed)."
             ),
         },
         {
             "id": "I8",
             "description": (
-                "Cross-dataset comparability: 8-column names + dtypes are the cross-"
-                "dataset contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction "
-                "vocabulary is per-dataset-polymorphic -- column name and dtype cross-"
-                "dataset, values per-dataset ontology. aoestats sibling PR must project "
-                "its 1-row-per-match matches_1v1_clean to 2-rows-per-match via UNION ALL "
-                "of p0/p1 SELECTs (with awareness of team1_wins ~52.27% slot asymmetry); "
-                "aoe2companion similarly. match_id prefixed 'sc2egset::'."
+                "Cross-dataset comparability: 9-column names + dtypes are the cross-dataset "
+                "contract (ADDENDUM: extended from 8 to 9 cols; duration_seconds BIGINT added). "
+                "Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is "
+                "per-dataset-polymorphic. duration_seconds unit is seconds across all datasets "
+                "(sc2egset /22.4 loops; aoestats /1e9 ns; aoec EXTRACT EPOCH)."
             ),
         },
         {
             "id": "I9",
             "description": (
                 "Pure non-destructive projection. No raw table modified. matches_flat_clean "
-                "unchanged. Only matches_history_minimal VIEW created via CREATE OR "
-                "REPLACE. Inputs (matches_flat_clean, matches_flat) read-only."
+                "unchanged. player_history_all is read-only (SELECT only). "
+                "Only matches_history_minimal VIEW created via CREATE OR REPLACE."
             ),
         },
     ],
     "provenance_categories_note": (
         "This view inherits provenance categories from matches_flat_clean. Per-column "
         "'notes' field uses the single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME, "
-        "TARGET) established in 01_04_02."
+        "TARGET, POST_GAME_HISTORICAL) -- POST_GAME_HISTORICAL added in ADDENDUM."
     ),
 }
 
@@ -878,15 +1060,21 @@ for col_name, nullable_val in nullable_map.items():
 db.close()
 print("DuckDB connection closed.")
 
-print("\n=== FINAL SUMMARY: Step 01_04_03 ===")
+print("\n=== FINAL SUMMARY: Step 01_04_03 (sc2egset, ADDENDUM: 9-col) ===")
 print(f"VIEW created:          matches_history_minimal")
 print(f"Rows:                  {total_rows} ({distinct_match_ids} matches x 2)")
 print(f"Schema:                {len(view_col_names)} cols, started_at dtype: {view_col_types[1]}")
+print(f"duration_seconds:      min={min_dur}, max={max_dur}, avg={avg_dur:.1f}, nulls={null_duration_seconds}")
 print(f"Symmetry violations:   {symmetry_violations}")
 print(f"Prefix violations:     {prefix_violations}")
 print(f"dataset_tag distinct:  {n_distinct_tags}")
 print(f"Faction vocab:         {list(faction_vocab.keys())}")
 print(f"All assertions pass:   {all_assertions_pass}")
+print(f"\nGate summary:")
+print(f"  Gate +1 (9 cols):           {'PASS' if len(view_col_names) == 9 else 'FAIL'}")
+print(f"  Gate +2 (null_dur reported): {null_duration_seconds} NULLs")
+print(f"  Gate +3 (dur > 0):          {'PASS' if non_positive_dur == 0 else 'FAIL'}")
+print(f"  Gate +5 (max <= 86400):     {'PASS' if (max_dur is None or max_dur <= 86400) else 'FAIL'}")
 print(f"\nArtifacts:")
 print(f"  {json_path}")
 print(f"  {md_path}")

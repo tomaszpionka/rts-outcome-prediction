@@ -19,6 +19,61 @@ merged to `master`.
 
 ### Removed
 
+## [3.14.0] — 2026-04-18 (PR #TBD: feat/01-04-03-aoe2-minimal-history)
+
+### Added
+- **Phase 01 Step 01_04_03 — aoe2 datasets + sc2egset 9-col extension.** Completes
+  the 3/3 dataset cross-dataset harmonization substrate for Phase 02+ rating-system
+  backtesting. Originally scoped as aoe2-only; extended mid-PR per user directive
+  to bump ALL 3 datasets' `matches_history_minimal` from 8 → 9 cols by adding
+  `duration_seconds` BIGINT (POST_GAME_HISTORICAL). sc2egset's 8-col view from
+  PR #152 is updated in-place; aoestats + aoe2companion new at 9 cols.
+- **`duration_seconds` column (9-col extension — all 3 datasets):**
+  - sc2egset: `CAST(ANY_VALUE(header_elapsedGameLoops) / 22.4 AS BIGINT)` via JOIN
+    to aggregated `player_history_all`. 22.4 = SC2 "Faster" game-speed loops/sec,
+    empirical via `details.gameSpeed` cardinality=1 (W02). Max 6,073s; no outliers.
+  - aoestats: `CAST(r.duration / 1_000_000_000 AS BIGINT)` via JOIN to `matches_raw`.
+    Raw `duration` is Arrow `duration[ns]` → BIGINT nanoseconds per DuckDB 1.5.1
+    (`pre_ingestion.py:271`). 56 outliers (28 corrupted matches) reported.
+  - aoe2companion: `CAST(EXTRACT(EPOCH FROM (r.finished - r.started)) AS BIGINT)`
+    in `_mhm_base` staging. 142 wall-clock outliers + 358 clock-skew rows reported.
+- **Gate +5 split** (R1 post-exec fix): +5a HALTING canary (`max ≤ 1_000_000_000`
+  catches nanosecond-unit regression) + +5b REPORT-ONLY (outlier count, no halt).
+  Enables data-quality outliers to pass through visibly without masking unit bugs.
+- **Gate +6** (aoec-specific HALTING): `finished` NULL fraction ≤ 1%.
+- **aoestats `matches_history_minimal` VIEW** — 8-col × 35,629,894 rows (= 2 ×
+  17,814,947 matches). UNION ALL pivot from 1-row-per-match (p0/p1 cols) to
+  2-rows-per-match. `started_at` via `CAST(started_timestamp AT TIME ZONE 'UTC'
+  AS TIMESTAMP)` (TIMESTAMPTZ → canonical TIMESTAMP). Slot-bias gate:
+  `AVG(won::INT) = 0.5` exactly (UNION erases upstream team1_wins ≈ 52.27% slot
+  asymmetry at output level). 13/13 gates PASS.
+- **aoe2companion `matches_history_minimal` TABLE** — 8-col × 61,062,392 rows
+  (= 2 × 30,531,196 matches). Self-join on matchId (sc2egset pattern). `started_at`
+  pass-through (already TIMESTAMP). Numeric-tail regex `[0-9]+` prefix gate with
+  round-trip cast (matchId is INTEGER; variable decimal width). 12/12 gates PASS.
+  **DuckDB 1.5.1 workaround**: TABLE (not VIEW) due to self-join-on-VIEW-with-
+  window-function InternalException; 3-step materialization via staging tables.
+  Documented in schema YAML `object_type_note`.
+- Schema YAMLs for both datasets' `matches_history_minimal` with per-dataset
+  polymorphic faction warning (aoestats ~50 civ names; aoec ~56 civ names).
+- 2 jupytext-paired notebooks (19 cells aoestats, 18 cells aoec) + 4 artifacts
+  (JSON + MD each). All SQL literals verbatim in validation JSON `sql_queries`
+  (I6). DESCRIBE snapshot captured (R2-WARNING-3 fix inherited from sc2egset).
+
+### Changed
+- Both aoe2 datasets' `STEP_STATUS.yaml`: 01_04_03 added and closed to complete.
+- Both aoe2 datasets' `PIPELINE_SECTION_STATUS.yaml`: 01_04 flipped in_progress →
+  complete (net zero relative to pre-PR state).
+- Both `ROADMAP.md`: 01_04_03 step block inserted after 01_04_02.
+- Both `research_log.md`: 01_04_03 entry prepended.
+
+### Fixed
+- (User-directed single adversarial round per "less ceremony" directive; 0
+  BLOCKERs surfaced pre-execution. 3 WARNINGs were documentation gaps caught
+  by execution-time gates — all 25 gates PASSED.)
+
+### Removed
+
 ## [3.13.0] — 2026-04-18 (PR #152: feat/01-04-03-sc2egset-minimal-history)
 
 ### Added

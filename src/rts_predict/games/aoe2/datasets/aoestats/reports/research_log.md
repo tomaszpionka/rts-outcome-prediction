@@ -8,6 +8,128 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Branch:** feat/01-04-03-aoe2-minimal-history
+**Scope:** Extended `matches_history_minimal` from 8 cols → 9 cols by adding `duration_seconds` BIGINT (POST_GAME_HISTORICAL).
+
+### Derivation (R1-BLOCKER-A1 fix)
+`CAST(r.duration / 1_000_000_000 AS BIGINT)` per row — both UNION halves (p0_half + p1_half) JOIN `matches_raw r` on `r.game_id = m.game_id` to pull `duration`.
+
+**Unit correction:** `matches_raw.duration` is **Arrow duration[ns] → BIGINT NANOSECONDS** per DuckDB 1.5.1 mapping (cite: `aoestats/pre_ingestion.py:271` + research_log.md:684,867,988,996). Originally proposed plan said "pass-through seconds" — this was wrong (would ship values ~1e9× too large). Plan R1 caught it; fixed to `/1_000_000_000`.
+
+### Gate split (Gate +5)
+- **Gate +5a (HALTING)** — unit regression canary: `max(duration_seconds) <= 1_000_000_000`. PASS (max 5,574,815s ≈ 64.5 days, well below 1B).
+- **Gate +5b (REPORT-ONLY)** — outlier count: rows with `duration_seconds > 86400`. Reported: **56 rows** (= 28 corrupted matches × 2 player-rows, 0.00008% of dataset). These are raw-data corruption in `matches_raw.duration` — deferred to 01_04_02 augmentation PR (follow-up) for proper flagging/filtering.
+
+### Duration stats (aoestats)
+- min: 3s
+- p50: 2,455s (~40.9 min)
+- p99: 5,729s (~95.5 min)
+- max: 5,574,815s (~64.5 days — 28 corrupted-raw-data matches)
+- null_count: 0
+- outlier_count_gt_86400: 56 (28 matches × 2 rows)
+
+### Gate summary — ALL PASS (18 gates: 13 original + 5 duration)
+- All 13 original gates (incl. slot-bias AVG=0.5): PASS
+- Gate +1..+4 (9-col shape, duration symmetry, non-NULL, non-negative): PASS
+- Gate +5a (unit regression HALTING): PASS
+- Gate +5b (outlier REPORT-ONLY): 56 rows reported
+- all_assertions_pass: True (23 assertions total)
+
+### I7 provenance
+1_000_000_000 divisor cites `aoestats/pre_ingestion.py:271` (Arrow `duration[ns]` → BIGINT nanoseconds per DuckDB 1.5.1).
+
+### Deferred follow-ups (per user-approved sequencing)
+- **01_04_02 augmentation PR:** add `duration_seconds` + `is_duration_suspicious` to `matches_1v1_clean` clean view (would flag the 28 corrupted matches at cleaning stage; 01_04_03 then pure pass-through).
+- **01_04_04 Identity Resolution PR:** aoestats `profile_id` stability + cross-dataset mapping to aoe2companion `profileId`.
+
+---
+
+## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
+
+**Category:** A (science)
+**Dataset:** aoestats
+**Branch:** feat/01-04-03-aoe2-minimal-history (bundled PR with aoe2companion sibling)
+**Step scope:** Created `matches_history_minimal` VIEW — 8-column player-row-grain projection of `matches_1v1_clean` via UNION ALL of p0/p1 halves (pivot from 1-row-per-match to 2-rows-per-match). Cross-dataset-harmonized substrate for Phase 02+ rating-system backtesting. Canonical TIMESTAMP `started_at` via `CAST(started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)`. Per-dataset polymorphic faction vocabulary (~50 civ names). Sibling of sc2egset 01_04_03 (PR #152) and aoe2companion 01_04_03 (same bundled PR).
+
+### Shape & strategy
+- Source: `matches_1v1_clean` (20 cols, 17,814,947 1v1-decisive matches, 1-row-per-match with p0/p1 columns).
+- View: 8 cols × 35,629,894 rows = 17,814,947 matches × 2 player-rows.
+- Strategy: **UNION ALL** of `p0_half` + `p1_half` CTEs (NO self-join, because aoestats is natively 1-row — contrast sc2egset/aoec which use self-join on natively 2-row views).
+
+### Column mapping (aoestats → cross-dataset)
+| cross-dataset | aoestats source | transformation |
+|---|---|---|
+| match_id | game_id (VARCHAR) | `'aoestats::' \|\| game_id` (no cast — opaque) |
+| started_at | started_timestamp (TIMESTAMPTZ) | `CAST(... AT TIME ZONE 'UTC' AS TIMESTAMP)` |
+| player_id | p{0,1}_profile_id (BIGINT) | `CAST(... AS VARCHAR)` |
+| opponent_id | p{0,1}_profile_id (sibling half) | UNION ALL mirror |
+| faction | p{0,1}_civ (VARCHAR) | pass-through |
+| opponent_faction | p{0,1}_civ (sibling half) | UNION ALL mirror |
+| won | p{0,1}_winner (BOOLEAN) | pass-through (POST_GAME_HISTORICAL → TARGET, acceptable per sc2egset precedent) |
+| dataset_tag | — | literal `'aoestats'` |
+
+### Gate verdict — all 13 PASS
+
+| # | Gate | Value |
+|---|---|---|
+| 1-2 | Artifacts + DESCRIBE (8 cols, dtypes match) | PASS |
+| 3-5 | Row counts 35,629,894 / 17,814,947 / 0-not-2 | PASS |
+| 6 | I5-analog NULL-safe symmetry violations (IS DISTINCT FROM) | 0 |
+| 7 | Zero NULLs: match_id/player_id/opponent_id/won/dataset_tag | all 0 |
+| 8 | Zero NULLs: faction/opponent_faction | both 0 |
+| 9 | Prefix violations (`LIKE 'aoestats::%'` + non-empty tail; game_id is opaque VARCHAR, no numeric regex) | 0 |
+| 10 | dataset_tag distinct=1, value='aoestats' | PASS |
+| 11 | Validation JSON `all_assertions_pass: true`; SQL verbatim; describe_table_rows | PASS |
+| **13** | **SLOT-BIAS: AVG(won::INT) = 0.5 exactly** | **PASS — 0.5 exactly** |
+
+### Slot-bias documentation (I5-NEW aoestats-specific)
+UNION ALL erases the upstream slot asymmetry at the OUTPUT level: every match contributes exactly 1 won + 1 not-won regardless of which slot won upstream. Post-UNION `overall_won_rate = 0.5` exactly (validation JSON `slot_bias.overall_won_rate`). Upstream `team1_wins ≈ 52.27%` slot asymmetry (documented in aoestats `matches_1v1_clean.yaml` line 118-125) is therefore not present in `matches_history_minimal`'s `won` column.
+
+NOTE: the validation JSON's `slot_bias.slot0_rate`/`slot1_rate` (~0.499/~0.501) use `player_id < opponent_id` as a lexicographic proxy for slot assignment — NOT the actual p0/p1 team assignment. The load-bearing gate is `overall_won_rate == 0.5 exactly`, which holds. Phase 02 consumers must still be aware of the upstream pre-UNION slot bias at training time (e.g., for slot-aware covariate selection); the bias is documented upstream and is no longer observable in this VIEW.
+
+### Faction vocabulary (top 10 of 50 distinct)
+mongols 2,265,003 / franks 2,026,638 / magyars 1,241,182 / britons 1,233,417 / spanish 1,179,123 / persians 1,170,753 / ethiopians 1,074,509 / khmer 1,059,050 / lithuanians 1,034,419 / huns 1,015,167.
+
+### Temporal range
+min=2022-08-29, max=2026-02-06. Zero NULL started_at. Zero TRY_CAST-equivalent failures.
+
+### Decisions taken
+- Source = matches_1v1_clean (built-in 1v1-decisive filter; p0_winner XOR p1_winner upstream).
+- match_id prefix applied in-view (preserves I9).
+- TIMESTAMP cast via `AT TIME ZONE 'UTC'` (canonical cross-dataset dtype; aoec uses pass-through; sc2egset uses TRY_CAST from VARCHAR).
+- IS DISTINCT FROM for NULL-safe symmetry (sc2egset R1-BLOCKER-3 inheritance).
+- NO fixed-length prefix gate (game_id is opaque VARCHAR; contrast sc2egset 42-char or aoec numeric-tail regex).
+
+### Cross-dataset contract (I8) — 3/3 datasets now shipping
+- sc2egset 01_04_03 (PR #152, MERGED): self-join; 42-char hex `sc2egset::` prefix; TRY_CAST from VARCHAR.
+- aoestats 01_04_03 (THIS): UNION ALL pivot; variable-length VARCHAR prefix; CAST AT TIME ZONE 'UTC' from TIMESTAMPTZ; slot-bias gate.
+- aoe2companion 01_04_03 (sibling in this PR): self-join (natively 2-row); numeric-tail regex prefix; TIMESTAMP pass-through.
+
+### Artifacts produced
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json` (NEW)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md` (NEW)
+- `data/db/schemas/views/matches_history_minimal.yaml` (NEW — 8 cols + invariants block)
+- DuckDB VIEW `matches_history_minimal` (NEW — 35,629,894 rows)
+
+### Status updates
+- STEP_STATUS.yaml: 01_04_03 → complete (2026-04-18)
+- ROADMAP.md: Step 01_04_03 block appended
+- PIPELINE_SECTION_STATUS.yaml: 01_04 → in_progress → complete (intermediate flip preserves derivation-chain consistency during execution)
+- PHASE_STATUS.yaml: phase 01 unchanged (stays in_progress; 01_05/01_06 not_started)
+
+### Adversarial cycle (combined plan — user-directed single round)
+- Pre-exec R1: APPROVE_WITH_WARNINGS — 0 BLOCKERs, 3 WARNINGs (documentation gaps caught by execution-time gates).
+
+### Thesis mapping
+- Chapter 4 — Data and Methodology > 4.1.2 AoE2 Match Data > Cross-dataset harmonization substrate
+- Chapter 4 — Data and Methodology > 4.3 Rating System Backtesting Design (downstream consumer)
+
+---
+
 ## 2026-04-17 — [Phase 01 / Step 01_04_02] Data Cleaning Execution
 
 **Category:** A (science)
