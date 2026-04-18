@@ -8,6 +8,7 @@ Operational orchestration directory for the plan/execute two-session workflow.
 |------|-----------|---------|
 | `README.md` | Permanent | This file |
 | `INDEX.md` | Permanent (reset after merge) | Active plan pointer + agent routing |
+| `BACKLOG.md` | Permanent (append/claim) | Deferred follow-ups from merged PRs; a session claims one item → fleshes it into `current_plan.md` |
 | `current_plan.md` | Ephemeral | The authoritative plan for the active PR |
 | `current_plan.critique.md` | Ephemeral | Adversarial critique (Cat A/F mandatory; B/D conditional) |
 
