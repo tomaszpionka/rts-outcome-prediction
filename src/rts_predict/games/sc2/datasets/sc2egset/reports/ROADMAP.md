@@ -1114,6 +1114,42 @@ thesis_mapping:
 research_log_entry: "Required on completion."
 ```
 
+#### Addendum: Duration Augmentation (2026-04-18)
+
+```yaml
+addendum_date: "2026-04-18"
+addendum_title: "Duration Augmentation -- matches_flat_clean 28 → 30 cols"
+addendum_scope: >
+  ADDENDUM to 01_04_02. Extends matches_flat_clean VIEW from 28 → 30 columns
+  by adding duration_seconds BIGINT (POST_GAME_HISTORICAL) + is_duration_suspicious
+  BOOLEAN (POST_GAME_HISTORICAL). Source: player_history_all.header_elapsedGameLoops
+  aggregated per replay_id / 22.4 (SC2 Faster loops/sec constant, I7). No row
+  changes (I9). STEP_STATUS stays complete per addendum precedent.
+new_cols:
+  - name: duration_seconds
+    type: BIGINT
+    token: POST_GAME_HISTORICAL
+    derivation: "CAST(ANY_VALUE(header_elapsedGameLoops) / 22.4 AS BIGINT) per replay_id"
+    i7_provenance: "details.gameSpeed cardinality=1 in sc2egset (research_log.md:333); Blizzard SC2 Faster=22.4 loops/sec"
+  - name: is_duration_suspicious
+    type: BOOLEAN
+    token: POST_GAME_HISTORICAL
+    derivation: "duration_seconds > 86400"
+    i8_provenance: "86400s canonical sanity bound; identical across sc2egset, aoestats, aoe2companion"
+duration_stats:
+  min_seconds: 1
+  p50_seconds: 651.0
+  p99_seconds: 1876.0
+  max_seconds: 6073
+  null_count: 0
+  suspicious_count: 0
+schema_version: "30-col (ADDENDUM: duration added 2026-04-18)"
+new_artifact: "artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json"
+new_artifact_md: "artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.md"
+notebook: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_02_duration_augmentation.py"
+gates_all_pass: true
+```
+
 ### Step 01_04_03 -- Minimal Cross-Dataset History View
 
 ```yaml

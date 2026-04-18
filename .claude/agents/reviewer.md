@@ -68,6 +68,24 @@ Your job is to find problems, not to praise.
 5. Academic register (third person or first person plural)
 6. Citations reference `thesis/references.bib` keys
 
+## For thesis chapters — cross-section consistency mode
+Invoke when the dispatch prompt mentions "cross-section consistency" or
+names more than one sibling section in a chapter. This mode supplements
+the standard thesis checklist above; run both.
+
+1. **Terminology consistency:** the same concept uses the same term
+   across sibling sections (e.g. "gradient boosted trees" vs. "GBDT" —
+   pick one).
+2. **No redundant coverage:** sibling sections do not re-explain the
+   same concept; cross-references point to a single authoritative
+   location.
+3. **Structural balance:** no section exceeds 2× the length of its
+   siblings unless content density justifies it.
+4. **Cross-reference accuracy:** every `§X.Y` reference points to an
+   existing section and accurately summarizes its content.
+5. **Voice consistency:** sections drafted in parallel share the same
+   Polish academic register, hedging cadence, and citation density.
+
 ## Output format:
 ```
 ## Review Results

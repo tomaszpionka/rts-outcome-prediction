@@ -1008,6 +1008,39 @@ research_log_entry: >
   resolutions, ledger-derived expected counts, artifact paths.
 ```
 
+#### Addendum: Duration Augmentation (2026-04-18)
+
+**Branch:** feat/01-04-02-duration-augmentation
+**Scope:** Extended `matches_1v1_clean` VIEW from 48 to 51 columns by adding duration derivation
+and outlier flags upstream at the cleaning stage.
+
+**New columns (appended at end, after is_null_cluster):**
+
+| Column | Type | Category | Formula |
+|---|---|---|---|
+| `duration_seconds` | BIGINT | POST_GAME_HISTORICAL | `CAST(EXTRACT(EPOCH FROM (r.finished - d.started)) AS BIGINT)` |
+| `is_duration_suspicious` | BOOLEAN | POST_GAME_HISTORICAL | `duration_seconds > 86400` |
+| `is_duration_negative` | BOOLEAN | POST_GAME_HISTORICAL | `duration_seconds < 0` (strict) |
+
+**JOIN pattern:** LEFT JOIN aggregated subquery `(SELECT matchId, MIN(finished) AS finished FROM matches_raw GROUP BY matchId)` — avoids cartesian blow-up (matches_raw is pre-dedup). DuckDB 1.5.1 empirically verified: VIEW works for this pattern (no self-reference, unlike 01_04_03 which self-references and requires TABLE workaround).
+
+**Threshold justification (I7):** 86,400s (24h) from 01_04_03 Gate+5b empirical precedent (~25x p99=3,458s); Tukey (1977) EDA sanity bound; I8: identical threshold across sc2egset/aoestats/aoe2companion.
+
+**Duration statistics:**
+- min: -3,041s (342 clock-skew rows; is_duration_negative = TRUE, strict <0)
+- p50: 1,433s (~24 min)
+- p99: 3,458s (~58 min)
+- max: 3,279,303s (~38 days — 142 bogus wall-clock rows; is_duration_suspicious = TRUE)
+- null_count: 0 (0.0% — finished empirically non-NULL in 1v1 ranked scope)
+- zero_duration_count: 16 (UNFLAGGED by both flags; known state for Phase 02)
+
+**STEP_STATUS:** stays `complete` (addendum pattern; no phase-gate regression).
+
+**New artifacts:**
+- `artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json` (validation, all_assertions_pass: true)
+- `artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.md`
+- `data/db/schemas/views/matches_1v1_clean.yaml` updated to 51 cols + schema_version ADDENDUM
+
 ---
 
 ### Step 01_04_03 — Minimal Cross-Dataset History View

@@ -1,0 +1,66 @@
+{
+  "step": "01_04_02",
+  "step_addendum": "duration_augmentation",
+  "dataset": "aoestats",
+  "generated_date": "2026-04-18",
+  "addendum_description": "Extends matches_1v1_clean from 20 -> 22 cols by adding duration_seconds BIGINT (POST_GAME_HISTORICAL) and is_duration_suspicious BOOLEAN (threshold 86400s).",
+  "duration_stats": {
+    "total_rows": 17814947,
+    "null_duration": 0,
+    "min_duration_seconds": 3,
+    "p50_duration_seconds": 2455.0,
+    "p99_duration_seconds": 5729.0,
+    "max_duration_seconds": 5574815,
+    "suspicious_count_gt_86400": 28
+  },
+  "suspicious_game_ids": [
+    "184213201",
+    "210909036",
+    "226137454",
+    "241569078",
+    "227257584",
+    "244145426",
+    "224419110",
+    "235233012",
+    "273616079",
+    "184214845",
+    "219924027",
+    "242789766",
+    "235404820",
+    "273614808",
+    "223818079",
+    "238496974",
+    "273656044",
+    "273612539",
+    "245201048",
+    "254497180",
+    "197011156",
+    "220017180",
+    "230860138",
+    "244930104",
+    "242215301",
+    "221016323",
+    "230239118",
+    "239720673"
+  ],
+  "gate_results": {
+    "gate_1_col_count_22": true,
+    "gate_1b_last2_cols_correct": true,
+    "gate_2_row_count_17814947": true,
+    "gate_3_duration_null_count_0": true,
+    "gate_4_max_duration_le_1e9": true,
+    "gate_5_suspicious_count_28_pm1": true
+  },
+  "sql_queries": {
+    "create_matches_1v1_clean_v3": "\nCREATE OR REPLACE VIEW matches_1v1_clean AS\n-- Purpose: Prediction-target VIEW. Ranked 1v1 decisive matches only.\n-- Row multiplicity: 1 row per match (NOT 2-per-match like sc2egset matches_flat_clean).\n-- Target column: team1_wins (BOOLEAN; 0/1 strict -- no Undecided/Tie analog in aoestats).\n-- Column set: 22 cols (post ADDENDUM 2026-04-18: +duration_seconds, +is_duration_suspicious).\n-- Predecessor: v2 (20 cols, 01_04_02 2026-04-17); all DS-AOESTATS-01..08 applied.\n-- I3: duration_seconds is POST_GAME_HISTORICAL -- safe only for history aggregation (match_time < T).\n-- I7: 86400s threshold = cross-dataset 24h canary (~25x p99); cites 01_04_03 Gate+5b.\n-- I7: 1_000_000_000 divisor cites aoestats/pre_ingestion.py:271 (Arrow duration[ns] -> BIGINT).\nWITH ranked_1v1 AS (\n    SELECT m.game_id\n    FROM matches_raw m\n    INNER JOIN (\n        SELECT game_id\n        FROM players_raw\n        GROUP BY game_id\n        HAVING COUNT(*) = 2 AND COUNT(DISTINCT team) = 2\n    ) pc ON m.game_id = pc.game_id\n    WHERE m.leaderboard = 'random_map'\n),\np0 AS (SELECT * FROM players_raw WHERE team = 0),\np1 AS (SELECT * FROM players_raw WHERE team = 1)\nSELECT\n    -- IDENTITY\n    m.game_id,\n    m.started_timestamp,\n\n    -- DS-AOESTATS-08: leaderboard DROPPED (constant n_distinct=1 in this scope)\n    m.map,\n    m.mirror,\n    -- DS-AOESTATS-08: num_players DROPPED (constant n_distinct=1 in this scope)\n    m.patch,\n    -- DS-AOESTATS-04: raw_match_type DROPPED (n_distinct=1; redundant with upstream filter)\n    m.replay_enhanced,\n\n    -- ELO (DS-AOESTATS-03: avg_elo NULLIF applied)\n    NULLIF(m.avg_elo, 0) AS avg_elo,\n    -- DS-AOESTATS-01: team_0_elo / team_1_elo RETAIN_AS_IS (sentinel=-1 absent in scope)\n    m.team_0_elo,\n    m.team_1_elo,\n\n    -- Player 0 (DS-AOESTATS-02: NULLIF + is_unrated indicator)\n    CAST(p0.profile_id AS BIGINT) AS p0_profile_id,\n    p0.civ AS p0_civ,\n    NULLIF(p0.old_rating, 0) AS p0_old_rating,\n    (p0.old_rating = 0) AS p0_is_unrated,\n    p0.winner AS p0_winner,\n\n    -- Player 1 (DS-AOESTATS-02: symmetric NULLIF + is_unrated)\n    CAST(p1.profile_id AS BIGINT) AS p1_profile_id,\n    p1.civ AS p1_civ,\n    NULLIF(p1.old_rating, 0) AS p1_old_rating,\n    (p1.old_rating = 0) AS p1_is_unrated,\n    p1.winner AS p1_winner,\n\n    -- TARGET (DS-AOESTATS-05: RETAIN_AS_IS, F1 override)\n    p1.winner AS team1_wins,\n\n    -- ADDENDUM 2026-04-18: duration cols (POST_GAME_HISTORICAL; I3 safe for history only)\n    -- Source: matches_raw.duration BIGINT NANOSECONDS (Arrow duration[ns] per DuckDB 1.5.1)\n    -- I7 provenance: divisor 1_000_000_000 cites aoestats/pre_ingestion.py:271\n    CAST(m.duration / 1000000000 AS BIGINT) AS duration_seconds,\n    -- I7 provenance: 86400s = 24h cross-dataset canonical sanity bound (~25x p99, I8)\n    (CAST(m.duration / 1000000000 AS BIGINT) > 86400) AS is_duration_suspicious\nFROM ranked_1v1 r\nINNER JOIN matches_raw m ON m.game_id = r.game_id\nINNER JOIN p0 ON p0.game_id = r.game_id\nINNER JOIN p1 ON p1.game_id = r.game_id\nWHERE p0.winner != p1.winner;\n",
+    "duration_stats": "\nSELECT\n    COUNT(*) AS total_rows,\n    COUNT(*) FILTER (WHERE duration_seconds IS NULL) AS null_duration,\n    MIN(duration_seconds) AS min_duration,\n    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_seconds) AS p50_duration,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_seconds) AS p99_duration,\n    MAX(duration_seconds) AS max_duration,\n    COUNT(*) FILTER (WHERE is_duration_suspicious = TRUE) AS suspicious_count\nFROM matches_1v1_clean\n",
+    "suspicious_sample": "\nSELECT\n    game_id,\n    duration_seconds,\n    ROUND(duration_seconds / 86400.0, 2) AS duration_days,\n    started_timestamp\nFROM matches_1v1_clean\nWHERE is_duration_suspicious = TRUE\nORDER BY duration_seconds DESC\nLIMIT 30\n"
+  },
+  "i7_provenance": {
+    "divisor": "1_000_000_000",
+    "divisor_cite": "aoestats/pre_ingestion.py:271 (Arrow duration[ns] -> BIGINT per DuckDB 1.5.1)",
+    "threshold_seconds": 86400,
+    "threshold_justification": "24h cross-dataset canonical sanity bound (~25x p99 from 01_04_03 Gate+5b; I8 contract)"
+  },
+  "all_assertions_pass": true
+}

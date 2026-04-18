@@ -8,6 +8,63 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Step 01_04_02] Data Cleaning Execution — ADDENDUM: duration_seconds + outlier flags (48 -> 51 cols)
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Branch:** feat/01-04-02-duration-augmentation
+**Scope:** Extended `matches_1v1_clean` VIEW from 48 to 51 columns by adding `duration_seconds` BIGINT, `is_duration_suspicious` BOOLEAN, `is_duration_negative` BOOLEAN. Centralizes duration provenance at cleaning stage so all downstream consumers inherit outlier flags without re-deriving.
+
+### Derivation
+
+```sql
+CAST(EXTRACT(EPOCH FROM (r.finished - d.started)) AS BIGINT) AS duration_seconds
+(duration_seconds > 86400) AS is_duration_suspicious
+(duration_seconds < 0)     AS is_duration_negative  -- strict < 0 per Q2 resolution
+```
+
+JOIN pattern: `LEFT JOIN (SELECT matchId, MIN(finished) AS finished FROM matches_raw GROUP BY matchId) r ON r.matchId = d.matchId` — avoids cartesian blow-up. DuckDB 1.5.1 VIEW works for this pattern (empirically verified via pre-flight test: 61,062,392 rows returned).
+
+### Duration stats (aoec matches_1v1_clean)
+
+- min: -3,041s
+- p50: 1,433s (~24 min)
+- p99: 3,458s (~58 min)
+- max: 3,279,303s (~38 days — 142 bogus wall-clock rows)
+- null_count: 0 (0.0%)
+- suspicious_count (>86400): 142
+- negative_count (strict <0): 342
+- zero_duration_count: 16 (UNFLAGGED by both flags — known state for Phase 02)
+
+### Gate summary — ALL 13 PASS (HALTING)
+
+- Gate 1 (DESCRIBE 51 cols; last 3 = duration_seconds BIGINT + is_duration_suspicious BOOLEAN + is_duration_negative BOOLEAN): PASS
+- Gate 2 (row count 61,062,392; distinct matchId 30,531,196): PASS
+- Gate 3 (NULL fraction <= 1%): PASS (0.0%)
+- Gate 4 (MAX duration_seconds <= 1,000,000,000): PASS (max 3,279,303)
+- Gate 5 (is_duration_suspicious == 142, HALTING): PASS
+- Gate 6 (is_duration_negative == 342, strict <0, HALTING): PASS
+- Gate 7 (schema YAML 51 cols + schema_version ADDENDUM + I3 extended): PASS
+- Gate 8 (I9: upstream YAMLs untouched): PASS
+- Gate 9 (validation JSON all_assertions_pass: true + sql_queries verbatim): PASS
+- Gate 10 (R03 complementarity intact; legacy cols present): PASS
+
+### I7 provenance
+
+86,400s threshold: from 01_04_03 Gate+5b empirical precedent (~25x p99=3,458s); Tukey (1977) EDA sanity bound; I8 cross-dataset canonical (identical threshold across sc2egset/aoestats/aoe2companion).
+
+### STEP_STATUS
+
+stays `complete` (addendum pattern per 01_04_03 ADDENDUM precedent; no phase-gate regression).
+
+### Artifacts
+
+- `artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.json`
+- `artifacts/01_exploration/04_cleaning/01_04_02_duration_augmentation.md`
+- `data/db/schemas/views/matches_1v1_clean.yaml` (51 cols, schema_version ADDENDUM 2026-04-18)
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View — ADDENDUM: duration_seconds (9-col extension)
 
 **Category:** A (science)
