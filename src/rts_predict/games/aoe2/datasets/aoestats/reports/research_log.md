@@ -47,7 +47,9 @@ AoE2 / aoestats findings. Reverse chronological.
 | **13** | **SLOT-BIAS: AVG(won::INT) = 0.5 exactly** | **PASS — 0.5 exactly** |
 
 ### Slot-bias documentation (I5-NEW aoestats-specific)
-UNION ALL erases upstream `team1_wins ≈ 52.27%` slot asymmetry at the OUTPUT level: every match contributes exactly 1 won + 1 not-won regardless of which slot won upstream. Pre-UNION slot rates: slot0=0.477329, slot1=0.522671 (preserved from upstream team1_wins ≈ 52.27%). Post-UNION overall rate: 0.5 exactly. Phase 02 consumers must still be aware of the pre-UNION slot bias at training time (sc2egset 01_04_03 YAML already documents; cross-dataset consistent).
+UNION ALL erases the upstream slot asymmetry at the OUTPUT level: every match contributes exactly 1 won + 1 not-won regardless of which slot won upstream. Post-UNION `overall_won_rate = 0.5` exactly (validation JSON `slot_bias.overall_won_rate`). Upstream `team1_wins ≈ 52.27%` slot asymmetry (documented in aoestats `matches_1v1_clean.yaml` line 118-125) is therefore not present in `matches_history_minimal`'s `won` column.
+
+NOTE: the validation JSON's `slot_bias.slot0_rate`/`slot1_rate` (~0.499/~0.501) use `player_id < opponent_id` as a lexicographic proxy for slot assignment — NOT the actual p0/p1 team assignment. The load-bearing gate is `overall_won_rate == 0.5 exactly`, which holds. Phase 02 consumers must still be aware of the upstream pre-UNION slot bias at training time (e.g., for slot-aware covariate selection); the bias is documented upstream and is no longer observable in this VIEW.
 
 ### Faction vocabulary (top 10 of 50 distinct)
 mongols 2,265,003 / franks 2,026,638 / magyars 1,241,182 / britons 1,233,417 / spanish 1,179,123 / persians 1,170,753 / ethiopians 1,074,509 / khmer 1,059,050 / lithuanians 1,034,419 / huns 1,015,167.

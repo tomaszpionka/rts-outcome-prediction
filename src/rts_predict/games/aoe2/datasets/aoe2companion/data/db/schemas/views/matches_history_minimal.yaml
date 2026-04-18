@@ -2,11 +2,15 @@ table: matches_history_minimal
 dataset: aoe2companion
 game: aoe2
 object_type: table
-object_type_note: 'DuckDB 1.5.1 bug: self-join on matches_1v1_clean VIEW (row_number
-  + ANY) causes InternalException. Two-step DDL materialization used instead of CREATE
-  OR REPLACE VIEW. Semantics are identical to the planned VIEW -- same 8-column contract,
-  same filtering, same row count. Consumer code works identically for both TABLE and
-  VIEW in DuckDB SQL.'
+object_type_note: 'DuckDB 1.5.1 bug #1: self-join on matches_1v1_clean VIEW (which
+  contains row_number() window function) throws InternalException. DuckDB 1.5.1 bug
+  #2: QUALIFY+CTE self-join inside a single CREATE TABLE AS returns 42,866 rows
+  instead of the expected 61,062,392. Workaround: 3-step materialization
+  (good_match_ids -> _mhm_base -> matches_history_minimal) with staging-table drops,
+  rather than the plan''s CREATE OR REPLACE VIEW. Semantics are identical to the planned
+  VIEW -- same 8-column contract, same filtering, same row count. Consumer code
+  works identically for both TABLE and VIEW in DuckDB SQL. See validation JSON
+  implementation_note and research_log (aoe2companion 01_04_03 entry) for full context.'
 step: '01_04_03'
 row_count: 61062392
 describe_artifact: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json
