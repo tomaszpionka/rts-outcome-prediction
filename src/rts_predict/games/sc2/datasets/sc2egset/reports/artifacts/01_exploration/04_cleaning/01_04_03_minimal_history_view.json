@@ -1,0 +1,181 @@
+{
+  "step": "01_04_03",
+  "dataset": "sc2egset",
+  "game": "sc2",
+  "generated_date": "2026-04-18",
+  "view": "matches_history_minimal",
+  "row_counts": {
+    "total_rows": 44418,
+    "distinct_match_ids": 22209,
+    "src_rows": 44418,
+    "src_replays": 22209,
+    "matches_with_2_rows": 22209,
+    "matches_with_not_2_rows": 0
+  },
+  "null_counts": {
+    "null_match_id": 0,
+    "null_started_at": 0,
+    "null_player_id": 0,
+    "null_opponent_id": 0,
+    "null_won": 0,
+    "null_dataset_tag": 0,
+    "null_faction_info": 0,
+    "null_opponent_faction_info": 0
+  },
+  "symmetry_violations": 0,
+  "prefix_violations": 0,
+  "dataset_tag_distinct": 1,
+  "dataset_tag_value": "sc2egset",
+  "temporal_sanity": {
+    "min_started_at": "2016-01-07 02:21:46.002000",
+    "max_started_at": "2024-12-01 23:48:45.251161",
+    "null_started_at": 0,
+    "distinct_started_at": 22164
+  },
+  "faction_vocab": {
+    "Prot": 16121,
+    "Zerg": 15527,
+    "Terr": 12770
+  },
+  "schema_shape": {
+    "col_names": [
+      "match_id",
+      "started_at",
+      "player_id",
+      "opponent_id",
+      "faction",
+      "opponent_faction",
+      "won",
+      "dataset_tag"
+    ],
+    "col_types": [
+      "VARCHAR",
+      "TIMESTAMP",
+      "VARCHAR",
+      "VARCHAR",
+      "VARCHAR",
+      "VARCHAR",
+      "BOOLEAN",
+      "VARCHAR"
+    ]
+  },
+  "assertion_results": {
+    "src_col_count_28": true,
+    "required_src_cols_present": true,
+    "col_count_8": true,
+    "col_names_match": true,
+    "col_dtypes_match": true,
+    "total_rows_44418": true,
+    "distinct_match_ids_22209": true,
+    "src_rows_44418": true,
+    "matches_with_not_2_rows_0": true,
+    "symmetry_violations_0": true,
+    "null_match_id_0": true,
+    "null_player_id_0": true,
+    "null_opponent_id_0": true,
+    "null_won_0": true,
+    "null_dataset_tag_0": true,
+    "prefix_violations_0": true,
+    "n_distinct_tags_1": true,
+    "dataset_tag_sc2egset": true
+  },
+  "all_assertions_pass": true,
+  "describe_table_rows": [
+    {
+      "column_name": "match_id",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "started_at",
+      "column_type": "TIMESTAMP",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "player_id",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "opponent_id",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "faction",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "opponent_faction",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "won",
+      "column_type": "BOOLEAN",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    },
+    {
+      "column_name": "dataset_tag",
+      "column_type": "VARCHAR",
+      "null": "YES",
+      "key": null,
+      "default": null,
+      "extra": null
+    }
+  ],
+  "sql_queries": {
+    "CREATE_MATCHES_HISTORY_MINIMAL_SQL": "CREATE OR REPLACE VIEW matches_history_minimal AS\n-- Purpose: Minimal cross-dataset-harmonized history view for rating-system\n--   backtesting (Phase 02+ consumer).\n-- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).\n-- Cross-dataset contract: 8 columns, identical dtypes across sibling views.\n--   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is\n--   per-dataset-polymorphic (SC2 race stems vs AoE2 civ names).\n-- Invariants: I3 (TIMESTAMP cast enables faithful chronological ordering),\n--   I5-analog (player-row symmetry, NULL-safe assertion), I6 (DDL verbatim\n--   in JSON artifact), I7 (magic numbers 32 / 42 cite\n--   data/db/schemas/views/matches_long_raw.yaml provenance regex\n--   [0-9a-f]{32}), I8 (UNION-compatible with sibling\n--   datasets via dataset_tag + prefixed match_id + canonical dtypes), I9\n--   (pure projection of matches_flat_clean; no upstream modification).\nWITH base AS (\n    SELECT\n        'sc2egset::' || mfc.replay_id              AS match_id,\n        mfc.replay_id                              AS raw_match_id,\n        TRY_CAST(mfc.details_timeUTC AS TIMESTAMP) AS started_at,\n        mfc.toon_id                                AS player_id,\n        mfc.race                                   AS faction,\n        (mfc.result = 'Win')                       AS won\n    FROM matches_flat_clean mfc\n)\nSELECT\n    p.match_id,\n    p.started_at,\n    p.player_id,\n    o.player_id                                    AS opponent_id,\n    p.faction,\n    o.faction                                      AS opponent_faction,\n    p.won,\n    'sc2egset'                                     AS dataset_tag\nFROM base p\nJOIN base o\n  ON p.match_id = o.match_id\n AND p.player_id <> o.player_id\nORDER BY p.started_at, p.match_id, p.player_id",
+    "ROW_COUNT_CHECK_SQL": "SELECT\n    (SELECT COUNT(*) FROM matches_history_minimal)                  AS total_rows,\n    (SELECT COUNT(DISTINCT match_id) FROM matches_history_minimal)  AS distinct_match_ids,\n    (SELECT COUNT(*) FROM matches_flat_clean)                       AS src_rows,\n    (SELECT COUNT(DISTINCT replay_id) FROM matches_flat_clean)      AS src_replays,\n    (SELECT COUNT(*) FROM (\n        SELECT match_id, COUNT(*) AS n\n        FROM matches_history_minimal\n        GROUP BY match_id\n        HAVING n = 2\n     ))                                                             AS matches_with_2_rows,\n    (SELECT COUNT(*) FROM (\n        SELECT match_id, COUNT(*) AS n\n        FROM matches_history_minimal\n        GROUP BY match_id\n        HAVING n <> 2\n     ))                                                             AS matches_with_not_2_rows",
+    "SYMMETRY_I5_ANALOG_SQL": "WITH row_pairs AS (\n    SELECT\n        a.match_id,\n        a.player_id         AS a_pid,\n        a.opponent_id       AS a_oid,\n        a.won               AS a_won,\n        a.faction           AS a_fac,\n        a.opponent_faction  AS a_ofac,\n        b.player_id         AS b_pid,\n        b.opponent_id       AS b_oid,\n        b.won               AS b_won,\n        b.faction           AS b_fac,\n        b.opponent_faction  AS b_ofac\n    FROM matches_history_minimal a\n    JOIN matches_history_minimal b\n      ON a.match_id = b.match_id\n     AND a.player_id <> b.player_id\n)\nSELECT COUNT(*) AS symmetry_violations\nFROM row_pairs\nWHERE a_pid <> b_oid\n   OR a_oid <> b_pid\n   OR a_won = b_won\n   OR a_fac IS DISTINCT FROM b_ofac\n   OR a_ofac IS DISTINCT FROM b_fac",
+    "ZERO_NULL_SQL": "SELECT\n    COUNT(*) FILTER (WHERE match_id     IS NULL) AS null_match_id,\n    COUNT(*) FILTER (WHERE started_at   IS NULL) AS null_started_at,\n    COUNT(*) FILTER (WHERE player_id    IS NULL) AS null_player_id,\n    COUNT(*) FILTER (WHERE opponent_id  IS NULL) AS null_opponent_id,\n    COUNT(*) FILTER (WHERE won          IS NULL) AS null_won,\n    COUNT(*) FILTER (WHERE dataset_tag  IS NULL) AS null_dataset_tag,\n    COUNT(*) FILTER (WHERE faction          IS NULL) AS null_faction_info,\n    COUNT(*) FILTER (WHERE opponent_faction IS NULL) AS null_opponent_faction_info\nFROM matches_history_minimal",
+    "PREFIX_CHECK_SQL": "-- Magic literals: 'sc2egset::' = 10-char literal prefix (plan spec);\n--                 32 = replay_id hex length from\n--                      src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml\n--                      join_key regex [0-9a-f]{32} (I7 provenance).\n-- Total length contract: 10 + 32 = 42.\nSELECT COUNT(*) AS prefix_violations\nFROM matches_history_minimal\nWHERE match_id NOT LIKE 'sc2egset::%'\n   OR length(match_id) <> length('sc2egset::') + 32\n   OR regexp_extract(match_id, '::([0-9a-f]{32})$', 1) = ''",
+    "DATASET_TAG_CHECK_SQL": "SELECT\n    COUNT(DISTINCT dataset_tag) AS n_distinct_tags,\n    MAX(dataset_tag)            AS the_tag\nFROM matches_history_minimal",
+    "FACTION_VOCAB_SQL": "SELECT faction, COUNT(*) AS n\nFROM matches_history_minimal\nGROUP BY faction\nORDER BY n DESC",
+    "TEMPORAL_SANITY_SQL": "SELECT\n    MIN(started_at)            AS min_started_at,\n    MAX(started_at)            AS max_started_at,\n    COUNT(*) FILTER (WHERE started_at IS NULL) AS null_started_at,\n    COUNT(DISTINCT started_at) AS distinct_started_at\nFROM matches_history_minimal"
+  },
+  "spec_schema": {
+    "expected_col_names": [
+      "match_id",
+      "started_at",
+      "player_id",
+      "opponent_id",
+      "faction",
+      "opponent_faction",
+      "won",
+      "dataset_tag"
+    ],
+    "expected_dtypes": [
+      "VARCHAR",
+      "TIMESTAMP",
+      "VARCHAR",
+      "VARCHAR",
+      "VARCHAR",
+      "VARCHAR",
+      "BOOLEAN",
+      "VARCHAR"
+    ]
+  }
+}
