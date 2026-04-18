@@ -43,17 +43,17 @@ Source: `docs/thesis/PJAIT_THESIS_REQUIREMENTS.md`.
 | §2.1 RTS game characteristics | `DRAFTABLE` | — | Literature |
 | §2.2 StarCraft II | `DRAFTABLE` | Phase 01 (Data Exploration — timing, mechanics) | Literature part draftable; data-derived details added after Phase 01 |
 | §2.3 Age of Empires II | `BLOCKED` | AoE2 roadmap | Future |
-| §2.4 ML methods for classification | `DRAFTABLE` | — | Literature |
+| §2.4 ML methods for classification | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 17 distinct keys, 3 [REVIEW] flags. ~14.7k chars Polish. 13 new bibtex entries appended (Hastie2009ESL, Friedman2001GBM, Chen2016XGBoost, Ke2017LightGBM, Goodfellow2016DL, Breiman2001, CortesVapnik1995, Hochreiter1997LSTM, KipfWelling2017, NiculescuMizil2005, etc.). |
 | §2.5 Player skill rating systems | `DRAFTED` | — | Literature; Gate 0.5 calibration draft (2026-04-17). 14 distinct keys / 24 inline citations, 4 [REVIEW] flags. ~20.9k chars Polish. **Gate 0.5: PASS_FOR_PRODUCTION_SCALING.** |
-| §2.6 Evaluation metrics | `DRAFTABLE` | — | Literature |
+| §2.6 Evaluation metrics | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 14 distinct keys, 2 [REVIEW] flags. ~12.8k chars Polish. 10 new bibtex entries appended (Brier1950, Murphy1973, HanleyMcNeil1982, Friedman1937, Wilcoxon1945, Holm1979, GarciaHerrera2008, Garcia2010, Benavoli2016, Benavoli2017, Nadeau2003, Dietterich1998, Bouckaert2003). |
 
 ## Chapter 3 — Related Work
 
 | Section | Status | Feeds from | Notes |
 |---------|--------|------------|-------|
-| §3.1 Traditional sports prediction | `DRAFTABLE` | — | Literature |
+| §3.1 Traditional sports prediction | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 11 distinct keys, 0 [REVIEW] flags. ~7.8k chars Polish. 5 new bibtex entries appended (Dixon1997, Maher1982, Constantinou2013, Bunker2024, Glickman1995). |
 | §3.2 StarCraft prediction literature | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 28 distinct keys / ~46 inline citations, 6 [REVIEW] flags. ~14.8k chars Polish. 15 new bibtex entries appended. Tarassoli2024 flagged as SC-Phi2 misattribution; deferred to user morning review. |
-| §3.3 MOBA and other esports | `DRAFTABLE` | — | Literature |
+| §3.3 MOBA and other esports | `DRAFTED` | — | Literature; Pass 1 calibration draft (2026-04-17). 13 distinct keys, 2 [REVIEW] flags. ~11.4k chars Polish. 5 new bibtex entries appended (Yang2017Dota, Bahrololloomi2023, Akhmedov2021, Silva2018LoL, Yangibaev2025). |
 | §3.4 AoE2 prediction | `BLOCKED` | AoE2 lit review | Future |
 | §3.5 Research gap | `BLOCKED` | §3.1-§3.4 | Skeleton draftable from §3.1-§3.3; full draft blocked on §3.4 (AoE2 lit review) |
 
