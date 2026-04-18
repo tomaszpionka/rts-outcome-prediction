@@ -14,6 +14,8 @@ defensibility of a drafted section.
 |------|---------|----------|---------|
 | `sec_4_1_crosswalk.md` | 2026-04-17 | REVIEW_QUEUE.md §4.1.1 / §4.1.2 / §4.1.3 | Numerical crosswalk: every number in §4.1 prose traces to a Phase 01 artifact line (8-column schema) |
 | `sec_4_1_halt_log.md` | 2026-04-17 | §4.1 drafting audit trail | Halt-protocol log for §4.1 execution — attests zero halt events during T03–T06b |
+| `sec_4_2_crosswalk.md` | 2026-04-18 | REVIEW_QUEUE.md §4.2.1 / §4.2.2 / §4.2.3 | Numerical crosswalk for §4.2 (78 rows: 48 main + 10 identity-check + 16 scope-overlap with §4.1 + 4 classification of new bib entries) |
+| `sec_4_2_halt_log.md` | 2026-04-18 | §4.2 drafting audit trail | Halt-protocol log for §4.2 execution — attests zero halt events during T01–T04 |
 
 ## Conventions
 
