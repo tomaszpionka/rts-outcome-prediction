@@ -71,6 +71,7 @@ FROM (
 - **`ratings_raw`:** Has zero rows with `leaderboard_id = 6` (rm_1v1). Provides only lb=0 (unranked) and lb=3/4 (dm_team) rating trajectories. Phase 02 rating features must derive from `matches_raw.rating` for rm_1v1. (01_03_03)
 - **`profiles_raw`:** No temporal dimension — not usable for temporal features. Adds steamId/clan (99.9% non-null) but excluded from feature computation. (01_03_03)
 - **duration_seconds is POST_GAME_HISTORICAL:** Derived from `finished - started`; only known after match ends. Excluded from PRE_GAME feature sets by default via I3 token. (01_04_02 ADDENDUM; 01_04_03)
+- **Reservoir-sample reproducibility caveat**: DuckDB `USING SAMPLE reservoir(N ROWS) REPEATABLE(seed)` is deterministic only for fixed input row-order. `matches_raw` physical/segment order shifts on rebuild; the same seed can yield different samples across rebuilds. Consequence: bit-exact reproduction of 01_04_04 reservoir-based findings across DB rebuilds is NOT guaranteed. Findings remain methodologically equivalent (conclusions preserved), but specific numeric triples are post-rebuild-specific. Document the rebuild state (DB mtime vs artifact mtime) when citing reservoir-derived numbers.
 
 ## §4 Per-dataset empirical findings
 

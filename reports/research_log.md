@@ -55,8 +55,8 @@ same namespace (both sourced from the aoe2insights.com API).
 
 Empirical evidence (2026-01-25..2026-01-31 window, rm_1v1 filter both sides):
 - Full-window: 100% of aoestats profiles (28,921) appear in aoec matches_raw.
-- Reservoir sample (1,000 aoec matches, seed=20260418): p_hat=0.8818, 95% CI=[0.8671, 0.8964].
-- VERDICT A: STRONG -- CI lower bound (0.867) > 0.50 threshold.
+- Reservoir sample (1,000 aoec matches, seed=20260418): ~~p_hat=0.8818, 95% CI=[0.8671, 0.8964]~~ → p_hat=0.8782, 95% CI=[0.8634, 0.8931] (canonical, from artifact JSON) [^cross-ci-drift-2026-04-18].
+- VERDICT A: STRONG -- CI lower bound (0.863) > 0.50 threshold. [was: 0.867]
 
 **Implication for Phase 02:**
 1. aoestats (which has no name column) can obtain I2-compliant canonical nicknames via
@@ -67,6 +67,8 @@ Empirical evidence (2026-01-25..2026-01-31 window, rm_1v1 filter both sides):
 **Pending:** aoestats 01_04_04 executor must confirm the same VERDICT (per plan cross-dataset
 gate 6: "aoestats T03 and aoec T06 feasibility verdicts agree"). If aoestats executor finds
 VERDICT B or C, dispatch adversarial review per plan gate instructions.
+
+[^cross-ci-drift-2026-04-18]: **Reconciliation — CI drift (2026-04-18 → 2026-04-19).** Narrative originally recorded `p_hat=0.8818, CI=[0.8671, 0.8964]`; artifact JSON records `p_hat=0.8782, CI=[0.8634, 0.8931]` (Δp̂=0.0036). Both clear Christen (2012) VERDICT A. Caused by DuckDB reservoir sampling non-determinism under row-order shifts from a DB rebuild between narrative-run and artifact-run (`stat` evidence: DB mtime ~1h24m before artifact mtime on 2026-04-18). Artifact JSON is now canonical. See aoec `research_log.md` footnote [^ci-drift-2026-04-18] for full detail.
 
 ---
 
