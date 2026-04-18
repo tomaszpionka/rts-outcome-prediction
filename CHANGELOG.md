@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.12.0] — 2026-04-17 (PR #TBD: docs/thesis-4.1-data-chapter)
+## [3.12.0] — 2026-04-17 (PR #148: docs/thesis-4.1-data-chapter)
 
 ### Added
 - **Thesis §4.1 Data chapter fully drafted** in Polish (46.7k chars across §4.1.1 SC2EGSet
