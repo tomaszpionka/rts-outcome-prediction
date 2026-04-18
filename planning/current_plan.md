@@ -1,806 +1,839 @@
 ---
-category: F
-branch: docs/thesis-3.4-3.5
+category: A
 date: 2026-04-18
-planner_model: claude-opus-4-7
-dataset: null
-phase: null
-pipeline_section: null
-invariants_touched: []
-source_artifacts:
-  - thesis/chapters/03_related_work.md
-  - thesis/chapters/04_data_and_methodology.md
-  - thesis/chapters/01_introduction.md
-  - thesis/chapters/02_theoretical_background.md
-  - thesis/THESIS_STRUCTURE.md
-  - thesis/WRITING_STATUS.md
-  - thesis/chapters/REVIEW_QUEUE.md
-  - thesis/references.bib
-  - thesis/reviews_and_others/related_work_historical_rts_prediction.md
-  - temp/plan_3_4_3_5_v1.md
-  - temp/critique_3_4_3_5_r1.md
-  - temp/plan_3_4_3_5_v2.md
-critique_required: true
-research_log_ref: reports/research_log.md#2026-04-18-thesis-34-35-chapter3-close
+branch: feat/01-04-03-sc2egset-minimal-history
+phase: "01"
+pipeline_section: "01_04"
+step: "01_04_03"
+dataset: sc2egset
+game: sc2
+title: "Step 01_04_03 — Minimal Cross-Dataset History View (sc2egset pattern-establisher)"
+manual_reference: "docs/ml_experiment_lifecycle/01_DATA_EXPLORATION_MANUAL.md §4"
+invariants_touched: [I3, I5, I6, I7, I8, I9]
+predecessors: ["01_04_02"]
+plan_round: R3
+addresses_critique: planning/current_plan.critique.v3.md (R3 — APPROVE_WITH_WARNINGS after 3 rounds)
 ---
 
-# Plan: §3.4 AoE2 prediction literature + §3.5 Research gap (Chapter 3 closure)
+# Step 01_04_03 — Minimal cross-dataset history view (sc2egset pattern-establisher)
+
+## Summary
+
+Create a DuckDB VIEW `matches_history_minimal` that is a **narrow cross-dataset-harmonized projection** of `matches_flat_clean` (from 01_04_02, PR #142). The view is the common substrate for Phase 02+ rating-system backtesting. The canonical cross-dataset contract is **8 columns, 2 rows per 1v1 match, TIMESTAMP-typed temporal anchor, per-dataset-polymorphic faction vocabulary**.
+
+**Category:** A (Phase work)
+**Branch:** `feat/01-04-03-sc2egset-minimal-history`
+**Phase / Pipeline Section / Step:** 01 — Data Exploration / 01_04 — Data Cleaning / **01_04_03** (NEW)
+**Dataset:** sc2egset (pattern-establisher; aoestats + aoec follow in sibling PRs)
+**Invariants:** I3, I5-analog, I6, I7, I8, I9
+
+---
+
+## BLOCKERS
+
+**None remain after R1 revision.** Three explicit assumptions / cross-dataset commitments:
+
+1. **`match_id` is the cross-dataset name for sc2egset's `replay_id`**: `'sc2egset::' || replay_id AS match_id`.
+
+2. **`started_at` is TIMESTAMP (via TRY_CAST of `details_timeUTC`).** R1-BLOCKER-2 fix: contract-level canonical dtype is **TIMESTAMP (no TZ)**. sc2egset casts from VARCHAR ISO-8601 here; aoestats sibling PR must `CAST started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP`; aoe2companion passes TIMESTAMP through. This eliminates the 3-way dtype split (VARCHAR/TIMESTAMPTZ/TIMESTAMP) present at 01_04_02.
+
+3. **`is_mmr_missing` NOT in the minimal view.** Phase 02 consumers that need MMR join from `matches_flat_clean` on `(match_id, player_id)`.
+
+4. **`faction` is per-dataset polymorphic vocabulary.** R1-BLOCKER-5 fix: explicit contract — column name + dtype are cross-dataset, but VALUES are per-dataset (SC2 race stems vs AoE2 civilization names). Consumers MUST NOT treat `faction` as a single categorical feature across datasets without game-conditional encoding. Schema YAML + research_log document this.
+
+---
 
 ## Scope
 
-Draft Polish-language thesis sections §3.4 (AoE2 prediction literature) and §3.5 (Research gap) in `thesis/chapters/03_related_work.md`, closing Chapter 3 (partial → content-complete pending Pass 2). Literature-fed Category F work; both sections drafted together because §3.5 synthesizes §3.1-§3.4 into 4-gap novelty positioning mapped 1-to-1 to RQs in §1.3. Central empirical finding: AoE2 peer-reviewed prediction literature is near-empty — 3 confirmable sources (CetinTas2023 + Lin2024NCT + Elbert2025) plus 2 grey-literature items (Xie2020 + porcpine1967); §3.4 reports the thinness honestly rather than padding. Combined target 14-17k Polish chars. Plan v2 after 1 plan-side adversarial round that found BLOCKER-1 (missed Elbert2025) + 5 WARNINGs; autonomous-mode decisions applied on 4 Q_adv items + grey-lit commitment; 7 NEW concerns self-surfaced during v2 drafting.
+Create `matches_history_minimal` for sc2egset — an **8-column player-row-grain** VIEW (2 rows per 1v1 match) projected from `matches_flat_clean`. Cross-dataset-harmonized common substrate for Phase 02+ rating-system backtesting. Temporarily reverts `PIPELINE_SECTION_STATUS["01_04"]` from `complete` → `in_progress` for the duration of execution, then back to `complete` on gate pass.
 
-Category: F (thesis writing, Literature-fed) — drafted together because §3.5 is blocked on §3.4 closure.
+## Problem statement
 
-Target persisted path: `temp/plan_3_4_3_5_v2.md`
-Planner role: READ-ONLY. This text is returned to the parent session.
-Revision: v2 — responds to R1 adversarial critique at `temp/critique_3_4_3_5_r1.md` (verdict: REQUIRES_REVISION_R2).
+Phase 02 rating-system backtesting needs one table shape identical across sc2egset / aoestats / aoec in column names and dtypes, player-row-grain (2 rows per 1v1 match), read-only / non-destructive. Neither `matches_flat_clean` nor `player_history_all` fits as-is. `matches_history_minimal` answers this gap.
 
----
+## Proposed schema (8 columns)
 
-## Change log — R1 critique responses
+| column | dtype | semantics |
+|---|---|---|
+| `match_id` | VARCHAR | `'sc2egset::' \|\| replay_id` (UNION-unique across datasets) |
+| `started_at` | **TIMESTAMP** | `TRY_CAST(details_timeUTC AS TIMESTAMP)`; canonical cross-dataset type |
+| `player_id` | VARCHAR | focal toon_id |
+| `opponent_id` | VARCHAR | opposing toon_id |
+| `faction` | VARCHAR | focal player's `race` (raw `Prot`/`Terr`/`Zerg` 4-char stems in sc2egset — per-dataset polymorphic vocabulary; see R1-BLOCKER-5 fix) |
+| `opponent_faction` | VARCHAR | opposing player's `race` (same vocabulary as `faction`) |
+| `won` | BOOLEAN | `result = 'Win'`; two rows of a match have complementary `won` |
+| `dataset_tag` | VARCHAR | constant `'sc2egset'` |
 
-| ID | Critique item | Response in v2 | Where applied |
-|---|---|---|---|
-| B1 | Missed peer-reviewed AoE2 paper (Elbert2025, ACM EC'25) | Added to Tier 1; dedicated §3.4.3 sub-section ~600–800 chars Polish; §3.4 structure grows from 4 sub-sections to 5; character budget raised to 7.0–9.0k | §5 Tier 1; §6 T02 structure; §1 front matter length |
-| W1 | "86% accuracy" provenance partially resolvable (Xie2020 maxes at 77%) | A1/U1 updated: 86% can only be CetinTas2023; direction of attribution rozstrzygnięte; [REVIEW] flag retained for primary-source IEEE Xplore verification, not for attribution direction | §4 assumptions A1/U1 |
-| W2 | Lin-group follow-up preprint (Lin & Wu 2025 arXiv:2502.03998) not mentioned | Single sentence in §3.4.2 closing ("kontynuacja linii badań Lin2024NCT w wersji online-learning ratingów"); NOT added to bib (preprint); verified as Lin + Wu only, RPS setting not AoE2 | §6 T02 §3.4.2 closing instruction |
-| W3 | Halt-protocol dead-weight under revised premise | Section 7 rewritten for "3 peer-reviewed + 2 grey-lit" starting state; (a/b/c) branches retired; new condition added for discovery of additional peer-reviewed papers during T01 re-sweep | §7 Halt protocol |
-| W4 | §3.4 sub-numbering asymmetry with §3.3 | Single-sentence justification added to T02 voice requirements (§3.4 mirrors §3.2 structure since both survey ONE game; §3.3 has 5 sub-sections because it surveys multiple genres) | §6 T02 voice requirements |
-| W5 | Tier 3 grey-lit decision punted to Pass 2 | LOCAL COMMITMENT made in plan: include Xie2020 + porcpine1967 in §3.4.4 with explicit Tier 3 labelling; DROP gmcirco42 Bayesian bookdown (Xie2020 covers methodological ground; porcpine1967 covers Elo-linearity); [REVIEW] flag at §3.4.4 opening for Pass 2 reconciliation only, not for structural presence | §4 A4/U3; §5 Tier 3; §6 T02 §3.4.4 |
-| Q_adv_1 | Elbert2025 scope: dedicated sub-section or 300-char mention? | **Dedicated §3.4.3 sub-section ~600–800 Polish chars.** Rationale: Elbert2025 is AoE2-specific (unlike Lin2024NCT which is AoE2-adjacent multi-game); parallel structural weight to §3.4.1 (CetinTas2023) and §3.4.2 (Lin2024NCT) is methodologically defensible | §6 T02 §3.4.3 |
-| Q_adv_2 | §3.5 Luka 3 hedge strength | **Strengthened** to the longer formulation: *"pierwsza znana nam praca porównująca rodzinę klasyfikatorów uczenia maszynowego w zadaniu benchmarkowania metod predykcji wyniku meczu między dwiema grami RTS z jawną oceną probabilistyczną"*; narrower hedge = more defensible against examiner familiar with Elbert2025 / Lin2024NCT | §6 T03 §3.5 Luka 3 |
-| Q_adv_3 | Lin2025Online preprint treatment | **Footnote-equivalent single sentence in §3.4.2 closing** — framed as "kontynuacja linii badań Lin2024NCT w wersji online-learning ratingów" with arXiv preprint note; NOT added to references.bib (not peer-reviewed); additional v2 finding from WebFetch: Lin&Wu 2025 uses Rock-Paper-Scissors setting, NOT AoE2, which further justifies the lightweight treatment | §6 T02 §3.4.2 closing |
-| Q_adv_4 (new) | Grey-lit W5 decision | gmcirco42 dropped entirely; Xie2020 + porcpine1967 retained with Tier 3 labelling | §5 Tier 3; §6 T02 §3.4.4 |
+**Grain:** 2 rows per match_id (player row + opponent row, symmetric swap).
 
----
+## Assumptions & unknowns
 
-## NEW concerns (surfaced during v2 drafting — for R2 adversarial to catch)
+| # | Assumption | Risk if wrong |
+|---|---|---|
+| A1 | Cross-dataset union uniqueness via `'sc2egset::' \|\| replay_id` prefix. | Collision → duplicates on future UNION ALL. Mitigation: assert `COUNT(*) = COUNT(DISTINCT match_id)`. |
+| A2 (REV) | **Canonical cross-dataset dtype for `started_at` is TIMESTAMP.** sc2egset casts here via `TRY_CAST(details_timeUTC AS TIMESTAMP)`; aoestats sibling PR casts `CAST(started_timestamp AT TIME ZONE 'UTC' AS TIMESTAMP)`; aoe2companion passes TIMESTAMP through. | If any sibling PR ships a different type, UNION ALL fails with DuckDB type-error (visible, not silent). The contract is enforced at each sibling PR's gate. |
+| A2b (NEW) | **aoestats sibling PR column mapping (R2-WARNING-2):** `p{0,1}_profile_id → player_id` (UNION ALL the two halves); `p{0,1}_civ → faction` (raw per-dataset polymorphic civ vocabulary); `p{0,1}_winner → won` (TARGET — aoestats YAML flags `p_winner` as POST_GAME_HISTORICAL, acceptable here since `won` IS the prediction target in matches_history_minimal, symmetric with sc2egset's `result='Win'`); `replay_id / match_id → 'aoestats::' \|\| <native_id>`. aoestats slot-bias note: team1 wins ≈52.27% per aoestats matches_1v1_clean.yaml — naive p0/p1 swap preserves slot bias; sibling PR must acknowledge and not claim slot-balanced sampling. | If mapping is mis-applied (e.g., `p_winner` treated as feature instead of target), the view encodes future leakage on aoestats. Mitigation: aoestats sibling plan will pin mapping explicitly. |
+| A3 | `race` (actual played race) is the right faction signal, not `selectedRace` (includes `'Random'`). Consistent with `matches_long_raw.chosen_civ_or_race`. | `selectedRace='Random'` leaks pre-resolution semantics; `race` is what shipped. |
+| A4 | `toon_id` is the stable sc2egset player identifier. Cross-dataset identity / nickname resolution deferred to Phase 01_05+. | Per-dataset identifier OK. |
+| A5 | Source table = `matches_flat_clean`, not `player_history_all`. Built-in 1v1-decisive filter; 44,418 rows = 22,209 × 2 by construction. | If `matches_flat_clean` loses `race` or `toon_id`, view breaks. Mitigation: DESCRIBE-based source-column assertion in cell 4. |
+| A6 | `opponent_id` / `opponent_faction` derive from self-join on `matches_flat_clean` via `replay_id` with `toon_id <> opp.toon_id`. | `player_history_all` adds 399 unwanted rows. |
+| A7 (NEW) | **`faction` values are per-dataset-polymorphic.** R1-BLOCKER-5: sc2egset ships `Prot/Terr/Zerg`; aoestats ships full civ names (`Mongols`, etc.); aoe2companion similarly. Column NAME and DTYPE are cross-dataset; VALUES are per-dataset ontology. | Consumers that do naive UNION-wide `GROUP BY faction` get ontologically-mixed buckets. Schema YAML explicitly warns + research_log documents. |
 
-**NC1 — Elbert2025 is TEAM GAMES only (2v2/3v3/4v4), not 1v1.** WebFetch of arXiv:2506.04475 HTML confirmed: "The paper analyzes 2v2, 3v3, and 4v4 modes exclusively. Solo matches were used only for extracting baseline skill features." The thesis's AoE2 pipeline is 1v1 (see §4.1.2 and Phase 01 `01_04` cleaning which filters `matches_1v1_clean`). This is an additional distinguisher for §3.5 Luka 3 hedge — Elbert2025 does not compete with the thesis's task scope even on outcome prediction, because it operates in team games. **Plan v2 propagates this**: §3.4.3 Elbert2025 sub-section must note the team-games scope; §3.5 Luka 3 hedge must include "w grach 1v1" as an explicit scope qualifier where defensible.
+## Literature context
 
-**NC2 — Elbert2025 data source is aoe2insights.com, not aoestats / aoe2.net / aoe2companion.** Yet another distinguisher: the thesis uses aoestats + aoe2companion; Elbert2025 uses aoe2insights (per WebFetch: "core set of 14,000 focal players from the analytics platform aoe2insights.com"). Data-source distinction is not dispositive (multiple papers can use different AoE2 datasets), but it further caveats any direct empirical comparison. §3.4.3 should note the data source explicitly.
+Cleaning-stage methodology (the only references this step's methodology cites per I9):
+- Manual `01_DATA_EXPLORATION_MANUAL.md` §4.2 — non-destructive cleaning.
+- Manual `01_DATA_EXPLORATION_MANUAL.md` §4.4 — post-cleaning validation.
+- Schafer & Graham (2002) — missingness handling (already established in 01_04_01).
+- van Buuren (2018) — missingness handling.
+- Tukey (1977) — EDA on raw-string vocabularies feeds the FACTION_VOCAB_SQL exploratory output.
 
-**NC3 — Elbert2025 uses logistic regression only + pseudo-R² (no Brier/log-loss/AUC).** Same methodological gap as CetinTas2023. This strengthens the calibration-gap finding in §3.4.5/§3.5 Luka 1. Report methodologically; not a blocker for the plan.
+Downstream-consumer context (not cited as this step's methodology, listed for traceability only — R1-BLOCKER-4 fix):
+- Phase 02+ rating systems (Elo, Glicko, Glicko-2, TrueSkill, Aligulac, BTL) are downstream consumers of this view; their methodology references belong to Phase 02 plans.
 
-**NC4 — Elbert2025 "only a one-page extended abstract will appear in the EC '25 proceedings"** (per arXiv page). The ACM EC conference format publishes only extended abstracts, not full papers, in proceedings. The full paper exists as arXiv + SSRN. This has citation-convention implications: the `@inproceedings{Elbert2025EC}` bib entry will reference both the EC'25 extended-abstract venue AND the arXiv full-paper mirror. Pass 2 should verify the citation convention. Flag with `[REVIEW: EC'25 extended-abstract citation convention for Elbert2025]`.
+## Cross-dataset comparability justification (I8)
 
-**NC5 — Elbert2025 reports a Kaggle dataset `nicoelbert/aoe-matchups`.** This is discoverable via WebSearch (kaggle.com result). It is likely the data artefact for the paper. Not in scope for §3.4.3 narrative, but potentially relevant for Chapter 4 if the thesis revisits AoE2 data availability framing. Out-of-scope flag for this plan.
+`matches_history_minimal` fixes shape **before** any dataset-specific MMR/civ semantics enter. Every sibling PR emits a view with the same 8 columns, same dtypes, same grain, **per-dataset-polymorphic faction vocabulary**, different `dataset_tag`. Canonical temporal dtype = TIMESTAMP.
 
-**NC6 — ACM EC 2025 acceptance rate 24.6%.** The critique R1 claims "24.6% acceptance rate" for ACM EC 2025. The v2 verification WebSearch could not confirm this specific figure on the EC25 site. Conservative treatment: cite Elbert2025 as "presented at ACM EC 2025" without quoting an acceptance-rate figure in the §3.4.3 prose (the adversarial defence doesn't hinge on it). If Pass 2 wants the acceptance-rate figure, it can be added as a parenthetical via primary verification. Flag with `[REVIEW: ACM EC 2025 acceptance-rate figure — not currently cited in §3.4.3 prose]`.
+**Polymorphic-column design rationale (R2-NOTE-2):** A single polymorphic `faction` column (rather than separate `sc2_race` / `aoe2_civ` columns) was chosen for substrate simplicity — downstream rating-system backtests enumerate matches agnostic of game identity; game-conditional categorical encoding happens inside feature extractors at Phase 02 (e.g., `CASE dataset_tag WHEN 'sc2egset' THEN one_hot_race(faction) WHEN 'aoestats' THEN one_hot_civ(faction) END`). The `dataset_tag` column carries the ontological disambiguator, so the polymorphism is explicit, not hidden.
 
-**NC7 — No CetinTas2023 re-verification during v2 planning.** R1 verified Lin2024NCT and Elbert2025 via WebFetch; CetinTas2023 was only confirmed via seed bibliography and an IEEE Xplore URL that returned errors. T01 during execution must fetch CetinTas2023 afresh with at least one successful primary-source verification (IEEE Xplore retry, Google Scholar, or DBLP). If T01 fails all three, CetinTas2023 stands on seed-bibliography provenance with a strong [REVIEW] flag. No change in plan structure, but this is worth raising explicitly because v2 relies on CetinTas2023 being real as the only solo-game AoE2 paper.
+Future UNION ALL in Phase 02:
 
----
+```sql
+SELECT * FROM sc2egset.matches_history_minimal
+UNION ALL
+SELECT * FROM aoestats.matches_history_minimal
+UNION ALL
+SELECT * FROM aoe2companion.matches_history_minimal
+```
 
-## 1. Front matter
+**I8 contract explicit limits (R1-WARNING-2 + R1-BLOCKER-5 fix):**
+- aoestats ships 1-row-per-match at 01_04_02; its sibling PR MUST re-project to 2-rows-per-match via `UNION ALL` of two SELECTs swapping p0/p1 roles, with explicit awareness of the aoestats `team1_wins ~52.27%` slot asymmetry documented in `matches_1v1_clean.yaml`.
+- aoestats / aoec `started_timestamp` / `started` MUST cast to canonical TIMESTAMP (see A2).
+- `faction` vocabulary is per-dataset-polymorphic; no enum harmonization. Consumers wanting cross-dataset `faction`-conditional analyses MUST game-condition (e.g., `WHERE dataset_tag = 'sc2egset'` before `GROUP BY faction`).
 
-| Field | Value |
-|---|---|
-| Category | F — Literature (both sections) |
-| Branch | `docs/thesis-3.4-3.5` (new from `master`; current branch `fix/01-04-null-audit` is for a Category D bug fix and must not be reused) |
-| Target file | `/Users/tomaszpionka/Projects/rts-outcome-prediction/thesis/chapters/03_related_work.md` |
-| §3.4 insert point | Current lines 123–128 (skeleton HTML comment to replace with prose) |
-| §3.5 insert point | Current lines 130–135 (skeleton HTML comment to replace with prose) |
-| §3.4 title target | "Predykcja wyników w Age of Empires II" (parallel to §3.2 "StarCraft prediction literature" renamed to Polish — confirm via parent at execution, since §3.2 header is currently English) |
-| §3.5 title target | "Luka badawcza i pozycjonowanie niniejszej pracy" (parallel to existing §3.2.4 sub-close title) |
-| Chapter close | §3.5 is the last section of Chapter 3; after draft, §3 is content-complete pending Pass 2 |
-| Estimated length (revised v2) | §3.4: **7.0–9.0k Polish chars** (upward revision from 5.0–7.5k in v1; accommodates Elbert2025 §3.4.3 sub-section); §3.5: 7.5–10k Polish chars (unchanged); Combined: **14.5–19.0k** (v1 was 12.5–17.5k); Fallback §3.4 floor: 6.0k (v1 floor 4.5k). With §3.1 (7.8k), §3.2 (14.8k), §3.3 (11.4k) already at ~34k, §3.4 + §3.5 at ~15–17k brings Chapter 3 to ~49–51k total, comfortably within 8–12 physical-page Polish-chapter window |
-| Dependencies | §3.1, §3.2, §3.3 DRAFTED (confirmed via WRITING_STATUS.md lines 54–56); §1.3 RQs DRAFTED (line 35); §2.3 AoE2 background DRAFTED (line 45); §4.1.2 AoE2 datasets DRAFTED (line 65). All upstream scaffolding in place. |
-| Voice calibration | §3.1–§3.3 already drafted — §3.4 and §3.5 must match their Polish register, hedging, impersonal passive, sub-section numbering style (§3.4.1, §3.4.2, §3.4.3, §3.4.4, §3.4.5), and citation density. |
+## Design questions — resolved
 
----
+**Q1. Source table.** `matches_flat_clean` (not `player_history_all`): built-in 1v1-decisive filter, 44,418 = 22,209 × 2, all columns present. Projecting from `player_history_all` re-applies the filter (breaks I9 composability).
 
-## 2. Scope
+**Q2. match_id prefix — inline in VIEW or upstream column?** **Inline** (`'sc2egset::' || mfc.replay_id AS match_id`). Upstream `replay_id` unchanged (I9).
 
-A single bounded unit: draft the two remaining Polish-language sections of Chapter 3 so that the chapter closes. §3.4 surveys whatever AoE2 outcome-prediction literature exists — now confirmed to be **three peer-reviewed papers** (CetinTas2023 dedicated AoE2 prediction paper; Lin2024NCT AoE2-adjacent balance analysis paper; Elbert2025 AoE2 outcome prediction as INSTRUMENT for team-player effect identification) plus two grey-lit sources retained (Xie2020 + porcpine1967) — categorises them, and reports honestly on the methodological gaps. §3.5 synthesises §3.1–§3.4 into an explicit positioning statement that connects to the four RQs defined in §1.3 and identifies the thesis's novelty dimensions: (i) the cross-game RTS comparison as outcome-prediction benchmarking (not balance analysis, not causal-inference instrumentation); (ii) AoE2 as a first-class study target with 1v1 scope; (iii) pre-game prediction as the principal task; (iv) probabilistic evaluation (Brier, log-loss, reliability) as the primary methodology. No AoE2 data, no AoE2 game mechanics, no new cross-game feature engineering — pure literature synthesis.
+**Q3. Faction source field.** `race` (verified in `matches_flat_clean.yaml` line 55-58: *"Actual race played (Protoss, Zerg, Terran abbreviated)"* — empirical vocabulary is `Prot/Terr/Zerg`). Not `selectedRace`.
 
----
+**Q4. Opponent derivation.** Self-join on `matches_flat_clean` (CTE alias), `mfc.replay_id = opp.replay_id AND mfc.toon_id <> opp.toon_id`. 1v1-decisive upstream guarantees exactly 1 opponent row.
 
-## Problem Statement
+**Q5. MMR / rated-flag columns.** Excluded.
 
-**Why both sections must be drafted together.** §3.5 cannot be written before §3.4 because §3.5's opening claim ("there is no published work comparing ML prediction methods across two different RTS games in a benchmarking framing with probabilistic evaluation") requires §3.4 to have first established the AoE2 lit baseline including Elbert2025's distinct instrumentation role. Without §3.4, §3.5 would either float as an unanchored thesis-novelty claim (adversarial BLOCKER) or would silently fold §3.4 content into itself (structural duplication). Conversely, §3.4 as a standalone section without §3.5's closing synthesis would leave the chapter without a terminal argumentative arc connecting the four surveyed domains (traditional sports, StarCraft, MOBA, AoE2) to the four RQs.
+**Q6. PIPELINE_SECTION_STATUS.** Flip `complete` → `in_progress` at T01; flip back at T03. **R1-WARNING-3 rollback:** if T02 fails, Halt predicate mandates manual revert of PIPELINE_SECTION_STATUS 01_04 back to `complete` before aborting.
 
-**What drafting §3.4 and §3.5 unblocks.**
-1. Chapter 3 moves from `DRAFTED` (partial) to `DRAFTED` (complete).
-2. §1.3 (RQ drafting) currently holds two `[REVIEW]` flags waiting on literature confirmation for the gap claim; §3.5 resolves those flags.
-3. §1.4 (scope and limitations) is revised post-AoE2-lit-review per its own `[REVIEW]` note.
-4. Pass 2 external review of Chapter 3 becomes possible as a single unit.
-5. Downstream Chapter 6 §6.2 ("Comparison with published literature") scaffolds against a stable §3 ceiling.
+**Q7. Gate predicate.** `row_count == 2 * distinct match_ids == matches_flat_clean.row_count` + 8-column schema + I5-analog symmetry (NULL-safe) + prefix uniqueness + dataset_tag constancy + zero NULLs on 5 non-nullable cols + TIMESTAMP dtype verification for `started_at`.
 
-**Gate-closure implication.** §3.5 closes the literature loop of the thesis's argumentative structure (§1 problem → §2 background → §3 related work → positioning statement at §3.5 that feeds Ch. 4 methodology).
-
----
-
-## Assumptions & Unknowns
-
-**A1 (revised v2) — AoE2 peer-reviewed prediction literature is thin but richer than v1 assumed.** WebSearch + WebFetch sweep surfaces **three peer-reviewed AoE2-related sources**: (i) CetinTas2023 — single dedicated AoE2 outcome-prediction paper; (ii) Lin2024NCT — peer-reviewed AoE2-adjacent balance-analysis paper; (iii) **Elbert2025 — peer-reviewed AoE2 paper that uses outcome prediction as an INSTRUMENT for identifying team-player effect (accepted ACM EC'25)**. Beyond this, two grey-literature sources are retained in v2 (Xie2020 Medium + porcpine1967 GitHub Pages). Third grey-lit source (gmcirco42 bookdown) DROPPED in v2 per W5 decision. The plan assumes this 3+2 state persists at execution time; if T01 re-sweep surfaces new peer-reviewed candidates, §3.4 budget can extend with another sub-section (see §7 halt protocol).
-
-**A2 — Polish voice calibration is locked.** §3.1–§3.3 have been drafted and passed Pass 1. New sections must match their register; the plan does not reinvent the voice.
-
-**A3 — No simulated or fabricated citations.** The plan commits to reporting honestly when coverage is thin. An "AoE2 outcome-prediction paper would exist here if the academic community had produced one" slot is a legitimate section-level finding, not a hole.
-
-**A4 (revised v2) — Grey-literature acceptability is unresolved at thesis level but §3.4.4 is LOCALLY COMMITTED.** §2.2 and §2.3 adversarial notes flagged `[REVIEW]` on Liquipedia/BlizzardS2Protocol etc. — Pass 2 decision has not yet returned globally. §3.4 makes a local commitment in v2: include Xie2020 + porcpine1967 with explicit Tier 3 labelling in §3.4.4, matching the pattern set by `AoEStats` and `AoeCompanion` entries already in `references.bib`. Flag `[REVIEW: grey-literature acceptability — Pass 2 reconciliation with §2.2/§2.5 grey-lit decisions]` at §3.4.4 opening, but DO NOT defer the structural presence of the grey-lit sub-section. If Pass 2 rejects grey-lit globally, §3.4.4 collapses to a prose-only summary without bib keys (see §7 halt protocol branch).
-
-**A5 — Existing Chapter 3 skeleton uses English section titles.** Lines 35 (§3.2 "StarCraft prediction literature"), 85 (§3.3 "Predykcja wyników w grach MOBA..."), 123 (§3.4 "Age of Empires II prediction"), 130 (§3.5 "Research gap and contribution"). §3.3 is in Polish; §3.2/§3.4/§3.5 titles are English. During execution, §3.4 and §3.5 titles will be rendered in Polish to match §3.1 and §3.3. §3.2 title normalisation is out of scope — flag via `[REVIEW]` for Pass 2 to decide globally.
-
-**A6 — CetinTas2023 author-list incompleteness.** The existing `references.bib` entry (lines 69–75) has `author = {Çetin Taş, Emre and others}` — the "and others" is a placeholder; the seed bibliography at `related_work_historical_rts_prediction.md` line 186 has `Çetin Taş, İ. & Müngen, A.A.` as the full author pair. The IEEE Xplore page returned HTTP 418 during WebSearch and ResearchGate returned 403 during v1 planning; v2 did NOT re-verify. Flag with `[REVIEW: CetinTas2023 author-list verification — fix `references.bib` entry to Çetin Taş, İsmail and Müngen, Ahmet Anıl per seed bibliography; IEEE Xplore verification pending]`. T01 during execution has this fix as Action 4.
-
-**A7 (new v2) — Elbert2025 bib-entry conventions.** ACM EC conferences publish only extended abstracts in proceedings; the full paper for Elbert2025 exists as arXiv:2506.04475 + SSRN 5283300. The `@inproceedings{Elbert2025EC}` bib entry will include both the EC'25 venue claim and the arXiv mirror URL. Flag with `[REVIEW: EC'25 extended-abstract citation convention — verify whether to cite as @inproceedings or @misc with note field]`. See NC4.
-
-**U1 (revised v2) — Precise "86% accuracy" provenance.** R1 independent WebSearch of Mike Xie Medium post maxed at 77% (XGB/RF), with ROC-AUC ~62%. Therefore, the 86% figure cited in WebSearch hits **cannot originate from Xie2020**; it can only originate from CetinTas2023. Attribution direction is now rozstrzygnięte. Flag `[REVIEW: 86% figure primary-source verification — CetinTas2023 IEEE Xplore retrieval]` retained in v2 for primary-source purposes only, not for attribution direction. Draft attributes 86% to CetinTas2023 with primary-source [REVIEW] flag.
-
-**U2 — Lin2024NCT AoE2 match count provenance.** arXiv fetch confirms 4-game validation (AoE2, Hearthstone, Brawl Stars, LoL); match count for AoE2 specifically is 1,261,288 per §1.1 citation and per seed bibliography line 128. Will be used as-is; no new verification burden in this plan.
-
-**U3 (revised v2) — Tier 3 volume.** v1 proposed up to 3 Tier 3 citations capped. v2 commits to exactly 2 Tier 3 citations: Xie2020MediumAoE + Porcpine2020EloAoE. gmcirco42 Bayesian bookdown DROPPED per W5 decision (too narrow; Xie2020 covers methodological ground sufficient for the §3.4.4 narrative). No CircoBayesAoE bib entry added.
-
-**U4 (new v2) — Elbert2025 metric set.** WebFetch confirmed: accuracy + pseudo-R² only; NO AUC/Brier/log-loss reported. This is a methodological gap shared with CetinTas2023. Relevant for §3.4.3 and §3.4.5 (gap enumeration) and §3.5 Luka 1. No citation burden; observation is report-able from WebFetch primary.
-
-**U5 (new v2) — Elbert2025 data source.** WebFetch confirmed aoe2insights.com (14,000 focal players, Nov 2019–Dec 2023). Distinct from thesis's aoestats + aoe2companion sources. §3.4.3 must note this without overclaiming any incompatibility (multiple AoE2 datasets can coexist).
-
-**U6 (new v2) — Elbert2025 team-games scope.** WebFetch confirmed: "The paper analyzes 2v2, 3v3, and 4v4 modes exclusively." Thesis focuses on 1v1 (per §4.1.2 and Phase 01 `matches_1v1_clean`). §3.4.3 must note this; §3.5 Luka 3 hedge strengthens with 1v1 qualifier. No citation burden.
-
----
-
-## Literature Context
-
-**Sweep completed.** Eight WebSearch queries and four targeted WebFetch calls executed in v1 planning; three additional WebSearch queries and two WebFetch calls executed in v2 planning. Full summary below, organised by tier.
-
-### Tier 1 — Peer-reviewed AoE2-related prediction papers (v2: THREE confirmed, v1 claimed two)
-
-**T1.1 — CetinTas2023 (single peer-reviewed AoE2 outcome-prediction paper as research goal)**
-- **Authors**: Çetin Taş, İsmail and Müngen, Ahmet Anıl
-- **Title**: Regression Analysis of Age of Empires II DE Match Results with Machine Learning
-- **Venue**: 2023 8th International Conference on Computer Science and Engineering (UBMK), IEEE
-- **DOI**: 10.1109/UBMK59864.2023.10391048
-- **Methods**: Naive Bayes classifier, Decision Trees; inputs = civilization + map + Elo; target = win probability
-- **Provenance confidence**: HIGH (seed bibliography + `references.bib` + §1.1 citation); primary-source IEEE Xplore verification pending (see NC7, A6)
-- **Methodology red flag**: "Regression Analysis" in title + target = binary win → regression framing of classification task
-- **86% accuracy figure provenance**: CONFIRMED (R1 verified Xie2020 maxes at 77% — see U1)
-- **Role in §3.4**: §3.4.1 dedicated sub-section
-
-**T1.2 — Lin2024NCT (peer-reviewed AoE2-adjacent, NOT outcome prediction)**
-- **Authors**: Lin, Chiu-Chou; Shih, Yi-Wei; Kuo, Kuei-Ting; Chen, Yu-Cheng; Chen, Chien-Hua; Chiu, Wei-Chen; Wu, I-Chen
-- **Venue**: Transactions on Machine Learning Research (TMLR) 2024, ISSN 2835-8856; arXiv:2408.17180
-- **Methods**: Bradley-Terry strength ratings + vector quantization for counter relationships
-- **AoE2 match count used**: 1,261,288 matches from aoestats.io (Jan 2024 snapshot)
-- **Key framing**: balance analysis, not outcome prediction; Bradley-Terry component IS a predictor by construction
-- **Role in §3.4**: §3.4.2 dedicated sub-section with "prediction-vs-balance" scope-clarification framing
-
-**T1.3 (new v2) — Elbert2025 (peer-reviewed AoE2 paper with outcome prediction as INSTRUMENT)**
-- **Authors**: Elbert, Nico; von Schenk, Alicia; Kosse, Fabian; Klockmann, Victor; Stein, Nikolai; Flath, Christoph
-- **Title**: What Drives Team Success? Large-Scale Evidence on the Role of the Team Player Effect
-- **Venue**: Accepted for presentation at ACM Conference on Economics & Computation 2025 (26th ACM EC, Stanford, July 7–10, 2025); proceedings contain one-page extended abstract only; full paper as arXiv:2506.04475 + SSRN 5283300
-- **Methods**: Logistic regression (model S1.3 as skill-based baseline → S2.1–S2.4 for residual team-player-effect extraction)
-- **Features**: eAPM (mechanical skill), Solo Elo (tactical skill), log-transformed functional familiarity (matches, map, civilization exposure); map and civilization NOT as direct predictors but as familiarity-dimension measures
-- **Scope**: **TEAM GAMES ONLY (2v2/3v3/4v4); solo matches used only for skill-feature extraction** — see NC1, U6
-- **Data source**: aoe2insights.com; 14,000 focal players; 1,623,828 team matches (Split T1 uses ~811,914); November 2019 – December 2023
-- **Metrics reported**: accuracy + pseudo-R² (S1.3: 0.0744; S2.4: 0.1004); **NO AUC / Brier / log-loss** — see NC3, U4
-- **Headline empirical claim**: 1 SD increase in team-player effect → 54% increase in odds of winning (β=0.43 per SD)
-- **Methodological framing**: **outcome prediction serves as BASELINE against which residual team-player effect is estimated** — prediction is an instrument, not the research goal (confirmed via WebFetch: "we isolate individual contributions by comparing observed outcomes to predictions based on task proficiency") — see Q_adv_1
-- **Provenance confidence**: HIGH — arXiv abstract + HTML verified (WebFetch) + SSRN exists + EC25 program preview exists; specific acceptance-rate figure (24.6% per critique R1) NOT re-verified in v2 — see NC6
-- **Role in §3.4**: §3.4.3 dedicated sub-section ~600–800 chars Polish; explicit framing: "peer-reviewed AoE2 paper z pogranicza ekonomii obliczeniowej i analityki esportowej, predykcja wyniku jako instrument dla wyodrębnienia nieobserwowalnego czynnika team-player effect — poza zakresem niniejszej tezy (czysto-ML benchmarking w 1v1 z jawną oceną probabilistyczną), ale wewnątrz peer-reviewed AoE2 literatury"
-
-**T1.4 (new v2, single-sentence treatment only) — Lin2025Online (preprint, NOT added to bib)**
-- **Authors**: Lin, Chiu-Chou and Wu, I-Chen
-- **Title**: Online Learning of Counter Categories and Ratings in PvP Games
-- **arXiv**: 2502.03998 (preprint; no peer-reviewed venue as of v2 planning date 2026-04-18)
-- **Scope**: online rating estimation under Rock-Paper-Scissors settings; NOT AoE2-specific (confirmed WebFetch: neither AoE2 nor SC2 mentioned)
-- **Role in §3.4**: single closing sentence in §3.4.2 ("kontynuacja linii badań Lin2024NCT w wersji online-learning ratingów"); NOT a sub-section; NOT cited in bib; NOT counted toward Tier 1 citation density
-
-### Tier 2 — (No v2 candidates surfaced)
-
-Unchanged from v1. No Tier 2 peer-reviewed AoE2-adjacent or non-peer-reviewed AoE2-specific candidates at Tier-2 rigour. `Tier 2 = empty` is itself a reportable finding (folded into §3.4.5 gap narrative).
-
-### Tier 3 — Grey-literature AoE2 (v2: TWO retained, one dropped)
-
-**T3.1 — Mike Xie, "Predicting Win Rates in Age of Empires 2 HD" (Medium, 2020-01-10)**
-- Source: Voobly (non-official client) data
-- Sample: 411,123 1v1 match participants → 205,317 matches after cleaning
-- Features: player Elo scores, civilization, Elo difference, civ-tier advantage
-- Models: XGBRegression, Random Forest, Decision Tree, linear baseline
-- Results: ~77% accuracy (XGB/RF), ~73% (Decision Tree), ROC-AUC ~62%
-- Status: community blog; NOT peer-reviewed
-- Role in §3.4.4: GBDT methodological-transfer observation; 1v1 scope parallel to thesis (note: matches thesis 1v1 focus unlike Elbert2025)
-- Flag `[REVIEW: grey-literature acceptability]`
-
-**T3.2 — porcpine1967, "Impact of Rating Difference on Win Percentage in Age of Empires II Definitive Edition" (GitHub Pages)**
-- Source: aoe2.net API
-- Sample: 908,940 valid matches (503,972 confirmed + 404,968 single-player)
-- Method: linear regression of win probability vs Elo difference
-- Headline: r = 0.96, slope = 0.0011
-- Status: community blog; NOT peer-reviewed
-- Role in §3.4.4: Elo-linearity empirical grounding for AoE2, parallel to §3.1.1 chess Elo-as-predictor baseline
-- Flag `[REVIEW: grey-literature acceptability]`
-
-**T3.3 (DROPPED in v2) — gmcirco42 Bayesian bookdown**
-- Per W5 decision, DROPPED from v2 plan. Xie2020 covers the GBDT methodological-transfer observation; porcpine1967 covers the Elo-linearity observation. A third Tier 3 source with a 403'd primary page carries low marginal argumentative value.
-- If Pass 2 explicitly requests the Bayesian perspective be represented, it can be added in a revision pass.
-
-**T3.4 — aoestats.io (data infrastructure)** — retained as reference-only, already in bib.
-
-**Community tooling (mentioned, not cited)**: aoe2insights.com (NEW in v2 — mentioned as the Elbert2025 data source but not as a standalone citation), aoe2companion.com, aoe2.net, AoE-Elo, PyAge2, AgeAlyser_2, AgeOfAnalytics, AoE2 Insights.
-
-### Gap papers — what would fill the gap but doesn't exist (revised v2)
-
-§3.5-synthesis item, not §3.4 body content. Categories of "missing" work (revised):
-
-1. **No peer-reviewed AoE2 paper uses gradient boosted trees or random forests with rigorous temporal cross-validation in a 1v1 outcome-prediction framing.** CetinTas2023 uses NB/DT; Elbert2025 uses LR in team games as instrument.
-2. **No peer-reviewed AoE2 paper reports calibration metrics** (Brier score, reliability diagrams, ECE). CetinTas2023 does not; Elbert2025 reports accuracy + pseudo-R² only.
-3. **No peer-reviewed AoE2 paper addresses cold-start / history-length stratification** (RQ4 territory).
-4. **No peer-reviewed paper benchmarks ML prediction across two RTS games as the research goal.** (RQ3 gap — the thesis's central novelty.) Lin2024NCT's multi-game balance analysis is NOT a benchmarking study on outcome prediction.
-5. **No peer-reviewed AoE2 paper uses per-player temporal split.**
-6. **No AoE2 replay-based prediction paper** (as consequence of AgeAlyser_2 being recent).
-
-### New bibtex entries to append (candidate set, revised v2)
-
-Proposed additions at `thesis/references.bib` during T04:
-
-1. **`@inproceedings{Elbert2025EC}`** — NEW in v2. Fields:
-   - `author = {Elbert, Nico and von Schenk, Alicia and Kosse, Fabian and Klockmann, Victor and Stein, Nikolai and Flath, Christoph}`
-   - `title = {What Drives Team Success? Large-Scale Evidence on the Role of the Team Player Effect}`
-   - `booktitle = {Proceedings of the 26th ACM Conference on Economics and Computation (EC '25)}`
-   - `year = {2025}`
-   - `publisher = {ACM}`
-   - `address = {Stanford, CA, USA}`
-   - `note = {Extended abstract; full paper at arXiv:2506.04475 and SSRN:5283300}`
-   - `url = {https://arxiv.org/abs/2506.04475}`
-   - `[REVIEW: EC'25 extended-abstract citation convention — verify @inproceedings vs @misc]`
-2. `@article{Xie2020MediumAoE}` — Tier 3
-3. `@misc{Porcpine2020EloAoE}` — Tier 3
-4. **DROPPED**: `@misc{CircoBayesAoE}` (gmcirco42)
-5. **Fix existing `@inproceedings{CetinTas2023}`** — replace placeholder with full author list.
-
-Entry 1 is unconditional (Elbert2025 peer-reviewed). Entries 2–3 depend on Tier 3 acceptability — if Pass 2 declines grey lit globally, they are removed and replaced with prose-only mentions. T04 must support both paths.
+**Q8. Notebook cells.** 18 cells, patterned on `01_04_02_data_cleaning_execution.py`.
 
 ---
 
 ## Execution Steps
 
-Six tasks. Each task has acceptance criteria and hand-off to the next. All tasks execute in sequence in a single writer session (no parallelism).
+### T01 — Register step 01_04_03 in status files and ROADMAP
 
-### T01 — Literature sweep verification and bib-entry finalisation (revised v2)
+**Objective:** Add the new step to ROADMAP, STEP_STATUS, and revert PIPELINE_SECTION_STATUS.
 
-**Purpose**: freeze the citation set before drafting begins.
+**Instructions:**
 
-**Actions**:
-1. Re-run four critical WebSearch queries fresh (during execution, not during planning) for any 2025–2026 AoE2 prediction publications NOT already captured by v2 sweep:
-   - `"Age of Empires II" outcome prediction machine learning 2025`
-   - `"Age of Empires" prediction "gradient boosting" OR "random forest" 2025 2026`
-   - `"AoE2" ranked match prediction "calibration"`
-   - `"Age of Empires II" cold start prediction`
-2. If any new peer-reviewed candidate surfaces, WebFetch the abstract and add to the Tier 1 bucket. If no new candidates, proceed with the Tier-1 set from Section 5 (CetinTas2023 + Lin2024NCT + Elbert2025).
-3. **Verify CetinTas2023 author list via at least two independent routes** (IEEE Xplore direct retry, Google Scholar CSV export, DBLP author lookup). If all three routes fail, seed-bibliography attribution stands with a strong `[REVIEW: CetinTas2023 author-list — primary-source verification pending]` flag. See NC7.
-4. **Verify Elbert2025 bib entry** (NEW v2). Actions:
-   - Re-fetch arXiv:2506.04475 abstract; confirm author list + title + AoE2 mention + outcome-prediction instrumentation claim
-   - WebSearch "ACM EC 2025 accepted papers" or navigate to https://ec25.sigecom.org/program/accepted-papers/ to confirm the paper appears in the accepted list. If not found, downgrade framing to "arXiv preprint + SSRN submission" without the EC'25 venue claim. See NC4/NC6.
-   - Verify the one-page extended-abstract proceedings convention (NC4) and decide bib-entry type (@inproceedings with note field vs @misc) during drafting
-5. Update the `@inproceedings{CetinTas2023}` entry in `references.bib` with:
-   - Full authors: `Çetin Taş, İsmail and Müngen, Ahmet Anıl`
-   - Booktitle: `2023 8th International Conference on Computer Science and Engineering (UBMK)`
-   - Publisher: `IEEE`
-   - Remove placeholder `and others`
-6. Add `@inproceedings{Elbert2025EC}` entry (fields per Section 5)
-7. Add Tier 3 entries (if Tier 3 retained under A4/U3):
-   - `@misc{Xie2020MediumAoE}`
-   - `@misc{Porcpine2020EloAoE}`
-   - **DO NOT add** `@misc{CircoBayesAoE}` (dropped per W5 decision)
-8. **DO NOT add** `@misc{Lin2025Online}` or similar — preprint per Q_adv_3 decision; single-sentence mention in §3.4.2 prose only.
+1. In `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`, append the ROADMAP block (see "ROADMAP edit" below) after `### Step 01_04_02`.
 
-**Acceptance**:
-- Three peer-reviewed AoE2-related prediction papers verified: CetinTas2023 + Lin2024NCT + Elbert2025
-- `references.bib` has CetinTas2023 author-list fix applied
-- `references.bib` has new `@inproceedings{Elbert2025EC}` entry
-- Tier 3 entries added (conditional on A4/U3 retention)
-- gmcirco42 NOT added
-- Lin2025Online NOT added to bib
-- Explicit note in session log for any 2025–2026 papers discovered or absent
+2. In `STEP_STATUS.yaml`, under `steps:`, append:
+   ```yaml
+   "01_04_03":
+     name: "Minimal Cross-Dataset History View"
+     pipeline_section: "01_04"
+     status: not_started
+   ```
 
-**Character budget**: bibliography-only work; no prose produced.
+3. In `PIPELINE_SECTION_STATUS.yaml`, change `pipeline_sections["01_04"].status` from `complete` to `in_progress`. Do NOT touch `PHASE_STATUS.yaml`.
 
-### T02 — Draft §3.4 "Predykcja wyników w Age of Empires II" (revised v2)
+**Verification:**
+- `grep -n "01_04_03" ROADMAP.md` shows the new block.
+- `grep -n "01_04_03" STEP_STATUS.yaml` shows `status: not_started`.
+- `grep -n "01_04" PIPELINE_SECTION_STATUS.yaml` shows `status: in_progress`.
 
-**Purpose**: honest, argumentative survey of AoE2 prediction literature.
+**Rollback on failure:** If any later step fails, revert PIPELINE_SECTION_STATUS.yaml `01_04.status = complete` before aborting (R1-WARNING-3).
 
-**Internal structure (revised v2: FIVE sub-sections, not four)**:
+**File scope:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (MODIFIED)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (MODIFIED)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (MODIFIED)
 
-- **§3.4 opening paragraph** (~800–1000 chars Polish). Frame the state of the AoE2 prediction literature as a substantive finding: "w odróżnieniu od bogatej literatury predykcyjnej dla StarCraft opisanej w §3.2 oraz od wielowątkowej linii badań MOBA omawianej w §3.3, literatura predykcyjna dla Age of Empires II pozostaje istotnie uboższa — fakt, który stanowi nie uboczną obserwację, lecz jeden z centralnych motywatorów niniejszej pracy." Thesis-level register. Avoid overclaiming. Signal that the section will cover **trzy prace recenzowane** (not two) organised by their relationship to outcome prediction as a research goal vs. as an instrument, plus grey-lit closure.
+### T02 — Create the jupytext-paired notebook; execute end-to-end
 
-- **§3.4.1 — Recenzowana praca dedykowana: Çetin Taş i Müngen (2023)** (~2500–3000 chars Polish). Unchanged from v1 specification. Content elements:
-  - Venue: UBMK 2023, IEEE
-  - Data: AoE2 Definitive Edition match data
-  - Methods: Naive Bayes and Decision Trees
-  - Inputs: civilization + map + Elo (no in-game state, consistent with §1.2 x^pre)
-  - Accuracy: ~86% (attribution direction now rozstrzygnięte per U1; primary-source IEEE Xplore verification pending [REVIEW])
-  - Methodological critique paragraph: "Regression Analysis" framing for binary classification; absence of calibration or temporal split; NB/DT choice predates GBDT consensus in esports literature
-  - Must justify: why CetinTas2023 warrants dedicated §3.4.1 treatment despite NB/DT being superseded
-  - Must contrast: with §3.2.1 Erickson-Buro (SC:BW LR baseline; parallel early-methodology paper)
+**Objective:** Produce `01_04_03_minimal_history_view.py` (auto-paired `.ipynb`). All execution in the notebook. No module code added.
 
-- **§3.4.2 — Recenzowana literatura pokrewna: Lin i in. (2024) i analiza balansu bez predykcji** (~1500–2000 chars Polish). Unchanged from v1 specification PLUS new closing sentence per Q_adv_3/W2. Content elements:
-  - Venue: TMLR 2024, arXiv:2408.17180
-  - Data: AoE2 1,261,288 matches from aoestats (Jan 2024)
-  - Methods: Bradley-Terry strength + vector quantization for counters
-  - Explicit framing: balance analysis, not outcome prediction; Bradley-Terry component IS a mathematical predictor by construction
-  - Must justify: why include a non-prediction paper in §3.4
-  - Must cite: Lin2024NCT, BradleyTerry1952
-  - **NEW closing sentence (per Q_adv_3/W2)**: "Kontynuacja tej linii badań w wersji online-learning ratingów [Lin&Wu 2025, preprint arXiv:2502.03998] — nie-AoE2, operująca na zadaniach rodzaju Rock-Paper-Scissors — nie zmienia zasadniczego framingu, pozostając zadaniem szacowania ratingów ze strukturą counter, nie predykcją wyniku meczu." This is a footnote-equivalent single sentence; the preprint is NOT added to bib (see T01 Action 8).
+**Pre-execution constraint (R1-WARNING-7):** T02 holds a `read_only=False` DuckDB connection. No parallel CLI writes to `src/rts_predict/games/sc2/datasets/sc2egset/data/db/sc2egset.duckdb` during T02.
 
-- **§3.4.3 (NEW v2) — Recenzowana praca z pogranicza ekonomii obliczeniowej: Elbert i in. (2025)** (~600–800 chars Polish per Q_adv_1 decision). Content elements:
-  - Venue: ACM EC'25, Stanford, July 2025 (extended abstract in proceedings; full paper arXiv:2506.04475 + SSRN); see NC4 for citation convention [REVIEW] flag
-  - Scope: AoE2 as primary empirical setting; **TEAM GAMES (2v2/3v3/4v4)** per NC1/U6
-  - Data source: aoe2insights.com; ~1.6M team matches; Nov 2019–Dec 2023
-  - Method: logistic regression baseline S1.3 for skill-based match outcome prediction → residual extraction → team-player effect identification
-  - Metrics reported: accuracy + pseudo-R² only (no Brier / AUC / log-loss) per NC3/U4
-  - Headline empirical claim: 1 SD team-player effect → 54% increase in winning odds
-  - **Framing (must justify)**: "Autorzy wykorzystują predykcję wyniku meczu jako narzędzie instrumentalne dla wyodrębnienia nieobserwowalnego efektu gracza drużynowego (*team-player effect*) z residuów modelu skill-based. W tym ujęciu predykcja nie jest celem badawczym, lecz środkiem do identyfikacji efektu zachowawczego; ta dystynkcja jest metodologicznie istotna, ponieważ pozwala umieścić pracę wewnątrz peer-reviewed literatury AoE2 bez włączenia jej w korpus prac benchmarkujących metody predykcyjne."
-  - **Must contrast** (per T02 Must Contrast list): Elbert2025 (team games, LR-only, outcome prediction as instrument) vs CetinTas2023 (solo AoE2, NB/DT, outcome prediction as goal) vs Lin2024NCT (multi-game, Bradley-Terry, balance analysis)
-  - Data/method caveats noted in prose (not in a dedicated paragraph): accuracy + pseudo-R² but no calibration; team-only scope; aoe2insights-specific population
-  - Flag `[REVIEW: EC'25 citation convention — extended abstract vs arXiv full paper]` and `[REVIEW: ACM EC 2025 acceptance-rate figure — not currently stated in §3.4.3 prose; Pass 2 may add]` per NC4/NC6
+**Instructions:**
 
-- **§3.4.4 — Literatura szara i społecznościowa** (~1500–2200 chars Polish; was §3.4.3 in v1; renumbered in v2). Content elements (revised per W5 decision):
-  - Opening: explicit label with [REVIEW] flag — `Ze względu na ubogość recenzowanej literatury dedykowanej predykcji wyniku meczu w 1v1 dla Age of Empires II (skoncentrowanej w CetinTas2023 — zob. §3.4.1), istotna część dostępnej wiedzy metodologicznej pochodzi z literatury szarej (ang. grey literature) — wpisów blogowych i analiz społecznościowych. Literatura ta nie spełnia standardów recenzenckich, lecz jest uwzględniana tu jako świadectwo stanu metodologicznego domeny, z jawnym oznaczeniem niższego statusu dowodowego. [REVIEW: grey-literature acceptability — Pass 2 reconciliation with §2.2/§2.5 grey-lit decisions]`
-  - Cite T3.1 Mike Xie (Voobly + XGB/RF/DT, ~77% accuracy) — methodological-transfer observation: XGB dominance replicates in AoE2 the MOBA / SC2 GBDT consensus (§3.2.3, §3.3.1); 1v1 scope alignment with thesis (unlike Elbert2025 team games)
-  - Cite T3.2 porcpine1967 (r=0.96 Elo-linearity) — chess-parallel observation: Elo as probabilistic predictor works linearly in AoE2 just as in chess (§3.1.1)
-  - **DROP T3.3 gmcirco42** per W5 decision
-  - Mention tooling (PyAge2, AgeAlyser_2, AgeOfAnalytics, aoe2insights.com Elbert2025 data substrate) briefly in a single sentence without bib keys
-  - Caveat: grey-lit methodologies not verified for temporal split / calibration; Voobly-population bias noted for Xie2020
+1. Create `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py` as a percent-format jupytext notebook. Front-matter verbatim from `01_04_02_data_cleaning_execution.py`.
 
-- **§3.4.5 — Luka w literaturze AoE2 jako samoistne spostrzeżenie** (~1500–2000 chars Polish; was §3.4.4 in v1; renumbered in v2). Close §3.4 with six gap categories from Section 5 above (revised), each framed as one-sentence observations:
-  - Brak pracy z kalibracją probabilistyczną (Brier, reliability) — ani CetinTas2023, ani Elbert2025 nie raportują kalibracji; Elbert2025 raportuje accuracy + pseudo-R²; CetinTas2023 raportuje accuracy
-  - Brak pracy z GBDT + temporalną walidacją krzyżową w zadaniu predykcji 1v1 AoE2 (CetinTas2023 używa NB/DT; Elbert2025 używa LR w team games)
-  - Brak pracy z problemem zimnego startu (cold-start) dla AoE2
-  - Brak pracy używającej podziału per-gracz temporalnego na AoE2
-  - Brak pracy wykorzystującej strumienie zdarzeń powtórek AoE2
-  - Brak pracy recenzowanej porównującej predykcję 1v1 w AoE2 z inną grą RTS jako cel badawczy (Lin2024NCT porównuje balans w 4 grach; nie jest benchmarkiem predykcji)
+2. Follow the 18-cell outline.
 
-**Voice requirements (revised v2)**:
-- Polish academic register matching §3.2 and §3.3
-- Impersonal passive (`przeprowadzono`, `stwierdzono`) per author-style brief line 22
-- Argumentative, not descriptive — every methodological mention paired with a "dlaczego to, a nie alternatywa" clause
-- Hedging calibrated: `raportują`, `sugerują`, `wskazuje`, `można oczekiwać` for claims not grounded in primary access; `wykazano` only for claims that WebFetch returned verified primary data
-- Every numerical claim anchored to WebFetch result + [REVIEW] flag, or not stated
-- No em-dashes in place of argumentative connectives — use `co`, `przy czym`, `natomiast` per §3.2/§3.3 style
-- **NEW v2 (per W4)**: §3.4 sub-numbering structure note — "§3.4 mirrors §3.2 sub-structure because both sections survey literature for ONE game specifically (StarCraft / AoE2); §3.3 has five sub-sections because it surveys multiple game genres (MOBA + FPS + Valorant). §3.4 has five sub-sections in v2 (opening + 3 peer-reviewed + grey-lit + gap-closure) to accommodate the three-peer-reviewed set without compressing any single paper's methodological discussion." This justification sentence can appear in the section-opening paragraph or as a structural note at the §3.4 header level; prefer the opening paragraph for argumentative continuity.
-- "Argumentative, not descriptive" voice notes applies per-sub-section
+3. Run `poetry run jupytext --sync sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py`.
 
-**"Must justify" list for T02 (revised v2)**:
-1. Why §3.4 is short relative to §3.2 (thin lit itself is the finding)
-2. Why grey literature is cited at all (domain is data-rich but paper-poor)
-3. Why Lin2024NCT is included despite not being outcome prediction (peer-reviewed AoE2 work with mathematical predictor by construction)
-4. **NEW v2**: Why Elbert2025 warrants dedicated §3.4.3 sub-section despite outcome prediction being an INSTRUMENT in that paper (answer: Elbert2025 is peer-reviewed AoE2 work that uses outcome prediction explicitly; excluding it would misrepresent the literature; including it as sub-section aligns structurally with CetinTas2023 and Lin2024NCT; the instrumentation framing is reported honestly in prose, not elided)
-5. **NEW v2**: Why Elbert2025's team-games scope (NC1) is noted but not used to dismiss the paper (answer: team games are still AoE2 outcome prediction; team-scope caveat is reported as a scope-detail, not as a disqualifier)
+4. Execute end-to-end. Must write all artifacts and print `All assertions pass: True`.
 
-**"Must contrast" list for T02 (revised v2)**:
-1. CetinTas2023 (NB/DT, solo AoE2, prediction as goal) vs §3.2.1 Erickson-Buro (LR, SC:BW, prediction as goal) — both early-methodology one-off baselines for their respective games
-2. **NEW v2**: CetinTas2023 vs Elbert2025 vs Lin2024NCT — three peer-reviewed AoE2 papers distinguished by task framing (prediction-as-goal vs prediction-as-instrument vs balance-analysis)
-3. Mike Xie Medium (XGB/RF, 1v1) vs §3.2.3 BaekKim2022 / §3.3.1 Hodge2021 — GBDT consensus replicates
-4. porcpine1967 Elo-linearity vs §3.1.1 chess Elo-as-predictor — Elo predictor transfers
+**Notebook cell outline (18 cells):**
 
-**"Must cite" list for T02 (revised v2)**:
-- CetinTas2023 — focal AoE2 paper
-- Lin2024NCT — AoE2 balance/Bradley-Terry
-- **Elbert2025EC (NEW v2)** — AoE2 outcome prediction as instrument
-- Xie2020MediumAoE (T3.1) — grey-lit GBDT attempt
-- Porcpine2020EloAoE (T3.2) — grey-lit Elo-linearity
-- AoEStats — data substrate
-- BradleyTerry1952 — mathematical ancestor
-- Cross-references to §3.1.1, §3.2.1, §3.2.3, §3.2.4, §3.3.1 — avoid duplicating narrative
-- Cross-references to §1.2, §1.3 RQs — tie gaps to RQs
-- Cross-references to §2.3, §4.1.2 — AoE2 game/data context (no narrative duplication)
-- **NOT cited**: Lin2025Online preprint; gmcirco42 Bayesian bookdown
+| # | Kind | Purpose |
+|---|---|---|
+| 1 | md | Title, phase/section/step, predecessor (01_04_02), invariants (I3/I5/I6/I7/I8/I9), date |
+| 2 | code | Imports: `json`, `Path`, `yaml`, `rts_predict.common.notebook_utils.get_notebook_db`, `setup_notebook_logging` |
+| 3 | code | `db = get_notebook_db("sc2", "sc2egset", read_only=False)`; `con = db.con` |
+| 4 | code | Source-view sanity check — DESCRIBE matches_flat_clean; assert 28 cols + presence of `replay_id`, `toon_id`, `race`, `result`, `details_timeUTC` |
+| 5 | code | Define `CREATE_MATCHES_HISTORY_MINIMAL_SQL` constant (DDL below); `print(sql)` |
+| 6 | code | Execute DDL: `con.execute(CREATE_MATCHES_HISTORY_MINIMAL_SQL)` |
+| 7 | code | Schema shape validation — DESCRIBE matches_history_minimal; assert 8 cols + dtypes `[VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, VARCHAR]` per spec |
+| 8 | code | Row-count validation — `ROW_COUNT_CHECK_SQL`; assert 44418 / 22209 / 22209 / 0 |
+| 9 | code | Symmetry (I5-analog, NULL-safe) — `SYMMETRY_I5_ANALOG_SQL` (uses `IS DISTINCT FROM`); assert 0 violations |
+| 10 | code | No-NULL on non-nullable cols — `ZERO_NULL_SQL`; assert 5 zeros |
+| 11 | code | match_id prefix verification — `PREFIX_CHECK_SQL`; assert 0 violations |
+| 12 | code | dataset_tag constant — `DATASET_TAG_CHECK_SQL`; assert distinct=1, value='sc2egset' |
+| 13 | code | Faction vocabulary observed (exploratory, no gate) — `FACTION_VOCAB_SQL`; record verbatim |
+| 14 | code | Temporal sanity — `TEMPORAL_SANITY_SQL` on TIMESTAMP column; min/max/null count |
+| 15 | code | Build validation JSON — dict with step, dataset, row_counts, assertion_results, sql_queries verbatim, spec_schema, **describe_table_rows** (`DESCRIBE matches_history_minimal` result captured as list of dicts so `nullable:` values in YAML are source-grounded); assert `all_assertions_pass`; write |
+| 16 | code | Build markdown report; write MD |
+| 17 | code | Write schema YAML for `matches_history_minimal`. **R1-WARNING-4 + R2-WARNING-3 fix — explicit nullable translation:** `describe_rows = con.execute("DESCRIBE matches_history_minimal").fetchall()` returns 6-tuples `(column_name, column_type, null, key, default, extra)` per DuckDB DESCRIBE contract; index `2` is the null flag with string values `'YES'` or `'NO'`. Translation: `nullable = (row[2] == 'YES')`. Build the YAML dict with concrete booleans before `yaml.safe_dump`. No `<from DESCRIBE>` string literals in the written YAML. |
+| 18 | code | Close connection; print final summary |
 
-**Expected length (revised v2)**: **7.0–9.0k Polish chars** (was 5.0–7.5k); floor 6.0k if additional WebSearches in T01 return nothing new. Breakdown:
-- Opening paragraph ~0.9k
-- §3.4.1 CetinTas2023 ~2.8k
-- §3.4.2 Lin2024NCT ~1.8k (including 1–2 sentence Lin2025Online footnote-equivalent closing)
-- **§3.4.3 Elbert2025 ~0.7k (NEW v2)**
-- §3.4.4 Grey-lit ~1.9k
-- §3.4.5 Gap enumeration ~1.8k
-- Sum ~9.9k gross; budgeting for tighter prose the target is **7.5–8.5k**.
+**Verification:**
+- `ls sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.{py,ipynb}` — both exist.
+- Notebook writes all three artifacts (json, md, yaml) and prints `All assertions pass: True`.
 
-**Flag target**: **5–7 `[REVIEW]` flags** in v2 (was 3–5 in v1):
-- Grey-lit acceptability (A4)
-- 86% primary-source verification (U1)
-- CetinTas2023 author-list verification (A6)
-- Elbert2025 EC'25 citation convention (NC4/A7)
-- Elbert2025 ACM EC 2025 acceptance-rate figure (NC6)
-- [Optional] post-Phase-04 gap-strength recheck
-- 0–1 `[NEEDS CITATION]` flags
+**File scope:**
+- `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py` (NEW)
+- `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.ipynb` (NEW, auto-paired)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json` (NEW)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md` (NEW)
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml` (NEW)
 
-### T03 — Draft §3.5 "Luka badawcza i pozycjonowanie niniejszej pracy" (revised v2)
+### T03 — Close out status files
 
-**Purpose**: synthesise §3.1–§3.4 into an explicit four-RQ-facing positioning statement.
+**Objective:** Transition step to complete and re-close 01_04.
 
-**Internal structure** (single-section, no sub-numbering — mirrors §3.2.4 closure style):
+**Instructions:**
+1. `STEP_STATUS.yaml`: set `steps["01_04_03"].status = complete`, add `completed_at: "<ISO date>"`.
+2. `PIPELINE_SECTION_STATUS.yaml`: revert `pipeline_sections["01_04"].status = complete`.
+3. `PHASE_STATUS.yaml`: unchanged (Phase 01 stays `in_progress`).
 
-- **§3.5 opening paragraph** (~600–800 chars Polish). Declarative opening: "Przegląd literatury przedstawiony w §3.1–§3.4 pozwala zlokalizować cztery luki badawcze, do których niniejsza praca odnosi się wprost. Każda z luk jest zakotwiczona w pytaniu badawczym sformułowanym w §1.3, a ich zbiorcze zaadresowanie definiuje kontrybucję pracy względem istniejącego stanu wiedzy." Explicit anchor to RQs.
+**Verification:**
+- `grep -n "01_04_03" STEP_STATUS.yaml` shows `status: complete`.
+- `grep -n '01_04:' PIPELINE_SECTION_STATUS.yaml` shows `status: complete`.
 
-- **§3.5 body — cztery luki w porządku RQ** (~5000–6500 chars Polish). Four sub-paragraphs:
+**File scope:**
+- `STEP_STATUS.yaml` (MODIFIED)
+- `PIPELINE_SECTION_STATUS.yaml` (MODIFIED)
 
-  **Luka 1 (RQ1-facing)** — unchanged from v1, with additional Elbert2025 evidence-point:
-  - Evidence (revised v2): §3.4.1 (CetinTas2023 NB/DT, accuracy only); §3.4.3 (Elbert2025 LR, accuracy + pseudo-R², no Brier/log-loss); §3.4.5 gap enumeration; grey-lit (Xie2020 accuracy + AUC, no Brier)
-  - Contrast to state-of-art: §3.2 / §3.3 (calibration gap is RTS-wide, not AoE2-specific)
-  - Connection to RQ1: unchanged
+### T04 — Append research_log entry
 
-  **Luka 2 (RQ2-facing)** — with Elbert2025 amendment:
-  - Evidence (revised v2): CetinTas2023 uses three features without ablation; Elbert2025 uses eAPM + Solo Elo + functional familiarity (map, civ as familiarity dimensions not direct predictors) without systematic ablation; grey-lit uses Elo+civ without category ablation
-  - Contrast: §3.2 SC2 has empirical dominance of economic features replicated multiply; §3.3 MOBA has analogous dominance — pattern NOT yet tested in AoE2
-  - Connection to RQ2: unchanged
+**Objective:** Dataset-specific narrative entry.
 
-  **Luka 3 (RQ3-facing, GŁÓWNA kontrybucja nowatorska) — revised v2 with strengthened hedge per Q_adv_2**:
-  - Evidence (revised v2): §3.2 (all works on one game — StarCraft); §3.3 (all works on one game — Dota, LoL, CS, Valorant); §3.4 (CetinTas2023 on AoE2 only; Lin2024NCT uses 4 games for balance-analysis validation, NOT for prediction task in cross-game benchmark; **Elbert2025 on AoE2 team games only, with prediction as instrument for team-effect identification**)
-  - **Revised v2 novelty hedge (per Q_adv_2)**: "Przedmiot niniejszej pracy, zgodnie z najlepszą dostępną wiedzą autora, stanowi **pierwszą znaną nam pracę porównującą rodzinę klasyfikatorów uczenia maszynowego w zadaniu benchmarkowania metod predykcji wyniku meczu między dwiema grami RTS z jawną oceną probabilistyczną**. Dystynkcja ta jest precyzowana następująco: **Elbert2025** używa predykcji jako narzędzia identyfikacji nieobserwowalnego efektu, nie jako celu badawczego; **Lin2024NCT** operuje na szacowaniu relacji siły (balance analysis) ze wskaźnikiem Bradley-Terry, nie na zadaniu predykcji wyniku meczu w formie benchmarku; **CetinTas2023** operuje na jednej grze (AoE2), bez jawnej kalibracji prawdopodobieństw i bez porównania międzygrowego; pozostała literatura recenzowana koncentruje się na jednej grze w obrębie §3.2 (StarCraft) lub §3.3 (MOBA/FPS/Valorant). W świetle tej dekompozycji zadanie benchmarkowania metod predykcji wyniku między dwiema grami RTS z jawną oceną probabilistyczną pozostaje nieopracowane w recenzowanej literaturze przedmiotu."
-  - **Adversarial safety**: hedge "pierwsza znana nam" NOT "pierwsza w ogóle"; qualifier "z jawną oceną probabilistyczną" rules out any paper using only accuracy; qualifier "benchmarkowania" rules out prediction-as-instrument; qualifier "dwiema grami RTS" rules out Lin2024NCT's 4-game multi-genre validation
-  - Connection to RQ3: unchanged from v1
+**Instructions:** Prepend new entry at top of `research_log.md` per template in "research_log entry template" section.
 
-  **Luka 4 (RQ4-facing)** — unchanged from v1.
+**Verification:**
+- `head -60 research_log.md` shows the new entry.
 
-- **§3.5 closure paragraph** (~1500–2000 chars Polish) — unchanged four novelty dimensions, with slight sharpening per Q_adv_2:
-  - Predykcja przedmeczowa jako zadanie podstawowe (nie uboczne; nie instrumentalne)
-  - Ocena probabilistyczna jako metoda główna (Brier, log-loss, reliability — nie tylko accuracy + pseudo-R²)
-  - Porównanie międzygrowe jako celowo utrzymana asymetria dwuGrowa (nie multi-genre, nie cross-league tej samej gry)
-  - Stratyfikacja cold-start jako samodzielny wymiar
-  - Anchor each to corresponding §3.1/§3.2/§3.3/§3.4 observation
-  - Closure sentence forward-referencing Ch. 4 methodology
-
-**Voice requirements**: same as T02 + **stronger emphasis on defensibility** of Luka 3 hedge. Each distinguisher between the thesis and Elbert2025/Lin2024NCT/CetinTas2023 must be named explicitly in the hedge construction (not deferred to backward-ref).
-
-**"Must justify" list for T03 (revised v2)**:
-1. Why the novelty claim (RQ3 gap) is defensible despite Elbert2025 + Lin2024NCT doing AoE2 work (answer: Elbert2025 uses prediction as instrument not goal; Lin2024NCT does balance analysis not prediction-benchmarking; neither benchmarks ML methods cross-game)
-2. Why §3.5 presents four gaps rather than a single umbrella gap (four RQs → four gaps)
-3. Why cold-start gets a dedicated gap rather than being folded into RQ1
-4. **NEW v2**: Why the Luka 3 hedge language is the longer form per Q_adv_2 (answer: precise scope-rules make the claim verifiable against Elbert2025 + Lin2024NCT; shorter hedges risk collapsing distinctions an adversarial examiner familiar with those papers will raise)
-
-**"Must contrast" list for T03 (revised v2)**:
-1. Thesis vs CetinTas2023 — method family, evaluation rigor, cross-game scope, 1v1 vs team
-2. **NEW v2**: Thesis vs Elbert2025 — task framing (prediction as goal vs as instrument), 1v1 vs team games, calibration vs accuracy-only, cross-game vs single-game
-3. Thesis vs Lin2024NCT — task framing (prediction vs balance analysis), benchmarking vs validation
-4. Thesis vs §3.2 SC2 literature — cross-game scope
-5. Thesis vs §3.3 MOBA literature — genre and data structure
-
-**"Must cite" list for T03**: only cross-references to §3.1–§3.4 body citations. No new bib entries.
-
-**Expected length**: 7.5–10k Polish chars (unchanged from v1). Breakdown unchanged except Luka 3 paragraph grows ~200 chars to accommodate longer hedge (still within ~1.5k envelope).
-
-**Flag target**: 1–2 `[REVIEW]` flags (RQ3-novelty framing verification, post-Phase-04 empirical-gap-alignment check).
-
-### T04 — Cross-references, references-list update, and `references.bib` finalisation (revised v2)
-
-**Purpose**: stitch §3.4 and §3.5 into cross-reference web and update bibliographic record.
-
-**Actions**:
-1. **Forward cross-references added in §3.4 and §3.5** (unchanged from v1):
-   - §3.4 → §4.1.2 (AoE2 data corpus; do not duplicate)
-   - §3.4 → §2.3 (AoE2 game mechanics; do not duplicate)
-   - §3.4 → §5.2, §5.3 (AoE2 results; forward ref)
-   - §3.5 → §4.4 (experimental protocol operationalising four novelty dimensions)
-   - §3.5 → Ch. 6 (discussion of literature comparison)
-
-2. **Backward cross-references added in §3.4 and §3.5** (revised v2):
-   - §3.4 ← §3.1.1 (Elo-as-predictor baseline for porcpine1967 parallel)
-   - §3.4 ← §3.2.1 (Erickson-Buro early-methodology parallel for CetinTas2023)
-   - §3.4 ← §3.2.3 (BaekKim2022 GBDT parallel for Xie2020)
-   - §3.4 ← §3.2.4 (SC2 gap list as structural precedent for §3.4.5)
-   - §3.4 ← §3.3.1 (Yang2017Dota methodological parallel)
-   - **NEW v2**: §3.4.3 ← §3.1 (sports-prediction instrumentation register; optional if economic-register parallel is natural)
-   - §3.5 ← §1.2, §1.3, §1.4 (RQ anchors)
-   - §3.5 ← §2.5 (Bradley-Terry / rating-system mathematical ancestor via Lin2024NCT)
-
-3. **Existing sections updated with backward references to §3.4/§3.5**: NONE. Write-new-forward-only task.
-
-4. **`thesis/chapters/03_related_work.md` bottom References section** (unchanged from v1 process): verify and append/update as needed.
-
-5. **`thesis/references.bib` append (revised v2)**:
-   - Fix `@inproceedings{CetinTas2023}` author list
-   - **Add `@inproceedings{Elbert2025EC}` (NEW v2)** — unconditional
-   - Add `@misc{Xie2020MediumAoE}`, `@misc{Porcpine2020EloAoE}` — conditional on Tier 3 acceptability
-   - **DO NOT add** `@misc{CircoBayesAoE}`
-   - **DO NOT add** `@misc{Lin2025Online}`
-
-**Acceptance (revised v2)**:
-- No broken cross-refs
-- `references.bib` updated: CetinTas2023 fix + Elbert2025EC new entry + Tier 3 additions (conditional)
-- `## References` block in Chapter 3 verified/appended
-- No new citations introduced in prose that aren't in `references.bib`
-- Explicit NOT-added list documented in session log for Pass 2 traceability (Lin2025Online, gmcirco42)
-
-### T05 — Critical Review Checklist (Literature variant) + polish pass (revised v2)
-
-**Purpose**: run `.claude/rules/thesis-writing.md` Literature-variant checklist against both sections before DRAFTED status. NOT the adversarial critique.
-
-**Actions (revised v2)**:
-1. **Citation accuracy (revised v2)**: verify each substantive claim matches cited source. Particular attention:
-   - CetinTas2023 "86%" — primary-source verification [REVIEW] retained (per U1, attribution direction resolved but primary verification still pending)
-   - Lin2024NCT "balance analysis not prediction" — verified via arXiv abstract
-   - **NEW v2**: Elbert2025 claims — accuracy + pseudo-R² (not Brier/AUC); team-games scope (2v2/3v3/4v4); aoe2insights.com data source; 54% odds increase per 1 SD; instrumentation framing — all verified via arXiv HTML WebFetch in v2 planning
-   - Xie2020 "~77% XGB" — primary-verified via WebFetch
-   - porcpine1967 "r=0.96" — primary-verified via WebFetch
-2. **Claim-citation alignment**: every substantive claim has a citation or `[NEEDS CITATION]` flag
-3. **Coverage completeness (revised v2)**: canonical references present — **CetinTas2023 (dedicated AoE2 1v1 prediction), Lin2024NCT (AoE2-adjacent balance analysis), Elbert2025 (AoE2 team-game prediction as instrument)** for Tier 1; Xie2020 + porcpine1967 for Tier 3. Acknowledged gaps: grey-lit for Bayesian perspective (gmcirco42 dropped); no peer-reviewed AoE2 1v1 GBDT benchmark; no cross-game RTS prediction benchmark (thesis's central contribution)
-4. **Critical evaluation**: each cited work evaluated, not merely summarised. CetinTas2023 methodological-critique spine; Elbert2025 task-framing-distinction spine
-5. **Scope honesty (revised v2)**: §3.5 novelty claims hedged per T03 voice note — Luka 3 longer hedge per Q_adv_2
-6. **Missing context flags (revised v2)**: `[REVIEW]` flags for:
-   - grey-lit acceptability
-   - 86% primary-source
-   - CetinTas2023 author-verification
-   - Elbert2025 EC'25 citation convention
-   - Elbert2025 ACM EC'25 acceptance-rate figure
-   - post-Phase-04 gap-strength recheck
-
-**Polish pass** (unchanged from v1): anglicism scan, punctuation check, genitive chains, code-switching, doubled words, impersonal register.
-
-**Acceptance (revised v2)**:
-- 6 Critical Review Checklist items explicitly addressed in session log
-- **5–7 `[REVIEW]` flags + 0–1 `[NEEDS CITATION]` flags in §3.4** (was 3–5 in v1)
-- 1–2 `[REVIEW]` flags in §3.5
-- Polish surface clean
-
-### T06 — Update tracking artefacts (unchanged structurally)
-
-**Purpose**: record drafting completion for downstream coordination.
-
-**Actions**:
-1. **`thesis/WRITING_STATUS.md`** (lines 57–58):
-   - §3.4 row: `BLOCKED` → `DRAFTED`; notes: "Literature; Pass 1 calibration draft (2026-XX-XX). N distinct keys [including Elbert2025EC new], M [REVIEW] flags. ~X.Yk chars Polish. Z new bibtex entries appended [Elbert2025EC + 2 Tier 3]."
-   - §3.5 row: `BLOCKED` → `DRAFTED`; notes: "Synthesis of §3.1–§3.4 to RQs §1.3. N [REVIEW] flags. ~X.Yk chars Polish. No new bib entries (pure synthesis). Luka 3 hedge strengthened per v2 plan."
-
-2. **`thesis/chapters/REVIEW_QUEUE.md`** Pending table: append two rows with:
-   - Drafted date
-   - Flag count
-   - Key artifacts: `thesis/reviews_and_others/related_work_historical_rts_prediction.md`; `thesis/references.bib` (N new entries); `temp/plan_3_4_3_5_v2.md` (plan reference)
-   - Pass 2 status: Pending
-
-3. **`reports/research_log.md`** CROSS entry: one-line entry referencing §3.4/§3.5 drafting.
-
-4. **No PHASE_STATUS.yaml update**.
-
-5. **Chat Handoff Summary** produced per `.claude/rules/thesis-writing.md` Literature-section template.
-
-**Acceptance**:
-- WRITING_STATUS.md reflects `DRAFTED` for both sections
-- REVIEW_QUEUE.md has two new Pending rows
-- research_log.md CROSS entry appended
-- Chat Handoff Summary produced with citation count (including Elbert2025EC explicitly), self-discovered references, and Pass 2 question list
+**File scope:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (MODIFIED)
 
 ---
 
-## Halt Protocol
+## DDL — `matches_history_minimal` (R1-BLOCKER-2 + R1-WARNING-1 fix: TIMESTAMP cast inline)
 
-**Starting state (revised v2)**: **3 peer-reviewed AoE2-related papers (CetinTas2023 + Lin2024NCT + Elbert2025) + 2 grey-lit sources (Xie2020 + porcpine1967) retained**. No longer at the "2-paper floor" premise of v1.
+```sql
+CREATE OR REPLACE VIEW matches_history_minimal AS
+-- Purpose: Minimal cross-dataset-harmonized history view for rating-system
+--   backtesting (Phase 02+ consumer).
+-- Grain: 2 rows per 1v1 match (player row + opponent row, symmetric swap).
+-- Cross-dataset contract: 8 columns, identical dtypes across sibling views.
+--   Canonical temporal dtype = TIMESTAMP (no TZ). Faction vocabulary is
+--   per-dataset-polymorphic (SC2 race stems vs AoE2 civ names).
+-- Invariants: I3 (TIMESTAMP cast enables faithful chronological ordering),
+--   I5-analog (player-row symmetry, NULL-safe assertion), I6 (DDL verbatim
+--   in JSON artifact), I7 (magic numbers 32 / 42 cite
+--   data/db/schemas/views/matches_long_raw.yaml provenance regex
+--   [0-9a-f]{32}), I8 (UNION-compatible with sibling
+--   datasets via dataset_tag + prefixed match_id + canonical dtypes), I9
+--   (pure projection of matches_flat_clean; no upstream modification).
+WITH base AS (
+    SELECT
+        'sc2egset::' || mfc.replay_id              AS match_id,
+        mfc.replay_id                              AS raw_match_id,
+        TRY_CAST(mfc.details_timeUTC AS TIMESTAMP) AS started_at,
+        mfc.toon_id                                AS player_id,
+        mfc.race                                   AS faction,
+        (mfc.result = 'Win')                       AS won
+    FROM matches_flat_clean mfc
+)
+SELECT
+    p.match_id,
+    p.started_at,
+    p.player_id,
+    o.player_id                                    AS opponent_id,
+    p.faction,
+    o.faction                                      AS opponent_faction,
+    p.won,
+    'sc2egset'                                     AS dataset_tag
+FROM base p
+JOIN base o
+  ON p.match_id = o.match_id
+ AND p.player_id <> o.player_id
+ORDER BY p.started_at, p.match_id, p.player_id;
+```
 
-**Never-fabricate invariant (retained, absolute)**: under no halt-protocol branch is a citation invented. If material to fill a section is not available, the section reports the absence honestly.
+**Expected column order / dtypes:**
+1. `match_id` VARCHAR
+2. `started_at` **TIMESTAMP** (cast from VARCHAR ISO-8601)
+3. `player_id` VARCHAR
+4. `opponent_id` VARCHAR
+5. `faction` VARCHAR
+6. `opponent_faction` VARCHAR
+7. `won` BOOLEAN
+8. `dataset_tag` VARCHAR
 
-**Condition 1 — T01 re-sweep surfaces an ADDITIONAL peer-reviewed AoE2 prediction paper missed in v2 planning**:
-- **Action**: STOP silent execution. Re-plan T02 budget up (proportionally: +500–800 chars per additional paper, +1 sub-section); potentially add §3.4.3a or §3.4.3b.
-- **Communicate**: Update the plan in place and escalate via parent session if a NEW plan-level decision is needed (e.g., if the new paper overlaps methodologically with Elbert2025 and requires re-balancing the §3.5 Luka 3 hedge). Do not proceed silently with an expanded sub-section set without surfacing the change.
-- **Char budget**: §3.4 upper bound 9.0k can stretch to 10.5k for one additional peer-reviewed source; beyond that, re-plan.
+**Nullability:** `started_at` may be NULL if `TRY_CAST` fails on a malformed ISO-8601 string. Upstream `details_timeUTC` is nullable per `matches_flat_clean.yaml`. Empirically: 0 failed casts expected but the assertion does not depend on empirical luck — log actual null count in validation JSON (I7).
 
-**Condition 2 — T01 confirms the 3-peer + 2-grey state (expected path)**:
-- **Action**: Proceed with T02 at the documented 7.5–8.5k char budget. §3.4 is evidence-calibrated, not thin-from-laziness. `.claude/rules/thesis-writing.md` Critical Review Checklist Literature variant item 3 (coverage completeness + flag known gaps) is satisfied by §3.4.5 gap enumeration.
+---
 
-**Condition 3 — T02 drafting produces §3.4 < 6.0k chars (revised floor v2, was 4.5k in v1)**:
-- **Action**: HALT. Escalate to user with these options:
-  - (a) accept the shorter-than-budget output with explicit scope-honesty preface paragraph (default option — shortest defensible path, analogous to v1 option b)
-  - (b) expand §3.4.4 grey-lit by re-admitting gmcirco42 (overrides W5 decision — requires user consent)
-  - (c) expand §3.4.5 gap-enumeration paragraphs with additional detail
-- **Decision authority**: user
+## Schema YAML — `matches_history_minimal.yaml` content (T02 cell 17 writes this, with concrete `nullable:` booleans from DESCRIBE)
 
-**Condition 4 — CetinTas2023 primary-source re-verification in T01 fails across ALL three routes** (NC7):
-- **Action**: Proceed with seed-bibliography attribution, but plant STRONG `[REVIEW: CetinTas2023 primary-source unverified — seed-bibliography attribution stands; Pass 2 must close this flag]` and note in session log. Do not halt. Do not fabricate. If Pass 2 determines CetinTas2023 cannot be confirmed to exist at all, §3.4.1 becomes a §3.4.1-contingent redraft task — but this is a Pass 2 decision, not an in-plan halt.
+```yaml
+table: matches_history_minimal
+dataset: sc2egset
+game: sc2
+object_type: view
+step: "01_04_03"
+row_count: 44418
+describe_artifact: src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json
+generated_date: "<ISO date of run, filled at runtime>"
+columns:
+  - name: match_id
+    type: VARCHAR
+    nullable: <from DESCRIBE — concrete boolean>
+    description: "Cross-dataset unique match identifier. Format: '<dataset_tag>::<native_id>'. For sc2egset: 'sc2egset::<32-char-hex-replay_id>'. Prefix guarantees UNION ALL uniqueness across sibling datasets. Length contract = 42 chars (10 prefix + 32 hex) derived from src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml join_key regex [0-9a-f]{32} (I7 provenance)."
+    notes: "IDENTITY. Prefix applied in this VIEW only; upstream replay_id unchanged (I9)."
+  - name: started_at
+    type: TIMESTAMP
+    nullable: <from DESCRIBE>
+    description: "Match start time. TIMESTAMP (no TZ) via TRY_CAST(matches_flat_clean.details_timeUTC AS TIMESTAMP). Canonical cross-dataset dtype: sibling VIEWs (aoestats, aoe2companion) MUST emit TIMESTAMP (aoestats CAST from TIMESTAMPTZ AT TIME ZONE 'UTC'; aoe2companion pass-through). DuckDB TRY_CAST handles variable sub-second precision (7 observed length variants 22–28 chars in upstream VARCHAR)."
+    notes: "CONTEXT. Temporal anchor for Phase 02 rating-update loops. Chronologically faithful (TIMESTAMP ordering, not lex)."
+  - name: player_id
+    type: VARCHAR
+    nullable: <from DESCRIBE>
+    description: "Focal player identifier. sc2egset: Battle.net toon_id."
+    notes: "IDENTITY. Per-dataset identifier; cross-dataset identity resolution is a future step (Phase 01_05+)."
+  - name: opponent_id
+    type: VARCHAR
+    nullable: <from DESCRIBE>
+    description: "Opposing player identifier. Same grain and provenance as player_id."
+    notes: "IDENTITY."
+  - name: faction
+    type: VARCHAR
+    nullable: <from DESCRIBE>
+    description: >
+      Focal player's faction. **Per-dataset polymorphic vocabulary** (cross-dataset
+      column name + dtype only — values differ in ontology). sc2egset: 4-char race
+      stems `Prot`/`Terr`/`Zerg` (empirically verified; NOT full 'Protoss'/'Terran'/'Zerg').
+      aoestats: full civilization names (`Mongols`, `Franks`, etc.).
+      aoe2companion: full civilization names.
+      CONSUMERS MUST NOT treat faction as a single categorical feature across
+      datasets without game-conditional encoding (e.g., WHERE dataset_tag = 'sc2egset'
+      before GROUP BY faction).
+    notes: "PRE_GAME. Raw vocabulary (race actually played, not selectedRace which includes 'Random'). Polymorphic I8 contract — see description."
+  - name: opponent_faction
+    type: VARCHAR
+    nullable: <from DESCRIBE>
+    description: "Opposing player's faction (same per-dataset vocabulary as `faction`)."
+    notes: "PRE_GAME. Mirror of faction from the opponent row."
+  - name: won
+    type: BOOLEAN
+    nullable: <from DESCRIBE>
+    description: "TRUE if the focal player won, FALSE otherwise. The two rows of a match have complementary `won` values (exactly one TRUE, one FALSE)."
+    notes: "TARGET. Direct projection of matches_flat_clean.result; prediction label for downstream experiments."
+  - name: dataset_tag
+    type: VARCHAR
+    nullable: false
+    description: "Dataset discriminator for UNION ALL across sibling datasets. Constant 'sc2egset' in this VIEW."
+    notes: "IDENTITY. Matches the prefix before '::' in match_id."
+provenance:
+  source_tables:
+    - matches_flat_clean
+  join_key: "self-join on matches_flat_clean via replay_id; player_id = toon_id; opponent_id from sibling row where mfc.toon_id <> opp.toon_id"
+  filter: "Inherited from matches_flat_clean: true_1v1_decisive (2 players, 1 Win + 1 Loss) + mmr_valid."
+  scope: "22,209 true 1v1 decisive replays, 44,418 player-rows. Cross-dataset harmonization substrate for Phase 02+ rating backtesting."
+  created_by: sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
+invariants:
+  - id: I3
+    description: >
+      TIMESTAMP-typed temporal anchor enables chronologically faithful ordering
+      (upstream VARCHAR details_timeUTC has 7 distinct sub-second precision
+      variants 22–28 chars; lex ordering would be non-monotonic). TRY_CAST
+      to TIMESTAMP in the VIEW normalizes. No windowed aggregations, no
+      shift(), no future joins. Phase 02 consumers use started_at as the
+      strict-less-than anchor for match_time < T feature computation.
+  - id: I5
+    description: >
+      Player-row symmetry (I5-analog). Every match_id has exactly 2 rows.
+      (player_id, opponent_id) appears once in each direction. The two `won`
+      values are complementary. faction and opponent_faction are mirror
+      images. Assertion SQL uses IS DISTINCT FROM for NULL-safe comparison
+      (R1-BLOCKER-3 fix).
+  - id: I6
+    description: >
+      CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in
+      01_04_03_minimal_history_view.json sql_queries block. DESCRIBE result
+      captured in validation JSON describe_table_rows for reproducibility
+      of the nullable flags written to this YAML.
+  - id: I7
+    description: >
+      Magic literals in PREFIX_CHECK_SQL (`32` hex chars, `42` total length)
+      cite upstream data/db/schemas/views/matches_long_raw.yaml join_key
+      regex [0-9a-f]{32} for provenance.
+  - id: I8
+    description: >
+      Cross-dataset comparability: 8-column names + dtypes are the cross-
+      dataset contract. Canonical temporal dtype = TIMESTAMP (no TZ). Faction
+      vocabulary is per-dataset-polymorphic — column name and dtype cross-
+      dataset, values per-dataset ontology. aoestats sibling PR must project
+      its 1-row-per-match matches_1v1_clean to 2-rows-per-match via UNION ALL
+      of p0/p1 SELECTs (with awareness of team1_wins ~52.27% slot asymmetry);
+      aoe2companion similarly. match_id prefixed 'sc2egset::'.
+  - id: I9
+    description: >
+      Pure non-destructive projection. No raw table modified. matches_flat_clean
+      unchanged. Only matches_history_minimal VIEW created via CREATE OR
+      REPLACE. Inputs (matches_flat_clean, matches_flat) read-only.
+provenance_categories_note: >
+  This view inherits provenance categories from matches_flat_clean. Per-column
+  'notes' field uses the single-token vocabulary (IDENTITY, CONTEXT, PRE_GAME,
+  TARGET) established in 01_04_02.
+```
 
-**Condition 5 — Elbert2025 arXiv mirror disappears or ACM EC'25 acceptance claim fails to verify via ec25.sigecom.org** (NC6):
-- **Action**: Downgrade Elbert2025 framing from "peer-reviewed ACM EC'25" to "arXiv preprint + SSRN submission" and demote to Tier 2; re-plan T02 §3.4.3 character budget (could reduce to 400–500 chars if demoted). Do not halt. Plant `[REVIEW: Elbert2025 venue claim unverified — Pass 2 confirmation needed]`.
+---
 
-**Condition 6 — Pass 2 subsequently rejects Tier 3 grey-lit acceptability entirely**:
-- **Action**: §3.4.4 shrinks to a single-paragraph prose summary without bib keys (~500–800 chars), retaining methodological-transfer observations but citing sources as unreferenced web material. §3.4 overall contracts to ~6.0–7.0k. **Do not fabricate additional peer-reviewed citations to compensate.** Pass 2 decision; out of Pass 1 scope.
+## Validation SQL (embedded verbatim in validation JSON sql_queries — I6)
 
-**No longer applicable from v1**:
-- v1 halt-protocol branches (a)/(b)/(c) at the 4.5k §3.4 floor — rewritten to Condition 3 above with v2 6.0k floor
-- v1 "if T01 discovers new 2025–2026 peer-reviewed paper" branch with "extend §3.4.1 to §3.4.1a/§3.4.1b" — replaced with Condition 1 escalate-then-re-plan
+**Row-count parity (I5-analog cardinality + I9):**
+```sql
+-- ROW_COUNT_CHECK_SQL
+SELECT
+    (SELECT COUNT(*) FROM matches_history_minimal)                  AS total_rows,
+    (SELECT COUNT(DISTINCT match_id) FROM matches_history_minimal)  AS distinct_match_ids,
+    (SELECT COUNT(*) FROM matches_flat_clean)                       AS src_rows,
+    (SELECT COUNT(DISTINCT replay_id) FROM matches_flat_clean)      AS src_replays,
+    (SELECT COUNT(*) FROM (
+        SELECT match_id, COUNT(*) AS n
+        FROM matches_history_minimal
+        GROUP BY match_id
+        HAVING n = 2
+     ))                                                             AS matches_with_2_rows,
+    (SELECT COUNT(*) FROM (
+        SELECT match_id, COUNT(*) AS n
+        FROM matches_history_minimal
+        GROUP BY match_id
+        HAVING n <> 2
+     ))                                                             AS matches_with_not_2_rows;
+-- Expected: total_rows = 44418, distinct_match_ids = 22209,
+--           src_rows = 44418, src_replays = 22209,
+--           matches_with_2_rows = 22209, matches_with_not_2_rows = 0.
+```
+
+**Symmetry (I5-analog, NULL-safe — R1-BLOCKER-3 fix):**
+```sql
+-- SYMMETRY_I5_ANALOG_SQL
+WITH row_pairs AS (
+    SELECT
+        a.match_id,
+        a.player_id         AS a_pid,
+        a.opponent_id       AS a_oid,
+        a.won               AS a_won,
+        a.faction           AS a_fac,
+        a.opponent_faction  AS a_ofac,
+        b.player_id         AS b_pid,
+        b.opponent_id       AS b_oid,
+        b.won               AS b_won,
+        b.faction           AS b_fac,
+        b.opponent_faction  AS b_ofac
+    FROM matches_history_minimal a
+    JOIN matches_history_minimal b
+      ON a.match_id = b.match_id
+     AND a.player_id <> b.player_id
+)
+SELECT COUNT(*) AS symmetry_violations
+FROM row_pairs
+WHERE a_pid <> b_oid                           -- player/opponent swap broken
+   OR a_oid <> b_pid
+   OR a_won = b_won                            -- not complementary
+   OR a_fac IS DISTINCT FROM b_ofac            -- NULL-safe faction mirror
+   OR a_ofac IS DISTINCT FROM b_fac;
+-- Expected: 0. Gate: must equal 0.
+-- NULL-safety: IS DISTINCT FROM treats NULL as comparable (not UNKNOWN);
+--   a row where both sides are NULL is treated as equal (symmetric),
+--   a row where one side is NULL and the other is not is treated as distinct
+--   (asymmetric → violation).
+```
+
+**Zero-NULL on non-nullable spec columns:**
+```sql
+-- ZERO_NULL_SQL
+SELECT
+    COUNT(*) FILTER (WHERE match_id     IS NULL) AS null_match_id,
+    COUNT(*) FILTER (WHERE started_at   IS NULL) AS null_started_at,
+    COUNT(*) FILTER (WHERE player_id    IS NULL) AS null_player_id,
+    COUNT(*) FILTER (WHERE opponent_id  IS NULL) AS null_opponent_id,
+    COUNT(*) FILTER (WHERE won          IS NULL) AS null_won,
+    COUNT(*) FILTER (WHERE dataset_tag  IS NULL) AS null_dataset_tag,
+    COUNT(*) FILTER (WHERE faction          IS NULL) AS null_faction_info,
+    COUNT(*) FILTER (WHERE opponent_faction IS NULL) AS null_opponent_faction_info
+FROM matches_history_minimal;
+-- Gate: null_match_id / null_player_id / null_opponent_id / null_won / null_dataset_tag all 0.
+-- null_started_at: report value (I7); if > 0 flag in JSON (indicates TRY_CAST failures on malformed details_timeUTC), do not fail.
+-- null_faction / null_opponent_faction: report only.
+```
+
+**Prefix uniqueness (I8; I7 — cites data/db/schemas/views/matches_long_raw.yaml regex [0-9a-f]{32}):**
+```sql
+-- PREFIX_CHECK_SQL
+-- Magic literals: 'sc2egset::' = 10-char literal prefix (plan spec);
+--                 32 = replay_id hex length from
+--                      src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml
+--                      join_key regex [0-9a-f]{32} (I7 provenance).
+-- Total length contract: 10 + 32 = 42.
+SELECT COUNT(*) AS prefix_violations
+FROM matches_history_minimal
+WHERE match_id NOT LIKE 'sc2egset::%'
+   OR length(match_id) <> length('sc2egset::') + 32
+   OR regexp_extract(match_id, '::([0-9a-f]{32})$', 1) = '';
+-- Expected: 0. Gate: must equal 0.
+```
+
+**Dataset tag constant (I8):**
+```sql
+-- DATASET_TAG_CHECK_SQL
+SELECT
+    COUNT(DISTINCT dataset_tag) AS n_distinct_tags,
+    MAX(dataset_tag)            AS the_tag
+FROM matches_history_minimal;
+-- Expected: 1 / 'sc2egset'. Gate: both.
+```
+
+**Faction vocabulary (exploratory — documents per-dataset polymorphism; R1-BLOCKER-1 fix: sc2egset empirically ships `Prot`/`Terr`/`Zerg`):**
+```sql
+-- FACTION_VOCAB_SQL
+SELECT faction, COUNT(*) AS n
+FROM matches_history_minimal
+GROUP BY faction
+ORDER BY n DESC;
+-- Expected (sc2egset, empirically): 'Prot' ~16121, 'Zerg' ~15527, 'Terr' ~12770.
+-- NOT full 'Protoss'/'Terran'/'Zerg' strings — 4-char stems per
+-- matches_flat_clean.yaml line 58 ("Actual race played abbreviated").
+-- No gate; feeds I8 per-dataset-polymorphism documentation.
+```
+
+**Temporal sanity (I3):**
+```sql
+-- TEMPORAL_SANITY_SQL
+SELECT
+    MIN(started_at)            AS min_started_at,
+    MAX(started_at)            AS max_started_at,
+    COUNT(*) FILTER (WHERE started_at IS NULL) AS null_started_at,
+    COUNT(DISTINCT started_at) AS distinct_started_at
+FROM matches_history_minimal;
+-- Report only. TIMESTAMP ordering is chronologically faithful (unlike the
+-- upstream VARCHAR lex ordering which had 7 distinct sub-second precision
+-- lengths). null_started_at counts TRY_CAST failures on malformed upstream
+-- strings (expected 0).
+```
 
 ---
 
 ## File Manifest
 
-| File | Task | Role |
-|------|------|------|
-| `thesis/chapters/03_related_work.md` | T02/T03/T04/T05 | §3.4 + §3.5 prose drafts; chapter References section update |
-| `thesis/references.bib` | T01/T04 | +2 bib entries (Elbert2025EC; CetinTas2023 author-list fix); +2 optional Tier 3 (Xie2020, Porcpine2020) |
-| `thesis/WRITING_STATUS.md` | T06 | §3.4/§3.5 BLOCKED → DRAFTED |
-| `thesis/chapters/REVIEW_QUEUE.md` | T06 | +2 Pending Pass 2 rows |
-| `reports/research_log.md` | T06 | CROSS 2026-04-18 entry |
+| Status | Path |
+|---|---|
+| NEW | `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py` |
+| NEW | `sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.ipynb` |
+| NEW | `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml` |
+| NEW | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json` |
+| NEW | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md` |
+| MODIFIED | `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (append 01_04_03 block) |
+| MODIFIED | `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (T01 append not_started; T03 flip complete) |
+| MODIFIED | `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (T01 flip in_progress; T03 flip complete) |
+| MODIFIED | `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (prepend 01_04_03 entry) |
 
-## Gate Condition
-
-Both sections move to `DRAFTED` when ALL hold:
-
-1. **Prose complete**: §3.4 (five sub-sections: opening + §3.4.1 + §3.4.2 + §3.4.3 + §3.4.4 + §3.4.5) and §3.5 written as complete argumentative prose.
-2. **Citation density matches §3.2/§3.3 voice**: §3.4 ≥ **7 distinct citation keys** (revised v2 from ≥6, accounts for Elbert2025); §3.5 ≥ 8 cross-references to §3.1–§3.4.
-3. **All 6 Critical Review Checklist items (Literature variant)** addressed in session log.
-4. **`[REVIEW]` flags planted** at every Pass-2-validation point.
-5. **`references.bib` updated** with T01 outcomes (CetinTas2023 fix + Elbert2025EC new + Tier 3 conditional).
-6. **Cross-references resolve**.
-7. **Tracking artefacts updated** per T06.
-8. **Chat Handoff Summary produced**.
-
-`DRAFTED` explicitly NOT "final" — Pass 2 external validation by user + Claude Chat will resolve flags.
+**Files NOT touched (I9 enforcement):**
+- `matches_flat_clean.yaml` — byte-identical.
+- `player_history_all.yaml` — byte-identical.
+- `matches_long_raw.yaml` — byte-identical.
+- `PHASE_STATUS.yaml` — unchanged.
 
 ---
 
-## Out of Scope
+## ROADMAP edit — content to insert (T01)
 
-Explicitly excluded:
+```yaml
+step_number: "01_04_03"
+name: "Minimal Cross-Dataset History View"
+description: >
+  Create matches_history_minimal VIEW: 8-column player-row-grain projection
+  of matches_flat_clean (2 rows per 1v1 match). Cross-dataset-harmonized
+  substrate for Phase 02+ rating-system backtesting. Canonical TIMESTAMP
+  temporal dtype; per-dataset-polymorphic faction vocabulary. Pattern-
+  establisher -- aoestats and aoe2companion emit identically-shaped sibling
+  views in follow-up PRs (I8).
+phase: "01 -- Data Exploration"
+pipeline_section: "01_04 -- Data Cleaning"
+manual_reference: "01_DATA_EXPLORATION_MANUAL.md, Section 4.2 (non-destructive cleaning), Section 4.4 (post-cleaning validation)"
+dataset: "sc2egset"
+question: >
+  What is the minimum cross-dataset-harmonized shape for per-player match
+  history required by Phase 02 rating-system backtesting? Does a pure
+  projection of matches_flat_clean with TIMESTAMP-cast started_at satisfy
+  the I3/I5-analog/I6/I7/I8/I9 contract?
+method: >
+  CREATE OR REPLACE VIEW on top of matches_flat_clean via self-join on
+  replay_id to materialize (player_row, opponent_row) symmetric pairs.
+  match_id prefixed 'sc2egset::' for cross-dataset UNION uniqueness.
+  started_at via TRY_CAST to canonical TIMESTAMP dtype. Faction strings
+  raw (per-dataset polymorphic vocabulary). Validate: row-count parity,
+  schema shape, I5-analog NULL-safe symmetry, prefix uniqueness,
+  dataset_tag constancy, temporal sanity.
+stratification: "By match_id (2 symmetric rows); by faction for vocabulary documentation."
+predecessors:
+  - "01_04_02"
+methodology_citations:
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.2 (non-destructive cleaning)"
+  - "Manual 01_DATA_EXPLORATION_MANUAL.md §4.4 (post-cleaning validation)"
+  - "Tukey, J. W. (1977). Exploratory Data Analysis. Addison-Wesley. (for raw-string vocabulary documentation via FACTION_VOCAB_SQL)"
+  - "Schafer, J. L., & Graham, J. W. (2002). Missing data: Our view of the state of the art. Psychological Methods."
+  - "van Buuren, S. (2018). Flexible Imputation of Missing Data (2nd ed.). CRC Press."
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py"
+inputs:
+  duckdb_views:
+    - "matches_flat_clean (44,418 rows / 22,209 replays -- from 01_04_02)"
+  prior_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_02_post_cleaning_validation.json"
+  schema_yamls:
+    - "data/db/schemas/views/matches_flat_clean.yaml"
+outputs:
+  duckdb_views:
+    - "matches_history_minimal (NEW -- 8 cols, 44,418 rows)"
+  schema_yamls:
+    - "data/db/schemas/views/matches_history_minimal.yaml (NEW)"
+  data_artifacts:
+    - "artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json"
+  report: "artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md"
+reproducibility: >
+  CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in the
+  validation JSON sql_queries block (I6). DESCRIBE result captured in the
+  validation JSON describe_table_rows for reproducibility of nullable flags
+  written to schema YAML.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >
+      TIMESTAMP cast (via TRY_CAST) enables chronologically faithful ordering.
+      Upstream VARCHAR details_timeUTC has 7 distinct sub-second precision
+      lengths (22–28 chars); lex ordering would be non-monotonic across
+      formats. Phase 02 consumers use TIMESTAMP started_at as strict-
+      less-than anchor.
+  - number: "5"
+    how_upheld: >
+      Player-row symmetry (I5-analog). SYMMETRY_I5_ANALOG_SQL uses
+      IS DISTINCT FROM for NULL-safe comparison (prior `=`-based version
+      false-passed NULL-asymmetric rows).
+  - number: "6"
+    how_upheld: >
+      DDL + every assertion SQL + DESCRIBE snapshot in validation JSON.
+  - number: "7"
+    how_upheld: >
+      Magic literals 32 / 42 in PREFIX_CHECK_SQL cite
+      src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_long_raw.yaml
+      join_key regex [0-9a-f]{32} for provenance.
+  - number: "8"
+    how_upheld: >
+      8-column cross-dataset contract: identical column names + dtypes;
+      canonical TIMESTAMP temporal dtype (no TZ); per-dataset-polymorphic
+      faction vocabulary (explicit contract limit — consumers MUST game-
+      condition before categorical analyses). aoestats sibling PR projects
+      1-row-per-match to 2-rows with p0/p1 UNION ALL (team1_wins slot-
+      asymmetry awareness required).
+  - number: "9"
+    how_upheld: >
+      Pure non-destructive projection. No upstream modification. Only new
+      VIEW created.
+gate:
+  artifact_check: >
+    Validation JSON + MD exist. matches_history_minimal.yaml exists with
+    8 columns (started_at TIMESTAMP) + invariants block + I8 per-dataset-
+    polymorphic faction warning.
+  continue_predicate: >
+    VIEW exists with 8 columns matching spec. 44,418 rows = 22,209 × 2.
+    Zero NULL-safe symmetry violations. Zero prefix violations. dataset_tag
+    constancy = 1. Zero NULLs in match_id / player_id / opponent_id / won /
+    dataset_tag. STEP_STATUS 01_04_03 -> complete. PIPELINE_SECTION_STATUS
+    01_04 -> complete.
+  halt_predicate: >
+    Symmetry violation > 0; row-count discrepancy; prefix violation; NULL in
+    non-nullable spec column; column count != 8; started_at dtype != TIMESTAMP;
+    upstream YAML byte-diff detected. ON HALT: manually revert
+    PIPELINE_SECTION_STATUS 01_04 -> complete before aborting.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet > Cross-dataset harmonization substrate"
+  - "Chapter 4 -- Data and Methodology > 4.3 Rating System Backtesting Design (downstream consumer)"
+research_log_entry: "Required on completion."
+```
 
-1. No new AoE2 game mechanics description
-2. No new AoE2 data corpus description
-3. No player identity-resolution discussion
-4. No new Tabela
-5. No re-narration of §3.2 or §3.3
-6. No new RQ formulation or revision
-7. No speculation about Phase 04 results
-8. No §3.2 English-title translation to Polish
-9. No balance-patch discussion for AoE2
-10. No StarCraft prediction literature extension
-11. **NEW v2**: No Kaggle dataset commentary for Elbert2025 (NC5) — out-of-scope for §3.4.3 prose; potentially relevant for §4.1.2 revisit, but not this plan
+---
+
+## research_log entry template (T04)
+
+```markdown
+## 2026-04-{DD} -- [Phase 01 / Step 01_04_03] Minimal Cross-Dataset History View
+
+**Category:** A (science)
+**Dataset:** sc2egset (pattern-establisher)
+**Step scope:** Create matches_history_minimal VIEW -- 8-column player-row-grain
+projection of matches_flat_clean with canonical TIMESTAMP temporal dtype.
+Cross-dataset-harmonized substrate for Phase 02+ rating-system backtesting.
+Non-destructive (I9); reverts 01_04 to in_progress for execution duration.
+
+### Schema (8 columns, 2 rows per match)
+
+| column | dtype | semantics |
+|---|---|---|
+| match_id | VARCHAR | 'sc2egset::' + 32-char hex replay_id (length = 42) |
+| started_at | TIMESTAMP | TRY_CAST of details_timeUTC; canonical cross-dataset type |
+| player_id | VARCHAR | Battle.net toon_id |
+| opponent_id | VARCHAR | Opposing toon_id |
+| faction | VARCHAR | Raw race stems `Prot`/`Terr`/`Zerg` (4-char; NOT full names). PER-DATASET POLYMORPHIC |
+| opponent_faction | VARCHAR | Opposing race (same vocabulary as faction) |
+| won | BOOLEAN | Focal player's outcome (complementary between the 2 rows) |
+| dataset_tag | VARCHAR | Constant 'sc2egset' |
+
+### Row-count flow
+- Source matches_flat_clean: 44,418 rows / 22,209 replays
+- matches_history_minimal: 44,418 rows / 22,209 distinct match_ids / 2 rows per match_id
+
+### Gate verdict (all PASS)
+- Row count 44,418 = 2 × 22,209
+- Column count 8; started_at dtype TIMESTAMP verified
+- I5-analog NULL-safe symmetry violations (IS DISTINCT FROM): 0
+- match_id prefix violations: 0; length contract = 42 (10 prefix + 32 hex per matches_long_raw.yaml regex)
+- dataset_tag distinct count: 1
+- Zero NULLs in match_id / player_id / opponent_id / won / dataset_tag
+- I9: upstream VIEW YAMLs byte-identical
+
+### Artifacts produced
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.json` (NEW)
+- `reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md` (NEW)
+- `data/db/schemas/views/matches_history_minimal.yaml` (NEW)
+- DuckDB VIEW `matches_history_minimal` (NEW)
+
+### Cross-dataset contract established (I8) — limits explicit
+aoestats and aoe2companion follow-up PRs must emit views with:
+- identical 8-column names and order
+- canonical TIMESTAMP started_at (aoestats CASTs AT TIME ZONE 'UTC' from TIMESTAMPTZ; aoe2companion pass-through)
+- same grain (2 rows per match) — aoestats UNIONs p0/p1 halves of its 1-row-per-match clean view (team1_wins slot asymmetry awareness)
+- NULL-safe IS DISTINCT FROM symmetry assertion
+- dataset_tag literals 'aoestats' / 'aoe2companion'
+- match_id prefixes 'aoestats::' / 'aoe2companion::'
+- `faction` values per-dataset polymorphic (SC2 race stems vs AoE2 civ names); consumers MUST game-condition
+
+### Decisions taken
+- Source = matches_flat_clean (1v1-decisive filter built-in).
+- match_id prefix in-view (preserves I9).
+- faction = `race` (actual), NOT `selectedRace`.
+- started_at cast to TIMESTAMP in-view (resolves 3-way dtype split at the contract level).
+- Minimal view excludes MMR / is_mmr_missing / map / version; consumers join from matches_flat_clean.
+
+### Decisions deferred
+- Faction enum harmonization (Phase 02; current contract is explicit polymorphism).
+- Canonical nickname resolution (Phase 01_05+).
+
+### Thesis mapping
+- Chapter 4 -- Data and Methodology > 4.1.1 SC2EGSet > Cross-dataset harmonization substrate
+- Chapter 4 -- Data and Methodology > 4.3 Rating System Backtesting Design (downstream consumer)
+
+### Open follow-ups
+- aoestats, aoe2companion sibling PRs.
+- Phase 02 defines canonical UNION ALL view.
+```
+
+---
+
+## Gate Condition
+
+1. **Artifacts exist and non-empty:** notebook `.py` + `.ipynb`; validation JSON + MD; `matches_history_minimal.yaml` (8 cols + invariants block + per-dataset-polymorphic faction warning).
+2. **DuckDB VIEW exists** — `DESCRIBE matches_history_minimal` returns exactly 8 columns in order `[match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, dataset_tag]` with dtypes `[VARCHAR, TIMESTAMP, VARCHAR, VARCHAR, VARCHAR, VARCHAR, BOOLEAN, VARCHAR]`.
+3. **Row-count parity:** 44,418 / 22,209 / 22,209 / 0.
+4. **I5-analog NULL-safe symmetry:** 0 violations (via `IS DISTINCT FROM`).
+5. **I8 prefix uniqueness:** 0 violations; length == 42.
+6. **I8 dataset_tag constancy:** `COUNT(DISTINCT dataset_tag) = 1`, value = `'sc2egset'`.
+7. **Zero-NULL:** match_id / player_id / opponent_id / won / dataset_tag all 0.
+8. **started_at dtype:** TIMESTAMP (DESCRIBE output); null_started_at count reported (expected 0 but not a fixed threshold per I7). **Non-halt rationale (R2-NOTE-4):** `TRY_CAST` failures originate from malformed upstream `details_timeUTC` strings — an upstream data issue, not a pipeline bug. Phase 02 consumers decide how to handle NULL temporal anchors (e.g., skip match in rating update). Halt-on-NULL would punish this step for upstream data quality.
+9. **I9 upstream immutability:** `git diff --stat` shows no change to `matches_flat_clean.yaml`, `player_history_all.yaml`, `matches_long_raw.yaml`.
+10. **Status files:** STEP_STATUS 01_04_03 = complete; PIPELINE_SECTION_STATUS 01_04 = complete; PHASE_STATUS 01 unchanged.
+11. **Validation JSON** `all_assertions_pass: true`, `sql_queries` block contains every SQL literal verbatim (I6), `describe_table_rows` captures DESCRIBE output (I6 nullable-flag reproducibility).
+12. **research_log.md** new entry at top.
+
+**Halt predicate:** symmetry > 0, column count off, NULL in non-nullable, upstream YAML byte-diff, prefix/dataset_tag violation, started_at dtype != TIMESTAMP. **ON HALT: manually revert PIPELINE_SECTION_STATUS.yaml `01_04.status = complete` before aborting** (R1-WARNING-3).
+
+---
+
+## Out of scope
+
+- aoestats and aoe2companion sibling views (separate PRs).
+- Faction enum harmonization across SC2 races and AoE2 civilizations (explicit per-dataset-polymorphism contract in this PR; harmonization is Phase 02).
+- MMR / rating pass-through (Phase 02 joins from `matches_flat_clean`).
+- Canonical nickname resolution.
+- Any Phase 02 Elo/Glicko computation.
+- Tests under `tests/` — VIEW-only step with no importable Python logic.
 
 ---
 
 ## Open Questions
 
-**Q1 — Grey-literature acceptability for §3.4.4**: LOCALLY COMMITTED in v2 per W5 (include Xie2020 + porcpine1967 with Tier 3 labelling; drop gmcirco42). Pass 2 for §2.2 and §2.5 has not returned — the local §3.4.4 commitment defaults to "[REVIEW] at sub-section opening + Pass 2 reconciliation" and should not block Chapter 3 closure. If user wants a different default, flag now.
-
-**Q2 — §3.4 title language**: §3.1 and §3.3 are Polish; §3.2 currently English. Plan drafts §3.4 and §3.5 titles in Polish. Does user want §3.2 title normalised at the same time?
-
-**Q3 — §3.5 forward-reference to Chapter 4**: plan commits to §4.4 forward-ref in closure paragraph. Alternative: generic "rozdział 4".
-
-**Q4 — Branch naming**: `docs/thesis-3.4-3.5` from master.
-
-**Q5 — Lin2024NCT citation reuse across §1.1, §2.5, §3.4.2**: not a "re-narration" concern.
-
-**Q6 (NEW v2) — Elbert2025 bib entry convention**: `@inproceedings` with a `note` field pointing to arXiv + SSRN, or `@misc` with venue note? Plan defaults to `@inproceedings` with `note` per A7/NC4; Pass 2 can revise if different citation convention is preferred by promotor or THESIS_WRITING_MANUAL.md rules. Flag `[REVIEW: Elbert2025EC bib convention]` at the entry.
-
-**Q7 (NEW v2) — Elbert2025 acceptance-rate figure (24.6%)**: v2 could not re-verify this specific figure from the R1 critique. Plan defaults to citing Elbert2025 as "presented at ACM EC 2025" without the 24.6% figure in §3.4.3 prose. If user wants the acceptance-rate figure included for emphasis, it needs primary verification during T01.
-
-User is not required to answer all seven before execution — defaults documented above.
+None blocking.
 
 ---
 
-## Adversarial-Defence Rehearsal
+## R1 critique closure summary
 
-Anticipated BLOCKER challenges per section. Three rounds of adversarial critique is the cap.
-
-### §3.4 — most likely BLOCKERs (revised v2)
-
-**A1 — "§3.4 has one real citation + ten tangential — fabrication risk."**
-- **Defence (v2 strengthened)**: v2 has THREE peer-reviewed citations (CetinTas2023 dedicated + Lin2024NCT adjacent + Elbert2025 instrumentation), plus Lin2025Online footnote-equivalent, plus 2 Tier 3 grey-lit. Each citation is traceable via WebFetch primary verification or seed-bibliography + IEEE Xplore URL. No tangential padding. §3.4.5 gap enumeration is structural evidence that thinness is reported where it exists, not compensated for.
-- **Backup**: §3.4.3 Elbert2025 could be reviewer-flagged as "outcome prediction as instrument is off-scope for §3.4" — pre-answered per Must Justify list item 4: Elbert2025 is peer-reviewed AoE2 work that explicitly uses outcome prediction; excluding it would misrepresent the literature. The instrumentation framing is reported in prose.
-
-**A2 — "§3.4 character count is too short."**
-- **Defence**: section length budgeted against evidence availability per `.claude/rules/thesis-writing.md` Literature variant item 5. 7.0–9.0k §3.4 on a 3-peer + 2-grey literature is evidence-calibrated. Chapter 3 aggregate post-draft ~49–51k chars, comfortably within 8–12 physical-page Polish-chapter window.
-- **Backup**: halt-protocol Condition 3 (a) is the default for sub-floor outputs.
-
-**A3 — "Grey-lit (T3.1–T3.2) unacceptable in peer-reviewed-only thesis chapter."**
-- **Defence**: author-style brief line 32 permits grey lit with explicit lower-tier labelling. §3.4.4 explicitly labels them as grey literature with [REVIEW] flag for Pass 2 global reconciliation, consistent with §2.2/§2.5 handling.
-- **Backup**: halt-protocol Condition 6 (§3.4.4 collapses to prose without bib keys if Pass 2 rejects grey-lit).
-
-**A4 — "86% accuracy figure unverified."**
-- **Defence (v2 strengthened)**: R1 independent verification of Xie2020 Medium proved Xie2020 maxes at 77%; 86% can only be CetinTas2023. Attribution direction is rozstrzygnięte per U1. Primary-source IEEE Xplore verification flag retained for Pass 2.
-- **Backup**: methodological discussion of CetinTas2023 does not depend on 86% for argumentative weight.
-
-**A5 — "CetinTas2023 author-list in `references.bib` is wrong."**
-- **Defence**: T01 Action 5 explicitly fixes the placeholder.
-
-**A6 (NEW v2) — "Elbert2025 is team-games (2v2/3v3/4v4) not 1v1; why included in §3.4?"**
-- **Defence**: AoE2 outcome prediction is still AoE2 outcome prediction regardless of game mode. §3.4.3 notes the team-games scope explicitly; §3.5 Luka 3 hedge uses this to further distinguish the thesis (1v1 benchmarking) from Elbert2025 (team-game instrumentation). Including it strengthens rather than weakens the novelty claim.
-
-**A7 (NEW v2) — "Elbert2025 uses prediction as instrument; does it even count as 'prediction literature'?"**
-- **Defence**: the paper explicitly computes outcome predictions from a skill-based logistic regression baseline and reports prediction-task metrics (accuracy + pseudo-R²). The fact that those predictions are then residualized for team-player effect identification does not retroactively un-make them predictions. §3.4.3 discusses this distinction in prose; §3.5 Luka 3 precisely captures the task-framing distinction.
-
-**A8 (NEW v2) — "Elbert2025 citation convention inconsistent (extended abstract vs full arXiv)."**
-- **Defence**: `@inproceedings{Elbert2025EC}` with `note` field pointing to arXiv full paper + SSRN is a standard convention for ACM EC venues. Flag `[REVIEW]` planted for Pass 2 / promotor verification.
-
-### §3.5 — most likely BLOCKERs (revised v2)
-
-**B1 — "§3.5 overclaims 'first ever cross-game RTS prediction comparison' — Lin2024NCT or Elbert2025 does cross-game/AoE2 work."**
-- **Defence (v2 strengthened per Q_adv_2)**: T03 voice note uses the longer hedge: "pierwsza znana nam praca porównująca rodzinę klasyfikatorów uczenia maszynowego w zadaniu benchmarkowania metod predykcji wyniku meczu między dwiema grami RTS z jawną oceną probabilistyczną." Distinguishes from Lin2024NCT (balance, not prediction-benchmarking), Elbert2025 (prediction as instrument, team-games only, no Brier/AUC), CetinTas2023 (single game).
-- **Backup**: if reviewer disputes "pierwsza znana" hedging, soften to "brak w literaturze przedmiotu".
-
-**B2 — "§3.5 novelty claims hinge on a gap the thesis hasn't yet demonstrated empirically."**
-- **Defence**: §3.5 claims are ABOUT THE LITERATURE (zero papers do X in outcome-prediction benchmarking for cross-game RTS), not about empirical thesis results. Novelty is methodological-scope, not empirical-superiority. [REVIEW] flag defers empirical-novelty language.
-
-**B3 — "Chapter 3 overall too short."**
-- **Defence (v2 recalibrated)**: Chapter 3 post-draft ~49–51k chars aggregate; within 8–12 page window. §3.5 at 7.5–10k is proportional to §3.1 closure arc.
-- **Backup**: §3.5 closure paragraph can expand with methodological-arc table.
-
-**B4 — "§3.5 duplicates §1.1 research-gap content."**
-- **Defence**: §1.1 is ~1 paragraph preliminary framing; §3.5 is ~7.5k-char synthesis linking four lit-domain findings to four RQs.
-
-**B5 — "§3.5 closure forward-references §4.4 prematurely."**
-- **Defence**: §4.4 structure defined in THESIS_STRUCTURE.md even if prose not drafted. Standard forward-ref practice.
-
-**B6 (NEW v2) — "§3.5 Luka 3 hedge is too long / convoluted."**
-- **Defence**: per Q_adv_2, longer hedge is more defensible against examiner familiar with Elbert2025 and Lin2024NCT. Each distinguisher named explicitly. Shorter hedge risks collapsing distinctions.
-- **Backup**: if reviewer still disputes, shorten to "pierwsza znana nam praca porównująca rodzinę klasyfikatorów w zadaniu predykcji wyniku meczu między dwiema grami RTS z jawną oceną probabilistyczną" (removes "benchmarkowania" — slightly weaker but still defensible).
-
-**B7 (NEW v2) — "§3.5 overemphasises 'jawną oceną probabilistyczną' as a distinguisher when chapter 2.6 already covers probabilistic metrics."**
-- **Defence**: §2.6 introduces probabilistic metrics as theory; §3.5 uses them as a LITERATURE-SCOPE distinguisher (i.e., no prior work does this on the task structure in question). The distinction between "probabilistic metrics exist in the literature" (true) and "no prior work benchmarks AoE2+SC2 with probabilistic metrics" (true per §3.4/§3.2 gap enumeration) is substantive.
-
-### Three-round cap anchoring
-
-Adversarial critique is capped at three rounds. v2 pre-answers A1–A8 (§3.4) and B1–B7 (§3.5) for high-probability BLOCKERs. Expected critique outcomes:
-- Round 1: likely BLOCKER on A3 (grey lit) and/or B1 (novelty hedging); pre-answers prepared
-- Round 2: REQUIRE_MINOR_REVISION on flag density, cross-ref consistency, or Elbert2025 prose wording
-- Round 3 (if needed): final tightening
-
-If Round 3 still surfaces a BLOCKER, plan requires further revision before execution.
+| Finding | Resolution |
+|---|---|
+| R1-BLOCKER-1 (race vocabulary) | Corrected to `Prot`/`Terr`/`Zerg` in schema description, research_log, FACTION_VOCAB comment. |
+| R1-BLOCKER-2 (3-way dtype split) | DDL casts `started_at` to TIMESTAMP via TRY_CAST; canonical contract = TIMESTAMP; sibling PR cast requirements spelled out. |
+| R1-BLOCKER-3 (NULL-unsafe symmetry) | SYMMETRY_I5_ANALOG_SQL rewritten with `IS DISTINCT FROM`. |
+| R1-BLOCKER-4 (misplaced Elo/Glicko citations) | Methodology citations reduced to cleaning-stage (manual §4.2/§4.4, Tukey 1977, Schafer & Graham 2002, van Buuren 2018). Rating papers moved to "downstream-consumer context." |
+| R1-BLOCKER-5 (faction polymorphic contract) | Explicit per-dataset-polymorphic vocabulary declared in schema YAML description, research_log, and I8 invariant prose. Consumer warning added. |
+| R1-WARNING-1 (lex ordering) | Subsumed by R1-BLOCKER-2 TIMESTAMP cast fix. |
+| R1-WARNING-2 (aoestats 1-row asymmetry) | Cross-dataset I8 contract prose explicitly acknowledges aoestats 1→2-row re-projection + team1_wins slot bias. |
+| R1-WARNING-3 (status flip-flop rollback) | Halt predicate now mandates manual PIPELINE_SECTION_STATUS revert on T02 failure. |
+| R1-WARNING-4 (DESCRIBE placeholders) | Cell 17 prose now spells out the `con.execute("DESCRIBE …").fetchall()` → boolean translation before YAML serialization. |
+| R1-WARNING-5 (magic 32 / 42) | PREFIX_CHECK_SQL comment + schema YAML description + I7 invariant cite `matches_long_raw.yaml` regex `[0-9a-f]{32}` provenance. |
+| R1-WARNING-6 (ORDER BY determinism) | I6 invariant prose clarifies: VIEW ORDER BY is evaluated at query time; determinism claim scoped to sample outputs of this step only. |
+| R1-WARNING-7 (single-writer lock) | T02 instructions now forbid parallel CLI writes during execution. |
+| R1-NOTE-1..5 | Acknowledged; no plan change needed. |
 
 ---
 
-## Summary for parent
+## Self-check
 
-- **Plan category**: Category F, Literature-variant, two sections drafted together (§3.4 + §3.5)
-- **v2 revision**: responds to R1 adversarial critique REQUIRES_REVISION_R2
-- **Expected output paths**: `thesis/chapters/03_related_work.md` (§3.4 and §3.5 in Polish); `thesis/references.bib` (CetinTas2023 author fix + `@inproceedings{Elbert2025EC}` new + 2 Tier 3 entries conditional); `thesis/WRITING_STATUS.md`; `thesis/chapters/REVIEW_QUEUE.md`; `reports/research_log.md`
-- **Branch**: new `docs/thesis-3.4-3.5` from master
-- **Adversarial critique required**: Category F + planner role — parent must dispatch reviewer-adversarial against this v2 plan BEFORE execution begins. Critique checkpoints on Section 11 pre-answers, NC1–NC7 new concerns, and any novel BLOCKERs.
-- **Halt-protocol declared**: Section 7 (rewritten for 3+2 state); never-fabricate invariant absolute
-- **Known unknowns flagged**: A1–A7 (assumptions; A7 new v2), U1–U6 (unknowns; U4–U6 new v2), Q1–Q7 (open questions; Q6–Q7 new v2), NC1–NC7 (new concerns from v2 revision)
-- **Estimated character output (revised v2)**: §3.4 ~7.5–8.5k Polish; §3.5 ~7.5–10k; combined ~15–18k; chapter total post-draft ~49–51k
-
-**Critique gate instruction to parent**: Category F plans require adversarial critique before execution. Do NOT execute T01–T06 until reviewer-adversarial has returned a verdict on this v2 plan. Do NOT produce the critique here — reviewer-adversarial is a separate session.
-
-Sources:
-- [Çetin Taş & Müngen 2023 — IEEE Xplore UBMK 2023](https://ieeexplore.ieee.org/document/10391048/)
-- [Çetin Taş & Müngen 2023 — ResearchGate](https://www.researchgate.net/publication/377541570_Regression_Analysis_of_Age_of_Empires_II_DE_Match_Results_with_Machine_Learning)
-- [Lin et al. 2024 — arXiv:2408.17180 (AoE2 balance analysis)](https://arxiv.org/abs/2408.17180)
-- [Lin et al. 2024 — arXiv HTML (AoE2 4-game validation)](https://arxiv.org/html/2408.17180v1)
-- [Elbert et al. 2025 — arXiv:2506.04475 (AoE2 team-player effect)](https://arxiv.org/abs/2506.04475)
-- [Elbert et al. 2025 — arXiv HTML (full paper)](https://arxiv.org/html/2506.04475v1)
-- [Elbert et al. 2025 — SSRN:5283300](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5283300)
-- [ACM EC 2025 — Conference home](https://ec25.sigecom.org/)
-- [ACM EC 2025 — Accepted Papers program](https://ec25.sigecom.org/program/accepted-papers/)
-- [Lin & Wu 2025 — arXiv:2502.03998 (online learning of counter categories; RPS setting, preprint)](https://arxiv.org/abs/2502.03998)
-- [Mike Xie 2020 — Predicting Win Rates in Age of Empires 2 HD (Medium)](https://medium.com/@mikexie/predicting-win-rates-in-age-of-empires-2-hd-3dd2588417a1)
-- [porcpine1967 — Impact of Rating Difference on Win Percentage in AoE2 DE (GitHub Pages)](https://porcpine1967.github.io/aoe2_comparisons/elo/)
-- [aoestats.io — Age of Empires II civilization statistics](https://aoestats.io/)
-- [Kachayev PyAge2 — Age of Empires II Learning Environment (GitHub)](https://github.com/kachayev/pyage2)
-- [byrnesy924 AgeAlyser_2 — AoE2 replay parser (GitHub)](https://github.com/byrnesy924/AgeAlyser_2)
-- [nicoelbert/aoe-matchups — Kaggle dataset](https://www.kaggle.com/datasets/nicoelbert/aoe-matchups)
-
----
-
-**End of v2 plan text.**
-
-## Plan file notice
-
-Per my planner role constraints ("READ-ONLY. Do NOT use Write or Edit."), I have NOT created the ephemeral plan file at `/Users/tomaszpionka/.claude/plans/recursive-prancing-manatee-agent-a46810c062dae6a49.md`. I have also NOT written to `temp/plan_3_4_3_5_v2.md`. The full v2 plan text is presented above in chat for the parent session to persist. This matches the contract described in the user prompt: *"Plan mode: do NOT write files (parent persists to `temp/plan_3_4_3_5_v2.md`)."*
-
-## Summary of v2 changes for parent
-
-**Length**: v2 is approximately 790 lines of markdown (within 650–1100 target; v1 was 572).
-
-**Key additions**:
-- Change log table + NEW concerns section (NC1–NC7) at top
-- Elbert2025 fully integrated: §3.4 structure grows to 5 sub-sections (§3.4.1 CetinTas2023 → §3.4.2 Lin2024NCT + Lin2025Online footnote → §3.4.3 Elbert2025 NEW → §3.4.4 Grey-lit → §3.4.5 Gap enumeration)
-- §3.5 Luka 3 hedge strengthened per Q_adv_2 with longer formulation and explicit Elbert2025/Lin2024NCT/CetinTas2023 distinctions
-- Section 7 halt-protocol fully rewritten (Conditions 1–6) for 3+2 starting state
-- New Must Justify items (#4 Elbert2025, #5 team-games scope), new Must Contrast items, new Adversarial A6/A7/A8/B6/B7 pre-defences
-- New [REVIEW] flags: Elbert2025 EC'25 citation convention, ACM EC acceptance-rate figure
-- gmcirco42 explicitly dropped per W5; Lin2025Online explicitly excluded from bib per Q_adv_3
-
-**External sources verified during v2 planning**:
-- Elbert2025 arXiv + HTML intro (authors, AoE2 primary setting, team-games scope, aoe2insights data source, LR-only method, accuracy+pseudo-R² metrics, instrumentation framing, ~1.6M matches, Nov 2019–Dec 2023, 54% odds increase)
-- Lin2025Online arXiv (authors Lin+Wu only, RPS setting, NOT AoE2, preprint status)
-- ACM EC 2025 conference page (Stanford, July 7–10 2025, confirmed venue; specific 24.6% acceptance-rate figure not re-verified, flagged NC6)
-
-**No fabricated citations**. All v2 additions backed by WebFetch primary sources.
-
-**Critique gate for parent**: dispatch reviewer-adversarial against this v2 plan before execution begins. This is Round 2 of a 3-round adversarial cap.
-
-Sources:
-- [Elbert et al. 2025 — arXiv:2506.04475](https://arxiv.org/abs/2506.04475)
-- [Elbert et al. 2025 — arXiv HTML v1](https://arxiv.org/html/2506.04475v1)
-- [Lin & Wu 2025 — arXiv:2502.03998](https://arxiv.org/abs/2502.03998)
-- [ACM EC 2025 — Conference home](https://ec25.sigecom.org/)
-- [ACM EC 2025 — Accepted Papers](https://ec25.sigecom.org/program/accepted-papers/)
-- [Elbert et al. 2025 — SSRN:5283300](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5283300)
+- [x] Category A.
+- [x] Branch: `feat/01-04-03-sc2egset-minimal-history`.
+- [x] Phase/Pipeline Section/Step: 01 / 01_04 / 01_04_03.
+- [x] Invariants touched: I3, I5 (analog), I6, I7, I8, I9.
+- [x] File Manifest lists every file touched (NEW / MODIFIED).
+- [x] Execution Steps use descriptive names.
+- [x] No forbidden taxonomy terms.
+- [x] Every SQL literal executable as-is (concrete `nullable:` booleans filled at runtime via DESCRIBE).
+- [x] BLOCKERS section present (none; four assumptions + polymorphism contract).
+- [x] No upstream schema changes (I9).
+- [x] All 5 R1 BLOCKERs closed; all R1 WARNINGs addressed or acknowledged.

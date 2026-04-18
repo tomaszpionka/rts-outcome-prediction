@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- [Current Plan](current_plan.md) — _no active plan_
+- [Current Plan](current_plan.md) — sc2egset 01_04_03 minimal cross-dataset history view (Cat A, pattern-establisher)
 
 ## Agent routing
 
