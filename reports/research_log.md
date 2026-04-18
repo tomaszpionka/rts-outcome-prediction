@@ -15,6 +15,32 @@ live in per-dataset logs — one per game/dataset combination.
 
 ---
 
+## [CROSS] 2026-04-18 — [Phase 01 / 01_05 pre-registration] 3-dataset binding spec locked
+
+**Source:** `reports/specs/01_05_preregistration.md` (spec_id CROSS-01-05-v1, version 1.0.1)
+**Invariants:** I3, I6, I7, I8, I9
+
+Cross-dataset pre-registration for 01_05 Temporal & Panel EDA across sc2egset,
+aoe2companion, aoestats. Locks 9 parameter groups (Q1–Q9) to ensure
+Phase 06 Cross-Domain Transfer compatibility.
+
+Key decisions:
+- Overlap window 2022-Q3 → 2024-Q4 (10 quarters); tested 2023-Q1→2024-Q4 (8)
+- ADF/KPSS forbidden cross-dataset; effect sizes + PSI only
+- Reference period non-overlapping with tested: 2022-08-29..2022-12-31 (sc2egset+aoec); 2022-08-29..2022-10-27 single-patch (aoestats, path-c per W4')
+- `regime_id ≡ calendar quarter` (honest acknowledgment; no additional variance reduction beyond Q1 grain)
+- Triple survivorship analysis (unconditional + sensitivity {5,10,20} + conditional labels)
+- POST_GAME diagnostics in dedicated §10 (not mixed with pre-game PSI)
+- aoestats leakage audit incorporates W3 verdict (ARTEFACT_EDGE, commit ab23ab1d) — requires canonical_slot column from Phase 02 amendment
+
+Binding: notebook docstrings cite spec SHA; `scripts/check_01_05_binding.py`
+pre-commit hook enforces.
+
+Deferred: per-dataset 01_05 step execution (3 downstream PRs, one per dataset,
+bound to this spec).
+
+---
+
 ## [CROSS] 2026-04-18 — [Meta-methodology] Identity resolution meta-rule + per-dataset INVARIANTS scaffolds
 
 **Source:** `.claude/scientific-invariants.md` I2 extension; 3 new `src/rts_predict/games/<game>/datasets/<dataset>/reports/INVARIANTS.md` files
