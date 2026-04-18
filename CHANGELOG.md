@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.11.0] — 2026-04-17 (PR #TBD: feat/01-04-02-aoe2companion)
+## [3.11.0] — 2026-04-17 (PR #146: feat/01-04-02-aoe2companion)
 
 ### Added
 - **aoec 01_04_02 data cleaning execution** (third + final dataset in three-PR
