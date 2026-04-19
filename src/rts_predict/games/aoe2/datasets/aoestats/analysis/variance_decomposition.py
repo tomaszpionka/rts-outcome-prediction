@@ -89,8 +89,21 @@ def compute_icc_lmm(
     # Delta method variance approximation
     # d(ICC)/d(sigma2_u) = sigma2_e / total^2
     # d(ICC)/d(sigma2_e) = -sigma2_u / total^2
-    se_u = float(np.sqrt(max(result.cov_re.iloc[0, 0] ** 2 * 2 / result.ngroups, 0)))
-    se_e = float(np.sqrt(max(sigma2_e ** 2 * 2 / max(result.nobs - result.ngroups, 1), 0)))
+    #
+    # NOTE: statsmodels MixedLMResults exposes n_groups on `.model`, not on the
+    # result object. The attribute `result.ngroups` does NOT exist and raises
+    # AttributeError. Pre-fix/01-05-aoestats-ngroups-ci-assert this function
+    # referenced the non-existent attribute, causing all LMM delta-method CI
+    # computations to crash via AttributeError — which the calling notebook's
+    # bare `except Exception` block caught and mislabeled as "LMM convergence
+    # failure." See the aoec port in
+    # src/rts_predict/games/aoe2/datasets/aoe2companion/analysis/variance_decomposition.py
+    # which uses the correct accessor.
+    model = result.model
+    n_groups = int(getattr(model, "n_groups", len(getattr(model, "group_labels", []))))
+    n_obs = int(result.nobs)
+    se_u = float(np.sqrt(max(sigma2_u ** 2 * 2 / max(n_groups, 1), 0)))
+    se_e = float(np.sqrt(max(sigma2_e ** 2 * 2 / max(n_obs - n_groups, 1), 0)))
 
     grad_u = sigma2_e / (total ** 2)
     grad_e = -sigma2_u / (total ** 2)
@@ -197,24 +210,45 @@ def _bootstrap_icc_anova_ci(
     Returns:
         Tuple (ci_lo, ci_hi).
     """
+    # Pre-fix/01-05-aoestats-ngroups-ci-assert: the bootstrap resampled with
+    # replacement but reused the ORIGINAL group id in boot_g / boot_v. When a
+    # group was sampled k times, the concatenated arrays held k*n_i rows all
+    # tagged with the same group id, so `_icc_anova_point` groupby collapsed
+    # them into ONE cluster of size k*n_i. This inflated k_bar while keeping
+    # n_groups at its original value, biasing SSB upward and producing CIs
+    # that did not contain the point estimate (aoestats 50k run: point=0.0268,
+    # "CI"=[0.0494, 0.0759] — inverted). See the 2026-04-19 pre-01_06
+    # adversarial review and the aoec port
+    # src/rts_predict/games/aoe2/datasets/aoe2companion/analysis/
+    # variance_decomposition.py which implements the correct cluster bootstrap
+    # by re-tagging each resampled group with a fresh unique id.
     rng = np.random.default_rng(RANDOM_SEED)
     group_ids = df[group].unique()
     groups_arr = df[group].to_numpy()
     values_arr = df[target].to_numpy(dtype=float)
+    # Pre-index each group's row positions once — O(N) — so the bootstrap
+    # inner loop is O(sum of sampled group sizes) instead of O(n_groups * N).
+    group_to_positions: dict[Any, np.ndarray] = {
+        g: np.flatnonzero(groups_arr == g) for g in group_ids
+    }
     icc_boot = []
 
     for _ in range(n_bootstrap):
         sampled_groups = rng.choice(group_ids, size=len(group_ids), replace=True)
-        boot_g: list[np.ndarray] = []
-        boot_v: list[np.ndarray] = []
-        for g in sampled_groups:
-            mask = groups_arr == g
-            boot_g.append(groups_arr[mask])
-            boot_v.append(values_arr[mask])
-        if not boot_g:
+        parts_v: list[np.ndarray] = []
+        parts_tag: list[np.ndarray] = []
+        for i, g in enumerate(sampled_groups):
+            pos = group_to_positions[g]
+            parts_v.append(values_arr[pos])
+            # Correct cluster bootstrap: tag this resample with a fresh unique
+            # id (i). A duplicated group (same `g`) now counts as two distinct
+            # clusters in the ANOVA ICC formula, as the cluster bootstrap
+            # requires (Ukoumunne et al. 2012 PMC3426610).
+            parts_tag.append(np.full(len(pos), i, dtype=np.int64))
+        if not parts_v:
             continue
-        bg = np.concatenate(boot_g)
-        bv = np.concatenate(boot_v)
+        bv = np.concatenate(parts_v)
+        bg = np.concatenate(parts_tag)
         icc_b = _icc_anova_point(bg, bv)
         if not np.isnan(icc_b):
             icc_boot.append(icc_b)

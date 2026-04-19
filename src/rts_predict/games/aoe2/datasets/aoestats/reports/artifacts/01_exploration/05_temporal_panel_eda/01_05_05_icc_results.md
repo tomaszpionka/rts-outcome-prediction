@@ -11,7 +11,7 @@ ICC computed on `profile_id`; per INVARIANTS §2, within-aoestats migration/coll
 
 | Method | ICC | CI lo | CI hi |
 |--------|-----|-------|-------|
-| LMM observed-scale | nan | - | - |
+| LMM observed-scale | 0.0259 | - | - |
 | ANOVA observed-scale (Wu/Crespi/Wong 2012) | 0.0268 | - | - |
 
 *Bootstrap CI per Ukoumunne et al. 2012 PMC3426610.*
