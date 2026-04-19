@@ -30,10 +30,14 @@
 # # Falsifier for Q1/Q2/Q3: any violation -- BLOCKS 01_05 completion.
 # # Falsifier for Q4: if canonical_slot IS present, notify parent agent.
 #
-# **Critique B1 fix:** Q7.1 is NOT vacuous. Assert that for every row used in
-# reference-frequency edge computation, started_at <= '2022-10-27'. Additionally:
-# count rows in matches_history_minimal where cohort player_id AND started_at > 2022-10-27
-# (proves leakage impossible given no feature windows materialised yet).
+# **Q7.1 structure (post-PR #163 adversarial-review cleanup):**
+# Q71_SQL (informational): count cohort players' post-reference rows. These
+#   exist (cohort players DO play after the reference window); the audit
+#   reports the count to make the setup auditable.
+# Q7.1 gate (substantive): verify the PSI summary JSON records a reference
+#   window equal to spec §7 constants (REF_START, REF_END). Catches silent
+#   reference-window drift between 01_05_02 and this audit. A prior gate
+#   using a vacuous self-join with `WHERE 1=0` is removed.
 #
 # **Critique M6 fix:** Q7.4 refactored -- assert every Phase 06 row with per-slot
 # breakdown carries [PRE-canonical_slot]. Gate CAN fail if M4 tagging is wrong.
@@ -81,23 +85,30 @@ print("(This confirms these players DID play after the reference -- leakage woul
 print(" reference edges used any of these post-reference rows. They did not: reference SQL")
 print(f" explicitly filters started_at BETWEEN '{REF_START}' AND '{REF_END}')")
 
-# B1 assertion: confirm reference edges cannot contain future data
-# (No per-player feature windows materialised in 01_05)
-Q71_GATE_SQL = f"""
-SELECT COUNT(*) AS zero_expected
-FROM matches_history_minimal a
-JOIN matches_history_minimal b
-  ON CAST(a.player_id AS BIGINT) = CAST(b.player_id AS BIGINT)
-  AND a.match_id <> b.match_id
-  AND b.started_at >= a.started_at
-  AND b.match_id IN (
-    SELECT match_id FROM matches_history_minimal WHERE 1=0
-  )
-"""
-result_gate = db.fetch_df(Q71_GATE_SQL)
-future_leak_count = int(result_gate.iloc[0]["zero_expected"])
-print(f"\nQ7.1 gate (vacuous schema check): {future_leak_count} rows (expected 0)")
-assert future_leak_count == 0, f"Q7.1 BLOCKED: future_leak_count={future_leak_count}"
+# Q7.1 substantive gate (post-PR #163 adversarial-review cleanup).
+# The prior Q71_GATE_SQL was a vacuous self-join with `WHERE 1=0` in an
+# IN-subquery — the inner returned no rows so the JOIN was empty on any
+# data. Replaced with a real check: verify 01_05_02 PSI summary records
+# its reference window equal to spec §7 constants. If the PSI code ever
+# changes its reference bounds, this check fails.
+PSI_SUMMARY_PATH = ARTIFACTS_DIR / "01_05_02_psi_summary.json"
+assert PSI_SUMMARY_PATH.exists(), f"Dependency missing: {PSI_SUMMARY_PATH}"
+_psi_data = json.loads(PSI_SUMMARY_PATH.read_text())
+_psi_ref_window = _psi_data.get("reference_window", {})
+_psi_ref_start = str(_psi_ref_window.get("start", ""))
+_psi_ref_end = str(_psi_ref_window.get("end", ""))
+
+q71_gate_start_ok = _psi_ref_start.startswith(str(REF_START))
+q71_gate_end_ok = _psi_ref_end.startswith(str(REF_END))
+future_leak_count = 0 if (q71_gate_start_ok and q71_gate_end_ok) else 1
+print(f"\nQ7.1 gate (PSI reference-window matches spec §7):")
+print(f"  psi_ref_start={_psi_ref_start!r} vs spec {str(REF_START)!r}: {'OK' if q71_gate_start_ok else 'FAIL'}")
+print(f"  psi_ref_end={_psi_ref_end!r} vs spec {str(REF_END)!r}: {'OK' if q71_gate_end_ok else 'FAIL'}")
+assert future_leak_count == 0, (
+    f"Q7.1 BLOCKED: PSI reference window drifted from spec §7. "
+    f"psi_ref_start={_psi_ref_start}, psi_ref_end={_psi_ref_end}, "
+    f"spec_ref_start={REF_START}, spec_ref_end={REF_END}"
+)
 print("Q7.1 PASSED")
 
 # %%
@@ -208,9 +219,13 @@ audit = {
     "verdict": overall_verdict,
     "sql_queries": {
         "q71_b1_probe": Q71_SQL.strip(),
-        "q71_gate": Q71_GATE_SQL.strip(),
         "q74_canonical_slot": Q74_SQL.strip(),
     },
+    "q71_gate_note": (
+        "Vacuous self-join gate with `WHERE 1=0` removed post-PR #163 "
+        "adversarial-review cleanup. The gate is now a PSI-summary "
+        "reference-window check (see _psi_data lookup above)."
+    ),
 }
 audit_json = ARTIFACTS_DIR / "01_05_06_temporal_leakage_audit_v1.json"
 with open(audit_json, "w") as f:
