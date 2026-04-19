@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.25.0] — 2026-04-19 (PR #TBD: docs/thesis-ch4-stat-methodology-residuals)
+## [3.25.0] — 2026-04-19 (PR #176: docs/thesis-ch4-stat-methodology-residuals)
 
 ### Changed
 
