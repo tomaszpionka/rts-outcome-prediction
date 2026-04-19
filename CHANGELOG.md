@@ -19,7 +19,65 @@ merged to `master`.
 
 ### Removed
 
-## [3.26.3] — 2026-04-19 (PR #TBD: fix/aoestats-phase06-pop-tag-backfill)
+## [3.27.0] — 2026-04-19 (PR #TBD: docs/thesis-4.2.2-identity-meta-rule)
+
+### Changed
+
+- **Thesis §4.2.2 "Rozpoznanie tożsamości gracza" revised to reflect
+  I2 extended 5-branch procedure.** Closes BACKLOG F3. Paragraphs 2–4
+  rewritten as 5 paragraphs implementing the operational procedure from
+  `.claude/scientific-invariants.md:31–127`: (a) Formal operationalisation
+  bridging classical Fellegi–Sunter record-linkage [FellegiSunter1969,
+  Christen2012DataMatching] → *a priori* schema selection via 5-branch
+  procedure; (b) sc2egset Branch (iii) `player_id_worldwide` worked
+  example (`migration_rate ≈ 12%` + `collision_rate = 30.6%` cited from
+  sc2egset `INVARIANTS.md:50–51`; "deferred to a future manual-curation
+  upgrade path" framing); (c) aoe2companion Branch (i) `profileId` worked
+  example (`migration_rate = 2.57%` + `collision_rate = 3.55%` post
+  rm_1v1-scope reconciliation, 2026-04-19); (d) aoestats Branch (v)
+  structurally-forced declaration + cross-dataset namespace bridge to
+  aoec (VERDICT A, 0.9960 agreement); (e) Branch (ii) framework-
+  completeness note (handle-only platforms like chess.com named as
+  indicative class, not worked example). Paragraph 1 preserved;
+  paragraph 5 retained + cross-ref sentence appended; Forward reference
+  structural role preserved with revised flag wording.
+- **Tabela 4.5 row `Plan Phase 02 (I2)` renamed to `Klucz kanoniczny
+  (I2 §2)`** with per-corpus declared-branch values from each dataset's
+  `INVARIANTS.md §2`: sc2egset `player_id_worldwide` (branch (iii);
+  ~12% cross-region accepted bias); aoestats `profile_id` (branch (v),
+  structurally-forced — no visible handle); aoe2companion `profileId`
+  (branch (i); rename-stable).
+- `thesis/WRITING_STATUS.md` §4.2.2 status flipped `DRAFTED` → `REVISED`.
+- `thesis/chapters/REVIEW_QUEUE.md` §4.2.2 Notes cell extended with F3
+  revision summary; post-rewrite line anchors recorded for all 4
+  REVIEW flags (lines 235 / 243 / 263 / 265 post-rewrite).
+
+### Fixed
+
+- **aoe2companion identity-rate artifacts reconciled to rm_1v1 scope.**
+  `INVARIANTS.md §2` SQL snippets (rename / collision rates) were missing
+  the rm_1v1 scope filter (`internalLeaderboardId IN (6, 18)
+  AND profileId != -1 AND name IS NOT NULL`) that the primary artifact
+  `01_04_04_identity_resolution.md` applies, producing a three-way
+  artifact disagreement on the collision rate (INVARIANTS.md 3.7% vs
+  primary artifact 3.55% vs unfiltered DuckDB re-run 3.49%). Both SQL
+  snippets now carry the scope filter; published rates updated to
+  `migration_rate = 2.57%` and `collision_rate = 3.55%` (23,221
+  collision names / 654,841 total) consistent with the 01_04_04
+  primary artifact snapshot. Scope-note paragraph added. Invariant-
+  compliance table line 98 updated. New 2026-04-19 session entry in
+  aoe2companion `research_log.md` documents root cause, verification
+  against current DuckDB, and reconciliation policy (historical
+  research_log entries preserved; primary artifact's executive-summary
+  prose kept intact with inline addendum note explaining the
+  reconciliation). Precursor fix enabling `[3.27.0]` thesis §4.2.2
+  citation of the aoe2companion `collision_rate` figure.
+
+### Removed
+
+- BACKLOG F3 entry (executed in this PR).
+
+## [3.26.3] — 2026-04-19 (PR #180: fix/aoestats-phase06-pop-tag-backfill)
 
 ### Changed
 
