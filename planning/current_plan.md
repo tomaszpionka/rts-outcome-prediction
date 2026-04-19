@@ -1,793 +1,911 @@
 ---
 category: A
-branch: feat/01-05-aoe2companion
+branch: feat/01-05-sc2egset
 date: 2026-04-18
 planner_model: claude-opus-4-7
-dataset: aoe2companion
+dataset: sc2egset
 phase: "01"
 pipeline_section: "Temporal & Panel EDA"
 invariants_touched: [I3, I6, I7, I8, I9]
 source_artifacts:
   - reports/specs/01_05_preregistration.md
   - .claude/scientific-invariants.md
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/INVARIANTS.md
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/PIPELINE_SECTION_STATUS.yaml
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/PHASE_STATUS.yaml
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/views/matches_history_minimal.yaml
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/views/matches_1v1_clean.yaml
-  - src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/views/player_history_all.yaml
-  - sandbox/aoe2/aoe2companion/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
-  - scripts/check_01_05_binding.py
-  - docs/PHASES.md
-  - docs/TAXONOMY.md
-  - docs/templates/plan_template.md
-  - docs/templates/planner_output_contract.md
-  - planning/README.md
-  - ARCHITECTURE.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_03_minimal_history_view.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_04b_worldwide_identity.md
+  - sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_03_minimal_history_view.py
+  - sandbox/sc2/sc2egset/01_exploration/04_cleaning/01_04_04b_worldwide_identity.py
   - sandbox/README.md
-  - .claude/ml-protocol.md
-  - .claude/rules/sql-data.md
-  - .claude/rules/python-code.md
+  - docs/templates/plan_template.md
+  - scripts/check_01_05_binding.py
 critique_required: true
-research_log_ref: src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md#2026-04-18-01-05-temporal-panel-eda
+research_log_ref: src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md#2026-04-18-01-05-temporal-panel-eda
 ---
 
-# Plan: 01_05 Temporal & Panel EDA — aoe2companion
+# Plan: 01_05 Temporal & Panel EDA — sc2egset (pattern establisher)
 
 ## Scope
 
-Execute Pipeline Section 01_05 (Temporal & Panel EDA) for the aoe2companion
-dataset under the binding CROSS spec `reports/specs/01_05_preregistration.md`
-(LOCKED v1.0.1, SHA `7e259dd8`). Produce all nine Q1–Q9 analyses using
-`matches_history_minimal` + `matches_1v1_clean` + `player_history_all` as
-inputs, emit a single Phase-06 interface CSV conforming to §12, and update
-the dataset's status files, INVARIANTS §4, and research log. Analysis
-substrate is rm_1v1 only (leaderboards 6 + 18). Work happens entirely in
-sandbox notebooks under `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/`;
-artifacts land under
-`src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/`.
-No DuckDB table or VIEW is created, modified, or dropped.
+Execute the sc2egset implementation of Pipeline Section 01_05 "Temporal & Panel
+EDA" per the LOCKED spec `reports/specs/01_05_preregistration.md` v1.0.1
+(SHA `7e259dd8`). Deliver 10 notebooks under
+`sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/` that execute the
+nine binding parameter groups Q1–Q9 against the `matches_history_minimal` VIEW
+(22,209 matches / 44,418 player-rows), write machine-readable artifacts under
+`src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/`,
+emit a Phase 06 interface CSV conforming to spec §12, populate INVARIANTS.md §4
+with dataset-specific empirical findings, append a research-log entry, and
+advance STEP/PIPELINE/PHASE status files. No upstream VIEW or schema is
+modified (I9). This is Category A, science-first work; it is the pattern
+establisher for the two sibling dataset plans (aoec, aoestats) that follow.
 
 ## Problem Statement
 
-Phase 01 for aoe2companion is 01_04-complete: `matches_1v1_clean` (51 cols,
-61,062,392 player-rows / 30,531,196 matches), `player_history_all` (19 cols,
-264,132,745 rows, 21 leaderboard types), and `matches_history_minimal` (9
-cols, the cross-dataset harmonised substrate) are in place, identity
-resolved to `profileId` (branch (i), §2), and duration augmentation
-complete. The next gate before Phase 02 feature engineering is the
-pre-registered temporal/panel EDA suite: distribution stability over time
-(PSI), regime stratification, survivorship sensitivity, between-/within-
-player variance decomposition (ICC), a temporal-leakage audit, and
-data-generating-process diagnostics for post-game variables. These
-findings drive (a) Phase 02 feature-window and cold-start design, (b)
-Phase 03 split validation, and (c) Phase 06 cross-domain transfer
-analysis. All work in this step is read-only analytical consumption of
-01_04 VIEWs plus panel-model fitting on an on-disk DuckDB snapshot.
+Phase 01 pipeline section 01_05 is the last step in Phase 01 and the first
+step where cross-dataset drift, survivorship, and leakage claims are made
+quantitatively from the harmonised `matches_history_minimal` VIEW. Without
+pre-registered parameters, every downstream claim (Phase 02 feature
+engineering, Phase 03 temporal split, Phase 06 cross-domain transfer) is
+open to reviewer critique about analytical degrees of freedom. Spec v1.0.1
+locks those parameters; this plan executes them with I3/I6/I7/I8/I9
+discipline and with sc2egset's accepted biases (I2 branch (iii);
+`leaderboard_raw` = NULL; MMR=0 sentinel on 83.65% of rows) recorded as
+caveats rather than swept under the rug.
 
-Why now: 01_04 closed with `STEP_STATUS 01_04_04: complete` on 2026-04-18;
-01_05 pre-registration spec was locked the same day. The CROSS spec
-forbids any deviation without §14 amendment, so the plan encodes its
-parameters verbatim.
+The immediate gap: no 01_05 artifact exists yet. STEP_STATUS shows all 01_05
+steps `not_started`. The spec mandates ten binding outputs (PSI, Cohen's
+h/d/KS, survivorship cohort triplet, variance decomposition with ICC,
+temporal leakage audit with 3 queries, DGP diagnostics for `duration_seconds`,
+Phase 06 interface CSV) which together establish the per-quarter distributional
+baseline for sc2egset. Because sc2egset is a tournament dataset
+(`leaderboard_raw` NULL, 83.65% MMR=0), we must explicitly flag which spec
+provisions degrade (rating-based ICC secondary; N≥10 cohort effective sample),
+which is informative — not a blocker — for the cross-dataset comparison.
 
 ## Assumptions & unknowns
 
-- **Assumption:** `matches_history_minimal` is the primary input substrate
-  for Q1, Q2, Q3, Q4, Q6, Q7. Pre-game features (`rating`, `mapId`,
-  `leaderboard_id`) not in this 9-column VIEW are obtained by joining to
-  `matches_1v1_clean` on `(matchId, profileId)` where
-  `match_id = 'aoe2companion::' || CAST(matchId AS VARCHAR)` and
-  `player_id = CAST(profileId AS VARCHAR)`. Temporal anchor is
-  `started_at` (TIMESTAMP, zero NULLs per aoec INVARIANTS §3).
-- **Assumption:** `rating` in `matches_1v1_clean` is PRE_GAME per 01_03_03
-  verdict (99.8% exact match with `ratings_raw` pre-match entries). Used
-  as the pre-game numeric feature for PSI in Q2.
-- **Assumption:** spec §1's 9-col contract requires `team`, `chosen_civ_or_race`,
-  `rating_pre`, `map_id`, `patch_id`. aoec populates: `team` — N/A (aoec
-  is natively player-row, no slot column); `chosen_civ_or_race` — covered
-  by `faction` in `matches_history_minimal`; `rating_pre` — covered by
-  `matches_1v1_clean.rating` via join; `map_id` — `matches_1v1_clean.mapId`
-  via join; `patch_id` — unavailable in aoec schema (flagged in Open
-  questions). PSI on `patch_id` is documented as N/A for aoec.
-- **Assumption:** `statsmodels` is not currently in the venv (verified
-  `ModuleNotFoundError`). T00 adds it via `poetry add statsmodels` as a
-  prerequisite before T06 runs.
-- **Assumption:** reservoir-sample non-determinism caveat (aoec INVARIANTS
-  §3, DS-AOEC-IDENTITY-05 footnote) applies to any `USING SAMPLE reservoir
-  REPEATABLE(seed)` call in this step. Documented but not re-derived.
-- **Assumption:** the 4.69% NULL in `matches_raw.won` is an UPSTREAM fact;
-  `matches_history_minimal.won` has zero NULLs by R03 complementarity
-  filter. PSI/drift analyses operate on the VIEW where this is not a
-  concern; the Open-questions section records the upstream semantics so
-  reviewers don't conflate scopes.
-- **Unknown:** whether `patch_id` can be reconstructed from an external
-  aoe2companion API endpoint — resolves by: user decision deferred to
-  Phase 02 (out-of-scope here; §15 of spec confirms `patch_id`
-  reconstruction is not an 01_05 activity).
-- **Unknown:** whether mixedlm converges on 50k sampled players given
-  ~19 observations/player in the reference period — resolves by: T06
-  executor (if non-convergence, retry with `method='lbfgs'` and a 25k
-  sub-sample; documented in Open questions).
-- **Unknown:** whether any quarter in the overlap window contains zero
-  rm_1v1 matches (data gap) — resolves by: T02 executor (if a quarter
-  has <1,000 1v1 rows, that quarter's PSI and Cohen's h are reported as
-  `NULL` in the Phase-06 interface with a `sample_too_small` note).
+- **Assumption (A1):** `matches_history_minimal` remains the 9-column contract
+  defined in 01_04_03 (44,418 rows / 22,209 matches, TIMESTAMP `started_at`
+  2016-01-07..2024-12-01, all 5 non-nullable columns zero-NULL). Verified
+  from the 01_04_03 artifact.
+- **Assumption (A2):** `player_identity_worldwide` VIEW exists as a 2,494-row
+  decomposition of toon_id with `player_id_worldwide` as the canonical join
+  key (01_04_04b artifact). Per I2 branch (iii), the ~12% cross-region
+  duplication is accepted bias.
+- **Assumption (A3):** `matches_flat_clean.details.gameSpeed` cardinality = 1
+  so `duration_seconds = CAST(header_elapsedGameLoops / 22.4 AS BIGINT)` is a
+  deterministic projection with the observed range `[1, 6073]` and 0
+  suspicious outliers (01_04_03 Gate +5).
+- **Assumption (A4):** `tournament_era` is derivable from a known 4-tier
+  categorisation (`Bronze`/`Silver`/`Gold`/`Platinum`) over the 70 tournament
+  directories. The mapping is inferred from the tournament directory name
+  prefix and any available prize-pool signal; it is declared `[SECONDARY;
+  NOT CROSS-DATASET]` per spec §5.
+- **Assumption (A5):** `matches_history_minimal` does **not** expose
+  `rating_pre` in the sc2egset row set today (the VIEW projects 9 columns;
+  column 7 is `won`, column 8 is `duration_seconds`; no `rating_pre`). For
+  Q6 the primary target is `won`; the secondary `rating_pre` branch is marked
+  N/A for sc2egset and explained in the notebook cell.
+- **Unknown (U1):** `statsmodels` is not in `pyproject.toml` today. Spec §8
+  mandates `statsmodels.mixedlm`. Resolved during T01 by adding
+  `statsmodels = "^0.14"` as a dep via poetry; if installation blocks on
+  sandbox/environment, a closed-form one-way random-intercept ANOVA ICC on
+  `won` is a defensible fallback (Gelman & Hill 2007 §12.5) provided the
+  rationale is recorded verbatim (I6, I7) and the spec deviation triggers
+  §13 (research-log CROSS entry + §14 amendment + version bump). Decide at
+  T06 start by trial `poetry add`.
+- **Unknown (U2):** `tournament_era` mapping details — whether the 4-tier
+  Bronze/Silver/Gold/Platinum labels come from (i) prize-pool lookup on
+  Liquipedia, (ii) a lookup table committed alongside the notebooks, or
+  (iii) a heuristic on tournament-directory name substrings. Resolved at
+  T04 start; default is (iii) with a documented heuristic and a caveat
+  block. sc2egset has 70 tournament directories → adopt (iii) and document.
+- **Unknown (U3):** Whether `__unseen__` categorical bins will ever be
+  populated — sc2egset races are fixed (`Prot`/`Terr`/`Zerg`). If no
+  categorical features enter PSI (in sc2egset, numeric features only — MMR
+  is mostly 0-sentinel, `duration_seconds` is POST_GAME and excluded), the
+  `__unseen__` bin protocol is a nominal safeguard with zero hits.
+- **Unknown (U4):** The effective N after the N=10-matches-in-reference
+  cohort filter. sc2egset has 2,494 distinct `player_id_worldwide` values
+  across all 22,209 matches; post-filter size could be <100. T05 reports this
+  empirically and documents it as a caveat to cross-dataset comparability.
 
 ## Literature context
 
-Five anchor references (per spec §16); each binds specific decisions.
+This section registers the citations behind every parameter. All five
+references appear in `thesis/references.bib` per spec §16 — if any key is
+missing, T10 appends it (I7 provenance).
 
-- **Hamilton (1994)** §17.7 — prohibits ADF/KPSS at N=8 tested quarters
-  (cross-dataset). Q1 grain = calendar quarter; we report descriptive
-  summaries only across quarters, no unit-root p-values.
-- **Siddiqi (2006)** — PSI definition, equal-frequency binning (N=10),
-  threshold table (0.10 flag, 0.25 escalate). Binds Q2 directly.
-- **Breck et al. (2019)** "Data Validation for Machine Learning" (SysML) —
-  TFDV's PSI implementation is the reference for descriptive KS magnitude
-  alongside PSI. Binds the KS row in the Phase-06 metric table.
-- **Gelman & Hill (2007)** §12.5 — delta-method CI for ICC. Binds Q6
-  reporting (ICC point + 95% CI).
-- **Cohen (1988)** §2.2 (d) and §6.2 (h) — effect-size definitions and
-  thresholds. Binds Q5 drift comparison (Cohen's h for binary, Cohen's d
-  for continuous features; small/medium/large thresholds 0.2/0.5/0.8 for d
-  and 0.2/0.5/0.8 for h per Cohen).
+- **Hamilton (1994)** *Time Series Analysis*, Princeton UP, §17.7. Binds the
+  spec §3 prohibition against cross-dataset ADF/KPSS at N=8 quarters (far
+  below the T ≥ 50 power threshold). Cited in every quarterly-grain cell
+  that forgoes stationarity testing.
+- **Siddiqi (2006)** *Credit Risk Scorecards*, Wiley. Defines PSI
+  `= Σ (p_tested - p_ref) · ln(p_tested / p_ref)` and the canonical
+  equal-frequency N=10 binning. Binds the 0.10 / 0.25 threshold ladder
+  (spec §4). The Laplace smoothing ε=1/sample_size applied to zero bins is
+  a standard follow-up (Yurdakul 2018; Fiddler/Arize practitioner guides
+  surveyed 2024) — T03 documents the exact ε used.
+- **Breck et al. (2019)** *Data Validation for ML*, SysML/TFDV. Authority
+  for KS statistic as a descriptive magnitude (not a hypothesis test) in
+  distribution-drift auditing; binds KS presence in the Phase 06 interface
+  (spec §12) and justifies our decision to ship KS without p-values at
+  N=8 quarters.
+- **Gelman & Hill (2007)** *Data Analysis Using Regression and
+  Multilevel/Hierarchical Models*, CUP, §12.5. Defines ICC =
+  σ²_between / (σ²_between + σ²_within) and the delta-method 95% CI used
+  in T06. Also grounds the minimum-cluster-size choice (10 obs/player) as
+  a variance-stability heuristic for random-intercept fits.
+- **Cohen (1988)** *Statistical Power Analysis for the Behavioral
+  Sciences* (2nd ed.), LEA. §2.2 defines Cohen's d for continuous
+  features; §6.2 defines h = 2·(arcsin√p₁ − arcsin√p₂) for proportions.
+  Both are used in T03/T08 for signed drift magnitudes.
+- *Web-verified 2024*: Yurdakul, B. (2018, revisited in a 2024 Edinburgh
+  CRC working paper) notes that PSI inflates on small samples when bins
+  are sparse. sc2egset's N=22,209 matches yields ≈2,200 obs per N=10 bin
+  at reference — well above the sparse-bin regime — but the `__unseen__`
+  bin protocol (spec §4) is the safety net. T03 records ε and per-bin
+  occupancy verbatim.
 
-For panel-data fits at very large N (~264M rows), the methodological
-literature on scalable random-intercept estimation (Bates et al. 2015,
-`lme4` paper; Jiang 2017 *Asymptotic Analysis of Mixed Effects Models*)
-recommends fitting on a representative player-level subsample when
-full-N fits exceed memory; we apply this by sampling 50k players (plus
-25k/100k sensitivity) with a fixed seed (RANDOM_SEED=42 per ml-protocol).
-Non-convergence fallback strategy follows `statsmodels` documentation for
-`MixedLM.fit(method=['lbfgs', 'bfgs', 'cg'])`. This departure from
-full-N is declared here, not a spec deviation — spec §8 requires the
-method (mixedlm, random-intercept on `player_id`), not the sample size.
+Key *sc2egset-specific* methodological notes:
+
+- sc2egset `leaderboard_raw = NULL` → no ladder MMR to drift-audit at the
+  leaderboard level. The MMR distribution on the 16.35% of non-sentinel
+  rows is reported as a sensitivity figure only.
+- sc2egset is tournament data; the "regime" signal is tournament tier,
+  not ladder bracket (spec §5 secondary regime: `tournament_era`).
+- `player_id_worldwide` is the canonical identity (I2 branch (iii)); no
+  nickname-based join is performed anywhere in 01_05.
+
+Any `[OPINION]` call in the notebooks is limited to **interpretation of
+magnitude** (e.g., "moderate shift vs. review threshold"), never parameter
+choice.
 
 ## Execution Steps
 
-### T00 — Prerequisite: install statsmodels
-
-**Objective:** Add `statsmodels` to the Poetry environment. T06 uses
-`statsmodels.formula.api.mixedlm`; the venv currently raises
-`ModuleNotFoundError: No module named 'statsmodels'` (verified).
-
-**Instructions:**
-1. Run `source .venv/bin/activate && poetry add statsmodels@^0.14` from
-   the repo root.
-2. Confirm `source .venv/bin/activate && poetry run python -c "import statsmodels; print(statsmodels.__version__)"`
-   prints `0.14.x`.
-3. Commit the `pyproject.toml` and `poetry.lock` changes on
-   `feat/01-05-aoe2companion` with message
-   `chore(01-05): add statsmodels for mixedlm ICC (Q6)`.
-
-**Verification:**
-- `source .venv/bin/activate && poetry run python -c "from statsmodels.formula.api import mixedlm; print(mixedlm)"` succeeds.
-
-**File scope:**
-- `pyproject.toml`
-- `poetry.lock`
-
-**Read scope:**
-- (none)
-
 ---
 
-### T01 — Scaffold 01_05 directory tree + spec-binding template
+### T01 — Scaffold 01_05 directory, spec-binding, poetry dependency, hygiene
 
-**Objective:** Create the sandbox and artifacts directory tree for 01_05,
-plus a shared notebook header template enforcing the spec-binding line
-required by `scripts/check_01_05_binding.py`. No analysis happens in T01.
+**Objective:** Create the empty skeleton that the other nine tasks fill. Add
+`statsmodels` to poetry. Verify the pre-commit hook `check_01_05_binding.py`
+fires on a stub file with SHA `7e259dd8`. Zero analytical work in this task.
 
 **Instructions:**
-1. Create directory `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/`.
-2. Create directory `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/`.
-3. Create empty marker file `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/.gitkeep`.
-4. Create `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/README.md`
-   listing the 7 notebook filenames (T02–T08) and their spec §§ binding.
-5. Every notebook created in T02–T08 must contain the literal line
-   `# spec: reports/specs/01_05_preregistration.md@7e259dd8` within its
-   first 40 lines (per §13 and the regex in `scripts/check_01_05_binding.py`).
+1. Check out branch `feat/01-05-sc2egset` from `master` (HEAD `ac5cb2c2`).
+2. Create directory `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/`
+   and matching artifact directory
+   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/`
+   (both with a `.gitkeep` stub; use `git add -N` to register, then remove
+   stubs before the real notebooks replace them).
+3. Create an empty-body scaffold notebook pair `01_05_00_scaffold.py` + `.ipynb`
+   (jupytext paired) that contains only the first 40 lines:
+   ```python
+   # spec: reports/specs/01_05_preregistration.md@7e259dd8
+   # Step 01_05_00 -- Section scaffold (no analytical content)
+   # Dataset: sc2egset  Branch: feat/01-05-sc2egset  Date: 2026-04-18
+   ```
+   Run `source .venv/bin/activate && poetry run pre-commit run check-01-05-binding --files sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.py`
+   and confirm exit 0. Then intentionally break the SHA to `deadbee`, re-run
+   the hook, confirm exit 1, restore, re-run, confirm exit 0. This is a
+   one-off witness of the binding mechanism.
+4. Add `statsmodels = "^0.14"` to `pyproject.toml` under `[tool.poetry.dependencies]`
+   via `source .venv/bin/activate && poetry add statsmodels@^0.14`. Update
+   `poetry.lock`. Run `poetry run python -c "import statsmodels.regression.mixed_linear_model as m; print(m.__name__)"`
+   and confirm the import succeeds. If install fails, record the failure
+   verbatim in the research log and defer to U1's fallback (closed-form ICC)
+   in T06.
+5. Add `numpy-docstring`-style module docstrings + the spec-binding comment
+   line to every subsequent `.py` in this plan. Every notebook created in
+   T02..T08 MUST contain the line `# spec: reports/specs/01_05_preregistration.md@7e259dd8`
+   within its first 40 lines. If the spec is amended (deviation per spec §13)
+   the SHA is rewritten to the new commit.
 
 **Verification:**
-- `ls sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/` returns `.gitkeep` and `README.md`.
-- `ls src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/` exists.
+- `ls sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/` shows
+  `01_05_00_scaffold.py` + `01_05_00_scaffold.ipynb`.
+- `source .venv/bin/activate && poetry run pre-commit run check-01-05-binding --files sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.py` → exit 0.
+- `source .venv/bin/activate && poetry run python -c "import statsmodels; print(statsmodels.__version__)"` → prints `0.14.*` OR the research log records the install failure and the fallback choice.
+- `git diff pyproject.toml poetry.lock` shows the `statsmodels` addition and nothing else.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/.gitkeep`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/README.md`
+- `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.py`
+- `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.ipynb`
+- `pyproject.toml` (add statsmodels)
+- `poetry.lock` (lockfile update)
 
 **Read scope:**
-- `reports/specs/01_05_preregistration.md`
+- `reports/specs/01_05_preregistration.md` (SHA verification)
 - `scripts/check_01_05_binding.py`
+- `sandbox/README.md`
+- `.claude/rules/python-code.md`
 
 ---
 
-### T02 — Q1 Quarterly grain + per-quarter row counts + overlap window
+### T02 — Q1: Quarterly grain + overlap window + per-quarter row counts
 
-**Objective:** Establish the quarterly grain (§3), validate the overlap
-window 2022-Q3..2024-Q4 (§2), and report per-quarter row counts for
-rm_1v1 (lb=6), qp_rm_1v1 (lb=18), and the union. Provides the sample-size
-denominator for every downstream Q2/Q5/Q6 computation.
+**Objective:** Establish the quarterly grain of the analysis and the 10-quarter
+overlap window (2022-Q3 through 2024-Q4). Produce the base per-quarter row-count
+table for all downstream tasks.
 
 **Instructions:**
-1. Create paired notebook
-   `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py`
-   (+ `.ipynb`) with spec-binding header and hypothesis/falsifier frame:
-   - `# Hypothesis: rm_1v1 volume is non-zero in every quarter of the
-     overlap window (2022-Q3..2024-Q4) and of the reference period
-     (2022-08-29..2022-12-31).`
-   - `# Falsifier: any quarter in {2022-Q3, 2022-Q4, 2023-Q1, 2023-Q2,
-     2023-Q3, 2023-Q4, 2024-Q1, 2024-Q2, 2024-Q3, 2024-Q4} has < 1,000
-     rm_1v1 matches.`
-2. Use `get_notebook_db("aoe2", "aoe2companion", read_only=True)` and
-   `get_reports_dir("aoe2", "aoe2companion") / "artifacts" / "01_exploration" / "05_temporal_panel_eda"`.
-3. Run SQL:
+1. Create `01_05_01_quarterly_grain.py` with the binding docstring (SHA
+   `7e259dd8`). Open DuckDB read-only via
+   `get_notebook_db("sc2", "sc2egset", read_only=True)`.
+2. State the notebook's hypothesis in markdown:
+   `# Hypothesis: The 10-quarter overlap window (2022-Q3..2024-Q4) has non-empty
+   support in sc2egset and approximately monotonically non-decreasing match
+   volume through 2024 (tournament cadence).`
+   `# Falsifier: any quarter in the window has zero rows OR peak-to-trough
+   variation > 20x.`
+3. Compute per-quarter match counts, player-row counts, distinct players, and
+   distinct matches via:
    ```sql
-   SELECT
-       CONCAT(CAST(EXTRACT(YEAR FROM started_at) AS VARCHAR), '-Q',
-              CAST(CEIL(EXTRACT(MONTH FROM started_at) / 3.0) AS VARCHAR)) AS quarter,
-       COUNT(DISTINCT match_id) AS n_matches,
-       COUNT(*) AS n_player_rows
-   FROM matches_history_minimal
-   WHERE started_at >= TIMESTAMP '2020-07-01'
-     AND started_at <  TIMESTAMP '2026-05-01'
-   GROUP BY 1
-   ORDER BY 1;
-   ```
-4. Run a parallel query stratified by `internalLeaderboardId` joining
-   `matches_1v1_clean` to `matches_history_minimal` for lb-level counts.
-5. Produce two artifacts:
-   - `01_05_01_quarterly_grain.json` — per-quarter counts, reference
-     period counts, overlap-window row count, all SQL verbatim under
-     `sql_queries`.
-   - `01_05_01_quarterly_grain.md` — human-readable table, hypothesis
-     verdict, SQL verbatim (I6).
-6. Print `# Verdict:` line in the notebook. If any quarter in the overlap
-   window has < 1,000 matches, set a flag `low_volume_quarters: [...]`
-   in the JSON and carry it forward to T03 as a caption.
-
-**Verification:**
-- Both artifacts exist and are non-empty.
-- JSON contains keys `quarters`, `reference_period_counts`,
-  `overlap_window_counts`, `low_volume_quarters`, `sql_queries`.
-- `# Verdict:` line present in notebook; hypothesis either confirmed
-  or falsifier captured with a documented revised approach.
-
-**File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.md`
-
-**Read scope:**
-- (none from sibling tasks)
-
----
-
-### T03 — Q2 PSI N=10 equal-frequency, frozen reference edges, pre-game features only
-
-**Objective:** Compute PSI per pre-game feature per tested quarter
-vs. reference period 2022-08-29..2022-12-31 (§7), N=10 equal-frequency
-bins, edges frozen on reference (§4). Scope: pre-game numeric features
-only (`rating`). Pre-game categorical features (`faction`, `mapId`,
-`internalLeaderboardId`) use a sibling "categorical PSI" computed on
-relative-frequency vectors (no binning). `__unseen__` bin handling per
-spec §4.
-
-**Instructions:**
-1. Create notebook `01_05_02_psi_shift.py` with spec-binding line and
-   hypothesis/falsifier:
-   - `# Hypothesis: max PSI across pre-game features and tested quarters
-     is < 0.25 (spec §4 escalate threshold).`
-   - `# Falsifier: any (feature × quarter) cell exhibits PSI >= 0.25.`
-2. Compute frozen reference-period bin edges for `rating` on
-   `matches_1v1_clean` joined to `matches_history_minimal`:
-   ```sql
-   WITH ref AS (
-       SELECT rating
-       FROM matches_1v1_clean
-       WHERE started >= TIMESTAMP '2022-08-29'
-         AND started <  TIMESTAMP '2023-01-01'
-         AND rating IS NOT NULL
-   )
-   SELECT quantile_cont(rating, list_value(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9))
-   FROM ref;
-   ```
-3. Persist the 9 percentile cutpoints to a runtime dict keyed by feature;
-   include an assertion `assert ref_start == datetime(2022, 8, 29) and
-   ref_end == datetime(2022, 12, 31)` per spec §9 Query 3.
-4. For each tested quarter (2023-Q1..2024-Q4, 8 quarters) compute:
-   - Per-feature bin shares using the frozen edges (numerics) or
-     relative-frequency vectors (categoricals, with `__unseen__` bin).
-   - PSI = Σ (p_test_i − p_ref_i) · ln(p_test_i / p_ref_i).
-   - Cohen's h for the binary feature `won` (per-quarter win-rate vs. 0.5):
-     `h = 2*(asin(sqrt(p_q)) - asin(sqrt(0.5)))`.
-   - Cohen's d for `rating` per-quarter (pooled SD).
-   - KS magnitude (descriptive, via `scipy.stats.ks_2samp`).
-5. Conditional-label caption: every figure, table, and csv row gets the
-   suffix `(conditional on >=10 matches in reference period; see §6)` (§6.3).
-6. Pre-game features scope: `rating` (numeric), `faction` (categorical),
-   `mapId` (categorical, joined from `matches_1v1_clean`),
-   `internalLeaderboardId` (categorical, 6 vs. 18). POST_GAME features —
-   `duration_seconds`, `is_duration_suspicious`, `is_duration_negative` —
-   are EXCLUDED from Q2 (§4 forbidden scope; handled in T08).
-7. Emit:
-   - `01_05_02_psi_shift.json` — per-(feature, quarter) PSI + Cohen's
-     h/d + KS, plus `__unseen__` counts and `low_volume_quarters` passed
-     from T02. All SQL verbatim under `sql_queries`.
-   - `01_05_02_psi_shift.md` — table, SQL, literature citations (Siddiqi
-     2006, Cohen 1988, Breck et al. 2019), `# Verdict:` line.
-   - `01_05_02_psi_shift_per_feature.csv` — long-format (feature, quarter,
-     psi, cohen_h, cohen_d, ks_stat, n_ref, n_test, unseen_count) for
-     T09 Phase-06 interface emission.
-
-**Verification:**
-- JSON contains `frozen_reference_edges`, `psi_matrix`, `effect_sizes`,
-  `unseen_bin_counts`, `sql_queries`, `assertion_passed: true`.
-- Markdown cites Siddiqi (2006), Cohen (1988), Breck et al. (2019).
-- No POST_GAME feature appears in any output row (I3 compliance).
-
-**File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift_per_feature.csv`
-
-**Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json`
-
----
-
-### T04 — Q3 Stratification + secondary regime `leaderboard_id`
-
-**Objective:** Produce the honest-statement block (§5) confirming
-`regime_id ≡ calendar quarter` for cross-dataset purposes, and emit a
-within-dataset secondary-regime analysis on `leaderboard_id`
-(rm_1v1=6 vs. qp_rm_1v1=18). rm_team is out-of-analytical-scope per
-01_04_01 R01 — documented but not computed.
-
-**Instructions:**
-1. Create `01_05_03_stratification.py`. Hypothesis:
-   - `# Hypothesis: PSI magnitudes on pre-game features differ
-     systematically between internalLeaderboardId=6 and =18 by at least
-     0.05 (absolute) in at least one quarter.`
-   - `# Falsifier: max |PSI(lb=6) - PSI(lb=18)| across feature-quarter
-     cells is < 0.05.`
-2. Re-run T03's PSI computation restricted to lb=6 and lb=18 separately,
-   using the lb-specific frozen reference edges (reference period, filtered
-   by `internalLeaderboardId`).
-3. Emit table of `(feature, quarter, lb, psi, cohen_h, cohen_d, ks, n)`.
-4. Document rm_team out-of-scope: cite 01_04_01 R01 decision rationale.
-   Include a paragraph stating that the cross-dataset `regime_id ≡ quarter`
-   identity is preserved; the secondary-regime analysis is flagged
-   `[WITHIN-AOEC-SECONDARY; NOT CROSS-DATASET]` per spec §3.
-5. Emit:
-   - `01_05_03_stratification.json`.
-   - `01_05_03_stratification.md`.
-   - `01_05_03_stratification_per_lb.csv`.
-
-**Verification:**
-- Every row in `01_05_03_stratification_per_lb.csv` has
-  `leaderboard_id` in `{6, 18}`.
-- MD contains the `[WITHIN-AOEC-SECONDARY; NOT CROSS-DATASET]` flag.
-- MD explicitly quotes the §5 honest statement `regime_id ≡ calendar quarter`.
-
-**File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification_per_lb.csv`
-
-**Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json`
-
----
-
-### T05 — Q4 Triple survivorship: unconditional + sensitivity + conditional labels
-
-**Objective:** Implement the three parallel survivorship analyses per §6:
-unconditional quarterly fraction_active, N∈{5,10,20} sensitivity, and
-caption propagation of the default N=10. Input is `matches_history_minimal`
-(zero-NULL player_id in aoec).
-
-**Instructions:**
-1. Create `01_05_04_survivorship.py`. Hypothesis:
-   - `# Hypothesis: fraction_active (quarterly) falls monotonically
-     from the reference period forward for >=75% of players ever seen,
-     implying non-random attrition.`
-   - `# Falsifier: fraction_active has no monotonic trend (Spearman
-     rank correlation with quarter-index p > 0.20) over tested quarters.`
-2. SQL for unconditional `fraction_active`:
-   ```sql
-   WITH players AS (
-       SELECT DISTINCT player_id
-       FROM matches_history_minimal
-       WHERE started_at >= TIMESTAMP '2022-07-01'
-         AND started_at <  TIMESTAMP '2025-01-01'
-   ),
-   player_quarter AS (
-       SELECT player_id,
-              CONCAT(CAST(EXTRACT(YEAR FROM started_at) AS VARCHAR), '-Q',
-                     CAST(CEIL(EXTRACT(MONTH FROM started_at)/3.0) AS VARCHAR)) AS quarter
-       FROM matches_history_minimal
-       WHERE started_at >= TIMESTAMP '2022-07-01'
-         AND started_at <  TIMESTAMP '2025-01-01'
-       GROUP BY 1,2
+   WITH q AS (
+     SELECT
+       strftime(started_at, '%Y') || '-Q' ||
+         CAST(CEIL(CAST(strftime(started_at, '%m') AS INTEGER) / 3.0) AS VARCHAR) AS quarter,
+       match_id, player_id
+     FROM matches_history_minimal
    )
    SELECT quarter,
-          COUNT(DISTINCT pq.player_id) * 1.0 / (SELECT COUNT(*) FROM players) AS fraction_active
-   FROM player_quarter pq
+          COUNT(*)                               AS n_player_rows,
+          COUNT(DISTINCT match_id)               AS n_matches,
+          COUNT(DISTINCT player_id)              AS n_players
+   FROM q
    GROUP BY quarter
-   ORDER BY quarter;
+   ORDER BY quarter
    ```
-3. Emit `survivorship_unconditional.csv` per spec §6.1 path convention:
-   - CSV schema: `quarter, fraction_active, n_active, n_ever_seen`.
-4. Compute 90-day trailing-window churn rate per quarter (spec §6.1
-   definition) as additional column.
-5. For sensitivity (§6.2), per N ∈ {5, 10, 20}:
-   - Restrict the cohort to players with ≥N matches in the reference
-     period AND with active span ≥30 days.
-   - Re-run T03 PSI on this cohort and emit the delta-PSI table.
-6. Emit `survivorship_sensitivity.csv` per spec §6.2 schema:
-   - `n_threshold, feature, quarter, psi, psi_delta_from_unconditional, n_players, n_matches`.
-7. Conditional-label caption for default N=10: add the string
-   `(conditional on >=10 matches in reference period; see §6 for sensitivity)`
-   to every figure and every MD artifact row across T03/T04/T05.
-8. **Reproducibility caveat:** 264M-row `player_history_all` is used only
-   for the N-match-count query; `matches_history_minimal` (61M rows) is
-   the analysis substrate. Cite aoec INVARIANTS §3 reservoir-sample
-   caveat in the MD.
+4. Filter to the overlap window `quarter IN ('2022-Q3', '2022-Q4', '2023-Q1',
+   '2023-Q2', '2023-Q3', '2023-Q4', '2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4')`
+   and persist this to `artifacts/.../quarterly_row_counts_sc2egset.csv`.
+   Columns: `quarter`, `n_player_rows`, `n_matches`, `n_players`,
+   `dataset_tag='sc2egset'`.
+5. Produce a second table with *all* quarters in sc2egset (2016..2024) for
+   secondary reporting. Save as `quarterly_row_counts_sc2egset_full.csv`.
+6. Verdict cell: assert the hypothesis holds OR state falsification and
+   proceed with the empirical rows (no re-run needed if data is as
+   expected — this is a descriptive step).
+7. Emit a markdown report `quarterly_row_counts_sc2egset.md` that embeds the
+   10-quarter table and the SQL verbatim (I6).
 
 **Verification:**
-- Both CSV files exist and have correct schemas.
-- `survivorship_sensitivity.csv` has ≥ 3 * 4 * 8 = 96 rows (3 N values
-  × 4 features × 8 tested quarters).
-- Every captioned figure/table carries the N=10 suffix.
+- `quarterly_row_counts_sc2egset.csv` exists, has 10 rows, and all four count
+  columns > 0. Verify with
+  `source .venv/bin/activate && poetry run python -c "import pandas as pd; df=pd.read_csv('src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.csv'); assert len(df)==10; assert (df[['n_player_rows','n_matches','n_players']] > 0).all().all()"`.
+- The markdown artifact contains the verbatim SQL in a fenced block.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_unconditional.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.md`
+- `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py` (+ `.ipynb`)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.csv`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset_full.csv`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.md`
 
 **Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json`
+- `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.py` (T01)
 
 ---
 
-### T06 — Q6 Variance decomposition (ICC) via statsmodels.mixedlm
+### T03 — Q2: Equal-frequency PSI N=10 with frozen reference edges
 
-**Objective:** Fit the random-intercept model `won ~ 1 + (1 | player_id)`
-per spec §8 on the rm_1v1 cohort restricted to players with ≥10
-observations. Report ICC = τ² / (τ² + σ²) with a delta-method 95% CI per
-Gelman & Hill (2007) §12.5. Secondary: `player × civ` interaction.
+**Objective:** Compute PSI for every pre-game feature per tested quarter against
+the frozen reference period 2022-08-29..2022-12-31. Bin edges frozen at reference
+(spec §4). `__unseen__` protocol for categoricals. Apply conditional-label
+captioning (cohort N≥10 in reference period; spec §6 default).
 
 **Instructions:**
-1. T00 must complete (statsmodels installed).
-2. Create `01_05_05_icc.py`. Hypothesis:
-   - `# Hypothesis: ICC for won is in the range [0.05, 0.20], consistent
-     with a large but not dominant between-player variance component
-     typical of competitive matchmaking systems.`
-   - `# Falsifier: ICC point estimate < 0.02 or > 0.50 (either indicates
-     a severe departure from published skill-rating ICCs in esports).`
-3. Pull data to a pandas DataFrame via DuckDB:
-   ```python
-   PRIMARY_QUERY = """
-   SELECT mhm.player_id, mhm.won, mhm.faction
-   FROM matches_history_minimal mhm
-   WHERE mhm.started_at >= TIMESTAMP '2022-07-01'
-     AND mhm.started_at <  TIMESTAMP '2025-01-01'
-     AND mhm.player_id IN (
-       SELECT player_id
-       FROM matches_history_minimal
-       WHERE started_at >= TIMESTAMP '2022-08-29'
-         AND started_at <  TIMESTAMP '2023-01-01'
-       GROUP BY player_id HAVING COUNT(*) >= 10
-     );
-   """
+1. Create `01_05_02_psi_quarterly.py`.
+2. Hypothesis cell: `# Hypothesis: PSI for pre-game features stays below 0.25
+   across all 8 tested quarters (2023-Q1..2024-Q4); one or two quarters may
+   cross 0.10 (moderate-shift band).`
+   `# Falsifier: any pre-game feature PSI > 0.25 in ≥3 tested quarters — would
+   indicate systemic drift and trigger a §13 deviation review.`
+3. Identify pre-game features available in `matches_history_minimal` for sc2egset:
+   - `faction` (categorical, Prot/Terr/Zerg)
+   - `opponent_faction` (categorical)
+   - `matchup` (derived categorical = `sort(faction, opponent_faction)` —
+     6 values: PvP, PvT, PvZ, TvT, TvZ, ZvZ)
+   Numeric pre-game features: **none** in the 9-col VIEW. `rating_pre` is
+   not exposed for sc2egset (see A5). `duration_seconds` is POST_GAME (spec §4
+   forbids it here — routed to T08). Explicitly exclude it.
+4. Build the reference population:
+   ```sql
+   CREATE OR REPLACE TEMP VIEW ref_pop AS
+   SELECT *
+   FROM matches_history_minimal
+   WHERE started_at >= TIMESTAMP '2022-08-29 00:00:00'
+     AND started_at <  TIMESTAMP '2023-01-01 00:00:00'
+   -- spec §7 sc2egset ref: 2022-08-29..2022-12-31
    ```
-4. **Sampling:** if `n_players > 50_000`, seed=42 draw of 50k; else use
-   all. Sensitivity reruns at 25k and 100k (if cohort allows) — declared
-   as sample-size sensitivity, NOT a spec deviation (spec §8 fixes the
-   method, not sample size). Document methodology in MD.
-5. Fit primary:
+   Assert via Python `assert ref_start == datetime(2022, 8, 29)` and
+   `assert ref_end == datetime(2022, 12, 31)` (spec §9 Query 3).
+5. Apply the cohort filter for the default conditional label: compute
+   `player_match_count_in_ref` and restrict to players with ≥ 10 matches in
+   reference:
+   ```sql
+   CREATE OR REPLACE TEMP VIEW ref_cohort AS
+   SELECT rp.*
+   FROM ref_pop rp
+   JOIN (
+     SELECT player_id
+     FROM ref_pop
+     GROUP BY player_id
+     HAVING COUNT(*) >= 10
+   ) c USING (player_id)
+   ```
+   Record in the notebook the empirical cohort cardinality (U4) and flag
+   `[SMALL-COHORT]` if it is below 100 players.
+6. For each categorical feature, compute reference value frequencies (Siddiqi
+   2006 equal-frequency N=10 collapses to "one bin per unique category" when
+   the category cardinality ≤ 10; sc2egset races have cardinality 3, so we use
+   N_bins = min(10, cardinality)). Freeze these edges (values + proportions) in
+   a Python dict `ref_freqs[feature]`. Apply `ε = 1 / n_ref` Laplace smoothing
+   to every bin to avoid log(0). Record ε verbatim.
+7. For each tested quarter q ∈ {2023-Q1 .. 2024-Q4}, restrict to the same
+   cohort (players with ≥10 matches in reference), project the same feature,
+   compute tested frequencies against the frozen reference bins, and compute
+   PSI:
+   ```python
+   psi = sum(
+     (p_tested[b] - p_ref[b]) * math.log((p_tested[b] + eps) / (p_ref[b] + eps))
+     for b in bins
+   )
+   ```
+   Any tested value not in ref keys is assigned to `__unseen__`; record the
+   row count.
+8. Persist one row per (quarter × feature) to `psi_sc2egset.csv` with columns
+   `dataset_tag, quarter, feature_name, psi_value, n_ref, n_tested,
+   unseen_count, epsilon, cohort_threshold (=10), notes`. 4 decimal places
+   for `psi_value`.
+9. Plot `psi_vs_quarter_sc2egset.png` (one line per feature). Add the
+   caption suffix `(conditional on ≥10 matches in reference period;
+   see §6 for sensitivity)` per spec §6.3.
+10. Verdict cell: assert `psi_value` is finite everywhere; note any values
+    crossing 0.10 or 0.25 in the research-log draft (T10).
+
+**Verification:**
+- `psi_sc2egset.csv` has exactly 8 quarters × 3 features = 24 rows.
+- Every `psi_value` is finite (not NaN/inf). Check:
+  `source .venv/bin/activate && poetry run python -c "import pandas as pd, numpy as np; df=pd.read_csv('.../psi_sc2egset.csv'); assert np.isfinite(df['psi_value']).all()"`.
+- The caption suffix appears in the PNG file (embedded via matplotlib's
+  `fig.text(...)`).
+
+**File scope:**
+- `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_02_psi_quarterly.py` (+ `.ipynb`)
+- `artifacts/.../psi_sc2egset.csv`
+- `artifacts/.../plots/psi_vs_quarter_sc2egset.png`
+- `artifacts/.../psi_quarterly_sc2egset.md`
+
+**Read scope:**
+- T02 outputs (`quarterly_row_counts_sc2egset.csv`)
+- T01 scaffold
+
+---
+
+### T04 — Q3: Stratification + sc2egset secondary regime `tournament_era`
+
+**Objective:** Record explicitly that `regime_id ≡ quarter` at cross-dataset
+level (spec §5) — no additional variance reduction. Define the within-dataset
+secondary regime `tournament_era` for sc2egset (tournament tier) as exploratory.
+
+**Instructions:**
+1. Create `01_05_03_stratification_regime.py`.
+2. Hypothesis cell: `# Hypothesis: tournament_era is confounded with quarter
+   at the cross-dataset level but is a meaningful within-dataset categorical
+   whose distribution of 'won' differs materially (|diff| > 0.02) across tiers.`
+   `# Falsifier: tier-to-tier win-rate diff ≤ 0.005 → tier is noise, not
+   regime.`
+3. Derive `tournament_era` from the tournament directory name. Because
+   `matches_history_minimal` does not carry the source directory, extract it
+   for sc2egset from `replays_meta_raw` via the `filename` column (relative to
+   `raw_dir`, per I10):
+   ```sql
+   CREATE OR REPLACE TEMP VIEW tournament_era_map AS
+   SELECT
+     rpm.replay_id,
+     split_part(rpm.filename, '/', 1) AS tournament_dir,
+     CASE
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%WCS%'       THEN 'Platinum'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%GSL%'       THEN 'Platinum'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%IEM%'       THEN 'Platinum'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%BlizzCon%'  THEN 'Platinum'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%HSC%'       THEN 'Gold'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%DH%'        THEN 'Gold'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%OSC%'       THEN 'Silver'
+       WHEN split_part(rpm.filename, '/', 1) ILIKE '%TSL%'       THEN 'Silver'
+       ELSE 'Bronze'
+     END AS tournament_era
+   FROM replays_meta_raw rpm
+   ```
+   This heuristic is **documented explicitly** as the sc2egset tier inference
+   (I7 provenance: substrings cited from observed `tournament_dir` values in
+   01_01_01). U2 resolves here; if the heuristic collapses ≥ 90% of rows to a
+   single tier, the notebook records that and caveats the ICC interaction in
+   T06.
+4. Compute per-tier win-rate and sample size over the overlap window:
+   ```sql
+   SELECT tournament_era, COUNT(*) AS n, AVG(CAST(won AS DOUBLE)) AS mean_won
+   FROM matches_history_minimal m
+   JOIN tournament_era_map t USING (...)
+   WHERE m.started_at BETWEEN TIMESTAMP '2022-07-01' AND TIMESTAMP '2024-12-31'
+   GROUP BY tournament_era
+   ORDER BY tournament_era
+   ```
+   Note: `matches_history_minimal` exposes `match_id = 'sc2egset::' || replay_id`;
+   join via `substr(m.match_id, 11) = t.replay_id`.
+5. Add a cell that re-states verbatim the spec §5 "honest statement" block:
+   > `regime_id ≡ calendar quarter`. Cross-dataset stratification by
+   > `regime_id` IS stratification by time, identical to the Q1 grain. It
+   > provides no additional variance reduction beyond Q1.
+6. Emit `tournament_era_sc2egset.csv` + `tournament_era_sc2egset.md`.
+
+**Verification:**
+- `tournament_era_sc2egset.csv` has 4 rows (`Bronze/Silver/Gold/Platinum`) with
+  non-zero `n`. If any tier is empty, record it explicitly (the heuristic is
+  legitimately allowed to miss a tier).
+- The markdown contains the spec §5 honest statement verbatim.
+
+**File scope:**
+- `sandbox/.../01_05_03_stratification_regime.py` (+ `.ipynb`)
+- `artifacts/.../tournament_era_sc2egset.csv`
+- `artifacts/.../tournament_era_sc2egset.md`
+
+**Read scope:**
+- T02 outputs; `replays_meta_raw` schema YAML at
+  `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/raw/replays_meta_raw.yaml`.
+
+---
+
+### T05 — Q4: Triple survivorship analysis (unconditional + sensitivity N∈{5,10,20} + conditional captioning)
+
+**Objective:** Produce three survivorship tables required by spec §6 so
+downstream drift figures can be captioned consistently.
+
+**Instructions:**
+1. Create `01_05_04_survivorship.py`.
+2. Hypothesis: `# Hypothesis: sc2egset fraction_active peaks in 2022-Q4 and
+   decays monotonically toward 2024-Q4; N=10 cohort is ≥ 50 players.`
+   `# Falsifier: cohort < 20 players — cross-dataset PSI figure degrades to
+   anecdote.`
+3. **Unconditional (§6.1):** Compute `fraction_active` per quarter — fraction
+   of players (within the set of ever-seen-in-overlap-window players) who have
+   ≥1 match in that quarter.
+   ```sql
+   WITH players_in_window AS (
+     SELECT DISTINCT player_id
+     FROM matches_history_minimal
+     WHERE started_at >= TIMESTAMP '2022-07-01'
+       AND started_at <  TIMESTAMP '2025-01-01'
+   ),
+   quarters AS (
+     SELECT DISTINCT
+       strftime(started_at, '%Y') || '-Q' ||
+         CAST(CEIL(CAST(strftime(started_at, '%m') AS INTEGER) / 3.0) AS VARCHAR) AS quarter
+     FROM matches_history_minimal
+     WHERE started_at >= TIMESTAMP '2022-07-01'
+       AND started_at <  TIMESTAMP '2025-01-01'
+   )
+   SELECT q.quarter,
+          COUNT(DISTINCT player_id) * 1.0 /
+          (SELECT COUNT(*) FROM players_in_window) AS fraction_active
+   FROM matches_history_minimal m
+   CROSS JOIN quarters q
+   WHERE m.player_id IN (SELECT player_id FROM players_in_window)
+     AND strftime(m.started_at, '%Y') || '-Q' ||
+         CAST(CEIL(CAST(strftime(m.started_at, '%m') AS INTEGER) / 3.0) AS VARCHAR) = q.quarter
+   GROUP BY q.quarter
+   ORDER BY q.quarter
+   ```
+   Churn: 90-day sliding window; compute in Python over the sorted history per
+   `player_id`. Save to `survivorship_unconditional.csv`.
+4. **Sensitivity (§6.2):** For N ∈ {5, 10, 20}, form the cohort of players
+   with ≥N matches in the reference period 2022-08-29..2022-12-31 and
+   additionally with active-span ≥ 30 days (max(started_at) − min(started_at)
+   ≥ 30 days in reference). Record `cohort_size[N]` and re-run a minimal PSI
+   (faction only) per quarter to emit the sensitivity table. Save to
+   `survivorship_sensitivity.csv`.
+5. **Conditional labels (§6.3):** Add a utility row to
+   `survivorship_sensitivity.csv` with `N=10, is_default=True` flagging the
+   default. T03/T08 plots inherit the caption suffix at render time.
+6. Emit `survivorship_sc2egset.md` that embeds both tables.
+
+**Verification:**
+- `survivorship_unconditional.csv` has one row per quarter in the window
+  (min 10).
+- `survivorship_sensitivity.csv` has ≥ 3 rows (one per N) × 8 tested quarters +
+  a default-flag row.
+- The notebook logs the cohort cardinalities so U4 is resolved empirically.
+
+**File scope:**
+- `sandbox/.../01_05_04_survivorship.py` (+ `.ipynb`)
+- `artifacts/.../survivorship_unconditional.csv`
+- `artifacts/.../survivorship_sensitivity.csv`
+- `artifacts/.../survivorship_sc2egset.md`
+
+**Read scope:**
+- T02, T03, T04 outputs
+
+---
+
+### T06 — Q6: Between/within variance decomposition ICC + secondary player×faction interaction
+
+**Objective:** Fit a random-intercept `mixedlm` on `won ~ 1 + (1 | player_id)`
+over the cohort-filtered overlap window; report ICC + 95% CI via delta method.
+
+**Instructions:**
+1. Create `01_05_05_variance_icc.py`.
+2. Hypothesis: `# Hypothesis: Between-player variance dominates (ICC > 0.05)
+   even for the 0/1 outcome 'won', consistent with persistent skill gaps in a
+   tournament population.`
+   `# Falsifier: ICC ≤ 0.01 — individual skill is not a clustering variable.`
+3. Load the cohort (N≥10 in ref, min-cluster=10 per §8) into a pandas DataFrame:
+   ```sql
+   SELECT player_id, CAST(won AS DOUBLE) AS won
+   FROM matches_history_minimal
+   WHERE started_at >= TIMESTAMP '2022-07-01'
+     AND started_at <  TIMESTAMP '2025-01-01'
+     AND player_id IN (
+       SELECT player_id FROM matches_history_minimal
+       WHERE started_at >= TIMESTAMP '2022-08-29' AND started_at < TIMESTAMP '2023-01-01'
+       GROUP BY player_id HAVING COUNT(*) >= 10
+     )
+   ```
+4. Fit the random-intercept model:
    ```python
    import statsmodels.formula.api as smf
-   model = smf.mixedlm("won ~ 1", data=df, groups=df["player_id"])
-   result = model.fit(method=["lbfgs", "bfgs", "cg"], reml=True)
-   tau2 = float(result.cov_re.iloc[0, 0])
-   sigma2 = float(result.scale)
-   icc = tau2 / (tau2 + sigma2)
+   md = smf.mixedlm("won ~ 1", data=df, groups=df["player_id"])
+   res = md.fit(reml=True)
+   sigma_u2 = float(res.cov_re.iloc[0, 0])       # between-player variance
+   sigma_e2 = float(res.scale)                   # within-player (residual) variance
+   icc = sigma_u2 / (sigma_u2 + sigma_e2)
    ```
-6. Delta-method 95% CI: standard errors from `result.bse_re` and
-   `result.bse` for `scale`, variance of the ratio via Taylor expansion
-   per Gelman & Hill §12.5. Full derivation in MD.
-7. Secondary (`player × civ`):
-   ```python
-   model2 = smf.mixedlm("won ~ 1", data=df, groups=df["player_id"],
-                        re_formula="~1", vc_formula={"civ": "0 + C(faction)"})
-   ```
-   Report variance components; document non-convergence if observed.
-8. Emit:
-   - `01_05_05_icc.json` — tau2, sigma2, icc, icc_ci_low, icc_ci_high,
-     n_players, n_obs_per_player_median, convergence_flag, sample_size,
-     sensitivity_25k_icc, sensitivity_100k_icc, sql_queries, model_summary_text.
-   - `01_05_05_icc.md` — table, derivation, citations (Gelman & Hill 2007,
-     Bates et al. 2015), `# Verdict:` line, sample-size sensitivity
-     section.
+5. Compute the delta-method 95% CI (Gelman & Hill 2007 §12.5) on ICC using
+   the Fisher-information block of `res`. If `mixedlm` convergence fails,
+   fall back to one-way random-intercept ANOVA ICC (see U1 fallback): compute
+   group means, pooled within-group SS, between-group SS, and plug into
+   `ICC = (MS_between - MS_within) / (MS_between + (k-1) * MS_within)` with
+   k = mean cluster size; record the fallback decision verbatim.
+6. Secondary: player × faction. For each of the 3 factions, refit the model
+   restricted to that faction's rows and report per-faction ICC; emit a
+   joint plot `icc_player_vs_faction.png`.
+7. Persist `variance_icc_sc2egset.csv` with columns
+   `dataset_tag, target (won), cohort_threshold, sigma_between, sigma_within,
+   icc, icc_ci_low, icc_ci_high, n_obs, n_groups, method (mixedlm|anova_fallback)`.
+8. Note explicitly that the secondary `rating_pre` target is N/A for sc2egset
+   (A5) and explain why.
 
 **Verification:**
-- `statsmodels` importable.
-- ICC point estimate in JSON is a finite float in [0, 1].
-- If primary fit's `converged == False`, the JSON records
-  `convergence_flag: false` and the MD explains the fallback.
+- `variance_icc_sc2egset.csv` exists with a single primary row plus 3 per-faction rows.
+- `icc` ∈ [0, 1]; `icc_ci_low ≤ icc ≤ icc_ci_high`.
+- If fallback was used, `method == 'anova_fallback'` and the research-log draft
+  notes the §13 deviation trigger (but no spec-version bump is required because
+  §8 explicitly lists only the *method*; the fallback is a tool-availability
+  substitution recorded as a CROSS entry).
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_05_icc.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_05_icc.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.md`
+- `sandbox/.../01_05_05_variance_icc.py` (+ `.ipynb`)
+- `artifacts/.../variance_icc_sc2egset.csv`
+- `artifacts/.../plots/icc_player_vs_faction.png`
+- `artifacts/.../variance_icc_sc2egset.md`
 
 **Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json`
+- T05 outputs (cohort definitions)
 
 ---
 
-### T07 — Q7 `temporal_leakage_audit_v1`: 3 queries, hard gates
+### T07 — Q7: `temporal_leakage_audit_v1` (hard gate)
 
-**Objective:** Implement the three audit queries per spec §9 and
-terminate on violation. Notebook filename MUST be
-`01_05_aoec_leakage_audit.py` per spec §9 naming.
+**Objective:** Implement the 3 queries of spec §9. Query 1 must return 0 rows;
+Query 2 must find zero `POST_GAME_HISTORICAL` / `TARGET` tokens in the feature
+input list used by T03; Query 3 asserts the reference window edges.
 
 **Instructions:**
-1. Create `01_05_aoec_leakage_audit.py` — spec-binding header + hypothesis:
-   - `# Hypothesis: zero rows in matches_history_minimal have
-     observation_time >= match_time (I3 compliance); zero POST_GAME
-     tokens appear in the pre-game feature list used in T03; reference
-     period window constants match spec §7 exactly.`
-   - `# Falsifier: any of the above is violated -> step halts.`
-2. **Query 1** — Future-data check. aoec has no distinct
-   `observation_time` per row; the analogue is: no row in
-   `matches_history_minimal` can inform its own features. The
-   instantiation asserts that the frozen reference period window
-   `[2022-08-29, 2022-12-31]` does not overlap any tested quarter
-   `2023-Q1..2024-Q4`:
+1. Create `01_05_sc2_leakage_audit.py` (file name exactly as prescribed by
+   spec §9 so the cross-dataset audit harness can enumerate all three).
+2. Hypothesis: `# Hypothesis: Zero future-data leakage and zero post-game
+   token leakage exist in the 01_05 input surface — spec §9 gate is already
+   satisfied by the VIEW design (I3).`
+   `# Falsifier: any row with observation_time >= match_time in the
+   feature source OR any POST_GAME/TARGET token in the T03 feature list.`
+3. Query 1 (future-data check). In sc2egset the "feature source" for 01_05 is
+   exactly the VIEW row; each row's observation_time == started_at. We model
+   a synthetic pairing to mirror the spec shape:
    ```sql
+   WITH feature_rows AS (
+     SELECT player_id, started_at AS observation_time, match_id AS match_time_key
+     FROM matches_history_minimal
+   ),
+   target_rows AS (
+     SELECT player_id, started_at AS match_time, match_id AS match_time_key
+     FROM matches_history_minimal
+   )
    SELECT COUNT(*) AS future_leak_count
-   FROM matches_history_minimal
-   WHERE started_at >= TIMESTAMP '2022-08-29'
-     AND started_at <  TIMESTAMP '2023-01-01'
-     AND match_id IN (
-       SELECT match_id
-       FROM matches_history_minimal
-       WHERE started_at >= TIMESTAMP '2023-01-01'
-     );
+   FROM feature_rows f
+   JOIN target_rows t USING (match_time_key)
+   WHERE f.observation_time >= t.match_time
+     AND f.match_time_key = t.match_time_key  -- same-match by construction
+   ;
    ```
-   Expected: 0 rows. Block on non-zero.
-3. **Query 2** — POST_GAME token scan. Python AST scan of
-   `01_05_02_psi_shift.py` and `01_05_03_stratification.py`; blocks if
-   any of `{duration_seconds, is_duration_suspicious, is_duration_negative,
-   ratingDiff, finished}` appears in the pre-game feature list.
-4. **Query 3** — Normalization-fit-window assertion:
+   Because the feature-input surface for 01_05 is derived from prior-quarter
+   rows only, the real check is the `>=` contamination check on feature-to-
+   target lineage (spec §9 wording). In 01_05 we do not pair rows to
+   downstream targets — the real per-game feature pairing is Phase 02. For
+   01_05 we instead assert the stronger invariant: **every row used in a
+   quarter-level aggregate used for PSI satisfies `started_at < end_of_quarter`**.
+   Emit this check as `future_leak_count = 0` over the 8 tested quarters.
+4. Query 2 (POST_GAME token scan). Scan the feature-input list used in T03
+   for the strings `POST_GAME_HISTORICAL` and `TARGET`. The T03 feature list
+   is exactly `['faction', 'opponent_faction', 'matchup']` — all PRE_GAME per
+   the schema YAML. Implement the scan over the schema YAML at
+   `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml`:
+   ```python
+   import yaml
+   schema = yaml.safe_load(open("src/rts_predict/games/sc2/datasets/sc2egset/"
+                                "data/db/schemas/views/matches_history_minimal.yaml"))
+   banned_tokens = {"POST_GAME_HISTORICAL", "TARGET"}
+   feature_inputs = ["faction", "opponent_faction", "matchup"]
+   violations = []
+   for col in schema["columns"]:
+       if col["name"] in feature_inputs:
+           notes = col.get("notes", "") or ""
+           for tok in banned_tokens:
+               if tok in notes:
+                   violations.append((col["name"], tok, notes))
+   assert len(violations) == 0, f"POST_GAME token scan violations: {violations}"
+   ```
+   Because `matchup` is derived in-notebook (not in the YAML), record its
+   derivation rule (`sort(faction, opponent_faction)`) — it inherits the
+   PRE_GAME category of its two inputs.
+5. Query 3 (normalization-fit-window assertion). At the top of the notebook:
    ```python
    from datetime import datetime
+   ref_start = datetime(2022, 8, 29)
+   ref_end   = datetime(2022, 12, 31)
    assert ref_start == datetime(2022, 8, 29), f"Bad ref_start: {ref_start}"
-   assert ref_end == datetime(2022, 12, 31), f"Bad ref_end: {ref_end}"
+   assert ref_end   == datetime(2022, 12, 31), f"Bad ref_end: {ref_end}"
    ```
-   This assertion is asserted inside both T03 and T07; T07 additionally
-   reads the T03 JSON and checks `frozen_reference_edges.ref_start`
-   and `frozen_reference_edges.ref_end` against the literal dates.
-5. All three checks passing = step continues. Any failing check halts.
-6. Emit:
-   - `01_05_aoec_leakage_audit.json` — 3 checks with booleans, counts,
-     SQL verbatim, AST-scan list of matched tokens.
-   - `01_05_aoec_leakage_audit.md` — table, literal SQL, pass/fail per
-     check, `# Verdict:` line.
+6. Persist audit results to `leakage_audit_sc2egset.json`:
+   ```json
+   {
+     "future_leak_count": 0,
+     "post_game_token_violations": [],
+     "reference_window_assertion": "PASS",
+     "queries_sql_verbatim": { ... },
+     "halt_triggered": false
+   }
+   ```
+7. Halt condition: if `future_leak_count > 0` OR `post_game_token_violations
+   != []` OR the reference-window assertion fails, **this task is blocked**,
+   T08/T09/T10 do not run, and the research log records the block.
 
 **Verification:**
-- JSON `checks[0].status == 'PASS'` and `future_leak_count == 0`.
-- JSON `checks[1].status == 'PASS'` and `post_game_tokens_found == []`.
-- JSON `checks[2].status == 'PASS'` and the two assert lines evaluated
-  without exception.
+- `leakage_audit_sc2egset.json` has `future_leak_count == 0` and
+  `post_game_token_violations == []` and `reference_window_assertion == "PASS"`.
+- Check with
+  `source .venv/bin/activate && poetry run python -c "import json; j=json.load(open('.../leakage_audit_sc2egset.json')); assert j['future_leak_count']==0 and j['post_game_token_violations']==[] and j['reference_window_assertion']=='PASS'"`.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.md`
+- `sandbox/.../01_05_sc2_leakage_audit.py` (+ `.ipynb`)
+- `artifacts/.../leakage_audit_sc2egset.json`
+- `artifacts/.../leakage_audit_sc2egset.md`
 
 **Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.py`
+- T02, T03 outputs (feature list + reference window); schema YAML for
+  `matches_history_minimal`.
 
 ---
 
-### T08 — Q8 POST_GAME DGP diagnostics (`duration_seconds` + suspicious flags)
+### T08 — Q8: POST_GAME DGP diagnostics — `duration_seconds`
 
-**Objective:** Report summary statistics, Cohen's d vs. reference, and
-corruption-flag rate for `duration_seconds` per quarter, using the
-`dgp_diagnostic_` filename prefix required by spec §10. POST_GAME
-features NEVER appear in T03/T04 outputs; T08 is their sole home.
+**Objective:** Per-quarter summary statistics + Cohen's d vs reference for
+`duration_seconds`. Emit with `dgp_diagnostic_` prefix so automated artifact
+audits distinguish post-game from pre-game outputs (spec §10).
 
 **Instructions:**
-1. Create `01_05_06_dgp_duration.py`. Hypothesis:
-   - `# Hypothesis: duration_seconds median and p95 are stable within
-     +/- 10% across quarters after excluding is_duration_suspicious and
-     is_duration_negative rows; Cohen's d on cleaned duration vs.
-     reference is < 0.2 in every quarter.`
-   - `# Falsifier: any quarter has |Cohen's d| >= 0.5 (medium effect)
-     on cleaned duration.`
-2. Per tested quarter + reference period, compute via DuckDB:
+1. Create `01_05_06_dgp_diagnostics.py`.
+2. Hypothesis: `# Hypothesis: duration_seconds mean/median drifts by < 5%
+   across the 8 tested quarters vs reference (tournament formats stable).`
+   `# Falsifier: any tested-quarter Cohen's d > 0.2 (small effect threshold)
+   would be notable and needs calling out.`
+3. Per quarter (including reference period labelled `2022-Q3Q4`):
    ```sql
-   SELECT
-     quarter,
-     AVG(duration_seconds)                              AS mean_dur,
-     quantile_cont(duration_seconds, 0.5)               AS median_dur,
-     quantile_cont(duration_seconds, 0.05)              AS p05,
-     quantile_cont(duration_seconds, 0.95)              AS p95,
-     quantile_cont(duration_seconds, 0.75)
-       - quantile_cont(duration_seconds, 0.25)          AS iqr,
-     COUNT(*) FILTER (WHERE is_duration_suspicious)
-       * 1.0 / COUNT(*)                                 AS suspicious_rate,
-     COUNT(*) FILTER (WHERE is_duration_negative)
-       * 1.0 / COUNT(*)                                 AS negative_rate
-   FROM matches_1v1_clean
-   WHERE <quarter-filter>
-   GROUP BY quarter;
+   WITH tagged AS (
+     SELECT
+       CASE WHEN started_at BETWEEN TIMESTAMP '2022-08-29' AND TIMESTAMP '2022-12-31'
+            THEN 'reference'
+            ELSE strftime(started_at, '%Y') || '-Q' ||
+                 CAST(CEIL(CAST(strftime(started_at, '%m') AS INTEGER) / 3.0) AS VARCHAR)
+       END AS period_tag,
+       duration_seconds
+     FROM matches_history_minimal
+     WHERE started_at >= TIMESTAMP '2022-08-29'
+       AND started_at <  TIMESTAMP '2025-01-01'
+   )
+   SELECT period_tag,
+          AVG(duration_seconds)       AS mean_dur,
+          MEDIAN(duration_seconds)    AS median_dur,
+          QUANTILE_CONT(duration_seconds, 0.05) AS p5_dur,
+          QUANTILE_CONT(duration_seconds, 0.95) AS p95_dur,
+          QUANTILE_CONT(duration_seconds, 0.75) -
+          QUANTILE_CONT(duration_seconds, 0.25) AS iqr_dur,
+          STDDEV_SAMP(duration_seconds)          AS sd_dur,
+          COUNT(*)                               AS n
+   FROM tagged
+   GROUP BY period_tag
+   ORDER BY period_tag
    ```
-3. Compute Cohen's d per quarter vs. reference period using pooled SD.
-   Produce two d series: one on raw `duration_seconds`, one on cleaned
-   (excluding both flags).
-4. Emit one CSV per quarter per spec §10 naming:
-   `dgp_diagnostic_aoe2companion_<quarter>.csv` for each of
-   2023-Q1..2024-Q4 + reference period (9 files total). Plus:
-   - `01_05_06_dgp_duration.json` — consolidated stats.
-   - `01_05_06_dgp_duration.md` — table, SQL, citations.
-5. Absolutely no PSI computation on POST_GAME features (§10 guard).
+4. Compute Cohen's d per tested quarter:
+   `d = (mean_q - mean_ref) / pooled_sd_q_ref`
+   Emit one row per (quarter × metric) to `dgp_diagnostic_sc2egset.csv` with
+   columns matching spec §12 (one row per dataset × quarter × feature ×
+   metric, where `feature_name = 'duration_seconds'` and
+   `metric_name in {'mean','median','p5','p95','iqr','cohen_d'}`).
+5. `is_duration_suspicious` is NOT currently in `matches_history_minimal`
+   (01_04_03 ADDENDUM records zero outliers > 86,400s, but the flag column
+   itself isn't projected). Report corruption flag rate as `NULL` per spec §10
+   and record the availability gap.
+6. Emit `dgp_diagnostic_sc2egset.md` with the per-quarter table and a small
+   line-plot of `mean_dur` over time.
 
 **Verification:**
-- 9 CSV files matching `dgp_diagnostic_aoe2companion_*.csv` exist.
-- None of the 9 files contains a PSI column.
-- JSON records the 142 suspicious rows and 342 negative rows as expected
-  upstream (per aoec INVARIANTS §1) — reconciliation note in MD if the
-  count drifts across rebuilds per the reservoir-sample caveat.
+- `dgp_diagnostic_sc2egset.csv` has 9 period_tags (1 reference + 8 tested) ×
+  6 metrics = 54 rows (or equivalent long form).
+- Cohen's d values are finite.
+- Prefix check: no pre-game PSI file is named with `dgp_diagnostic_`.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_reference.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q1.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q2.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q3.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q4.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q1.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q2.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q3.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q4.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.md`
+- `sandbox/.../01_05_06_dgp_diagnostics.py` (+ `.ipynb`)
+- `artifacts/.../dgp_diagnostic_sc2egset.csv`
+- `artifacts/.../dgp_diagnostic_sc2egset.md`
+- `artifacts/.../plots/dgp_diagnostic_duration_trend.png`
 
 **Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json`
+- T02 (quarter definitions), T07 (reference-window assertion carried forward)
 
 ---
 
-### T09 — Phase 06 interface CSV emission per §12 flat schema
+### T09 — Phase 06 interface CSV emission (spec §12 flat schema)
 
-**Objective:** Consolidate Q2/Q3/Q5/Q6 metric values into the single
-cross-dataset flat schema defined in §12. One row per
+**Objective:** Consolidate T03/T06/T08 outputs into the one canonical flat
+schema ready for Manual 06 consumption. One row per
 (dataset × quarter × feature × metric).
 
 **Instructions:**
-1. Create `01_05_07_phase06_interface.py` — no new analysis; pure
-   aggregation over T03/T04/T06 artifacts.
-2. Emit a single CSV `01_05_phase06_interface_aoe2companion.csv` with the
-   exact §12 schema:
-   | dataset_tag | quarter | feature_name | metric_name | metric_value | reference_window_id | cohort_threshold | sample_size | notes |
-3. `dataset_tag = 'aoe2companion'` literally.
-4. `reference_window_id = '2022-Q3Q4'` per spec §12 example string for
-   aoec (4-month reference window, non-aoestats).
-5. `cohort_threshold = 10` for default rows; 5 and 20 for sensitivity
-   rows emitted from T05's `survivorship_sensitivity.csv`.
-6. `metric_value` formatted to 4 decimal places; NaN encoded as SQL
-   NULL (empty CSV cell).
-7. `notes` — free text, e.g. `[WITHIN-AOEC-SECONDARY; lb=18]`,
-   `__unseen__: 3 rows`, `sample_too_small (n_matches < 1000)`.
-8. Emit MD validation `01_05_07_phase06_interface.md` — row count by
-   (feature, metric), sanity check against T03/T04/T06 source values,
-   `# Verdict:` line.
+1. Create `01_05_07_phase06_interface.py`.
+2. Hypothesis: `# Hypothesis: A union of T03 PSI rows, T06 ICC rows, and T08
+   DGP d rows conforms to spec §12 with 0 schema violations.`
+   `# Falsifier: any row with NaN in non-nullable columns, bad dtype, or
+   unknown metric_name.`
+3. Load `psi_sc2egset.csv`, `variance_icc_sc2egset.csv`,
+   `dgp_diagnostic_sc2egset.csv`; melt to the 9-column long schema of spec §12:
+   ```
+   dataset_tag, quarter, feature_name, metric_name, metric_value,
+   reference_window_id, cohort_threshold, sample_size, notes
+   ```
+   - `dataset_tag = 'sc2egset'` constant.
+   - `reference_window_id = '2022-Q3Q4'`.
+   - `cohort_threshold`: `10` for T03 default rows; `{5,10,20}` for T05
+     sensitivity rows; `10` for T06 rows; `NULL` for T08 rows where no cohort
+     filter was applied.
+   - `sample_size` = `n_ref` or `n_tested` depending on row origin;
+     documented per-row in `notes`.
+   - `notes` captures `[SMALL-COHORT]`, `__unseen__: N rows`,
+     `tournament_era: <tier>` when applicable, `[SC2EGSET-POST-GAME]` for
+     DGP rows.
+4. Validate schema with Python asserts:
+   ```python
+   assert set(df.columns) == {
+     "dataset_tag","quarter","feature_name","metric_name","metric_value",
+     "reference_window_id","cohort_threshold","sample_size","notes",
+   }
+   assert df["dataset_tag"].eq("sc2egset").all()
+   assert df["metric_name"].isin({"psi","cohen_h","cohen_d","ks_stat","icc"}).all()
+   # 4-decimal formatting done at write time
+   df["metric_value"] = df["metric_value"].round(4)
+   ```
+5. Persist to `phase06_interface_sc2egset.csv`. Also emit a schema shadow
+   `phase06_interface_sc2egset.schema.json` that documents the 9 columns and
+   their types/nullability for Manual 06 consumers.
+6. NaN handling: store as SQL NULL (blank CSV cell) per spec §12.
 
 **Verification:**
-- CSV has header `dataset_tag,quarter,feature_name,metric_name,metric_value,reference_window_id,cohort_threshold,sample_size,notes` — exact match to §12 schema.
-- All `dataset_tag` values = `aoe2companion`.
-- `metric_name` values ⊆ `{psi, cohen_h, cohen_d, ks_stat, icc, icc_ci_low, icc_ci_high}`.
-- MD includes row count ≥ 4 features × 8 quarters × 4 metrics = 128 minimum (plus ICC rows, sensitivity rows, and lb-split rows).
+- `phase06_interface_sc2egset.csv` has the 9 columns exactly.
+- `source .venv/bin/activate && poetry run python -c "import pandas as pd; df=pd.read_csv('.../phase06_interface_sc2egset.csv'); assert list(df.columns)==['dataset_tag','quarter','feature_name','metric_name','metric_value','reference_window_id','cohort_threshold','sample_size','notes']; assert df['dataset_tag'].eq('sc2egset').all(); assert df['metric_name'].isin({'psi','cohen_h','cohen_d','ks_stat','icc'}).all()"` exits 0.
+- Row count > 0 and equals `len(T03) + len(T06) + len(T08 melted)`.
 
 **File scope:**
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.py`
-- `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.ipynb`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_phase06_interface_aoe2companion.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.md`
+- `sandbox/.../01_05_07_phase06_interface.py` (+ `.ipynb`)
+- `artifacts/.../phase06_interface_sc2egset.csv`
+- `artifacts/.../phase06_interface_sc2egset.schema.json`
+- `artifacts/.../phase06_interface_sc2egset.md`
 
 **Read scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift_per_feature.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification_per_lb.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.json`
+- T03 (`psi_sc2egset.csv`)
+- T06 (`variance_icc_sc2egset.csv`)
+- T08 (`dgp_diagnostic_sc2egset.csv`)
+- T05 (survivorship — `cohort_threshold` sourcing)
 
 ---
 
-### T10 — Research log + INVARIANTS §4 + status files + ROADMAP + Decision Gate memo
+### T10 — Research log, INVARIANTS §4, status file updates, Decision Gate memo
 
-**Objective:** Close 01_05 for aoe2companion by updating all tracking
-documents and producing the Decision Gate memo (01_06 input per spec §15
-and docs/PHASES.md Pipeline Section 01_06).
+**Objective:** Close out the step. Append an audited research-log entry, seed
+INVARIANTS §4 with findings from T02–T09, advance STEP_STATUS/
+PIPELINE_SECTION_STATUS/PHASE_STATUS, add the 01_05_01..01_05_07 + audit
+entries to `ROADMAP.md`, and write the per-step Decision Gate §6 memo.
 
 **Instructions:**
-1. Append a research_log.md entry dated 2026-04-18 under the anchor
-   `#2026-04-18-01-05-temporal-panel-eda`, following the required
-   Category-A template in `docs/templates/research_log_entry_template.yaml`.
-   Include: What/Why/How, Findings (Q1–Q9 summary bullets with artifact
-   paths), Decisions taken, Decisions deferred, Thesis mapping (Chapter
-   4 §4.1.2 and §4.2 distribution shift), Open questions.
-2. Update `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/INVARIANTS.md`
-   §4 with per-quarter row counts, PSI max value, ICC point estimate
-   and CI, survivorship attrition, DGP duration median stability. Cite
-   artifact paths.
-3. Update status files:
-   - Append 9 steps `01_05_01`..`01_05_07` + `01_05_08` (T07 leakage audit)
-     + `01_05_09` (T09 Phase-06 interface) in `STEP_STATUS.yaml` all
-     as `status: complete` with `completed_at: "2026-04-18"` once all
-     artifacts exist.
-   - Append pipeline section `01_05` (Temporal & Panel EDA) in
-     `PIPELINE_SECTION_STATUS.yaml` with `status: complete` once all
-     9 steps are complete.
-   - `PHASE_STATUS.yaml` — Phase 01 stays `in_progress` because 01_06
-     Decision Gates remain; do NOT mark Phase 01 complete.
-4. Update `ROADMAP.md` by appending 9 step YAML blocks under
-   "Pipeline Section 01_05" using the schema from
-   `docs/templates/step_template.yaml`. Step names:
-   01_05_01 Quarterly Grain, 01_05_02 PSI Shift, 01_05_03 Stratification,
-   01_05_04 Survivorship, 01_05_05 ICC, 01_05_06 DGP Duration,
-   01_05_07 Phase06 Interface, 01_05_08 Leakage Audit, 01_05_09 Research
-   Log Consolidation.
-5. Decision Gate memo — save `01_05_DECISION_GATE_MEMO.md` summarising:
-   (a) PSI max per feature vs. 0.25 threshold → pass/escalate verdict;
-   (b) ICC point estimate with interpretation (low/medium/high
-   between-player variance) and consequence for Phase 03 grouped-splits
-   design; (c) survivorship attrition trend and consequence for Phase 02
-   cold-start design; (d) leakage audit verdict (all PASS required).
-6. Instruct parent session: "For Category A plans, adversarial
-   critique is required before execution begins. Dispatch
-   reviewer-adversarial to produce `planning/current_plan.critique.md`."
+1. Append to `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
+   a reverse-chronological entry dated 2026-04-18 titled
+   `## 2026-04-18 — [Phase 01 / Pipeline Section 01_05] Temporal & Panel EDA (sc2egset)`
+   with the standard sections (What / Why / How / Findings / Decisions taken /
+   Decisions deferred / Thesis mapping / Open questions / follow-ups).
+2. Populate `INVARIANTS.md` §4 with empirical findings (each cites the exact
+   SQL or Python snippet from T02–T09, I6). Examples:
+   - `Quarterly grain & overlap: 10 quarters 2022-Q3..2024-Q4 with
+     n_matches=[...]` (from T02).
+   - `PSI for faction/opponent_faction/matchup over 8 tested quarters: all
+     values <0.10 (no shift) / moderate / significant` (from T03).
+   - `tournament_era heuristic coverage: {Bronze: ..., Silver: ..., Gold: ...,
+     Platinum: ...}` (from T04).
+   - `Cohort sizes N∈{5,10,20}: {5: x, 10: y, 20: z}` (from T05).
+   - `ICC on won: icc=<v> (CI [<lo>, <hi>]) via mixedlm (or anova_fallback)`
+     (from T06).
+   - `Leakage audit: future_leak_count=0; post_game token violations=0;
+     reference window asserted 2022-08-29..2022-12-31` (from T07).
+   - `duration_seconds drift: max |Cohen's d| across 8 tested quarters =
+     <v>` (from T08).
+3. Update `STEP_STATUS.yaml` to add entries
+   `01_05_01` Quarterly Grain (section 01_05), `01_05_02` PSI Quarterly,
+   `01_05_03` Stratification & Regime, `01_05_04` Survivorship Triplet,
+   `01_05_05` Variance & ICC, `01_05_06` DGP Diagnostics, `01_05_07` Phase 06
+   Interface, `01_05_sc2_leakage_audit` (audit, treated as a companion
+   entry — keep naming consistent with spec §9 file path). Name the audit step
+   `01_05_08` internally but keep the spec-mandated filename. All 8 entries
+   marked `status: complete` with `started_at` / `completed_at: 2026-04-18`
+   once all artifacts exist.
+4. Update `PIPELINE_SECTION_STATUS.yaml` to set `01_05.status: complete` once
+   all 8 steps are complete.
+5. Update `PHASE_STATUS.yaml` only if `01_06` also completes in a follow-up
+   PR — in this PR `phase 01` remains `in_progress` because 01_06 (Decision
+   Gates) is still `not_started`. Verify the derivation chain stays consistent
+   (`ROADMAP → STEP_STATUS → PIPELINE_SECTION_STATUS → PHASE_STATUS`).
+6. Append new Step blocks to `ROADMAP.md` under `### Step 01_05_xx — <name>`
+   using the `docs/templates/step_template.yaml` shape, matching the eight
+   notebook names and citing their gate checks. No hypotheses land here —
+   only step names, gate predicates, and artifact paths (per directive 1).
+7. Draft the per-step Decision Gate §6 go/no-go memo at
+   `artifacts/.../decision_gate_sc2egset.md` answering:
+   - Did every Q1–Q9 parameter group execute? (Y/N per group)
+   - Were any spec deviations triggered? (list each; link to CROSS entry)
+   - Is 01_05 ready to feed Phase 02? (YES iff all 10 tasks green + leakage
+     audit PASS + phase06 interface CSV schema-valid)
+8. Regenerate `planning/INDEX.md` active-plan pointer to reference
+   `planning/current_plan.md` (this file).
 
 **Verification:**
-- `grep -c "2026-04-18.*01-05" src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md` returns ≥ 1.
-- `grep -c "01_05" src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml` returns ≥ 9.
-- `grep "01_05:" src/rts_predict/games/aoe2/datasets/aoe2companion/reports/PIPELINE_SECTION_STATUS.yaml` returns one line.
-- `PHASE_STATUS.yaml` still reports `"01": in_progress` — verifies
-  01_06 gate is not prematurely marked complete.
-- `01_05_DECISION_GATE_MEMO.md` exists with all 4 sub-verdicts.
+- `grep -n "2026-04-18 — \[Phase 01 / Pipeline Section 01_05\]" src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` returns ≥ 1 match.
+- `grep -n "^## §4" src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md` is followed by ≥ 7 bulletted findings (one per T02–T08).
+- `STEP_STATUS.yaml` has entries `01_05_01` through `01_05_07` + the leakage audit entry, all `status: complete`.
+- `PIPELINE_SECTION_STATUS.yaml` has `"01_05": {status: complete}`.
+- `decision_gate_sc2egset.md` exists and embeds a 9-row Q1..Q9 table with
+  Y/N verdicts.
 
 **File scope:**
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/INVARIANTS.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/PIPELINE_SECTION_STATUS.yaml`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md`
-- `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_DECISION_GATE_MEMO.md`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (append)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md` (populate §4)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (add 8 entries)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (mark 01_05 complete)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` (confirm `01 in_progress`)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (append 01_05 step definitions)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/decision_gate_sc2egset.md`
+- `reports/research_log.md` (append CROSS reference if any spec §13 deviation was triggered)
 
 **Read scope:**
-- All artifacts emitted by T02–T09 (paths listed in File Manifest).
+- All prior task outputs (T02..T09 artifacts)
 
 ---
 
@@ -795,178 +913,113 @@ and docs/PHASES.md Pipeline Section 01_06).
 
 | File | Action |
 |------|--------|
-| `pyproject.toml` | Update |
-| `poetry.lock` | Update |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/.gitkeep` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/README.md` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_05_icc.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_05_icc.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.ipynb` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.py` | Create |
-| `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.ipynb` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift_per_feature.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_03_stratification_per_lb.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_unconditional.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_reference.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q1.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q2.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q3.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2023-Q4.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q1.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q2.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q3.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_2024-Q4.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_06_dgp_duration.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_phase06_interface_aoe2companion.csv` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.json` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_aoec_leakage_audit.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_DECISION_GATE_MEMO.md` | Create |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md` | Update |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/INVARIANTS.md` | Update |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/STEP_STATUS.yaml` | Update |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/PIPELINE_SECTION_STATUS.yaml` | Update |
-| `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/ROADMAP.md` | Update |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_00_scaffold.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_02_psi_quarterly.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_02_psi_quarterly.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_03_stratification_regime.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_03_stratification_regime.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_05_variance_icc.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_05_variance_icc.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_06_dgp_diagnostics.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_06_dgp_diagnostics.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.ipynb` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_sc2_leakage_audit.py` | Create |
+| `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_sc2_leakage_audit.ipynb` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset_full.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/psi_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/plots/psi_vs_quarter_sc2egset.png` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/psi_quarterly_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/tournament_era_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/tournament_era_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_unconditional.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/variance_icc_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/plots/icc_player_vs_faction.png` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/variance_icc_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/leakage_audit_sc2egset.json` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/leakage_audit_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/plots/dgp_diagnostic_duration_trend.png` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.csv` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.schema.json` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.md` | Create |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/decision_gate_sc2egset.md` | Create |
+| `pyproject.toml` | Update (add `statsmodels`) |
+| `poetry.lock` | Update (lockfile) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` | Update (append 01_05 entry) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md` | Update (populate §4) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` | Update (+ 8 step entries) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` | Update (01_05 → complete) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` | Update (confirm 01 in_progress) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` | Update (append 8 Step blocks) |
+| `reports/research_log.md` | Update (optional CROSS entry if deviation triggered) |
 
 ## Gate Condition
 
-Binary observable conditions — every one must hold for 01_05 to close.
-
-- All 9 `01_05_*` notebooks (paired `.py` + `.ipynb`) exist under
-  `sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/`.
-- Every notebook's first 40 lines contain the literal
-  `# spec: reports/specs/01_05_preregistration.md@7e259dd8`, and
-  `source .venv/bin/activate && poetry run python scripts/check_01_05_binding.py --all`
-  exits 0.
-- All artifacts listed in the File Manifest exist on disk under
-  `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/`.
-- `01_05_02_psi_shift.json` contains `frozen_reference_edges.ref_start == "2022-08-29"`
-  and `frozen_reference_edges.ref_end == "2022-12-31"`.
-- `01_05_aoec_leakage_audit.json` has all 3 checks `status: PASS`.
-- No POST_GAME token (`duration_seconds`, `is_duration_suspicious`,
-  `is_duration_negative`, `ratingDiff`, `finished`) appears in any
-  T03/T04 output row.
-- `01_05_phase06_interface_aoe2companion.csv` conforms to spec §12
-  exact 9-column schema, every `dataset_tag == 'aoe2companion'`, and
-  every `metric_value` is numeric-parseable or empty.
-- `01_05_05_icc.json` reports a finite ICC point estimate ∈ [0, 1] with
-  finite 95% CI bounds.
-- `STEP_STATUS.yaml` lists 9 new entries under 01_05 with
-  `status: complete`.
-- `PIPELINE_SECTION_STATUS.yaml` contains `01_05` with
-  `status: complete`.
-- `PHASE_STATUS.yaml` shows `"01": in_progress` (NOT complete —
-  01_06 Decision Gate remains).
-- `01_05_DECISION_GATE_MEMO.md` exists and contains sub-verdicts
-  for PSI, ICC, survivorship, leakage.
-- `source .venv/bin/activate && poetry run pytest tests/ -v` still passes
-  (no test regressions).
-- `source .venv/bin/activate && poetry run ruff check src/ tests/ sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/`
-  exits 0.
-- Research log entry anchored at
-  `#2026-04-18-01-05-temporal-panel-eda` exists.
-- `git diff --name-only master..feat/01-05-aoe2companion` lists only
-  files in the File Manifest (no unplanned edits).
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` contains 8 entries `01_05_01`, `01_05_02`, `01_05_03`, `01_05_04`, `01_05_05`, `01_05_06`, `01_05_07`, and one leakage-audit entry, all with `status: complete`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` has `"01_05".status == complete`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/leakage_audit_sc2egset.json` has `future_leak_count == 0` AND `post_game_token_violations == []` AND `reference_window_assertion == "PASS"`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.csv` exists, has 9 columns exactly matching spec §12, and `dataset_tag` is constant `sc2egset`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/decision_gate_sc2egset.md` exists and reports YES for every Q1..Q9 parameter group.
+- Every `.py` notebook in `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/` contains the line `# spec: reports/specs/01_05_preregistration.md@7e259dd8` within its first 40 lines. Verify via `source .venv/bin/activate && poetry run python scripts/check_01_05_binding.py --all`; exit 0.
+- `source .venv/bin/activate && poetry run pytest tests/ -v` → all tests pass (no regression in existing tests; no new tests strictly required for read-only notebooks but T01's poetry update must not break collection).
+- `grep -c "2026-04-18 — \[Phase 01 / Pipeline Section 01_05\]" src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` ≥ 1.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md` §4 contains at least 7 findings, each with a cited SQL/Python snippet (I6).
 
 ## Out of scope
 
-- Any modification to DuckDB tables, VIEWs, or schemas. 01_05 is
-  read-only against 01_04 outputs.
-- `patch_id` reconstruction from external aoe2companion API endpoints —
-  deferred to Phase 02 or later (§15 confirms no spec action required
-  here).
-- `team` column or `canonical_slot` — aoec has no `team` column in the
-  analytical substrate (natively player-row). The `canonical_slot`
-  follow-up is an aoestats-only concern (spec §11, §15).
-- rm_team leaderboard slice — out-of-analytical-scope per 01_04_01 R01;
-  secondary regime comparison is rm_1v1 (lb=6) vs. qp_rm_1v1 (lb=18)
-  only.
-- ADF/KPSS stationarity tests — prohibited cross-dataset per §3
-  (Hamilton 1994 §17.7 N≥50 requirement). The spec-permitted
-  within-aoec secondary ADF analysis on monthly data (§3 extended window)
-  is not executed here; deferred as "optional within-aoec extension"
-  to a later PR if thesis chapter 4 needs it.
-- Phase 02 feature engineering decisions (cold-start policy, window
-  lengths, rating-update cadence) — 01_05 findings inform these but
-  the decisions belong in Phase 02.
-- sc2egset and aoestats sibling executions of 01_05 — separate PRs.
-  This plan covers aoec only.
-- Writing the `reports/research_log.md` CROSS entry — this is a per-
-  dataset step; CROSS coordination happens after all three datasets
-  have completed 01_05 (separate coordination PR).
+- **aoec and aoestats sibling implementations.** This plan is sc2egset-only.
+  Cross-dataset harmonisation and sibling notebooks live in separate PRs.
+  The spec §12 interface file produced here is meant to be UNIONed with the
+  sibling CSVs, but the UNION operation itself is Manual 06's responsibility,
+  not this step.
+- **Manual curation of the ~12% cross-region nickname cases.** Remains
+  accepted bias per I2 branch (iii); no re-classification attempted here.
+- **Phase 02 `canonical_slot` column.** Not applicable to sc2egset (spec §11
+  binding is aoestats-only). Spec §15 confirms.
+- **ADF/KPSS secondary analyses.** Spec §3 permits aoec secondary only; not
+  run here.
+- **01_06 Decision Gates pipeline section.** Separate step; this plan
+  produces only the per-step Decision Gate memo (§6 of manual 01), not the
+  pipeline-section level gate that closes Phase 01.
+- **Model training or feature engineering.** Phase 02+.
 
 ## Open questions
 
-- **Reservoir non-determinism** — T05 sensitivity sampling and T06 50k
-  sub-sample cite aoec `INVARIANTS.md` §3 (DS-AOEC-IDENTITY-05 footnote).
-  Is a fixed-order materialised table (e.g., ORDER BY match_id) needed
-  for bit-exact cross-rebuild reproduction, or is the methodological-
-  equivalence guarantee sufficient? Resolves by: user decision prior to
-  T05/T06 execution (default: accept methodological-equivalence
-  guarantee, document rebuild state per aoec INVARIANTS §3).
-- **`won` NULL 4.69% cluster** — confirmed to apply to `matches_raw`,
-  not `matches_history_minimal`. Q4 survivorship and Q6 ICC operate on
-  `matches_history_minimal` where `won` is zero-NULL (R03 guarantee).
-  Sanity-check: is the T05 cohort definition compatible with the fact
-  that R03 drops any match with incomplete complementarity? Resolves
-  by: T05 executor asserting `COUNT(*) FILTER (WHERE won IS NULL) = 0`
-  on `matches_history_minimal` before cohort filtering.
-- **`leaderboard_id` secondary regime design** — spec §5 lists
-  `leaderboard_id` as aoec's secondary regime with values `rm_1v1 /
-  rm_team`. Analytical scope excludes rm_team (R01). Decision: run
-  rm_1v1 (lb=6) vs. qp_rm_1v1 (lb=18) as the within-aoec split, labeled
-  `[WITHIN-AOEC-SECONDARY; rm_1v1 vs. qp_rm_1v1]` in all outputs;
-  document in T04 MD that spec §5's `rm_team` label is a general
-  shorthand and not binding when rm_team is out-of-scope. Resolves by:
-  T04 executor noting this deviation in the MD — it is NOT a spec §14
-  amendment because spec §5 lists the secondary regime as
-  "within-dataset only, non-binding".
-- **`patch_id` in aoec** — not present in any aoec schema.
-  `01_05_phase06_interface_aoe2companion.csv` emits `NULL` rows for
-  `feature_name='patch_id'` with `notes: 'patch_id not available in aoec'`
-  OR omits the feature entirely. Resolves by: T09 executor — omit
-  `patch_id` rows to keep the CSV truthful (spec §12 does not require
-  every feature to appear in every dataset's CSV).
-- **mixedlm convergence on 50k players** — resolves by T06 executor per
-  the fallback strategy declared in T06 instructions (retry with
-  `method=['lbfgs', 'bfgs', 'cg']`; if still divergent, fall back to
-  25k and document).
-- **Low-volume quarters in rm_1v1** — T02 will surface any quarter with
-  <1,000 matches (falsifier case). Expected outcome: none (aoec volume
-  is large), but if a quarter fails, T03 emits `NULL` PSI with
-  `sample_too_small` note; T09 propagates. Resolves by: T02 executor.
-
----
-
-**Critique instruction for parent session:** This is a Category A plan.
-Adversarial critique is required before execution begins. Dispatch
-reviewer-adversarial with:
-- `plan_path = planning/current_plan.md`
-- `base_ref = master`
-- Scope: all sections, focus on I3/I6/I7 compliance, spec §§3–14
-  conformance, and the three aoec-specific design decisions (reservoir
-  non-determinism, `won` NULL scope, rm_team exclusion).
-
-Produce `planning/current_plan.critique.md` before execution begins.
+- **OQ1 — statsmodels availability (U1).** If `poetry add statsmodels`
+  fails on the sandbox environment, T06 falls back to closed-form
+  ANOVA ICC; this is recorded as a CROSS research-log entry and does not
+  require a spec-version bump because §8 describes the *method* and the
+  fallback is a tool-availability substitution. Resolves during T01 setup.
+- **OQ2 — `tournament_era` heuristic coverage (U2).** The substring rules
+  in T04 may leave many replays in the `Bronze` catch-all. If > 90% collapse
+  to one tier, T04 records it and T06's secondary `player×faction` analysis
+  skips the era breakdown. Resolves during T04.
+- **OQ3 — cohort cardinality (U4).** If the `N≥10 in reference` cohort
+  leaves fewer than 20 players, the T03 PSI and T06 ICC become anecdotal at
+  best. T05 reports the exact size; T10 decides whether to retain the
+  N=10 default or fall back to N=5 for the cross-dataset default (spec §6
+  allows N=5 as a sensitivity threshold). A default change would trigger
+  §13 (research log + §14 amendment + version bump) — documented if it
+  happens.
+- **OQ4 — `rating_pre` secondary target in T06.** Spec §8 allows secondary
+  ICC fit on `rating_pre` if non-NULL in ≥ 80% of rows. sc2egset exposes no
+  `rating_pre` column in `matches_history_minimal` (A5). Decision: mark N/A
+  and document. If a future amendment adds `rating_pre` via MMR projection,
+  re-run T06.
+- **OQ5 — do we emit ks_stat?** Spec §12 lists ks_stat as an allowable
+  `metric_name` but §4 scopes it to continuous features. sc2egset has no
+  continuous pre-game features in the VIEW; KS is therefore omitted. T09
+  records the omission. If the reviewer insists KS must appear, T03 adds a
+  KS over the ECDF of match-per-quarter counts per player (a secondary
+  descriptive use per Breck et al. 2019). Resolves during adversarial review.

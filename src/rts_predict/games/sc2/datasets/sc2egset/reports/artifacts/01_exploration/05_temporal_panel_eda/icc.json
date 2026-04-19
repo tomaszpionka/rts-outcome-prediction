@@ -1,0 +1,78 @@
+{
+  "dataset_tag": "sc2egset",
+  "metrics": [
+    {
+      "dataset_tag": "sc2egset",
+      "target": "won",
+      "cohort_threshold": 10,
+      "sigma_between": 0.011325,
+      "sigma_within": 0.237224,
+      "icc": 0.0456,
+      "icc_ci_low": 0.0058,
+      "icc_ci_high": 0.0854,
+      "n_obs": 4034,
+      "n_groups": 152,
+      "metric_name": "icc_lpm_observed_scale",
+      "notes": "LPM observed-scale ICC; NOT latent-scale GLMM (B3 note; Lindstrom-Bates JASA 1988);[POP:tournament]"
+    },
+    {
+      "dataset_tag": "sc2egset",
+      "target": "won",
+      "cohort_threshold": 10,
+      "sigma_between": 0.542794,
+      "sigma_within": 0.237181,
+      "icc": 0.0463,
+      "icc_ci_low": 0.0283,
+      "icc_ci_high": 0.0643,
+      "n_obs": 4034,
+      "n_groups": 152,
+      "metric_name": "icc_anova_observed_scale",
+      "notes": "ANOVA-based ICC for binary outcomes; Wu/Crespi/Wong (2012) CCT 33(5):869-880; observed scale; NOT latent-scale GLMM;[POP:tournament]"
+    },
+    {
+      "dataset_tag": "sc2egset",
+      "target": "won",
+      "cohort_threshold": 10,
+      "sigma_between": null,
+      "sigma_within": null,
+      "icc": null,
+      "icc_ci_low": null,
+      "icc_ci_high": null,
+      "n_obs": 4034,
+      "n_groups": 152,
+      "metric_name": "icc_glmm_latent_scale",
+      "notes": "BinomialBayesMixedGLM failed or not converged: 'BayesMixedGLMResults' object has no attribute 'vcomp';[POP:tournament]"
+    }
+  ],
+  "faction_icc": [
+    {
+      "dataset_tag": "sc2egset",
+      "faction": "Prot",
+      "icc": 0.0248,
+      "n_obs": 1853,
+      "n_groups": 75,
+      "metric_name": "icc_lpm_observed_scale",
+      "notes": "faction_restricted=True;[POP:tournament]"
+    },
+    {
+      "dataset_tag": "sc2egset",
+      "faction": "Terr",
+      "icc": 0.028,
+      "n_obs": 1122,
+      "n_groups": 41,
+      "metric_name": "icc_lpm_observed_scale",
+      "notes": "faction_restricted=True;[POP:tournament]"
+    },
+    {
+      "dataset_tag": "sc2egset",
+      "faction": "Zerg",
+      "icc": 0.1095,
+      "n_obs": 1059,
+      "n_groups": 40,
+      "metric_name": "icc_lpm_observed_scale",
+      "notes": "faction_restricted=True;[POP:tournament]"
+    }
+  ],
+  "verdict": "INCONCLUSIVE",
+  "spec_note_B3": "B3 fix: Primary=LPM(observed scale); Secondary=ANOVA(Wu/Crespi/Wong 2012); Tertiary=BinomialBayesMixedGLM(latent scale, attempted)."
+}

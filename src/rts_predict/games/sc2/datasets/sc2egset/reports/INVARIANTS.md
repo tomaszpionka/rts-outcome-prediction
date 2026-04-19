@@ -75,7 +75,53 @@ FROM (
 
 ## §4 Per-dataset empirical findings
 
-Populated by 01_05 (Temporal & Panel EDA) and Phase 02. No pre-wired subsections.
+Populated by 01_05 (Temporal & Panel EDA) and Phase 02.
+
+### 01_05 Temporal & Panel EDA findings (2026-04-18)
+
+- **Q1 Quarterly grain & overlap window:** 10 quarters 2022-Q3..2024-Q4. Overlap window:
+  10,076 rows / 5,038 matches. Per-quarter counts:
+  2022-Q3=1642, 2022-Q4=2844, 2023-Q1=520, 2023-Q2=1396, 2023-Q3=244, 2023-Q4=1344,
+  2024-Q1=374, 2024-Q2=874, 2024-Q3=496, 2024-Q4=342. Peak-to-trough ratio: 11.7x.
+  M1 correction: plan cited "2,200 obs per N=10 bin" (full dataset); overlap window
+  has ~1,008 obs per bin. SQL: see artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.md (I6).
+
+- **Q2 PSI for faction/opponent_faction/matchup:** PRIMARY = uncohort-filtered (B2 fix).
+  Reference: 2022-Q3Q4 (3,268 rows). Faction PSI range: 0.001..0.220; matchup PSI range:
+  0.025..0.696. FALSIFIED hypothesis: >= 3 feature-quarters exceed PSI 0.25 threshold.
+  High PSI in small quarters (2023-Q3: 244 rows, 2024-Q4: 342 rows) likely driven by
+  tournament-specific race composition. ε=1/3268=0.000306 (Yurdakul 2018 WMU #3208).
+  SQL: see psi_quarterly_sc2egset.md (I6).
+
+- **Q3 tournament_era (secondary regime):** Hand-mapped 70 tournament dirs via Liquipedia
+  tier heuristics (tournament_tier_lookup.csv). Tier distribution: Platinum=27, Gold=37,
+  Silver=4, Bronze=2. In overlap window: Gold=17044 rows, Platinum=2728, Silver=380, Bronze=0
+  (no Bronze events in 2022-Q3..2024-Q4). Win-rate per tier = exactly 0.500 (symmetric
+  by construction: each match has 1 winner + 1 loser in 2-row schema). Tournament tier
+  is not a discriminating regime for win rate. SQL: see tournament_era_sc2egset.md (I6).
+
+- **Q4 Cohort sizes N∈{5,10,20} (survivorship):** Reference period (2022-08-29..2022-12-31)
+  has 204 distinct players. Cohort N>=10 WITHOUT span filter: 152 players (adequate).
+  Cohort N>=10 WITH span>=30d: only 9 players (tournament events are 3-5 days; span filter
+  inappropriate for this data structure). Uncohort-filtered overlap window: 679 distinct players,
+  fraction_active per quarter 3.2%..27.7%. SQL: see survivorship_sc2egset.md (I6).
+
+- **Q6 ICC on won:** Primary (LPM): ICC=0.0456 (95% CI [0.0058, 0.0854]). Secondary (ANOVA,
+  Wu/Crespi/Wong 2012): ICC=0.0463 (95% CI [0.0283, 0.0643]). Tertiary (GLMM latent scale):
+  convergence failed. Verdict: INCONCLUSIVE (0.01 < ICC < 0.05). Per-faction: Zerg ICC=0.1095
+  notably higher. Spec §8 caveat: LPM ICC is at observed scale; latent-scale ICC would be higher.
+  Cohort: 4,034 observations / 152 players. SQL: see variance_icc_sc2egset.md (I6).
+
+- **Q7 Leakage audit:** future_leak_count=0; post_game_token_violations=0;
+  reference_window_assertion=PASS. All reference rows confirmed within [2022-08-29, 2023-01-01).
+  Features faction/opponent_faction classified PRE_GAME; duration_seconds classified
+  POST_GAME_HISTORICAL (excluded from PSI). halt_triggered=False. Artifact: leakage_audit_sc2egset.json (I6).
+
+- **Q8 duration_seconds drift:** Reference mean=725.3s, sd=358.9s. Max |Cohen's d| across
+  8 tested quarters: 0.544 (2023-Q3: mean=928s, only 122 matches — likely a marathon-format
+  tournament like HomeStory Cup XXIV). Verdict: FALSIFIED hypothesis (|d| > 0.2 in 3 quarters).
+  is_duration_suspicious rate: 0.000 across all periods (confirmed: zero outliers > 86,400s,
+  consistent with 01_04_03 ADDENDUM). SQL: see dgp_diagnostic_sc2egset.md (I6).
 
 ## §5 Cross-reference to `.claude/scientific-invariants.md`
 
@@ -84,3 +130,12 @@ See the universal invariants file linked above for the full I1–I10+ list. Exce
 | Invariant | Status | Notes |
 |---|---|---|
 | I2 | PARTIAL | Deviates to branch (iii): `player_id_worldwide` (full `R-S2-G-P`) used as the canonical key instead of `LOWER(nickname)`. Within-region collision 30.6%; cross-region duplication ~12% accepted bias. See §2. |
+| I8 (Spec §1) | PARTIAL | Spec §1 9-col contract (`match_id, started_at, player_id, team, chosen_civ_or_race, rating_pre, won, map_id, patch_id`) differs from actual `matches_history_minimal` VIEW schema for sc2egset: `match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, duration_seconds, dataset_tag` (5 of 9 columns differ). Per M3 critique fix decision (user pre-authorized): NOT a spec amendment. Documented here as partial deviation. Phase 06 UNION joins on `metric_name` only (cross-dataset alignment). `feature_name` values in Phase 06 CSV match actual VIEW schema. |
+
+**sc2egset scope (M7):** sc2egset is a tournament-scraped dataset. Between-player variance
+estimates (ICC, PSI) reflect the **competitive/professional player population**, not the
+general StarCraft II playerbase. All Phase 06 CSV rows are tagged `[POP:tournament]`.
+Cross-dataset comparisons involving sc2egset should acknowledge this scope restriction.
+Heckman (1979) selection bias framework applies: tournament participation is self-selected
+on skill, so population-average estimates derived from sc2egset are not representative of
+the full playerbase distribution.
