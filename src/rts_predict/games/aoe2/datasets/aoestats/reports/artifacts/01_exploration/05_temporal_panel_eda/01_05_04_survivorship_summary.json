@@ -1,0 +1,10 @@
+{
+  "step": "01_05_04",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "overlap_start": "2022-07-01",
+  "overlap_end": "2024-12-31",
+  "fraction_active_final_quarter": 0.2894,
+  "falsifier_verdict": "PASSED",
+  "n_quarters": 10,
+  "conditional_caption": "*(conditional on \u226510 matches in reference period; see \u00a76 for sensitivity)*"
+}

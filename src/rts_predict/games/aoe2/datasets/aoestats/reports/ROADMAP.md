@@ -1352,6 +1352,215 @@ research_log_entry: "Added 2026-04-18."
 
 ---
 
+## Pipeline Section 01_05 -- Temporal & Panel EDA
+
+**Spec binding:** `reports/specs/01_05_preregistration.md@7e259dd8`
+**Reference window:** 2022-08-29..2022-10-27, patch 66692 (verified from `overviews_raw`)
+**Primary quarters tested:** 2023-Q1..2024-Q4 (8 quarters)
+**Critique fixes applied:** B1 (non-vacuous leakage check), B2 (feature-type routing in PSI), B3 (counterfactual reference); M1 (Simpson probe), M2 (secondary ANOVA ICC), M3 (stratified reservoir sample), M4 (focal_old_rating slot fix), M5 (15-column note), M6 (per-slot [PRE-canonical_slot] tagging), M7 (branch-v ICC limitation), M8 (duration sensitivity)
+
+### Step 01_05_01 -- Quarterly Grain Audit
+
+```yaml
+step_number: "01_05_01"
+name: "Quarterly Grain Audit"
+description: "Audit the quarterly grain of matches_history_minimal. Verify that QUARTER() DuckDB function produces correct calendar-quarter labels (not float-valued EXTRACT formula). Assert 10 quarters 2022-Q3..2024-Q4 exist and report row counts per quarter."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/quarterly_grain_row_counts.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/quarterly_grain_row_counts.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/quarterly_grain_row_counts.md"
+gate:
+  artifact_check: "quarterly_grain_row_counts.{csv,json,md} exist and are non-empty."
+  continue_predicate: "10 quarters confirmed. No float-valued quarter labels."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_02 -- PSI Pre-Game Features
+
+```yaml
+step_number: "01_05_02"
+name: "PSI Pre-Game Features"
+description: "Compute Population Stability Index for 8 pre-game features (focal_old_rating, avg_elo, faction, opponent_faction, mirror, p0_is_unrated, p1_is_unrated, map) across 8 quarters (2023-Q1..2024-Q4) vs 2022-Q3 reference. Feature-type routing: continuous (decile PSI), binary (Cohen's h), categorical (__unseen__ bin). M4 critique fix: focal_old_rating uses CASE WHEN CAST(player_id AS BIGINT) = p0_profile_id for slot-agnostic derivation. B3: counterfactual reference (2023-Q1) also emitted."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_02_psi_pre_game_features.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/psi_aoestats_{quarter}.csv (x8)"
+    - "artifacts/01_exploration/05_temporal_panel_eda/psi_aoestats_counterfactual_2023Q1ref.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_summary.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_02_psi_summary.md"
+gate:
+  artifact_check: "8 PSI CSVs + counterfactual CSV + summary JSON exist."
+  continue_predicate: "PSI verdict PASSED (rating PSI >= 0.10 in >= 2 quarters)."
+falsifier: "All rating PSI values < 0.10 across all quarters."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_03 -- Stratification and Patch Regime
+
+```yaml
+step_number: "01_05_03"
+name: "Stratification and Patch Regime"
+description: "Map 19 patches from overviews_raw to quarters. Identify multi-patch quarters. M1 Simpson probe: compute per-patch win rates and patch heterogeneity decomposition per Chitayat et al. 2023 (arxiv.org/abs/2305.18477). Document patch transitions."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_03_stratification_patch_regime.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/patch_map.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/patch_quarter_distribution.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/patch_transitions_flagged.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/patch_heterogeneity_decomposition.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/patch_civ_win_rates.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_03_patch_regime_summary.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_03_patch_regime_summary.md"
+gate:
+  artifact_check: "All CSV artifacts and summary JSON exist."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_04 -- Survivorship Triple Analysis
+
+```yaml
+step_number: "01_05_04"
+name: "Survivorship Triple Analysis"
+description: "Compute unconditional survivorship (fraction active per quarter) and sensitivity analysis for aoestats. Uses compute_fraction_active() and compute_n_match_cohort() from survivorship module."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_04_survivorship_triple.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/survivorship_unconditional.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_04_survivorship_summary.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_04_survivorship_summary.md"
+gate:
+  artifact_check: "Both CSV files and summary JSON exist."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_05 -- Variance Decomposition (ICC)
+
+```yaml
+step_number: "01_05_05"
+name: "Variance Decomposition (ICC)"
+description: "Compute ICC for won outcome using LMM (statsmodels MixedLM REML) and ANOVA (Wu/Crespi/Wong 2012 CCT 33(5):869-880) with bootstrap CI (Ukoumunne 2012 PMC3426610). M2 critique: primary LMM + secondary ANOVA. M3: stratified reservoir sample at 20k, 50k, 100k. M7: branch-v limitation documented."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_05_variance_decomposition_icc.py"
+hypothesis: "ICC >= 0.15 (meaningful skill signal). Falsifier: ICC < 0.05."
+result: "FALSIFIED: ANOVA ICC (50k) = 0.0268. Attributed to early crawler period (2022-Q3, 744 active players)."
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc_results.json"
+    - "artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profile_ids_{20k,50k,100k}.csv"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc_results.md"
+gate:
+  artifact_check: "icc_results.json and 3 sample ID CSVs exist."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_06 -- Temporal Leakage Audit v1
+
+```yaml
+step_number: "01_05_06"
+name: "Temporal Leakage Audit v1"
+description: "Four-query leakage audit. Q7.1 (B1 fix): non-vacuous future-data check -- count post-reference rows for cohort players. Q7.2: POST_GAME/TARGET token scan of feature list. Q7.3: reference window assertion. Q7.4 (M6 fix): canonical_slot readiness + [PRE-canonical_slot] tagging check. Verdict: PASS."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_06_temporal_leakage_audit.py"
+result: "PASS. canonical_slot absent; [PRE-canonical_slot] flag ACTIVE."
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_06_temporal_leakage_audit_v1.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_06_temporal_leakage_audit_v1.md"
+gate:
+  artifact_check: "audit JSON and MD exist."
+  continue_predicate: "Overall verdict = PASS."
+  halt_predicate: "BLOCKED_FUTURE_LEAK or BLOCKED_POST_GAME_TOKEN."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_07 -- DGP Diagnostics (Duration)
+
+```yaml
+step_number: "01_05_07"
+name: "DGP Diagnostics (Duration)"
+description: "POST_GAME_HISTORICAL diagnostic for duration_seconds. Cohen's d vs reference for 8 primary quarters. Excluded from PSI per spec §4. DGP diagnostic CSVs for 2022-Q3Q4ref + 8 quarters."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_07_dgp_diagnostics_duration.py"
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoestats_*.csv (9 files)"
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_07_dgp_diagnostic_summary.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_07_dgp_diagnostic_summary.md"
+gate:
+  artifact_check: "9 DGP CSVs and summary JSON exist."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_08 -- Phase 06 Interface Emission
+
+```yaml
+step_number: "01_05_08"
+name: "Phase 06 Interface Emission"
+description: "Assemble Phase 06 interface CSV from PSI + counterfactual + ICC + DGP rows. Schema: 9 columns (dataset_tag, quarter, feature_name, metric_name, metric_value, reference_window_id, cohort_threshold, sample_size, notes). B3: both primary and counterfactual PSI. M5: notes column documents 15 columns analyzed."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_08_phase06_interface.py"
+result: "134 rows, 9 columns. Schema validation PASSED."
+outputs:
+  data_artifacts:
+    - "artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_aoestats.csv"
+    - "artifacts/01_exploration/05_temporal_panel_eda/01_05_08_phase06_interface_schema_validation.json"
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_08_phase06_interface_schema_validation.md"
+gate:
+  artifact_check: "phase06_interface_aoestats.csv exists with 9 columns and >= 64 rows."
+research_log_entry: "Added 2026-04-18."
+```
+
+### Step 01_05_09 -- Gate Memo
+
+```yaml
+step_number: "01_05_09"
+name: "Gate Memo"
+description: "Summarize all 01_05 step results, document BACKLOG F1 (canonical_slot absent -- Phase 02 unblocker), confirm gate passage for 01_05, and document M7 branch-v ICC limitation."
+phase: "01 -- Data Exploration"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+dataset: "aoestats"
+spec: "reports/specs/01_05_preregistration.md@7e259dd8"
+notebook_path: "sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_09_gate_memo.py"
+outputs:
+  report: "artifacts/01_exploration/05_temporal_panel_eda/01_05_09_gate_memo.md"
+gate:
+  artifact_check: "gate_memo.md exists and is non-empty."
+research_log_entry: "Added 2026-04-18."
+```
+
+---
+
 ## Phase 02 — Feature Engineering (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.

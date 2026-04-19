@@ -1,0 +1,9 @@
+dataset_tag,quarter,feature_name,metric_name,metric_value,reference_window_id,cohort_threshold,sample_size,notes
+aoestats,2023-Q4,focal_old_rating,psi,0.1615,2022-Q3-patch66692,10,26298,continuous decile PSI n_bins=10
+aoestats,2023-Q4,avg_elo,psi,0.1552,2022-Q3-patch66692,10,26298,continuous decile PSI n_bins=10
+aoestats,2023-Q4,faction,psi,0.7699,2022-Q3-patch66692,10,26298,categorical PSI with __unseen__ bin; n_ref_cats=42; unseen_tested=645
+aoestats,2023-Q4,opponent_faction,psi,0.8941,2022-Q3-patch66692,10,26298,categorical PSI with __unseen__ bin; n_ref_cats=42; unseen_tested=1040
+aoestats,2023-Q4,mirror,cohen_h,0.0434,2022-Q3-patch66692,10,26298,binary exact-value Cohen h; ref_rate=0.0507 test_rate=0.0416 (spec §3 metric_name=cohen_h)
+aoestats,2023-Q4,p0_is_unrated,cohen_h,0.0195,2022-Q3-patch66692,10,26298,binary exact-value Cohen h; ref_rate=0.0003 test_rate=0.0000 (spec §3 metric_name=cohen_h)
+aoestats,2023-Q4,p1_is_unrated,cohen_h,0.0,2022-Q3-patch66692,10,26298,binary exact-value Cohen h; ref_rate=0.0000 test_rate=0.0000 (spec §3 metric_name=cohen_h)
+aoestats,2023-Q4,map,psi,7.8564,2022-Q3-patch66692,10,26298,categorical PSI with __unseen__ bin; n_ref_cats=23; unseen_tested=5101

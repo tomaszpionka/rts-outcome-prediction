@@ -1,0 +1,14 @@
+{
+  "step": "01_05_03",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "honest_statement": "`regime_id \u2261 calendar quarter`. Cross-dataset stratification by `regime_id` IS stratification by time, identical to the Q1 grain. It provides no additional variance reduction beyond Q1.",
+  "n_patches": 19,
+  "civs_with_large_patch_delta": 3,
+  "falsifier_verdict": "PASSED",
+  "sql_queries": {
+    "patch_map": "SELECT\n  p.patch_info.number AS patch_number,\n  p.patch_info.label AS patch_label,\n  p.patch_info.release_date AS release_date,\n  p.patch_info.total_games AS total_games\nFROM (SELECT UNNEST(patches) AS patch_info FROM overviews_raw) p\nORDER BY release_date",
+    "civ_win_rate": "SELECT\n  m1v1.patch AS patch_number,\n  mhm.faction AS civ,\n  COUNT(*) AS n_matches,\n  AVG(CAST(mhm.won AS INTEGER)) AS win_rate\nFROM matches_history_minimal mhm\nJOIN matches_1v1_clean m1v1 ON mhm.match_id = 'aoestats::' || m1v1.game_id\nGROUP BY m1v1.patch, mhm.faction\nHAVING COUNT(*) >= 100\nORDER BY m1v1.patch, mhm.faction",
+    "patch_quarter": "SELECT\n  DATE_TRUNC('quarter', mhm.started_at) AS quarter_start,\n  CAST(YEAR(mhm.started_at) AS VARCHAR) || '-Q' || CAST(QUARTER(mhm.started_at) AS VARCHAR) AS quarter_iso,\n  m1v1.patch AS patch_number,\n  COUNT(*) AS n_rows,\n  AVG(CAST(mhm.won AS INTEGER)) AS win_rate_agg\nFROM matches_history_minimal mhm\nJOIN matches_1v1_clean m1v1 ON mhm.match_id = 'aoestats::' || m1v1.game_id\nWHERE mhm.started_at >= TIMESTAMP '2022-07-01'\n  AND mhm.started_at < TIMESTAMP '2025-01-01'\nGROUP BY 1, 2, 3\nORDER BY 1, 3"
+  },
+  "m1_note": "Patch heterogeneity decomposition per Chitayat et al. 2023 arxiv.org/abs/2305.18477. Simpson's paradox probe: drift attributable to patch vs intra-patch temporal."
+}

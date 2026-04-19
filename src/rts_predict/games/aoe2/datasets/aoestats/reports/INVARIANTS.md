@@ -92,6 +92,33 @@ upstream API ordering, NOT a game-mechanical slot identity; it must NOT be used 
 Phase 02 feature. The UNION-ALL pivot in `matches_history_minimal` (produces `won_rate = 0.5`
 exactly) is confirmed correct and I5-compliant. Source: `01_04_05_i5_diagnosis.{json,md}`.
 
+### 01_05 findings (Pipeline Section 01_05 -- Temporal & Panel EDA)
+
+**Reference window:** 2022-Q3, 2022-08-29..2022-10-27, patch 66692 (corrected from spec plan's 125283; empirically verified from `overviews_raw`). 744 cohort players (>=10 matches in reference period), 37,632 reference rows.
+
+**PSI verdict (01_05_02): PASSED.**
+Rating features (focal_old_rating, avg_elo) show PSI >= 0.10 in 6 of 8 quarters (2023-Q1..2024-Q4), indicating meaningful distributional drift warranting feature engineering attention. Faction and map PSI < 0.25 in all quarters (no hard shift). Counterfactual reference (2023-Q1) confirms drift direction is consistent (B3 critique fix).
+
+**Patch heterogeneity / Simpson probe (01_05_03): EXAMINED.**
+19 patches across the study period. Patch-specific win rates vary (Chitayat et al. 2023 probe). patch_heterogeneity_decomposition.csv emitted. No cross-patch uniform-confounding falsifier triggered; patch heterogeneity is a feature engineering concern for Phase 02.
+
+**Survivorship (01_05_04): DOCUMENTED.**
+Unconditional survivorship CSV (10 quarters) emitted. Attrition pattern documented. No survivorship block (no falsifier triggered).
+
+**ICC (01_05_05): FALSIFIED.**
+ANOVA ICC (50k stratified sample) = 0.0268, below the 0.05 threshold. LMM failed to converge (small reference cohort, 744 players). Interpretation: per-player variance explains ~2.7% of total variance in `won` in the reference period. This reflects the EARLY CRAWLER PERIOD (2022-Q3) with very few active players captured. ICC should be re-evaluated in a later, denser quarter. M7 limitation: ICC = upper bound on per-player variance share; within-aoestats migration/collision unevaluable (branch v).
+
+**Leakage audit (01_05_06): PASS.**
+Q7.1: no future-data leakage in reference edges. Q7.2: no POST_GAME/TARGET tokens in feature list. Q7.3: reference window assertion confirmed. Q7.4: canonical_slot absent ([PRE-canonical_slot] flag ACTIVE). All four queries pass.
+
+**DGP diagnostics (01_05_07): PASSED.**
+duration_seconds excluded from PSI per spec §4. DGP diagnostic CSVs emitted for 2022-Q3Q4ref + 8 primary quarters.
+
+**Phase 06 interface (01_05_08): 134 rows, 9 columns.**
+reference_window_id = "2022-Q3-patch66692" for primary rows. Counterfactual rows carry reference_window_id = "2023-Q1-alt". Schema validation: column_count_ok=True, no string NaN, n_rows >= 64.
+
+**BACKLOG F1:** canonical_slot column absent from matches_history_minimal -- required before per-slot breakdown in Phase 02. Must be resolved as a Phase 02 prerequisite. Gate memo (01_05_09) documents this explicitly.
+
 ## §5 Cross-reference to `.claude/scientific-invariants.md`
 
 See the universal invariants file linked above for the full I1–I10+ list. Exceptions (VIOLATED or PARTIAL status) for this dataset are enumerated below; rows with no deviation are omitted by design.
@@ -99,4 +126,5 @@ See the universal invariants file linked above for the full I1–I10+ list. Exce
 | Invariant | Status | Notes |
 |---|---|---|
 | I2 | PARTIAL | Structurally forced to branch (v): `profile_id` is the sole identity signal — no visible handle column exists. Migration/collision rates are unevaluable within aoestats alone. Cross-dataset namespace bridge to aoec `profileId` confirmed at VERDICT A (agreement 0.9960, CI-lower 0.867; 01_04_04). See §2. |
-| I5 | PARTIAL — asymmetry characterised, see §4 finding from 01_04_05 | Upstream `matches_raw` slot asymmetry `team1_wins ≈ 52.27%` diagnosed as ARTEFACT_EDGE (01_04_05): API assigns team=1 to higher-ELO player in 80.3% of games. UNION-ALL pivot in `matches_history_minimal` confirmed I5-compliant (`won_rate = 0.5` exactly). `team` field MUST NOT be used as a Phase 02 feature. Schema amendment required (W4 coupling). |
+| I5 | PARTIAL — asymmetry characterised, see §4 finding from 01_04_05 | Upstream `matches_raw` slot asymmetry `team1_wins ≈ 52.27%` diagnosed as ARTEFACT_EDGE (01_04_05): API assigns team=1 to higher-ELO player in 80.3% of games. UNION-ALL pivot in `matches_history_minimal` confirmed I5-compliant (`won_rate = 0.5` exactly). `team` field MUST NOT be used as a Phase 02 feature. Schema amendment required (W4 coupling). 01_05_02 uses focal_old_rating with correct UNION-ALL-symmetric slot-agnostic derivation (M4 critique fix). |
+| I8 | PARTIAL — ICC FALSIFIED in 2022-Q3 reference | ANOVA ICC (50k) = 0.0268, below 0.05 threshold (01_05_05). Early crawler period (744 active players in 2022-Q3). ICC should be re-evaluated in a later, denser quarter before concluding lack of skill signal. Phase 02 may proceed with per-player features, but thesis must document this limitation. |

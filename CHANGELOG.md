@@ -127,6 +127,12 @@ merged to `master`.
   `MixedLMResults`. The aoe2companion port uses `result.model.n_groups`.
 
 ### Removed
+## [3.21.0] — 2026-04-19 (PR #TBD: feat/01-05-aoestats)
+
+### Added
+
+- **aoestats Pipeline Section 01_05 Temporal & Panel EDA** (9 steps; spec v1.0.1 SHA 7e259dd8). All 3 BLOCKER and 8 MAJOR critique fixes applied. Key results: PSI PASSED (rating drift >= 0.10 PSI in 6/8 quarters), ICC FALSIFIED (ANOVA ICC 50k = 0.0268 in early crawler period), leakage audit PASS, Phase 06 interface emitted (134 rows, 9 columns, reference_window_id = "2022-Q3-patch66692"). BACKLOG F1 documented: canonical_slot column absent, Phase 02 unblocker required.
+- **Analysis modules** for aoestats PSI, survivorship, and variance decomposition: `src/rts_predict/games/aoe2/datasets/aoestats/analysis/{psi,survivorship,variance_decomposition}.py`. Feature-type routing (B2 fix), stratified reservoir sampling (M3 fix), ANOVA ICC with bootstrap CI (M2 fix). 53 unit tests all passing.
 
 ## [3.18.0] — 2026-04-18 (PR #TBD: feat/pre-01-05-cleanup)
 
