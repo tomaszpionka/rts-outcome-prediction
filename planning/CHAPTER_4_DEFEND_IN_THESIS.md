@@ -233,10 +233,10 @@ estimator inconsistency.
 
 ## Status flags for the next session
 
-- [ ] Residual #1 — reference-window asymmetry
-- [ ] Residual #2 — population-scope differences
+- [x] Residual #1 — reference-window asymmetry (PR #175, §4.1.3 tail)
+- [x] Residual #2 — population-scope differences (PR #175, NEW §4.1.4)
 - [ ] Residual #3 — observed- vs latent-scale ICC
-- [ ] Residual #4 — aoestats 744-player ceiling
+- [x] Residual #4 — aoestats 744-player ceiling (PR #175, §4.1.2.1)
 - [ ] Residual #5 — `canonical_slot` deferral (also tracked in `BACKLOG.md` F1)
 - [ ] Residual #6 — N=2 cross-game statistical-test limit
 

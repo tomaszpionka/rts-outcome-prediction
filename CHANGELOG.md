@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.24.0] — 2026-04-19 (PR #TBD: docs/thesis-ch4-corpus-framing-residuals)
+## [3.24.0] — 2026-04-19 (PR #175: docs/thesis-ch4-corpus-framing-residuals)
 
 ### Changed
 
