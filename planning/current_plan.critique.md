@@ -1,238 +1,125 @@
 ---
 plan_ref: planning/current_plan.md
-spec_ref: reports/specs/01_05_preregistration.md @ master c5e2a5cf
+spec_ref: reports/specs/01_05_preregistration.md @ master 94e74d69
 reviewer: reviewer-adversarial
 date: 2026-04-19
 round: 1
 ---
 
-# Critique: Chapter 4 DEFEND-IN-THESIS residuals — stat methodology (PR-2)
+# Critique: Chapter 4 DEFEND-IN-THESIS residuals — canonical_slot flag (PR-3)
 
 ## Summary
 
-Plan addresses Residuals #3 and #6 plus §4.4.4 draft and new §4.4.5 with
-Tabela 4.7. Scope, file manifest, flag counts, and Literature Search
-Protocol invocation are well-specified. However, **one BLOCKER is
-fatal if executed as written**: the Nakagawa 2017 conversion formula
-is mathematically incorrect — executing T02 (b) as written would plant
-a formula error into the thesis. Four MAJORs and seven MINORs compound.
-Verdict: **REVISE**.
+Simplest PR in the three-PR sequence (NEW §4.4.6 + §4.1.2.1 footnote +
+BACKLOG F1 bullet). All load-bearing empirical claims verified: 80,3%
+/ +11,9 at `reports/research_log.md:107`; 52,27% sentence at
+`thesis/chapters/04_data_and_methodology.md:93`; §4.4.5 ends cleanly;
+invariant #5 IS "symmetric player treatment" (PR-2 M1 not repeated);
+`grep '[PRE-canonical_slot]'` returns 0 in aoestats CSV (honest-match
+valid); spec §1 line 71 definition present. **0 BLOCKERs**, **2 MAJORs**,
+**3 MINORs**. Verdict: **REVISE — non-blocking**.
 
 ## Blockers
 
-### B1 — Nakagawa 2017 conversion formula is mathematically wrong (T02 subsection (b))
-
-**Location:** `planning/current_plan.md:75`, `:305–308`, `:340` and the
-DEFEND doc text propagating into §4.4.5 (b).
-
-The plan (lines 74–75 and 305) writes:
-
-> `ICC_latent = ICC_observed / (ICC_observed + π²/3)`
-
-This is **not** the Nakagawa 2017 formula. The canonical latent-scale
-ICC under a logit link is
-
-`ICC_latent = σ²_between / (σ²_between + π²/3)`
-
-where σ²_between is the **random-intercept variance on the logit
-scale**, not the observed-scale ICC. Browne et al. 2005 (cited
-approvingly by Nakagawa 2017) demonstrate that ICC_latent > ICC_observed
-— the observed-scale ICC is a lower bound. Substituting the plan's
-formula with ICC_observed = 0.05 yields 0.05 / (0.05 + 3.29) ≈ 0.015,
-which is **smaller** than ICC_observed — contradicting the very
-lower-bound claim the plan uses to defend the headline. Direction
-inversion would embarrass the author at examination: one pointed
-question ("what is π²/3 in that denominator — a variance or a
-probability?") exposes that the formula mixes incompatible scales.
-
-**Fix.** Either (i) rewrite the formula to `ICC_latent = σ²_u / (σ²_u +
-π²/3)` and cite Nakagawa 2017 §2.2 / eq. (10) for the latent-scale
-decomposition — while noting that the project does not estimate σ²_u
-except via the failed GLMM attempt, so the formula is cited, not
-applied, as a scale-relationship argument rather than a plug-in
-conversion; or (ii) re-ground the lower-bound argument on the Browne
-et al. 2005 / Nakagawa 2017 empirical finding ("latent-scale ICC is
-systematically larger than observed-scale ICC under a logit link with
-small cluster variance") without writing a formula. **Option (ii) is
-safer given that no σ²_u estimate exists for sc2egset or aoe2companion
-in current artifacts.**
-
-Add a plan-level instruction to writer-thesis: "formula must be
-mathematically verified against Nakagawa 2017 eq. (10) and Browne et
-al. 2005 before committing to prose; if the formula cannot be restated
-consistently with on-disk σ²_between / σ²_within values, omit the
-formula and keep only the directional argument." Without this
-instruction T02 will translate the plan's error into the thesis
-verbatim.
+None.
 
 ## Majors
 
-### M1 — Invariant #5 is misattributed as the "matchmaking-equalization falsification target"
+### M1 — `faction` is NOT aggregate in aoestats schema; T01 (b) conflates post-Phase-02 aggregate with raw-schema per-slot
 
-**Location:** `current_plan.md:289–291` ("invariant #5
-'matchmaking-equalization' falsification target").
+Plan T01 (b) lists `faction`, `opponent_faction`, `won` as "aggregate
+UNION-ALL-symmetric" exempt from flag. Verified against
+`src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/views/matches_1v1_clean.yaml:66–70, 95–99`:
+view stores civilization choice as two per-slot columns `p0_civ` +
+`p1_civ` — both slot-conditioned. aoestats `matches_1v1_clean` does
+NOT materialize a slot-agnostic `faction` column.
 
-`.claude/scientific-invariants.md:157–171` defines invariant #5 as
-**"Both players in every game must be treated identically by the
-feature pipeline"** (symmetric player treatment). The
-matchmaking-equalization hypothesis (that per-player ICC on `won` is
-small because matchmaking systems equalize outcomes) is a *generated
-hypothesis* from PR #163's aoe2companion research log
-(`reports/research_log.md:120, 129, 246`); it is **not** the content of
-invariant #5.
+DEFEND-doc phrasing is sustainable only when "faction aggregate" is
+read as "post-Phase-02 UNION-ALL aggregate", not "raw-schema aggregate".
 
-**Fix:** Either (i) replace "invariant #5" with "the
-matchmaking-equalization hypothesis documented in the aoe2companion
-research log (2026-04-19, `reports/research_log.md:120`)", or (ii)
-drop the invariant reference entirely and frame it as "the falsifier
-pre-registered in spec §14(b) where the directional test 'ICC(won) ∈
-[0.05, 0.20]' was stated". Artifact `01_05_05_icc_results.json`
-line 12 shows `"falsifier_verdict": "FALSIFIED"`, which is the more
-defensible provenance.
+**Fix.** §4.4.6 (b) must disambiguate: "W schemacie `matches_1v1_clean`
+civilizacja jest zakodowana per-slot (`p0_civ`, `p1_civ`); agregacja
+`faction` powstaje w Phase 02 po UNION-ALL per-gracz."
 
-### M2 — Spec version citation inconsistency (v1.0.5 vs v1.0.4 §14(b))
+### M2 — §4.4.6 char budget 1 800 – 2 500 unrealistic given PR-2 §4.4.5 delivered 5 020 chars (+67% over 3 000 budget)
 
-**Location:** `current_plan.md:81, 334`.
+PR-1 overage 59%, PR-2 overage 67%. Three-paragraph methodology
+subsections consistently exceed targets 50–70%. §4.4.6 at 50–70%
+overrun → actual 2 700 – 4 250 chars.
 
-The ANOVA-primary cross-dataset declaration lives in **v1.0.4** §14
-(`reports/specs/01_05_preregistration.md:616–621`), not in v1.0.5.
-v1.0.5 is the schema-harmonization amendment (merged `d90b600f`).
-The aoestats JSON at `01_05_05_icc_results.json:3` explicitly cites
-v1.0.4 §14(b). The plan's Tabela 4.7 footnote proposes citing "spec
-v1.0.5 §14(b)" which an examiner could trace to a schema-amendment
-log entry that says nothing about ANOVA primacy.
-
-**Fix:** T02 step 4 should cite **v1.0.4 §14(b)** in the Tabela 4.7
-footnote and §4.4.5 (b) prose, or cite v1.0.5 AS-OF date while noting
-the underlying §14(b) rule was introduced at v1.0.4.
-
-### M3 — aoe2companion N=5 000 is players, not observations (Tabela 4.7 column semantic mismatch)
-
-**Location:** Tabela 4.7 row 2 (`current_plan.md:330`).
-
-aoe2companion JSON `01_05_05_icc.json:8, 27–28` shows
-`"n_players_primary": 5000` and **`"n_obs_primary": 360 567`**. Phase 06
-CSV `sample_size=5000` refers to the *stratified player sample*, not
-observations.
-
-If Tabela 4.7 labels its column "N (obs.)" to match sc2egset (4 034
-obs) and aoestats (7 909 obs) — both player×match observations — then
-5 000 is *players*, not observations, and is not on the same axis as
-the other two rows. An examiner cross-checking CI tightness against
-the three "N" values would legitimately ask "why is aoe2companion's
-CI tighter than sc2egset's despite similar N?" — the real answer is
-aoe2companion's effective observation count is 360 567.
-
-**Fix:** Either (i) add column `N (graczy) / N (obs.)` and split —
-sc2egset 152 / 4 034; aoestats 744 / 7 909; aoe2companion 5 000 /
-360 567 — or (ii) relabel "N (sample)" with footnote. Option (i) is
-the defensible one.
-
-### M4 — Demsar 2006 is cited for a claim the paper does not directly make
-
-**Location:** `current_plan.md:191–193, 220–222`.
-
-Demsar 2006 §3 argues Friedman requires **N ≥ 10 datasets and k ≥ 5
-classifiers** for reasonable asymptotic approximation. Demsar does
-not explicitly state "Friedman is inapplicable at N=2"; the N=2 result
-is a trivial corollary but that specific framing is not in Demsar's §3.
-
-**Fix:** Rewrite T01 step 2(d) to cite Demsar 2006 for the
-**dataset-count requirement** (N ≥ 10 per §3.2) and derive N=2
-inapplicability as a corollary. Alternatively cite **Garcia & Herrera
-2008** (JMLR 9:2677-2694) which revisits Demsar with more tractable N
-thresholds. Attributing "N=2 inapplicability" directly to Demsar
-invites examiner to open §3 and challenge the paraphrase.
+**Fix.** Widen to 1 800 – 3 500 chars. If exceeded by writer-thesis,
+flag in Chat Handoff Summary; no budget amendment unless >4 000.
 
 ## Minors
 
-### m1 — Tabela 4.7 CI-method asymmetry is a credibility hazard
+### m1 — Second §4.4.6 flag is self-verifying
 
-sc2egset JSON has no `method_ci` field; DEFEND doc line 206 says
-"delta-method in `variance_icc_sc2egset.csv`" — which is NOT the
-cluster-bootstrap method used for aoe2companion + aoestats. Mixing CI
-methods in one table undermines cross-comparability claims.
+Flag `[REVIEW: Pass-2 — BACKLOG F1 ... sprawdzić spójność ze stanem
+F1 na master po merge PR-3]` — PR-3 IS the merge; flag trivially
+resolves by Pass-2 time. Same issue as PR-2 m_r2_5.
 
-**Fix:** Either split Tabela 4.7 into a point-estimate table + CI
-sensitivity footnote, or add an explicit caveat.
+**Fix.** Either drop, or re-scope to: `[REVIEW: Pass-2 — §4.4.6 (c)
+closure narrative assumes F1 unexecuted; verify F1 state advanced
+beyond Predecessors bullet by Pass-2 time]`.
 
-### m2 — "Methodology preview not headline" framing is thin
+### m2 — T04 Q3 DEFEND doc closing paragraph is optional scope creep
 
-Plan asks writer-thesis to frame Tabela 4.7 as "illustrating estimator
-consistency, not concluding about ICC" but three numbers with CIs in
-a table read as headline results, not a conceptual diagram.
+Closing paragraph on DEFEND doc is planning-artifact housekeeping,
+not thesis writing. 6 × `[x]` evidence is self-explanatory.
 
-**Fix:** Strengthen T02 step 4: caption must explicitly cross-ref
-§5.x where headline interpretation lives; §4.4.5 prose MUST NOT
-include interpretive language like "ICC jest mały", "matchmaking
-equalizuje" — all interpretation deferred to Chapter 5.
+**Fix.** Skip in T04; if desired, follow-up chore.
 
-### m3 — Ukoumunne 2012 vs 2003 year
+### m3 — Redundant file-path anchoring for invariant #5
 
-Primary paper is **Ukoumunne et al. 2003, Stat. Med. 22(24):3805–3821**.
-PMC3426610 is a 2012 PubMedCentral free-access accession for the 2003
-paper, not a distinct 2012 publication.
+Plan prescribes "niezmiennik #5 symmetric player treatment per
+`.claude/scientific-invariants.md` #5". Defensive over-anchoring
+after PR-2 M1. Chapter 4 uses short form `niezmiennik I5` at
+`04_data_and_methodology.md:93, 138, 181, 211`.
 
-**Fix:** Pre-resolve bibkey to `Ukoumunne2003` in T03. Leave flag only
-on "if a 2012 methodology revision exists".
+**Fix.** Keep short form "niezmiennik I5 (symmetric player
+treatment)" — PR-2 M1 failure was miscontent not missing file anchor.
 
-### m4 — aoestats vs aoe2companion GLMM skip rationale swapped
+## Passes (verified)
 
-Plan says "aoec skipped per spec v1.0.2 §14(c); sc2egset attempted but
-BayesMixedGLMResults attribute issue". Actually aoe2companion has the
-compute-skip note; aoestats JSON is silent on GLMM.
+- **W3 ARTEFACT_EDGE numerics:** 80,3% / +11,9 verified at
+  `reports/research_log.md:107`. PASS.
+- **`[PRE-canonical_slot]` artifact state:** `grep` returns 0 in
+  aoestats CSV — honest-match framing accurate. PASS.
+- **Invariant #5 content:** verified at `scientific-invariants.md:158–163`
+  = "symmetric player treatment". PASS — not repeating PR-2 M1.
+- **§4.1.2.1 footnote anchor:** 52,27% sentence at
+  `04_data_and_methodology.md:93` — in §4.1.2.1 (within §4.1.2 "Korpusy
+  Age of Empires II"). Natural for appended footnote clause. PASS.
+- **BACKLOG F1 Predecessors format:** F1 has a Predecessors field
+  (line 17) that accepts bullet-list; PR-3 addition is a clean add. PASS.
+- **§4.4.5 ends cleanly at line ~387; §4.4.6 as sibling `###`
+  structurally correct. PASS.
+- **Spec §1 line 71 `[PRE-canonical_slot]` definition:** present and
+  cited correctly. PASS.
 
-**Fix:** Correct attribution in T02 step 3(b): aoe2companion skipped
-per spec v1.0.2 §14(c) (compute); aoestats GLMM status unspecified.
+## Invariant compliance
 
-### m5 — Char budget 30% buffer insufficient after PR-1 lesson
+| # | Status | Note |
+|---|--------|------|
+| I1–I4 | N/A | No splitting/identity/temporal/modeling |
+| I5 | RESPECTED | Cited correctly; not repeating PR-2 M1 |
+| I6 | RESPECTED | Commit `ab23ab1d` + spec line anchors |
+| I7 | RESPECTED | All numbers traceable |
+| I8 | RESPECTED | Flag scoped to aoestats; cross-game unaffected |
+| I9 | RESPECTED | Derives from Phase 01 + Phase 06 artifacts only |
 
-PR-1 overage was 59%, not 30%. Plan-2 retains 30% buffer for larger
-6k target. Realistic expected overage: 50–70%.
+## Weakest link
 
-**Fix:** Widen to 4 500–7 500 Polish chars total with explicit stop
-rule: "if draft exceeds 7 500, trigger targeted tighten before PR-2
-close". Or tighten T01+T02 scope to save ~400 chars per subsection.
-
-### m6 — DEFEND-IN-THESIS checkbox flip not scheduled
-
-Plan File Manifest does not include `planning/CHAPTER_4_DEFEND_IN_THESIS.md`.
-Residuals #3 and #6 should flip to `[x]` at PR close.
-
-**Fix:** Add housekeeping step to T04 (or defer explicitly to PR-3 open).
-
-### m7 — §4.4.5 placement rationale thin
-
-Q1 resolution ("ICC estimator is first-class methodology") is reasonable
-but unsupported. An alternative placement (§4.2.4 within
-data-characterization) has its own merit.
-
-**Fix:** Add a sentence to plan recording why §4.4.5 won over §4.2.4 for
-traceability.
+§4.4.6 (b) per-slot vs aggregate disambiguation (M1). Without it,
+examiner asks "show me the `faction` column in `matches_1v1_clean`"
+and the answer is "`p0_civ` and `p1_civ`" — which contradicts the
+plan's "aggregate" framing. One sentence fix.
 
 ## Verdict
 
-**REVISE** — The plan is substantively sound on scope but the Nakagawa
-2017 formula error (B1) would plant math-incorrect formula into the
-thesis. B1 is a single-paragraph fix at the plan level. M1–M4 are
-citation-accuracy fixes each requiring a one-line adjustment. Fix all
-five issues then proceed to execution.
-
-## Resolutions applied at review time (verified PASSes)
-
-- **Tabela 4.7 aoestats row values** (0.0268 / [0.0148, 0.0387] / N=7 909):
-  verified from `01_05_05_icc_results.json:37–40` at cohort `n_min10`. PASS.
-- **Tabela 4.7 sc2egset point estimate and CI** (0.0463 / [0.0283, 0.0643]):
-  verified from both JSON and CSV. PASS.
-- **Tabela 4.7 aoe2companion full-precision 0.003013 / [0.001724, 0.004202]:**
-  verified from JSON. Plan's JSON-precision-over-CSV rule correct. PASS.
-- **[Demsar2006] already in references.bib at line 136:** verified. PASS.
-- **[Nakagawa2017] DOI 10.1098/rsif.2017.0213, J. R. Soc. Interface:**
-  verified via WebSearch. PASS.
-- **[WuCrespiWong2012] Contemp. Clin. Trials 33(5):869–880:** verified
-  across project artifacts. PASS.
-- **No pre-existing Nakagawa/Chung/Ukoumunne/WuCrespi/Gelman bibkeys in
-  `references.bib`:** verified — no conflicts for T03 additions. PASS.
+**REVISE — non-blocking.** M1 + M2 handleable by writer-thesis at
+draft time. m1–m3 are stylistic. No round-2 critique required if
+M1+M2 addressed before execution.
 
 
 ---
@@ -241,120 +128,122 @@ five issues then proceed to execution.
 
 **Reviewer:** reviewer-adversarial
 **Date:** 2026-04-19
-**Base ref:** master c5e2a5cf
-**Branch:** docs/thesis-ch4-stat-methodology-residuals
+**Base ref:** master 94e74d69
+**Branch:** docs/thesis-ch4-canonical-slot-flag
 
 ### Summary
 
-0 BLOCKERs, 1 MAJOR, 5 MINORs, plus 1 NOTE. **Verdict: PASS.** All five
-Round-1 issues (B1/M1/M2/M3/M4) and seven minors correctly addressed.
-Single MAJOR is cross-chapter consistency (§2.6 Demsar N≥5 vs §4.4.4
-Demsar N≥10). MINORs are tightening candidates around char overage
-and cross-chapter residues. None block PR close.
+Writer-thesis delivered all three tasks. §4.4.6 (5 026 chars) overshoots
+the M2-widened 3 500-char ceiling by 43.6%, crosses 4 000 soft-stop by
+25.6%, but the overage is concentrated in the M1-driven "Zakres flagi"
+paragraph (2 104 chars) — load-bearing, not inflation. All M1/M2/m1/m3
+plan-side fixes verified implemented. 3 net new `[REVIEW]` flags match
+gate. All empirical anchors independently verified. **0 BLOCKERs,
+0 MAJORs, 3 MINORs.** Verdict: **PASS — cleared for T04 wrap-up.**
 
 ### Blockers
 
-None — B1 regression check clean. §4.4.5 (b) uses Nakagawa 2017 eq. (10)
-`ICC_latent = σ²_u / (σ²_u + π²/3)` with σ²_u explicitly defined as
-logit-scale random-intercept variance. Prose says "cytowany jest jako
-argument skali, nie plug-in konwersja". Bad formula from R1
-(`ICC_observed / (ICC_observed + π²/3)`) appears nowhere.
+None.
 
 ### Majors
 
-#### M_r2_1 — §2.6 cites Demsar N≥5 as Friedman threshold; §4.4.4 cites Demsar N≥10
-
-Both thresholds exist in Demsar 2006 (§3.1 small-sample power vs §3.2
-asymptotic approximation). Both derive N=2 inapplicability. An examiner
-reading both chapters sequentially will ask "which threshold applies in
-your protocol — 5 or 10?". Defensible answer exists but requires
-on-the-spot recall of Demsar §3.1 vs §3.2.
-
-**Fix:** Either (i) one parenthetical in §4.4.4 line 367 (e.g. "por.
-§2.6: kryterium N ≥ 5 z §3.1 prowadzi do tego samego korolarium"), or
-(ii) Pass-2 flag. Option (i) is preferred.
+None.
 
 ### Minors
 
-#### m_r2_1 — PR-1 §4.1.4 residue still attributes "N=2 inapplicable" directly to Demsar
+#### m_r2_1 — Off-by-one in aoestats CSV row count (137 vs actual 136)
 
-`04_data_and_methodology.md:213` (frozen PR-1 text) has the direct-quote
-construction that M4 critiqued. PR-2 could have added a forward-ref
-("formalna derywacja korolarium — §4.4.4"). ~30 chars; defensibly
-out-of-scope for PR-2 but proactive close would have strengthened.
+§4.4.6 (c) cites "137 wierszy". CSV has 136 data rows. Inherited
+miscount from BACKLOG F6 line 93 and REVIEW_QUEUE §4.1.4 Notes.
+Qualitative claim ("0 hits") unaffected. Fix via Pass-2 or F6 execution
+sweep (3 sites at once).
 
-#### m_r2_2 — Char overage: combined 8 138 chars (my count) vs 7 500 hard stop
+#### m_r2_2 — "Spec §14 v1.0.1" pointer redirection
 
-Writer-thesis reported 7 950; independent count 8 138 (638 over stop).
-Tightening candidates (~400-500 chars): dedupe "interpretacja — rozdział 5"
-sentences; move σ²_u explanation to footnote; drop redundant Tabela 4.7
-footer claim.
+§4.4.6 (c) cites amendment log §14 v1.0.1 where substantive content is
+in §9/§11. Defensible pointer convention but indirect. Pass-2 revise
+to "spec §9 + §11 (v1.0.1 amendment, patrz §14)".
 
-#### m_r2_3 — Tabela 4.7 footer "różnice w szerokości CI odzwierciedlają rozmiar kohorty (152–5 000)" oversimplifies
+#### m_r2_3 — Footnote clause 300 chars vs 100-200 target
 
-CI widths driven by N (obs.) not N (graczy) for aoe2companion.
-
-**Fix:** "rozmiar kohorty (152–5 000 graczy, 4 034–360 567 obs.)"
-(~28 chars added).
-
-#### m_r2_4 — aoestats GLMM attribution under-specified
-
-Prose says "status GLMM nie jest raportowany" but JSON does report
-explicit null at `01_05_05_icc_results.json:50`. Under-specified.
-
-**Fix:** "wartość GLMM jest explicite null (`01_05_05_icc_results.json:50`)
-— praca odnotowuje brak attempted estymaty."
-
-#### m_r2_5 — Subsection (d) flag is self-confirming, not Pass-2 actionable
-
-`:377` flag reads as status-confirmation not review request. Either
-remove or rewrite to actionable.
+§4.1.2.1 footnote at 300 chars (+50% over target). Load-bearing
+(2 cross-refs + flag). Matches plan M2 overage-acceptance logic.
 
 ### Passes (verified)
 
-- B1 regression: Nakagawa formula correct (σ²_u explicitly on logit
-  scale; cited as scale argument not plug-in).
-- Invariant #5: §14(b) falsifier + aoe2companion research log cited
-  for matchmaking-equalization; no invariant #5 misattribution.
-- Spec v1.0.4 §14(b) throughout; v1.0.5 nowhere.
-- Tabela 4.7: 6 columns, 3 rows, sc2egset n_groups=152 verified via
-  `icc.json:14,28,42`; aoe2companion 5 000/360 567 verified via
-  `01_05_05_icc.json:27-28`; aoestats 744/7 909 verified via
-  `01_05_05_icc_results.json:35-36`.
-- Demsar §3.2 N≥10 corollary framing correct.
-- aoe2companion GLMM compute-skip via `glmm_skip_note` field correctly
-  attributed.
-- Numerical accuracy: all ICC + CI values + Polish typography verified
-  against artifacts.
-- Ukoumunne2003 bibkey correct (m3 fix applied).
-- 5 new bibtex entries well-formed (DOI/ISBN, author, year, provenance).
-- Flag inventory complete: 7 flags (6 [REVIEW] + 1 [UNVERIFIED]).
-- Forward-ref closure from PR-1: §4.1.2.1 + §4.1.4 anchored by §4.4.4 /
-  §4.4.5; §4.4.6 correctly unclosed (PR-3 closes it).
-- REVIEW_QUEUE + WRITING_STATUS updates correct.
-- Invariants #5, #6, #7, #8, #9: RESPECTED.
+- **M1 regression check:** §4.4.6 (b) explicitly distinguishes raw
+  `matches_1v1_clean` per-slot (`p0_civ` + `p1_civ`) from post-Phase-02
+  UNION-ALL aggregate (`faction`, `opponent_faction`, `won`). Four
+  M1-critical claims all present. PASS.
+- **Schema anchors:** `matches_1v1_clean.yaml:66-70, 95-99` confirms
+  `p0_civ` VARCHAR + `p1_civ` VARCHAR per-slot. PASS.
+- **M2 char budget transparency:** §4.4.6 = 5 026 chars; writer-thesis
+  reported ~5 000. Overshoot concentrated in M1-disambiguation
+  paragraph (2 104 chars). No padding. Load-bearing. PASS.
+- **M3 invariant I5 short form:** §4.4.6 (b) cites "niezmiennikiem I5
+  (symmetric player treatment)". No file-path anchor. Consistent with
+  chapter pattern. PASS.
+- **Flag count gate (3):** 2 in §4.4.6 + 1 in §4.1.2.1 footnote. PASS.
+- **Re-scoped flag 2 wording:** "F1 state advanced beyond Predecessors
+  bullet" — not self-verifying; PR-2 m_r2_5 issue not repeated. PASS.
+- **§4.1.2.1 footnote placement:** At `04_data_and_methodology.md:93`
+  — specific "team=1 wygrywa 52,27%" sentence. Cross-refs to §4.4.6 +
+  BACKLOG F1 both present. PASS.
+- **BACKLOG F1 Predecessors bullet:** Added without disturbing other
+  fields; F6 intact. PASS.
+- **REVIEW_QUEUE + WRITING_STATUS updates:** New §4.4.6 Pending row;
+  §4.1.2 Notes extended 6→7 flag count; WRITING_STATUS §4.4.6 DRAFTED
+  row added; Last updated 2026-04-19. PASS.
+- **Cross-reference integrity:** BACKLOG F1, F6, §4.4.5, spec §1
+  line 71, spec §11, commit `ab23ab1d` — all verified (§14 pointer
+  flagged as m_r2_2). PASS.
+- **Honest-match principle:** §4.4.6 (c) states 0/137 grep result;
+  frames flag as "konwencja metodologiczna na poziomie spec §1 linia
+  71, nie metadana artefaktu"; cross-refs F6. Four-component honest-
+  match present. PASS (with m_r2_1 off-by-one note).
+- **Examiner defense simulation:** All 4 preempted — `faction` column
+  location; missing tag explanation; invariant I5 content correct;
+  canonical_slot never-derived path. PASS.
+- **Numerical accuracy:** 80,3% / +11,9 verified `research_log.md:107`;
+  52,27% anchor at `04_data_and_methodology.md:93`; -0,72 p.p. at
+  `research_log.md:105-106`; 1,5 p.p. floor `research_log.md:105`.
+  PASS.
+- **I5 content citation (PR-2 M1 regression check):** "niezmiennikiem
+  I5 (symmetric player treatment)" — correct content, NOT conflated
+  with matchmaking-equalization. PASS — PR-2 M1 failure not repeated.
+
+### Invariant compliance
+
+| # | Status | Note |
+|---|--------|------|
+| I1–I4 | N/A | No split/identity/temporal/modeling |
+| I5 | RESPECTED | Short-form citation, correct content |
+| I6 | RESPECTED | All anchors inline (commit, research_log, yaml, spec) |
+| I7 | RESPECTED | Numbers traceable |
+| I8 | RESPECTED | Flag scope aoestats-only; cross-game aggregates unaffected |
+| I9 | RESPECTED | Derives from completed Phase 01 artifacts |
 
 ### Lens assessments
 
-- **Statistical methodology:** SOUND (one cross-chapter threshold
-  inconsistency flagged as M_r2_1; Demsar hierarchy + Nakagawa
-  directional + Chung REML + Ukoumunne cluster-bootstrap all correctly
-  cited).
-- **Thesis defensibility:** STRONG (observed-scale choice presented as
-  explicit compute-constrained + lower-bound-preserving defense;
-  identification argument substantive).
-- **Cross-game comparability:** MAINTAINED (M3 fix applied correctly;
-  spec v1.0.4 §14(b) cross-dataset basis).
-- **Temporal discipline / Feature engineering:** N/A for this PR.
+- **Temporal discipline:** N/A.
+- **Statistical methodology:** SOUND.
+- **Feature engineering:** SOUND — per-slot/aggregate scope correctly
+  drawn.
+- **Thesis defensibility:** STRONG — all 4 examiner questions
+  preempted.
+- **Cross-game comparability:** MAINTAINED.
 
 ### Weakest link
 
-**M_r2_1** — cross-chapter Demsar N-threshold inconsistency. Most likely
-to surface under examination pressure. One-line parenthetical in §4.4.4
-eliminates the vulnerability.
+"w pełni tłumaczy" ("fully explains") wording in §4.4.6 (a) — verbatim
+from research_log but strong rhetoric. CMH -0.72 p.p. pre-loaded
+defense in same paragraph. Pass-2 could soften to "znacząco tłumaczy".
+Not a round-2 gate.
 
 ### Verdict
 
-**PASS** — ready for T04 wrap-up + PR close. Optional inline fix
-(M_r2_1, m_r2_3, m_r2_4) would strengthen further; the rest defer to
-Pass-2.
+**PASS — cleared for T04 wrap-up.** All plan-side M1/M2/m1/m3 fixes
+implemented. Examiner defense preempts all questions. Writer-thesis
+can proceed to version bump 3.25.0 → 3.26.0, CHANGELOG entry, DEFEND
+checkbox #5 → `[x]` (completing 6-of-6 residuals across PR-1/#175,
+PR-2/#176, PR-3).
