@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "id": "check_1_temporal_bin_edges",
+      "description": "M-01 fix: Assert all ref-period rows have started_at in [2022-08-29, 2023-01-01) and all tested frequencies are in their declared quarter. NOT vacuous match-id disjointness check.",
+      "status": "PASS",
+      "future_leak_count": 0,
+      "test_quarter_violations": 0,
+      "sql_ref_bound": "\nSELECT COUNT(*) AS rows_in_ref_outside_bound\nFROM matches_history_minimal\nWHERE started_at >= TIMESTAMP '2022-08-29'\n  AND started_at <  TIMESTAMP '2023-01-01'\n  AND (started_at < TIMESTAMP '2022-08-29' OR started_at >= TIMESTAMP '2023-01-01')\n",
+      "sql_test_bound": "\nSELECT quarter, n, n_outside_bound\nFROM (\n    SELECT\n        CONCAT(CAST(EXTRACT(YEAR FROM started_at) AS VARCHAR), '-Q',\n               CAST(CEIL(EXTRACT(MONTH FROM started_at) / 3.0) AS INTEGER)::VARCHAR) AS quarter,\n        COUNT(*) AS n,\n        COUNT(*) FILTER (\n            WHERE started_at < TIMESTAMP '2023-01-01'\n               OR started_at >= TIMESTAMP '2025-01-01'\n        ) AS n_outside_bound\n    FROM matches_history_minimal\n    WHERE started_at >= TIMESTAMP '2023-01-01'\n      AND started_at <  TIMESTAMP '2025-01-01'\n    GROUP BY 1\n) sub\nWHERE n_outside_bound > 0\n"
+    },
+    {
+      "id": "check_2_post_game_token_scan",
+      "description": "AST/regex scan of T03/T04 notebooks for POST_GAME tokens in pre-game feature selection contexts.",
+      "status": "PASS",
+      "post_game_tokens_scanned": [
+        "duration_seconds",
+        "finished",
+        "is_duration_negative",
+        "is_duration_suspicious",
+        "ratingDiff"
+      ],
+      "post_game_tokens_found": [],
+      "files_scanned": [
+        "/Users/tomaszpionka/Projects/rts-outcome-prediction/sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_02_psi_shift.py",
+        "/Users/tomaszpionka/Projects/rts-outcome-prediction/sandbox/aoe2/aoe2companion/01_exploration/05_temporal_panel_eda/01_05_03_stratification.py"
+      ]
+    },
+    {
+      "id": "check_3_normalization_window",
+      "description": "Assert T03 JSON frozen_reference_edges.ref_start == '2022-08-29' and ref_end == '2022-12-31' (spec \u00a77).",
+      "status": "PASS",
+      "ref_start_in_artifact": "2022-08-29T00:00:00",
+      "ref_end_in_artifact": "2022-12-31T00:00:00",
+      "expected_ref_start": "2022-08-29T00:00:00",
+      "expected_ref_end": "2022-12-31T00:00:00",
+      "assertion_passed_in_t03": true
+    }
+  ],
+  "reference_period_row_hash": "f9aa56bb5f22e247615fb9e33f30e688",
+  "all_checks_pass": true,
+  "verdict": "PASS",
+  "produced_at": "2026-04-19T10:08:45.762340"
+}

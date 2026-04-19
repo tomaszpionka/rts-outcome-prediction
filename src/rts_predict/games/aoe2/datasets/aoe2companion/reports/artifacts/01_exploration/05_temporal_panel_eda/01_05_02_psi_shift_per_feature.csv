@@ -1,0 +1,33 @@
+feature,quarter,psi,cohen_d,cohen_h,ks_stat,n_ref,n_test,unseen_count,verdict,psi_threshold_note
+rating,2023-Q1,0.124681,0.088657,,,4130,5260,0,monitor,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2023-Q1,,,0.0,,4013826,3976434,0,stable,
+faction,2023-Q1,0.009427,,,,4013744,3975882,0,stable,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2023-Q1,1.111451,,,,4013744,3975882,170644,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2023-Q2,0.098865,0.218866,,,4130,8302,0,stable,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2023-Q2,,,0.0,,4013826,3867538,0,stable,
+faction,2023-Q2,0.069622,,,,4013744,3867000,11881,stable,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2023-Q2,1.449567,,,,4013744,3867000,174592,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2023-Q3,0.711641,0.611393,,,4130,1994204,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2023-Q3,,,0.0,,4013826,3704278,0,stable,
+faction,2023-Q3,0.25211,,,,4013744,3703836,76375,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2023-Q3,2.290368,,,,4013744,3703836,278364,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2023-Q4,0.696254,0.594807,,,4130,3876862,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2023-Q4,,,0.0,,4013826,3877280,0,stable,
+faction,2023-Q4,0.450526,,,,4013744,3876862,140654,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2023-Q4,2.667523,,,,4013744,3876862,360580,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2024-Q1,0.707041,0.592929,,,4130,4110780,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2024-Q1,,,0.0,,4013826,4111394,0,stable,
+faction,2024-Q1,0.394642,,,,4013744,4110792,130211,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2024-Q1,2.198656,,,,4013744,4110792,296756,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2024-Q2,0.676206,0.569597,,,4130,4118454,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2024-Q2,,,0.0,,4013826,4119216,0,stable,
+faction,2024-Q2,0.433736,,,,4013744,4118454,142933,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2024-Q2,1.90659,,,,4013744,4118454,252846,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2024-Q3,0.756783,0.572312,,,4130,4031328,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2024-Q3,,,0.0,,4013826,4031764,0,stable,
+faction,2024-Q3,0.450438,,,,4013744,4031338,144574,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2024-Q3,2.215086,,,,4013744,4031338,325864,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+rating,2024-Q4,0.877757,0.583383,,,4130,4119966,0,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict=flagged_for_review is descriptive only
+won,2024-Q4,,,0.0,,4013826,4120404,0,stable,
+faction,2024-Q4,0.482414,,,,4013744,4119966,157693,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only
+map_id,2024-Q4,3.042857,,,,4013744,4119966,425874,flagged_for_review,Thresholds 0.10/0.25 not power-calibrated at N>10^6 (Yurdakul 2018 WMU #3208); verdict is descriptive only

@@ -8,6 +8,149 @@ AoE2 / aoe2companion findings. Reverse chronological.
 
 ---
 
+## 2026-04-19 — [Phase 01 / Pipeline Section 01_05] Temporal & Panel EDA
+
+**Category:** A (science)
+**Dataset:** aoe2companion
+**Branch:** feat/01-05-aoe2companion
+**Spec:** reports/specs/01_05_preregistration.md@7e259dd8
+**Scope:** Cross-dataset 01_05 temporal and panel EDA for aoe2companion,
+covering Q1 grain (01_05_01), PSI shift (02), stratification (03),
+survivorship triple (04), variance decomposition / ICC (05), DGP duration
+diagnostics (06), Phase 06 interface CSV (07), and temporal leakage audit
+(08). This entry covers the full 8-notebook run.
+
+### Hang investigation + ICC recovery (2026-04-19)
+
+The initial execution of `01_05_05_icc.py` hung indefinitely and no step
+beyond 04 completed. Root cause: the notebook called
+`statsmodels.mixedlm("won ~ 1", groups=player_id)` on the full
+2022-07-01..2025-01-01 analysis window (~7.4 M rows × ~20 k groups). `mixedlm`
+cost grows as roughly O(G × iter); ≥20 k groups is intractable under default
+settings. No child Python process was alive by the time the hang was
+diagnosed; no JSON/MD artifact had been written; notebooks 06/07/08 had never
+started (still at jupytext-sync mtime 08:22). Only the sample profile ID CSVs
+from Step 2 (persisted at 09:07) were on disk.
+
+### Recovery changes
+
+- New dataset-specific helper module
+  `src/rts_predict/games/aoe2/datasets/aoe2companion/analysis/variance_decomposition.py`
+  with:
+  - `compute_icc_anova_fast` — pandas-groupby vectorized ANOVA ICC
+    (O(n log n)); the aoestats per-group Python loop is intractable at
+    aoec's 54 k-player scale.
+  - `fit_random_intercept_lmm` with `max_iter=50` LBFGS cap.
+  - `compute_icc_lmm` using the correct statsmodels attribute
+    (`result.model.n_groups`, not the nonexistent `result.ngroups` used in
+    the aoestats version).
+  - `stratified_reservoir_sample` port of the aoestats function.
+- Rewritten `01_05_05_icc.py`:
+  - Restricted to the spec §7 reference window (2022-08-29..2022-12-31).
+  - Sample sizes {5 k, 10 k, 20 k}; LMM fit at 5 k (primary) and 10 k
+    (sensitivity); LMM skipped at 20 k (cost-prohibitive); ANOVA ICC
+    computed at all three sizes.
+  - LMM delta-method 95 % CI per Gelman & Hill 2007 §12.5.
+  - GLMM (latent-scale) not attempted — spec §8 only binds the LMM method.
+- Side fix in `01_05_08_leakage_audit.py`: replaced `Path(__file__).parent`
+  (undefined under a Jupyter kernel) with a `get_reports_dir`-rooted fallback
+  so the notebook runs both as a .py script and via `jupytext --execute`.
+- Unit tests: `tests/rts_predict/games/aoe2/datasets/aoe2companion/analysis/test_variance_decomposition.py`
+  (11 cases, all pass).
+
+### Key Findings
+
+**01_05_01 quarterly grain.** 9-quarter coverage 2022-Q3..2024-Q4 with row
+counts per quarter on `matches_history_minimal`. No empty quarters.
+
+**01_05_02 PSI shift.** PSI computed per pre-game feature (`rating`,
+`faction`, `map_id`, `won`) across 8 tested quarters vs. reference. All 32
+per-feature/quarter PSI values reported in
+`01_05_02_psi_shift_per_feature.csv`.
+
+**01_05_03 stratification.** Per-leaderboard stratified PSI (rm_1v1 vs
+rm_team regime labels) reported in `01_05_03_stratification_per_lb.csv`.
+Spec §5 equivalence (`regime_id ≡ calendar quarter`) acknowledged.
+
+**01_05_04 survivorship.** Unconditional fraction-active per quarter and
+sensitivity at N ∈ {5, 10, 20} minimum-match thresholds. Artifacts:
+`survivorship_unconditional.csv`, `survivorship_sensitivity.csv`.
+
+**01_05_05 ICC — falsified (primary hypothesis).**
+- `icc_lpm_observed_scale` (LMM @ 5 k, REML lbfgs): **0.000487**, 95 % CI
+  [0.000468, 0.000507], converged.
+- `icc_anova_observed_scale` (Wu/Crespi/Wong 2012 @ 5 k): **0.003013**;
+  @ 10 k: 0.003574; @ 20 k: 0.003240.
+- Cohort: 54,113 eligible players in reference window (≥10 matches in
+  2022-08-29..2022-12-31); primary sample 5,000 stratified by
+  `n_matches_in_ref` deciles (seed = 42); 360,567 observations.
+- Verdict: **falsified** — ICC_lpm well below the hypothesis range
+  [0.05, 0.20]. Scientific interpretation: under calibrated matchmaking,
+  `won` converges to ~0.5 across all players regardless of absolute skill;
+  the player-level skill signal lives in `rating_pre`, not in `won`. The
+  hypothesis range in the spec did not account for matchmaking
+  equalization. This is an interpretable negative result, not an
+  implementation defect.
+
+**01_05_06 DGP duration — confirmed.** Cohen's d on cleaned
+`duration_seconds` vs reference is |d| < 0.1 in every quarter (max 0.092 in
+2024-Q4). Suspicious flag rate near zero across all quarters.
+
+**01_05_07 Phase 06 interface.** 76-row flat schema CSV emitted at
+`01_05_phase06_interface_aoe2companion.csv`; conforms to spec §12.
+
+**01_05_08 Temporal leakage audit — PASS.** Check 1 (ref-period bound)
+PASS; Check 2 (POST_GAME token scan) PASS; Check 3 (ref-period constant
+assertion) PASS.
+
+### Decisions taken
+
+- LMM sample cap at 10 k groups for aoe2companion; LMM not attempted at
+  20 k (statsmodels-mixedlm cost). ANOVA reported at all three sizes.
+- ICC computed on the spec §7 reference window only (not the analysis
+  window); full-window ICC is out of scope for this step.
+- GLMM (latent-scale) skipped; spec §8 binds only LMM. GLMM remains an
+  optional follow-up if a latent-scale interpretation is required.
+
+### Decisions deferred
+
+- `canonical_slot` column for aoe2companion not required (spec §9/§11
+  canonical_slot binding is aoestats-specific per W3 verdict).
+- LMM non-convergence warnings at 10 k sample (boundary of parameter
+  space, Hessian not PSD) acknowledged; ANOVA provides a robust secondary.
+
+### Thesis mapping
+
+- Chapter 4 — aoe2companion 01_05 Temporal & Panel EDA section.
+- Specifically §4.X on skill signal: the low ICC on `won` is a point of
+  discussion; the per-player prediction paradigm should rely on
+  `rating_pre` rather than empirical `won` rates.
+
+### Artifacts
+
+- `artifacts/01_exploration/05_temporal_panel_eda/01_05_0{1..8}_*.{json,md}`
+- `artifacts/01_exploration/05_temporal_panel_eda/01_05_phase06_interface_aoe2companion.csv`
+- `artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_aoe2companion_*.csv` (9 quarters)
+- `artifacts/01_exploration/05_temporal_panel_eda/psi_*.csv`, `ks_sample_ids_*.csv`, `patch_*.csv`
+- `artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_{5k,10k,20k}.csv`
+- `artifacts/01_exploration/05_temporal_panel_eda/survivorship_{unconditional,sensitivity}.csv`
+
+### Open questions / follow-ups
+
+- **ICC on rating**: spec §8 permits `rating_pre` as a secondary ICC
+  target if exposed and ≥80 % non-NULL. `matches_history_minimal` for
+  aoe2companion does not expose `rating_pre`; exposing it would require
+  joining `ratings_clean` and is deferred to Phase 02 feature engineering.
+- **Full-window ICC**: a supplementary run across the full analysis
+  window (2022-07-01..2025-01-01) with stratified sampling at ≤5 k
+  players per year would characterize temporal stability of ICC; deferred.
+- **LMM convergence at 10 k**: the 10 k sensitivity run reported
+  `converged=False` with boundary-of-parameter-space warnings; MAP or
+  Laplace-approximated mixed-effects (not available in statsmodels) would
+  be more robust on binary data at this scale.
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_04] Identity Resolution
 
 **Category:** A (science)

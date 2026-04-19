@@ -1,0 +1,490 @@
+{
+  "quarters": [
+    {
+      "quarter": "2020-Q3",
+      "n_matches": 54741,
+      "n_player_rows": 109482
+    },
+    {
+      "quarter": "2020-Q4",
+      "n_matches": 134010,
+      "n_player_rows": 268020
+    },
+    {
+      "quarter": "2021-Q1",
+      "n_matches": 196343,
+      "n_player_rows": 392686
+    },
+    {
+      "quarter": "2021-Q2",
+      "n_matches": 198547,
+      "n_player_rows": 397094
+    },
+    {
+      "quarter": "2021-Q3",
+      "n_matches": 175655,
+      "n_player_rows": 351310
+    },
+    {
+      "quarter": "2021-Q4",
+      "n_matches": 131843,
+      "n_player_rows": 263686
+    },
+    {
+      "quarter": "2022-Q1",
+      "n_matches": 151352,
+      "n_player_rows": 302704
+    },
+    {
+      "quarter": "2022-Q2",
+      "n_matches": 233405,
+      "n_player_rows": 466810
+    },
+    {
+      "quarter": "2022-Q3",
+      "n_matches": 454253,
+      "n_player_rows": 908506
+    },
+    {
+      "quarter": "2022-Q4",
+      "n_matches": 1773250,
+      "n_player_rows": 3546500
+    },
+    {
+      "quarter": "2023-Q1",
+      "n_matches": 1988217,
+      "n_player_rows": 3976434
+    },
+    {
+      "quarter": "2023-Q2",
+      "n_matches": 1933769,
+      "n_player_rows": 3867538
+    },
+    {
+      "quarter": "2023-Q3",
+      "n_matches": 1852139,
+      "n_player_rows": 3704278
+    },
+    {
+      "quarter": "2023-Q4",
+      "n_matches": 1938640,
+      "n_player_rows": 3877280
+    },
+    {
+      "quarter": "2024-Q1",
+      "n_matches": 2055697,
+      "n_player_rows": 4111394
+    },
+    {
+      "quarter": "2024-Q2",
+      "n_matches": 2059608,
+      "n_player_rows": 4119216
+    },
+    {
+      "quarter": "2024-Q3",
+      "n_matches": 2015882,
+      "n_player_rows": 4031764
+    },
+    {
+      "quarter": "2024-Q4",
+      "n_matches": 2060202,
+      "n_player_rows": 4120404
+    },
+    {
+      "quarter": "2025-Q1",
+      "n_matches": 2154016,
+      "n_player_rows": 4308032
+    },
+    {
+      "quarter": "2025-Q2",
+      "n_matches": 2141905,
+      "n_player_rows": 4283810
+    },
+    {
+      "quarter": "2025-Q3",
+      "n_matches": 1988370,
+      "n_player_rows": 3976740
+    },
+    {
+      "quarter": "2025-Q4",
+      "n_matches": 2325342,
+      "n_player_rows": 4650684
+    },
+    {
+      "quarter": "2026-Q1",
+      "n_matches": 2408007,
+      "n_player_rows": 4816014
+    },
+    {
+      "quarter": "2026-Q2",
+      "n_matches": 106003,
+      "n_player_rows": 212006
+    }
+  ],
+  "reference_period_counts": {
+    "n_matches": 2006913,
+    "n_player_rows": 4013826,
+    "first_ts": "2022-08-29 00:00:31",
+    "last_ts": "2022-12-31 23:59:58"
+  },
+  "overlap_window_counts": [
+    {
+      "quarter": "2022-Q3",
+      "n_matches": 454253,
+      "n_player_rows": 908506
+    },
+    {
+      "quarter": "2022-Q4",
+      "n_matches": 1773250,
+      "n_player_rows": 3546500
+    },
+    {
+      "quarter": "2023-Q1",
+      "n_matches": 1988217,
+      "n_player_rows": 3976434
+    },
+    {
+      "quarter": "2023-Q2",
+      "n_matches": 1933769,
+      "n_player_rows": 3867538
+    },
+    {
+      "quarter": "2023-Q3",
+      "n_matches": 1852139,
+      "n_player_rows": 3704278
+    },
+    {
+      "quarter": "2023-Q4",
+      "n_matches": 1938640,
+      "n_player_rows": 3877280
+    },
+    {
+      "quarter": "2024-Q1",
+      "n_matches": 2055697,
+      "n_player_rows": 4111394
+    },
+    {
+      "quarter": "2024-Q2",
+      "n_matches": 2059608,
+      "n_player_rows": 4119216
+    },
+    {
+      "quarter": "2024-Q3",
+      "n_matches": 2015882,
+      "n_player_rows": 4031764
+    },
+    {
+      "quarter": "2024-Q4",
+      "n_matches": 2060202,
+      "n_player_rows": 4120404
+    }
+  ],
+  "lb_stratified_counts": [
+    {
+      "quarter": "2020-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 54741,
+      "n_player_rows": 109482
+    },
+    {
+      "quarter": "2020-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 98413,
+      "n_player_rows": 196826
+    },
+    {
+      "quarter": "2020-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 35594,
+      "n_player_rows": 71188
+    },
+    {
+      "quarter": "2021-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 132510,
+      "n_player_rows": 265020
+    },
+    {
+      "quarter": "2021-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 63829,
+      "n_player_rows": 127658
+    },
+    {
+      "quarter": "2021-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 139803,
+      "n_player_rows": 279606
+    },
+    {
+      "quarter": "2021-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 58738,
+      "n_player_rows": 117476
+    },
+    {
+      "quarter": "2021-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 128296,
+      "n_player_rows": 256592
+    },
+    {
+      "quarter": "2021-Q3",
+      "leaderboard_id": 18,
+      "n_matches": 47355,
+      "n_player_rows": 94710
+    },
+    {
+      "quarter": "2021-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 97202,
+      "n_player_rows": 194404
+    },
+    {
+      "quarter": "2021-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 34640,
+      "n_player_rows": 69280
+    },
+    {
+      "quarter": "2022-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 115260,
+      "n_player_rows": 230520
+    },
+    {
+      "quarter": "2022-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 36091,
+      "n_player_rows": 72182
+    },
+    {
+      "quarter": "2022-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 184021,
+      "n_player_rows": 368042
+    },
+    {
+      "quarter": "2022-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 49383,
+      "n_player_rows": 98766
+    },
+    {
+      "quarter": "2022-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 384217,
+      "n_player_rows": 768434
+    },
+    {
+      "quarter": "2022-Q3",
+      "leaderboard_id": 18,
+      "n_matches": 70022,
+      "n_player_rows": 140044
+    },
+    {
+      "quarter": "2022-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 1591439,
+      "n_player_rows": 3182878
+    },
+    {
+      "quarter": "2022-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 181781,
+      "n_player_rows": 363562
+    },
+    {
+      "quarter": "2023-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 1778930,
+      "n_player_rows": 3557860
+    },
+    {
+      "quarter": "2023-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 209011,
+      "n_player_rows": 418022
+    },
+    {
+      "quarter": "2023-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 1727413,
+      "n_player_rows": 3454826
+    },
+    {
+      "quarter": "2023-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 206087,
+      "n_player_rows": 412174
+    },
+    {
+      "quarter": "2023-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 1633098,
+      "n_player_rows": 3266196
+    },
+    {
+      "quarter": "2023-Q3",
+      "leaderboard_id": 18,
+      "n_matches": 218820,
+      "n_player_rows": 437640
+    },
+    {
+      "quarter": "2023-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 1705163,
+      "n_player_rows": 3410326
+    },
+    {
+      "quarter": "2023-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 233268,
+      "n_player_rows": 466536
+    },
+    {
+      "quarter": "2024-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 1806348,
+      "n_player_rows": 3612696
+    },
+    {
+      "quarter": "2024-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 249048,
+      "n_player_rows": 498096
+    },
+    {
+      "quarter": "2024-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 1850151,
+      "n_player_rows": 3700302
+    },
+    {
+      "quarter": "2024-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 209076,
+      "n_player_rows": 418152
+    },
+    {
+      "quarter": "2024-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 1792008,
+      "n_player_rows": 3584016
+    },
+    {
+      "quarter": "2024-Q3",
+      "leaderboard_id": 18,
+      "n_matches": 223661,
+      "n_player_rows": 447322
+    },
+    {
+      "quarter": "2024-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 1818723,
+      "n_player_rows": 3637446
+    },
+    {
+      "quarter": "2024-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 241260,
+      "n_player_rows": 482520
+    },
+    {
+      "quarter": "2025-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 1902016,
+      "n_player_rows": 3804032
+    },
+    {
+      "quarter": "2025-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 251778,
+      "n_player_rows": 503556
+    },
+    {
+      "quarter": "2025-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 1896367,
+      "n_player_rows": 3792734
+    },
+    {
+      "quarter": "2025-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 245203,
+      "n_player_rows": 490406
+    },
+    {
+      "quarter": "2025-Q3",
+      "leaderboard_id": 6,
+      "n_matches": 1756089,
+      "n_player_rows": 3512178
+    },
+    {
+      "quarter": "2025-Q3",
+      "leaderboard_id": 18,
+      "n_matches": 231923,
+      "n_player_rows": 463846
+    },
+    {
+      "quarter": "2025-Q4",
+      "leaderboard_id": 6,
+      "n_matches": 2048158,
+      "n_player_rows": 4096316
+    },
+    {
+      "quarter": "2025-Q4",
+      "leaderboard_id": 18,
+      "n_matches": 275836,
+      "n_player_rows": 551672
+    },
+    {
+      "quarter": "2026-Q1",
+      "leaderboard_id": 6,
+      "n_matches": 2105887,
+      "n_player_rows": 4211774
+    },
+    {
+      "quarter": "2026-Q1",
+      "leaderboard_id": 18,
+      "n_matches": 300986,
+      "n_player_rows": 601972
+    },
+    {
+      "quarter": "2026-Q2",
+      "leaderboard_id": 6,
+      "n_matches": 92557,
+      "n_player_rows": 185114
+    },
+    {
+      "quarter": "2026-Q2",
+      "leaderboard_id": 18,
+      "n_matches": 13404,
+      "n_player_rows": 26808
+    }
+  ],
+  "low_volume_quarters": [],
+  "overlap_window": [
+    "2022-Q3",
+    "2022-Q4",
+    "2023-Q1",
+    "2023-Q2",
+    "2023-Q3",
+    "2023-Q4",
+    "2024-Q1",
+    "2024-Q2",
+    "2024-Q3",
+    "2024-Q4"
+  ],
+  "reference_period": {
+    "start": "2022-08-29",
+    "end": "2023-01-01"
+  },
+  "sql_queries": {
+    "all_quarters": "\nSELECT\n    CONCAT(CAST(EXTRACT(YEAR FROM started_at) AS VARCHAR), '-Q',\n           CAST(CEIL(EXTRACT(MONTH FROM started_at) / 3.0) AS INTEGER)::VARCHAR) AS quarter,\n    COUNT(DISTINCT match_id) AS n_matches,\n    COUNT(*) AS n_player_rows\nFROM matches_history_minimal\nWHERE started_at >= TIMESTAMP '2020-07-01'\n  AND started_at <  TIMESTAMP '2026-05-01'\nGROUP BY 1\nORDER BY 1\n",
+    "lb_quarters": "\nSELECT\n    CONCAT(CAST(EXTRACT(YEAR FROM mhm.started_at) AS VARCHAR), '-Q',\n           CAST(CEIL(EXTRACT(MONTH FROM mhm.started_at) / 3.0) AS INTEGER)::VARCHAR) AS quarter,\n    m.internalLeaderboardId AS leaderboard_id,\n    COUNT(DISTINCT mhm.match_id) AS n_matches,\n    COUNT(*) AS n_player_rows\nFROM matches_history_minimal mhm\nJOIN matches_1v1_clean m\n  ON m.matchId = CAST(REPLACE(mhm.match_id, 'aoe2companion::', '') AS INTEGER)\n AND CAST(m.profileId AS VARCHAR) = mhm.player_id\nWHERE mhm.started_at >= TIMESTAMP '2020-07-01'\n  AND mhm.started_at <  TIMESTAMP '2026-05-01'\n  AND m.internalLeaderboardId IN (6, 18)\n  AND m.is_null_cluster = FALSE\nGROUP BY 1, 2\nORDER BY 1, 2\n",
+    "reference_period": "\nSELECT\n    COUNT(DISTINCT match_id) AS n_matches_ref,\n    COUNT(*) AS n_player_rows_ref,\n    MIN(started_at) AS first_ts,\n    MAX(started_at) AS last_ts\nFROM matches_history_minimal\nWHERE started_at >= TIMESTAMP '2022-08-29'\n  AND started_at <  TIMESTAMP '2023-01-01'\n"
+  },
+  "verdict": "confirmed",
+  "produced_at": "2026-04-19T08:23:03.541341"
+}

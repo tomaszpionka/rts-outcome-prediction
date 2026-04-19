@@ -1,0 +1,10 @@
+{
+  "regime_id_note": "regime_id \u2261 calendar quarter for cross-dataset purposes (spec \u00a73). Secondary regime lb=6/lb=18 is within-aoec scope-stratification.",
+  "m02_deviation": "Secondary regime is rm_1v1 (lb=6) vs qp_rm_1v1 (lb=18). rm_team excluded per 01_04_01 R01. This is scope-stratification, not ladder-segmentation.",
+  "max_faction_psi_diff_lb6_lb18": 0.134484,
+  "verdict": "confirmed",
+  "sql_queries": {
+    "ref_faction_by_lb": "\nSELECT m.internalLeaderboardId AS lb, mhm.faction, COUNT(*) AS cnt\nFROM matches_history_minimal mhm\nJOIN matches_1v1_clean m\n  ON m.matchId = CAST(REPLACE(mhm.match_id, 'aoe2companion::', '') AS INTEGER)\n AND CAST(m.profileId AS VARCHAR) = mhm.player_id\nWHERE mhm.started_at >= TIMESTAMP '2022-08-29'\n  AND mhm.started_at <  TIMESTAMP '2023-01-01'\n  AND m.is_null_cluster = FALSE\n  AND m.internalLeaderboardId IN (6, 18)\nGROUP BY lb, faction\n"
+  },
+  "produced_at": "2026-04-19T08:34:28.632989"
+}

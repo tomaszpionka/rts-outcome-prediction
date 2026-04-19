@@ -1,0 +1,2 @@
+period,ts_start,ts_end,n_total,n_clean,mean_dur_raw,median_dur_raw,p05_raw,p95_raw,iqr_raw,mean_dur_clean,median_dur_clean,p95_clean,std_dur_clean,n_suspicious,n_negative,n_zero,suspicious_rate,negative_rate,cohen_d_clean
+reference,2022-08-29,2023-01-01,4013828,4013758,1471.2,1472.0,205.0,2575.0,824.0,1465.1,1472.0,2575.0,819.6,70,0,0,1.744e-05,0.0,0.0
