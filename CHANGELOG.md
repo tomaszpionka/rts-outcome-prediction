@@ -19,7 +19,29 @@ merged to `master`.
 
 ### Removed
 
-## [3.26.0] — 2026-04-19 (PR #TBD: docs/thesis-ch4-canonical-slot-flag)
+## [3.26.1] — 2026-04-19 (PR #TBD: chore/purge-planning-pr-177-defend-sequence-complete)
+
+### Removed
+
+- `planning/current_plan.md` reset to `<!-- No active plan -->` and
+  `planning/current_plan.critique.md` deleted. Final post-merge purge
+  for the DEFEND-IN-THESIS 3-PR sequence (PR #175, PR #176, PR #177).
+
+### Changed
+
+- CHANGELOG `[3.26.0]` header: `PR #TBD` → `PR #177` backfill.
+- `planning/CHAPTER_4_DEFEND_IN_THESIS.md` residual #5 checkbox:
+  `PR #TBD` → `PR #177` backfill.
+- **DEFEND-IN-THESIS sequence complete**: all 6 residuals
+  (#1 reference-window, #2 [POP:] scope, #3 observed-scale ICC,
+  #4 744-player cohort, #5 [PRE-canonical_slot] flag, #6 N=2
+  cross-game test limit) addressed across PR #175 (§4.1.3 +
+  §4.1.4 + §4.1.2.1), PR #176 (§4.4.4 + §4.4.5 + Tabela 4.7), and
+  PR #177 (§4.4.6 + §4.1.2.1 footnote). Pass-2 Claude Chat session
+  pending for ~17 accumulated [REVIEW]/[UNVERIFIED] flags plus
+  deferred MINORs.
+
+## [3.26.0] — 2026-04-19 (PR #177: docs/thesis-ch4-canonical-slot-flag)
 
 ### Changed
 
