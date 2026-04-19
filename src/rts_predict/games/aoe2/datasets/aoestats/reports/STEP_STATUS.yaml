@@ -105,3 +105,48 @@ steps:
     status: complete
     started_at: "2026-04-18"
     completed_at: "2026-04-18"
+  "01_05_01":
+    name: "Quarterly Grain Audit"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_02":
+    name: "PSI Pre-Game Features"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_03":
+    name: "Stratification and Patch Regime"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_04":
+    name: "Survivorship Triple Analysis"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_05":
+    name: "Variance Decomposition (ICC)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_06":
+    name: "Temporal Leakage Audit v1"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_07":
+    name: "DGP Diagnostics (Duration)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_08":
+    name: "Phase 06 Interface Emission"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"
+  "01_05_09":
+    name: "Gate Memo"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-18"

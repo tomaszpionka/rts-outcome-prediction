@@ -1,0 +1,64 @@
+{
+  "step": "01_05_02",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "reference_window": {
+    "start": "2022-08-29",
+    "end": "2022-10-27",
+    "patch": 66692
+  },
+  "counterfactual_reference_window": {
+    "start": "2023-01-01",
+    "end": "2023-03-31"
+  },
+  "feature_list": [
+    "focal_old_rating",
+    "avg_elo",
+    "faction",
+    "opponent_faction",
+    "mirror",
+    "p0_is_unrated",
+    "p1_is_unrated",
+    "map"
+  ],
+  "reference_edge_fingerprints": {
+    "focal_old_rating": {
+      "n_unique": 1307,
+      "fingerprint": "0aa8f159"
+    },
+    "avg_elo": {
+      "n_unique": 2210,
+      "fingerprint": "3704c976"
+    },
+    "faction": {
+      "n_unique": 42,
+      "fingerprint": "30d2fbea"
+    },
+    "opponent_faction": {
+      "n_unique": 42,
+      "fingerprint": "30d2fbea"
+    },
+    "mirror": {
+      "n_unique": 2,
+      "fingerprint": "d192e0c4"
+    },
+    "p0_is_unrated": {
+      "n_unique": 2,
+      "fingerprint": "d192e0c4"
+    },
+    "p1_is_unrated": {
+      "n_unique": 1,
+      "fingerprint": "cfcd2084"
+    },
+    "map": {
+      "n_unique": 23,
+      "fingerprint": "5e3a05f9"
+    }
+  },
+  "n_psi_rows_primary": 64,
+  "n_psi_rows_m8_sensitivity": 16,
+  "n_psi_rows_counterfactual": 56,
+  "falsifier_verdict": "PASSED",
+  "rating_psi_quarters_above_010": 6,
+  "faction_psi_quarters_above_025": 7,
+  "note_B3_coincidence": "Primary reference start 2022-08-29 coincides with dataset earliest date. Counterfactual 2023-Q1 reference provided. Gate memo documents whether counterfactual supports/undermines primary PSI conclusions."
+}

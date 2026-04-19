@@ -1,0 +1,29 @@
+{
+  "step": "01_05_06",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "query1_future_leak_count": 0,
+  "query1_b1_post_ref_rows_in_cohort": 235610,
+  "query1_b1_note": "B1 fix: cohort players DO have post-reference matches (235,610 rows), but reference PSI SQL explicitly filters started_at BETWEEN '2022-08-29' AND '2022-10-27'. No leakage.",
+  "query2_post_game_tokens_found": [],
+  "query2_target_tokens_found": [],
+  "query2_feature_list_scanned": [
+    "focal_old_rating",
+    "avg_elo",
+    "faction",
+    "opponent_faction",
+    "mirror",
+    "p0_is_unrated",
+    "p1_is_unrated",
+    "map"
+  ],
+  "query3_assertion_passed": true,
+  "query4_canonical_slot_ready": false,
+  "query4_m6_phase06_slot_tag_check": "phase06_interface_not_yet_emitted",
+  "pre_canonical_slot_flag_active": true,
+  "verdict": "PASS",
+  "sql_queries": {
+    "q71_b1_probe": "WITH ref_cohort AS (\n  SELECT CAST(player_id AS BIGINT) AS player_id\n  FROM matches_history_minimal\n  WHERE started_at BETWEEN TIMESTAMP '2022-08-29' AND TIMESTAMP '2022-10-27'\n  GROUP BY player_id HAVING COUNT(*) >= 10\n)\nSELECT COUNT(*) AS post_ref_rows_in_cohort\nFROM matches_history_minimal\nWHERE CAST(player_id AS BIGINT) IN (SELECT player_id FROM ref_cohort)\n  AND started_at > TIMESTAMP '2022-10-27'",
+    "q74_canonical_slot": "SELECT column_name\nFROM information_schema.columns\nWHERE table_name = 'matches_history_minimal'\n  AND column_name = 'canonical_slot'"
+  },
+  "q71_gate_note": "Vacuous self-join gate with `WHERE 1=0` removed post-PR #163 adversarial-review cleanup. The gate is now a PSI-summary reference-window check (see _psi_data lookup above)."
+}

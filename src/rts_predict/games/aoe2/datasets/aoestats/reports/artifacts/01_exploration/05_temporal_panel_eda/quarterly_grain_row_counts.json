@@ -1,0 +1,95 @@
+{
+  "step": "01_05_01",
+  "dataset": "aoestats",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "sql_queries": {
+    "quarterly_grain": "WITH quarterly AS (\n  SELECT\n    DATE_TRUNC('quarter', started_at) AS quarter_start,\n    CAST(YEAR(started_at) AS VARCHAR) || '-Q' || CAST(QUARTER(started_at) AS VARCHAR) AS quarter_iso,\n    COUNT(*) AS row_count,\n    COUNT(DISTINCT match_id) AS match_count,\n    COUNT(DISTINCT player_id) AS player_count\n  FROM matches_history_minimal\n  WHERE started_at >= TIMESTAMP '2022-07-01'\n    AND started_at < TIMESTAMP '2025-01-01'\n  GROUP BY 1, 2\n  ORDER BY 1\n)\nSELECT * FROM quarterly"
+  },
+  "row_count": 10,
+  "quarters": [
+    "2022-Q3",
+    "2022-Q4",
+    "2023-Q1",
+    "2023-Q2",
+    "2023-Q3",
+    "2023-Q4",
+    "2024-Q1",
+    "2024-Q2",
+    "2024-Q3",
+    "2024-Q4"
+  ],
+  "falsifier_verdict": "PASSED",
+  "min_tested_quarter_rows": 845564,
+  "data": [
+    {
+      "quarter_start": "2022-07-01 00:00:00",
+      "quarter_iso": "2022-Q3",
+      "row_count": 37632,
+      "match_count": 18816,
+      "player_count": 17325
+    },
+    {
+      "quarter_start": "2022-10-01 00:00:00",
+      "quarter_iso": "2022-Q4",
+      "row_count": 159112,
+      "match_count": 79556,
+      "player_count": 44114
+    },
+    {
+      "quarter_start": "2023-01-01 00:00:00",
+      "quarter_iso": "2023-Q1",
+      "row_count": 845564,
+      "match_count": 422782,
+      "player_count": 77695
+    },
+    {
+      "quarter_start": "2023-04-01 00:00:00",
+      "quarter_iso": "2023-Q2",
+      "row_count": 3485606,
+      "match_count": 1742803,
+      "player_count": 95158
+    },
+    {
+      "quarter_start": "2023-07-01 00:00:00",
+      "quarter_iso": "2023-Q3",
+      "row_count": 2802462,
+      "match_count": 1401231,
+      "player_count": 85312
+    },
+    {
+      "quarter_start": "2023-10-01 00:00:00",
+      "quarter_iso": "2023-Q4",
+      "row_count": 3385088,
+      "match_count": 1692544,
+      "player_count": 89698
+    },
+    {
+      "quarter_start": "2024-01-01 00:00:00",
+      "quarter_iso": "2024-Q1",
+      "row_count": 3586266,
+      "match_count": 1793133,
+      "player_count": 91572
+    },
+    {
+      "quarter_start": "2024-04-01 00:00:00",
+      "quarter_iso": "2024-Q2",
+      "row_count": 3376140,
+      "match_count": 1688070,
+      "player_count": 88471
+    },
+    {
+      "quarter_start": "2024-07-01 00:00:00",
+      "quarter_iso": "2024-Q3",
+      "row_count": 1382090,
+      "match_count": 691045,
+      "player_count": 61960
+    },
+    {
+      "quarter_start": "2024-10-01 00:00:00",
+      "quarter_iso": "2024-Q4",
+      "row_count": 2942920,
+      "match_count": 1471460,
+      "player_count": 80808
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "step": "01_05_07",
+  "spec": "reports/specs/01_05_preregistration.md@7e259dd8",
+  "feature": "duration_seconds",
+  "token": "POST_GAME_HISTORICAL",
+  "reference_mean": 2523.96,
+  "reference_std": 14026.27,
+  "max_corrupt_rate": 9.46e-06,
+  "max_mean_drift_pct": 5.54,
+  "falsifier_verdict": "PASSED",
+  "cohen_d_by_quarter": {
+    "2023-Q1": -0.0044,
+    "2023-Q2": -0.0044,
+    "2023-Q3": -0.0044,
+    "2023-Q4": -0.0072,
+    "2024-Q1": -0.0075,
+    "2024-Q2": -0.0141,
+    "2024-Q3": -0.0127,
+    "2024-Q4": -0.0141
+  },
+  "sql_queries": {
+    "dgp_diagnostics": "SELECT\n  DATE_TRUNC('quarter', started_at) AS quarter_start,\n  CAST(YEAR(started_at) AS VARCHAR) || '-Q' || CAST(QUARTER(started_at) AS VARCHAR) AS quarter_iso,\n  COUNT(*) AS n_rows,\n  AVG(duration_seconds) AS mean_duration,\n  APPROX_QUANTILE(duration_seconds, 0.5) AS median_duration,\n  APPROX_QUANTILE(duration_seconds, 0.05) AS p5_duration,\n  APPROX_QUANTILE(duration_seconds, 0.95) AS p95_duration,\n  APPROX_QUANTILE(duration_seconds, 0.75) - APPROX_QUANTILE(duration_seconds, 0.25) AS iqr_duration,\n  STDDEV(duration_seconds) AS std_duration,\n  COUNT(*) FILTER (WHERE duration_seconds > 86400) AS corrupt_count,\n  COUNT(*) FILTER (WHERE duration_seconds > 86400) * 1.0 / COUNT(*) AS corrupt_rate\nFROM matches_history_minimal\nWHERE started_at >= TIMESTAMP '2022-07-01'\n  AND started_at < TIMESTAMP '2025-01-01'\n  AND duration_seconds IS NOT NULL\nGROUP BY 1, 2\nORDER BY 1"
+  }
+}

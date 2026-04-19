@@ -1,0 +1,2 @@
+quarter_start,quarter_iso,n_rows,mean_duration,median_duration,p5_duration,p95_duration,iqr_duration,std_duration,corrupt_count,corrupt_rate,cohen_d_vs_ref,mean_drift_pct,feature_name,notes
+2024-04-01,2024-Q2,3376140,2384.097531500471,2421,198,4217,1372,1189.5926596443744,0,0.0,-0.014051798069494584,-5.541562161662825,duration_seconds,POST_GAME_HISTORICAL (spec §10)

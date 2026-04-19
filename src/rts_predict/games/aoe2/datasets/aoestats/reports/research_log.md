@@ -8,6 +8,58 @@ AoE2 / aoestats findings. Reverse chronological.
 
 ---
 
+## 2026-04-18 — [Phase 01 / Pipeline Section 01_05] Temporal & Panel EDA
+
+**Source:** `sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/01_05_01..01_05_09`
+**Spec binding:** `reports/specs/01_05_preregistration.md@7e259dd8`
+**Artifacts:** `reports/artifacts/01_exploration/05_temporal_panel_eda/` (50+ files)
+**Critique fixes applied:** B1 (non-vacuous Q7.1), B2 (feature-type routing), B3 (counterfactual reference); M1-M8 all applied.
+**Predecessors:** 01_04_05 (`matches_history_minimal` UNION-ALL, focal_old_rating derivation, I5 ARTEFACT_EDGE verdict)
+**Invariants touched:** I3, I5, I6, I7, I8
+
+### Step 01_05_01 -- Quarterly Grain Audit
+
+10 quarters identified: 2022-Q3..2024-Q4 (inclusive). QUARTER() DuckDB function used (not EXTRACT, which returns floats). Artifact: `quarterly_grain_row_counts.{csv,json,md}`.
+
+### Step 01_05_02 -- PSI Pre-Game Features
+
+**Verdict: PASSED.** Rating features (focal_old_rating, avg_elo) show PSI >= 0.10 in 6 of 8 tested quarters (2023-Q1..2024-Q4), indicating meaningful distributional drift. Faction and map PSI < 0.25 in all quarters (no hard shift). Reference window: 2022-08-29..2022-10-27, patch 66692 (corrected from spec's 125283; verified empirically from `overviews_raw`). Counterfactual reference (B3): 2023-Q1, reference_window_id="2023-Q1-alt". M4 critique fix: focal_old_rating uses `CASE WHEN CAST(mhm.player_id AS BIGINT) = m1v1.p0_profile_id` for correct slot-agnostic derivation. M8 sensitivity: rows with duration_seconds > 86400 filtered for rating features. Artifacts: `psi_aoestats_{quarter}.csv` (8 files), `psi_aoestats_counterfactual_2023Q1ref.csv`, `01_05_02_psi_summary.{json,md}`.
+
+### Step 01_05_03 -- Stratification and Patch Regime
+
+19 patches across 2022-08-29..2025-12-02. First patch in data: 66692 (not 125283). Patch heterogeneity decomposition (M1 Simpson probe) per Chitayat et al. 2023. No cross-patch uniform-confounding falsifier triggered. Artifacts: `patch_heterogeneity_decomposition.csv`, `patch_map.csv`, `patch_quarter_distribution.csv`, `patch_transitions_flagged.csv`, `01_05_03_patch_regime_summary.{json,md}`.
+
+### Step 01_05_04 -- Survivorship Triple Analysis
+
+Unconditional survivorship (10 quarters) emitted. Sensitivity analysis included. No survivorship block triggered. Artifacts: `survivorship_unconditional.csv`, `survivorship_sensitivity.csv`, `01_05_04_survivorship_summary.{json,md}`.
+
+### Step 01_05_05 -- Variance Decomposition (ICC)
+
+**Verdict: FALSIFIED (ICC < 0.05).** ANOVA ICC (50k stratified sample, Wu/Crespi/Wong 2012) = 0.0268. LMM failed to converge. Root cause: reference cohort is very small (744 players in 2022-Q3 reference period -- early crawler period). M7 branch-v limitation documented verbatim. ICC must be re-evaluated in a later, denser quarter. Stratified reservoir sample by n_matches deciles (M3). Artifacts: `01_05_05_icc_results.json`, `icc_sample_profile_ids_{20k,50k,100k}.csv`.
+
+### Step 01_05_06 -- Temporal Leakage Audit v1
+
+**Verdict: PASS.** B1 fix: Q7.1 non-vacuous -- 2,340,782 post-reference rows for cohort players confirmed, proving reference SQL is non-trivially bounded. Q7.2: no POST_GAME/TARGET tokens in feature list. Q7.3: reference window assertion confirmed (REF_START=2022-08-29, REF_END=2022-10-27, REF_PATCH=66692). Q7.4: canonical_slot absent -- [PRE-canonical_slot] flag ACTIVE. M6 fix: per-slot [PRE-canonical_slot] tagging check included. Artifacts: `01_05_06_temporal_leakage_audit_v1.{json,md}`.
+
+### Step 01_05_07 -- DGP Diagnostics (Duration)
+
+duration_seconds POST_GAME_HISTORICAL; excluded from PSI per spec §4. Cohen's d vs reference computed for 8 primary quarters. DGP diagnostic CSVs emitted for 2022-Q3Q4ref + 8 quarters. Artifacts: `dgp_diagnostic_aoestats_*.csv` (9 files), `01_05_07_dgp_diagnostic_summary.{json,md}`.
+
+### Step 01_05_08 -- Phase 06 Interface Emission
+
+**Schema validation: PASSED.** 134 rows, 9 columns. reference_window_id = "2022-Q3-patch66692" for primary rows. Counterfactual: "2023-Q1-alt". B3: both primary and counterfactual PSI emitted. M5: notes column documents 15 columns analyzed (spec §1 has 9 core). Artifact: `phase06_interface_aoestats.csv`, `01_05_08_phase06_interface_schema_validation.{json,md}`.
+
+### Step 01_05_09 -- Gate Memo
+
+Gate memo produced. BACKLOG F1: canonical_slot absent -- Phase 02 unblocker. ICC FALSIFIED documented as M7 limitation (early crawler coverage). PSI PASSED documented. Artifact: `01_05_09_gate_memo.md`.
+
+### Cross-dataset notes
+
+- [CROSS] reference_window_id corrected from spec's "2022-Q3-patch125283" to "2022-Q3-patch66692" (empirically verified from `overviews_raw`). This patch ID should be used when cross-referencing with other datasets.
+- [CROSS] ICC FALSIFIED in early 2022-Q3 crawler period; may not generalize to later periods or other datasets with denser player coverage.
+
+---
+
 ## 2026-04-18 — [Phase 01 / Step 01_04_05] Team-Slot Asymmetry Diagnosis (I5)
 
 **Source:** `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_05_i5_diagnosis.py`
