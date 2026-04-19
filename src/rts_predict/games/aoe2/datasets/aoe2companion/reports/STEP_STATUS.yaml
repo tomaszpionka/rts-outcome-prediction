@@ -99,4 +99,44 @@ steps:
     pipeline_section: "01_04"
     status: complete
     completed_at: "2026-04-18"
+  "01_05_01":
+    name: "Quarterly Grain Row Counts"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_02":
+    name: "PSI Shift (Pre-Game Features)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_03":
+    name: "Stratification (Per-Leaderboard)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_04":
+    name: "Survivorship Triple Analysis"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_05":
+    name: "Variance Decomposition (ICC)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_06":
+    name: "DGP Diagnostics (Duration)"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_07":
+    name: "Phase 06 Interface Emission"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
+  "01_05_08":
+    name: "Temporal Leakage Audit v1"
+    pipeline_section: "01_05"
+    status: complete
+    completed_at: "2026-04-19"
   # Future steps will be added here as they are defined in the ROADMAP.

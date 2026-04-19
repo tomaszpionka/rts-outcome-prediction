@@ -1,0 +1,2 @@
+period,ts_start,ts_end,n_total,n_clean,mean_dur_raw,median_dur_raw,p05_raw,p95_raw,iqr_raw,mean_dur_clean,median_dur_clean,p95_clean,std_dur_clean,n_suspicious,n_negative,n_zero,suspicious_rate,negative_rate,cohen_d_clean
+2023-Q4,2023-10-01,2024-01-01,3877280,3877278,1438.6,1458.0,127.0,2579.0,844.0,1438.6,1458.0,2579.0,734.6,2,0,0,5.2e-07,0.0,-0.034018
