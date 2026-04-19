@@ -29,36 +29,48 @@ Dataset-specific empirical findings. Counterpart to `.claude/scientific-invarian
 
 ```sql
 -- rename_rate: profileIds that appear under more than one name in their history
+-- Scope: rm_1v1 (internalLeaderboardId IN (6, 18)), non-sentinel, non-NULL names
+-- (matches 01_04_04 primary-artifact scope)
 SELECT COUNT(*) FILTER (WHERE name_count > 1) * 1.0 / COUNT(*) AS rename_rate
 FROM (
     SELECT profileId, COUNT(DISTINCT name) AS name_count
     FROM player_history_all
+    WHERE internalLeaderboardId IN (6, 18)
+      AND profileId != -1
+      AND name IS NOT NULL
     GROUP BY profileId
 ) sub;
--- Result: ~2.6% (DS-AOEC-IDENTITY-03; 01_04_04)
+-- Result: 2.57% (17,565 renaming / 683,790 total; DS-AOEC-IDENTITY-03; 01_04_04)
 
 -- cross_scope_collision_rate: names that map to more than one profileId
+-- Scope: rm_1v1 (internalLeaderboardId IN (6, 18)), non-sentinel, non-NULL names
+-- (matches 01_04_04 primary-artifact scope)
 SELECT COUNT(*) FILTER (WHERE id_count > 1) * 1.0 / COUNT(*) AS collision_rate
 FROM (
     SELECT name, COUNT(DISTINCT profileId) AS id_count
     FROM player_history_all
+    WHERE internalLeaderboardId IN (6, 18)
+      AND profileId != -1
+      AND name IS NOT NULL
     GROUP BY name
 ) sub;
--- Result: 3.7% (22,186 collision names / 631,620 + 22,186 total; DS-AOEC-IDENTITY-04; 01_04_04)
+-- Result: 3.55% (23,221 collision names / 654,841 total; DS-AOEC-IDENTITY-04; 01_04_04)
 ```
 
-- `migration_rate` (rename instability): ~2.6% of profiles renamed (name cannot serve as primary key alone; DS-AOEC-IDENTITY-03)
-- `cross_scope_collision_rate` (name-to-profileId collision): 3.7% — 22,186 names map to 2+ profileIds; top collider has 249 distinct profileIds. (DS-AOEC-IDENTITY-04; 01_04_04)
+- `migration_rate` (rename instability): 2.57% of profiles renamed (name cannot serve as primary key alone; DS-AOEC-IDENTITY-03)
+- `cross_scope_collision_rate` (name-to-profileId collision): 3.55% — 23,221 names map to 2+ profileIds; top collider has 249 distinct profileIds. (DS-AOEC-IDENTITY-04; 01_04_04)
+
+> **Scope note.** Rates are computed on the rm_1v1 analytical scope (`internalLeaderboardId IN (6, 18)`, `profileId != -1`, `name IS NOT NULL`) to match the primary-artifact derivation in `01_04_04_identity_resolution.md`. The same queries on the full unscoped `player_history_all` yield different values (3.49% collision on 2.47M total names); the rm_1v1 figures are canonical for thesis Chapter 4.
 
 **Branch selected:** (i) — API-namespace ID. `profileId` is rename-stable and yields lower `max(migration_rate, cross_scope_collision_rate)` than any name-based alternative.
 
-**Tolerance:** `profileId` is rename-stable — no tolerance threshold needed for the identifier itself. The 3.7% collision rate applies to `name` alone, not to `profileId`.
+**Tolerance:** `profileId` is rename-stable — no tolerance threshold needed for the identifier itself. The 3.55% collision rate applies to `name` alone, not to `profileId`.
 
 **Rejected candidates:**
 
 | Candidate | Reason for rejection |
 |---|---|
-| `name` alone | 2.6% rename instability; 3.7% collision rate — fails for both migration and collision (DS-AOEC-IDENTITY-03/04; 01_04_04) |
+| `name` alone | 2.57% rename instability; 3.55% collision rate — fails for both migration and collision (DS-AOEC-IDENTITY-03/04; 01_04_04) |
 | `(name, country)` composite | country has 2.25% NULL in matches_1v1_clean; does not resolve collision on rename; adds join complexity without rate benefit (01_04_04) |
 
 ## §3 Temporal invariants
@@ -83,4 +95,4 @@ See the universal invariants file linked above for the full I1–I10+ list. Exce
 
 | Invariant | Status | Notes |
 |---|---|---|
-| I2 | PARTIAL | Deviates to branch (i): `profileId` (API-namespace INTEGER) used instead of `LOWER(nickname)`. Rename rate ~2.6%; name collision rate 3.7%. `profileId` is rename-stable — lower `max(rate)` than any name-based key. See §2. |
+| I2 | PARTIAL | Deviates to branch (i): `profileId` (API-namespace INTEGER) used instead of `LOWER(nickname)`. Rename rate 2.57%; name collision rate 3.55%. `profileId` is rename-stable — lower `max(rate)` than any name-based key. See §2. |

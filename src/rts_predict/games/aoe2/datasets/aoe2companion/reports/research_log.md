@@ -1868,3 +1868,67 @@ Notebook: `sandbox/aoe2/aoe2companion/01_exploration/01_acquisition/01_01_01_fil
 ### Open questions / follow-ups
 
 - None — straightforward inventory step
+
+---
+
+## 2026-04-19 — [Phase 01 / Step 01_04_04] Identity-rate reconciliation (thesis §4.2.2 precursor)
+
+**Category:** D (bug fix — data provenance)
+**Dataset:** aoe2companion
+**Branch:** docs/thesis-4.2.2-identity-meta-rule
+**Scope:** Reconciled INVARIANTS.md §2 with 01_04_04 primary artifact after
+reviewer-adversarial flagged three-way artifact disagreement on the
+name-to-profileId collision rate.
+
+### Discovery
+
+Pre-execution adversarial review of `planning/current_plan.md` (thesis §4.2.2
+revision) surfaced a data-provenance BLOCKER: three artifacts reported
+four different values for the same collision-rate measurement:
+
+- `INVARIANTS.md:47` SQL comment: "3.7% (22,186 collision names / 631,620 + 22,186 total)" — asserted 3.7%, underlying fraction evaluates to 3.39%.
+- `research_log.md:337` (session 2026-04-18): "22,186 (3.7%)".
+- `01_04_04_identity_resolution.md:100–104`: "23,221 (3.55%)" with different numerator and denominator.
+
+### Root cause
+
+INVARIANTS.md §2 SQL was missing the `WHERE internalLeaderboardId IN (6, 18) AND profileId != -1 AND name IS NOT NULL` filter that the 01_04_04 primary
+artifact's SQL applies. The quoted numbers (22,186 / 3.7%) came from a rm_1v1-scoped run, but the published SQL snippet would have computed different values against `player_history_all` unfiltered.
+
+### Verification against current DB
+
+Re-ran both SQL variants against the current aoec DuckDB:
+
+- **Unfiltered** (INVARIANTS.md SQL as written): 2,468,342 total names, 86,215 collisions = **3.49%**. Matches neither written figure.
+- **Filtered rm_1v1 scope** (01_04_04 SQL): 654,908 total names, 23,288 collisions = **3.56%**. Matches 01_04_04 primary artifact (23,221 / 3.55%) within 67-name data-growth drift over ~3 weeks.
+
+migration_rate verified similarly: 17,555 / 683,780 = **2.57%** (rm_1v1 scope), consistent with prior "~2.6%" claim.
+
+### Reconciliation applied
+
+Updated `INVARIANTS.md §2`:
+- Added the rm_1v1 scope filters to both SQL snippets (scope now matches 01_04_04 primary artifact).
+- Updated numeric results to match the primary artifact snapshot: migration_rate 2.57%, collision_rate 3.55% (23,221 / 654,841).
+- Added scope-note paragraph explaining the rm_1v1 restriction vs unfiltered computation.
+- Updated the rejected-candidates table to cite the corrected rate.
+
+Historical session entry at research_log.md:335–337 (2026-04-18) left as-is — it reflects what was recorded at the time and should not be retroactively edited.
+
+Primary artifact `01_04_04_identity_resolution.md` left as-is — it is the snapshot from the notebook run; INVARIANTS.md now faithfully summarises it.
+
+### Thesis impact
+
+Thesis §4.2.2 (per `planning/current_plan.md`) had cited `collision_rate = 3.7%`. Corrected citation surface: **3.55%** (aoec INVARIANTS.md §2). The citation-surface convention ("read primary, cite summary") now holds for both sc2egset and aoe2companion.
+
+### Decisions
+
+- Rm_1v1 scope is canonical for thesis Chapter 4 identity-rate citations because Phase 02+ analytical work operates within that leaderboard scope.
+- 67-name drift between snapshot and current-DB (0.3% relative) is within data-growth noise; the primary-artifact snapshot remains the citation anchor until the notebook is re-run as part of a scheduled refresh.
+
+### Thesis mapping
+
+- Chapter 4, §4.2.2 — Rozpoznanie tożsamości gracza (F3 revision in-flight on `docs/thesis-4.2.2-identity-meta-rule`)
+
+### Open questions / follow-ups
+
+- None in scope; thesis §4.2.2 now cites a reproducible figure.
