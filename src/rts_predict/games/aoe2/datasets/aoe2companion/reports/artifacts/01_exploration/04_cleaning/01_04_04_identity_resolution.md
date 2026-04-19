@@ -5,6 +5,19 @@
 **Branch:** feat/01-04-04-identity-resolution  
 **Predecessor:** 01_04_03 (Minimal Cross-Dataset History View)  
 
+> **Addendum (2026-04-19, thesis §4.2.2 reconciliation).** The executive-
+> summary prose below (sections "DS-AOEC-IDENTITY-04 — collision" and
+> "OBS-2") reads "3.7%" for the name-to-profileId collision rate. The
+> authoritative figure is the data row in §3 ("Name-to-profileId
+> Collision"): **23,221 (3.55%)**, derived from 23,221 / 654,841 under
+> the rm_1v1 scope filter (`internalLeaderboardId IN (6, 18) AND
+> profileId != -1 AND name IS NOT NULL`). The 3.7% figure is a
+> pre-reconciliation rounding that predates the scope-filter correction
+> in INVARIANTS.md §2; it is preserved here as an audit-trail record
+> (historical snapshot). Thesis §4.2.2 and INVARIANTS.md §2 cite the
+> canonical 3.55% figure. See aoe2companion research_log entry
+> 2026-04-19 for the full reconciliation.
+
 ---
 
 ## 1. Cardinality Baseline
