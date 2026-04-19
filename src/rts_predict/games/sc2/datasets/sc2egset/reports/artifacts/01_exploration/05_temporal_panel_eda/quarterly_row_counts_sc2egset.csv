@@ -1,0 +1,11 @@
+quarter,n_player_rows,n_matches,n_players,dataset_tag
+2022-Q3,1642,821,183,sc2egset
+2022-Q4,2844,1422,188,sc2egset
+2023-Q1,520,260,36,sc2egset
+2023-Q2,1396,698,130,sc2egset
+2023-Q3,244,122,22,sc2egset
+2023-Q4,1344,672,122,sc2egset
+2024-Q1,374,187,24,sc2egset
+2024-Q2,874,437,72,sc2egset
+2024-Q3,496,248,35,sc2egset
+2024-Q4,342,171,24,sc2egset

@@ -1,0 +1,4 @@
+n_threshold,cohort_size,is_default,small_cohort,notes
+5,9,False,True,[SMALL-COHORT]
+10,9,True,True,[SMALL-COHORT]
+20,9,False,True,[SMALL-COHORT]

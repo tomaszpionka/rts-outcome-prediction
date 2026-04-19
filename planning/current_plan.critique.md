@@ -1,93 +1,97 @@
 ---
-plan_ref: .github/tmp/01_05/plan_aoe2companion.md
+plan_ref: .github/tmp/01_05/plan_sc2egset.md
 spec_ref: reports/specs/01_05_preregistration.md @ 7e259dd8 (v1.0.1 LOCKED)
 reviewer: reviewer-adversarial
 date: 2026-04-18
 ---
 
-# Critique: 01_05 Temporal & Panel EDA — aoe2companion
+# Critique: 01_05 Temporal & Panel EDA — sc2egset
 
 ## Summary
-Two BLOCKERS and ten MAJORS. Most consequential: (1) mixedlm on Bernoulli → LPM-ICC wrong scale; (2) spec 1 9-col contract silently renamed without 14 amendment. Also: T07 Q1 unrelated tautology, spec 5 leaderboard_id deviated (rm_1v1/rm_team → rm_1v1/qp_rm_1v1), PSI thresholds uncalibrated at N~60M, population selection bias unflagged.
+Plan structurally complete. Three BLOCKERS, ten MAJORS, ten MINORS.
 
 ## Blockers
 
-### B-01 — mixedlm on Bernoulli won is wrong estimator
-Spec 8: mixedlm("won ~ 1", ..., groups="player_id"). MixedLM linear (Gaussian). won BOOLEAN. Silent coercion to {0,1} = LPM with observed-scale variance ~p(1-p); not canonical latent-scale Bernoulli-GLMM ICC tau^2/(tau^2+pi^2/3) (Nakagawa & Schielzeth 2010). Gelman-Hill 12.5 delta-method presupposes linear model.
-Fix: (a) GLMM via BinomialBayesMixedGLM logit-link, report latent ICC; (b) Keep mixedlm as LPM, rename output icc_lpm, add logistic-GLMM cross-check. Spec 14 amendment required.
+### B1 — Quarter-label SQL produces '2022-Q3.0' (empty filter)
+`CAST(CEIL(INTEGER / 3.0) AS VARCHAR)` yields '3.0' → '2022-Q3.0'. Verified against DB. Plan filter matches nothing.
+Fix: `CAST(CAST(CEIL(...)AS INTEGER) AS VARCHAR)` or `date_part('quarter', started_at)`.
 
-### B-02 — Spec 1 9-col contract renames unreconciled
-Spec: {match_id, started_at, player_id, team, chosen_civ_or_race, rating_pre, won, map_id, patch_id}. VIEW: {match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, duration_seconds, dataset_tag}. Only 4 of 9 match. Plan unilaterally reinterprets.
-Fix: Spec 14 amendment v1.0.2 aliasing: faction AS chosen_civ_or_race, mapId AS map_id, rating AS rating_pre, team/patch_id NULL. T09 emits contract names. Gate verifies feature_name values.
+### B2 — N>=10 cohort filter eliminates 4 of 8 tested quarters
+2023-Q1/Q2/Q3 and 2024-Q1 absent. Remaining: {17,12,10,16} players.
+Fix: Primary PSI uncohort-filtered; N in {5,10,20} as SENSITIVITY per spec 6.2. CROSS research-log entry before T03.
+
+### B3 — statsmodels.mixedlm is Gaussian LMM; won is Bernoulli
+MixedLM = linear (Lindstrom-Bates JASA 1988). Fitting {0,1}=LPM, not canonical latent-scale GLMM ICC tau^2/(tau^2+pi^2/3) (Nakagawa/Johnson/Schielzeth 2017 JRS Interface 14:20170213).
+Fix: (a) BinomialBayesMixedGLM logit-link, report latent ICC; (b) ANOVA-ICC primary (Wu/Crespi/Wong 2012 CCT 33(5):869-880), BinomialBayesMixedGLM secondary, LMM sanity-check. Spec 14 amendment required.
 
 ## Majors
 
-### M-01 — T07 Query 1 unrelated to I3
-Tautology: match_id primary key → single started_at → no match in both windows.
-Fix: Declare N/A for 01_05 with 14 note; or assert bin-edge rows have started_at<2023-01-01.
+### M1 — Full-dataset N (22,209) cited but overlap is 10,076 rows / 679 players
+Yurdakul citation "2,200 obs per bin" is 10x too large. Lowest quarter (2023-Q3): 244 rows.
+Fix: Rewrite Scope/Problem Statement/Literature Context. Add PSI CI via Harris 2013 bootstrap or chi-square `2*n*PSI ~ chi^2_{B-1}`.
 
-### M-02 — Spec 5 secondary regime substituted
-Spec names rm_1v1/rm_team. Plan substitutes rm_1v1/qp_rm_1v1 (ranked vs quickplay) — different populations.
-Fix: Add rm_team as third cohort, OR commit to rm_1v1/qp_rm_1v1 via 14 with reframing.
+### M2 — tournament_era heuristic matches ~47% of dirs
+HSC fails (dirs use `HomeStory_Cup`), GSL/BlizzCon/OSC zero. 37/70 dirs become Bronze_other.
+Fix: Committed `tournament_tier_lookup.csv` (70 rows hand-mapped, Liquipedia tier) or 2-tier split.
 
-### M-03 — Cohen's h against p=0.5, not reference period
-Plan: h = 2*(asin(sqrt(p_q)) - asin(sqrt(0.5))). Spec 3 table: h is drift vs reference. R03 complementarity forces p~0.5 but cross-dataset comparability requires reference comparator.
-Fix: h = 2*(asin(sqrt(p_q)) - asin(sqrt(p_ref))). Document h~0 result honestly.
+### M3 — Spec 1 9-col contract doesn't match VIEW
+Spec: match_id, started_at, player_id, team, chosen_civ_or_race, rating_pre, won, map_id, patch_id. VIEW: match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, duration_seconds, dataset_tag. 5 of 9 differ. Plan only acknowledges rating_pre.
+Fix: Spec 13 deviation, bump to v1.0.2 per-dataset contract. Or INVARIANTS 4 I8 partial; Phase 06 UNION joins on metric_name only.
 
-### M-04 — PSI thresholds 0.10/0.25 uncalibrated at N=60M
-Siddiqi calibrated on 10^3-10^5. Yurdakul 2018: "0.25 reasonable for 100-200, too conservative for larger." At 10^6-10^7 per bin the threshold too permissive.
-Fix: Cite Yurdakul; consider bootstrap null; report raw PSI without "escalate/flag" verdicts until 14.
+### M4 — T10 ROADMAP risks smuggling scientific claims
+Fix: ROADMAP step `question:` strictly step-scope. Grep for {hypothesis, expect, predict, below 0.25, ICC > 0.05}; expect 0.
 
-### M-05 — Cohen's d interpretation absent at extreme N
-At N=60M, CI on d ~ ±10^-4. Any drift "significant" yet trivial. Sullivan & Feinn 2012 JGME 4(3):279-282.
-Fix: Mandatory "Interpretation at large N" paragraph T03/T08 MD. Frame d/h/PSI via substantive significance. Required for negative findings.
+### M5 — T05 hypothesis wrong grain
+Reference cohort=152 (holds). Per-quarter {17,12,10,16} triggers falsifier.
+Fix: Grain-explicit: (a) reference N>=10 >=50 (falsifier <50); (b) per-quarter cohort_q >=20 (falsifier any <20).
 
-### M-06 — Reservoir non-determinism mitigation weak
-aoec INVARIANTS 3: REPEATABLE(seed) not bit-deterministic across rebuilds. "Methodological-equivalence" doesn't persist sample.
-Fix: Persist icc_sample_profileIds_50k.csv (+25k, +100k). T06 query uses WHERE profileId IN (SELECT FROM read_csv_auto(...)). Record hash of reference rows.
+### M6 — T07 Query 1 is ceremonial
+Self-join on same key: observation_time==match_time always. Plan acknowledges tautology.
+Fix: Reframe N/A to Phase 02, or upgrade: assert bin-edge rows have started_at<2023-01-01 and tested frequencies in q.
 
-### M-07 — Population selection bias unflagged
-Ladder-only cohort. Not overall AoE2, not tournament. Not flagged.
-Fix: T10 "Population scope" paragraph; Phase 06 compare conditional on ranked-ladder across datasets.
+### M7 — Tournament-data external-validity caveat missing
+Fix: T10 INVARIANTS 4 + Phase 06 notes: "tournament-scraped; between-player variance reflects competitive-player population." Tag Phase 06 rows `[POP:tournament]`. Heckman 1979 in references.bib.
 
-### M-08 — KS computation at 60M unspecified
-ks_2samp materializes arrays → memory hit.
-Fix: Subsample 100k ref + 100k test per quarter (seed=42, persisted); DuckDB quantile approximation fallback.
+### M8 — T04 SQL references non-existent column
+replays_meta_raw has no `replay_id`; 32-char hex is in matches_flat_clean.
+Fix: Build `tournament_era_map` via matches_flat_clean join. Match-id: `substr(m.match_id, 11) = t.replay_id`.
 
-### M-09 — is_null_cluster not segmented in PSI
-10-col NULL cluster <0.02% across 70 months. Plan doesn't exclude; spans schema-era boundary → tied __unseen__ bins.
-Fix: Apply WHERE is_null_cluster = FALSE consistently (ref+test). Or segment (cheap).
+### M9 — is_duration_suspicious upstream, not in VIEW
+Fix: JOIN matches_flat_clean to compute per-quarter flag rate, or document not-projected.
 
-### M-10 — Step numbering inconsistency
-T10 enumerates 01_05_01..09 but leakage notebook is 01_05_aoec_leakage_audit.py (no index).
-Fix: Rename to 01_05_08_leakage_audit.py (keep aoec in binding) OR add STEP_STATUS notebook_path field.
+### M10 — Yurdakul 2018 citation garbled
+2018 = WMU #3208. 2024 Edinburgh = separate paper; Yurdakul not co-author.
+Fix: Cite separately.
 
 ## Minors
-- m-01: ICC hypothesis has "no verdict" zone [0.02,0.05) ∪ (0.20,0.50]. Partition or document.
-- m-02: 75% threshold in T05 unsourced. Cite Clauset et al. 2009 or drop.
-- m-03: cohort_threshold per-row semantics undefined (unconditional/ICC rows).
-- m-04: ICC sample-size sensitivity combination rule undocumented.
-- m-05: 3-round iteration cap not stated per notebook.
-- m-06: statsmodels@^0.14 pin unjustified.
-- m-07: Sawilowsky 2009 extends Cohen for large N; cite as secondary.
-- m-08: T09 ">=128" too loose; derive exact.
+- m1: VIEW exposes player_id (VARCHAR toon_id), not player_id_worldwide. 2,470 distinct (not 2,494).
+- m2: eps=1/n_ref smoothing is convention; cite Yurdakul Ch.3 or report sensitivity.
+- m3: Normalize POST_GAME -> POST_GAME_HISTORICAL.
+- m4: Use `date_part('year',..)*10 + date_part('quarter',..)` for ordering.
+- m5: Scope says "10 notebooks" but 9 actually. Correct to "9 (1 scaffold + 8 content)".
+- m6: Align Gate flag with scripts/check_01_05_binding.py CLI (--all vs --check).
+- m7: Label per-faction ICC rows `faction_restricted=True`; not comparable to overall.
+- m8: Fix eps globally to 1/n_ref; document in notes; assert both sides.
+- m9: Add Scope: "KS omitted for sc2egset — no continuous pre-game feature in minimal VIEW."
+- m10: T01 step 0: `poetry run python -c "import statsmodels"`; skip add if succeeds.
 
 ## Citations validated
-- Yurdakul (2018) WMU #3208 — scholarworks.wmich.edu/dissertations/3208/
-- Sullivan & Feinn (2012) — PMC3444174
-- statsmodels MixedLM — Lindstrom-Bates JASA 1988 (linear)
-- Nakagawa & Schielzeth (2010) — Biol Rev 85(4):935-956 (binary ICC)
-- Sawilowsky (2009) — JMASM 8(2):597-599
-- Cohen (1988) — author's own caveat against literal thresholds
+- Yurdakul (2018) WMU #3208
+- Nakagawa/Johnson/Schielzeth (2017) JRS Interface 14:20170213
+- Wu/Crespi/Wong (2012) CCT 33(5):869-880
+- Hamilton (1994) 17.7 (spec-cited, accepted on authority)
+- Czeisler et al. (2021) - survivorship (spec-consistent)
+- statsmodels MixedLM per Lindstrom-Bates
+- Heckman (1979) - add to references.bib
 
 ## Open questions for executor
-1. B-01 — 14 to GLMM, or icc_lpm rename?
-2. B-02 — aliasing (spec names) or native with Manual 06 transform?
-3. M-02 — rm_1v1/qp_rm_1v1 (14) or include rm_team?
-4. M-06 — persist profileId CSVs (recommended) or methodological-equivalence?
-5. M-07 — explicit ranked-ladder scope? Chapter 4 implications.
-6. M-09 — filter or segment is_null_cluster?
-7. CROSS research log for 14 amendments — BEFORE execution.
+1. B1 fix before or during T02? Recommend T01.5 smoke test.
+2. B2 — primary uncohort-filtered (recommended) vs narrowed window?
+3. B3 — ANOVA-ICC primary or amend spec? Recommend spec amendment affecting all 3 datasets.
+4. M2 — CSV lookup or 2-tier?
+5. M3 — spec 13 amendment (recommended) or INVARIANTS doc?
+6. M6/T07 — reframe N/A or upgrade? Recommend upgrade.
+7. "Pattern establisher" applies to scaffolding/binding/Phase 06 schema, NOT analytical params.
 
 ## Verdict: REVISE BEFORE EXECUTION
-B-01/B-02 cannot be fixed by correct execution. M-01 through M-09 produce defensible-but-fragile artifacts.
+B1/B2/B3 must be addressed before T02. M1-M3 need CROSS research-log + spec 13 amendment.

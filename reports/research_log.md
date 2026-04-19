@@ -9,9 +9,23 @@ live in per-dataset logs — one per game/dataset combination.
 
 | Dataset | Log | Last entry |
 |---------|-----|------------|
-| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-16 (01_04_00) |
+| sc2 / sc2egset | [sc2egset research log](../src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md) | 2026-04-18 (01_05) |
 | aoe2 / aoe2companion | [aoe2companion research log](../src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md) | 2026-04-18 (01_04_04) |
 | aoe2 / aoestats | [aoestats research log](../src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md) | 2026-04-16 (01_04_00) |
+
+---
+
+## [CROSS] 2026-04-18 — [Phase 01 / 01_05 sc2egset execution] B2 PRIMARY PSI decision
+
+**Source:** sc2egset research_log.md 2026-04-18 B2 CROSS entry
+**Summary:** N>=10 cohort with active_span>=30d gives only 9 players in sc2egset reference period
+(tournament events are 3-5 days; span filter is structurally inappropriate for this data).
+Decision: PRIMARY PSI for sc2egset = uncohort-filtered. N∈{5,10,20} = SENSITIVITY only.
+**Implication for sibling datasets:** aoec/aoestats should verify whether their reference
+periods yield adequate cohort sizes before applying the N>=10 default. If not, they should
+apply the same uncohort-filtered primary approach and document as a CROSS entry.
+**Spec §13 status:** No spec version bump (dataset-specific application decision, within
+spec §6.2 flexibility).
 
 ---
 

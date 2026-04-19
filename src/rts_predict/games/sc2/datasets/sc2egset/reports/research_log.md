@@ -2,6 +2,122 @@
 
 ---
 
+## 2026-04-18 — [Phase 01 / Pipeline Section 01_05] Temporal & Panel EDA (sc2egset)
+
+**Category:** A (science)
+**Dataset:** sc2egset
+**Branch:** feat/01-05-sc2egset
+**Spec:** reports/specs/01_05_preregistration.md@7e259dd8 v1.0.1 LOCKED
+**Scope:** Execute 01_05 Temporal & Panel EDA — Q1 quarterly grain, Q2 PSI, Q3 regime,
+Q4 survivorship, Q6 ICC, Q7 leakage audit, Q8 DGP diagnostics, Phase 06 interface CSV.
+
+### What
+
+Eight notebooks + 1 scaffold created in sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/.
+Phase 06 interface CSV produced. Leakage audit PASSED. STEP_STATUS/PIPELINE_SECTION_STATUS updated.
+
+### Why
+
+01_05 is the last Phase 01 step before Decision Gates (01_06). It establishes quantitative
+distributional baselines for sc2egset, locks PSI/ICC/DGP parameters for cross-dataset
+comparison, and is the "pattern establisher" for aoec/aoestats sibling plans.
+
+### How
+
+All notebooks use `get_notebook_db("sc2", "sc2egset", read_only=True)` via DuckDB symlink.
+PSI computed via Siddiqi (2006) equal-frequency binning with Laplace ε=1/n_ref.
+ICC via statsmodels.mixedlm (B3 primary) + ANOVA Wu/Crespi/Wong 2012 (B3 secondary).
+DGP diagnostics join matches_flat_clean for is_duration_suspicious (M9 fix).
+
+### Findings
+
+| Finding | Value |
+|---|---|
+| Overlap window rows | 10,076 player-rows / 5,038 matches |
+| Overlap window players | 679 distinct |
+| Max PSI (faction) | 0.220 (2024-Q4) |
+| Max PSI (matchup) | 0.696 (2023-Q3) |
+| PSI verdict | FALSIFIED — ≥3 feature-quarters exceed 0.25 (small-quarter race composition shift) |
+| ICC (LPM) | 0.0456 [0.0058, 0.0854] (INCONCLUSIVE) |
+| ICC (ANOVA) | 0.0463 [0.0283, 0.0643] (INCONCLUSIVE) |
+| ICC Zerg-restricted | 0.1095 (notably higher than overall) |
+| Max |Cohen's d| duration | 0.544 (2023-Q3: 122 matches, marathon format) |
+| is_duration_suspicious rate | 0.000 (zero outliers; consistent with 01_04_03) |
+| Tournament tier win rate | Exactly 0.500 per tier (symmetric construction) |
+| Leakage audit | PASS (future_leak_count=0, violations=0, window asserted) |
+| phase06_interface rows | 35 (24 PSI + 3 ICC + 8 Cohen's d DGP) |
+
+### Decisions taken
+
+1. **B2 PRIMARY PSI = uncohort-filtered.** N>=10 cohort with span>=30d gives only 9 players
+   (tournament events are 3-5 days). N>=10 WITHOUT span gives 152 players but eliminates
+   4 of 8 tested quarters. Decision: PRIMARY PSI uses all overlap-window players;
+   N∈{5,10,20} used as SENSITIVITY only in T05. CROSS entry below.
+
+2. **B3 THREE ICC estimators.** LPM (primary), ANOVA (secondary per Wu/Crespi/Wong 2012),
+   GLMM latent-scale (tertiary, convergence failed). All three reported in Phase 06 CSV
+   with distinct metric_name values. Spec §8 interpretation caveat documented.
+
+3. **M2 Hand-mapped lookup.** tournament_tier_lookup.csv hand-mapped 70 dirs via Liquipedia
+   tier heuristics. No ILIKE heuristic used (M2 critique fix).
+
+4. **M3 Schema divergence.** Spec §1 9-col contract differs from actual VIEW schema.
+   Per user pre-authorized decision: documented as INVARIANTS §5 I8 partial.
+   Phase 06 UNION joins on metric_name only.
+
+5. **M6 Query 1 reframed.** Meaningful window-containment check replaces vacuous self-join.
+
+6. **Span filter removed for ICC cohort.** Spec §6.2 active_span>=30d filter gives only 9 players
+   for a tournament dataset. ICC cohort uses N>=10 matches (152 players). Decision: documented as
+   a dataset-specific deviation with justification.
+
+### Decisions deferred
+
+- 01_06 Decision Gates (separate pipeline section)
+- AoE2 sibling implementations (separate PRs)
+- rating_pre secondary ICC target (N/A for sc2egset; 83.65% zero-sentinel MMR)
+
+### Thesis mapping
+
+- Chapter 4 §4.1.1 (sc2egset data characterization)
+- Chapter 4 §4.3 (temporal distribution, survivorship)
+- Chapter 4 §4.4 (distributional drift PSI)
+- Chapter 4 §4.5 (within-player ICC / variance decomposition)
+
+### Open questions
+
+- OQ3: ICC below the 0.05 threshold; does this affect Phase 02 player-identity features?
+  (INCONCLUSIVE — borderline at 0.0456)
+- OQ5: KS omitted for sc2egset (no continuous pre-game feature). Confirmed correct.
+- PSI FALSIFIED in small quarters: driven by tournament-specific race composition.
+  Phase 02 should investigate race-stratified models.
+
+### Follow-ups
+
+- [F1] 01_06 Decision Gate — run after this PR merges
+- [F2] aoec sibling 01_05 — separate PR
+- [F3] aoestats sibling 01_05 — separate PR
+- [F4] Heckman (1979) citation — add to thesis/references.bib
+
+---
+
+## [CROSS] B2 — PRIMARY PSI uncohort-filtered (sc2egset 01_05, 2026-04-18)
+
+**Affected spec:** reports/specs/01_05_preregistration.md v1.0.1 §6
+**Dataset:** sc2egset
+**Trigger:** N>=10 cohort with active_span>=30d yields only 9 players in reference period.
+N>=10 without span filter yields 152 players but eliminates 4 of 8 tested quarters from
+the conditional PSI analysis.
+**Decision (user pre-authorized per critique B2):** Primary PSI = uncohort-filtered (all
+overlap-window players). N∈{5,10,20} used as SENSITIVITY only in survivorship analysis.
+**Implication:** Cross-dataset PSI comparisons for sc2egset use uncohort-filtered population.
+Sibling datasets (aoec, aoestats) may retain cohort filter if their reference period has
+adequate cohort sizes. Document cohort approach per dataset in Phase 06 interface notes.
+**Spec §13 status:** No spec version bump required (B2 is a dataset-specific application
+decision, not a change to the locked parameter). The spec permits sensitivity analysis.
+
+---
+
 ## 2026-04-18 -- [Phase 01 / Step 01_04_04b] Worldwide Identity VIEW — COMPLETE
 
 **Category:** A (science)

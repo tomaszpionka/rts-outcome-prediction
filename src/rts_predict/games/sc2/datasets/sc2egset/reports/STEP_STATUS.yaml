@@ -111,4 +111,53 @@ steps:
     status: complete
     started_at: "2026-04-18"
     completed_at: "2026-04-18"
+  "01_05_01":
+    name: "Q1 Quarterly Grain & Overlap Window"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_02":
+    name: "Q2 PSI Quarterly (Pre-Game Features)"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_03":
+    name: "Q3 Stratification & Secondary Regime"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_04":
+    name: "Q4 Triple Survivorship Analysis"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_05":
+    name: "Q6 Variance Decomposition & ICC"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_06":
+    name: "Q8 DGP Diagnostics (duration_seconds)"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_07":
+    name: "Phase 06 Interface CSV"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+  "01_05_08":
+    name: "Q7 Temporal Leakage Audit"
+    pipeline_section: "01_05"
+    status: complete
+    started_at: "2026-04-18"
+    completed_at: "2026-04-18"
+    artifact_file: "01_05_sc2_leakage_audit.py"
   # Future steps will be added here as they are defined in the ROADMAP.

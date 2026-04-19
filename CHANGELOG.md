@@ -13,6 +13,26 @@ merged to `master`.
 
 ### Added
 
+- **01_05 Temporal & Panel EDA — sc2egset:** 8 content notebooks + 1 scaffold under
+  `sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/`. Notebooks implement Q1
+  quarterly grain, Q2 PSI (uncohort-filtered per B2 critique fix), Q3 tournament_era
+  secondary regime (hand-mapped 70-dir lookup per M2), Q4 triple survivorship, Q6 ICC
+  (LPM + ANOVA + GLMM attempt per B3), Q7 leakage audit (PASS), Q8 DGP diagnostics
+  (M9 fix: join matches_flat_clean for is_duration_suspicious), Q9 Phase 06 interface
+  CSV (35 rows, 9 columns, schema-valid). All artifacts under
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/`.
+- **statsmodels** dependency added to `pyproject.toml` (v0.14.6) for mixedlm ICC fitting.
+- **tournament_tier_lookup.csv** (70 rows hand-mapped via Liquipedia tier heuristics).
+- **INVARIANTS.md §4** populated with 8 01_05 empirical findings (I6: each cites SQL).
+- **INVARIANTS.md §5** updated with I8 partial (Spec §1 schema divergence) and M7
+  tournament scope note (Heckman 1979 selection bias framework).
+- **STEP_STATUS.yaml** updated with 8 new 01_05 step entries (all `status: complete`).
+- **PIPELINE_SECTION_STATUS.yaml** 01_05 → `status: complete`.
+- **ROADMAP.md** 01_05 step blocks appended (step names + gates, no scientific claims).
+- **research_log.md** 2026-04-18 01_05 entry + [CROSS] B2 PSI cohort decision.
+- **reports/research_log.md** [CROSS] entries for B2 decision + pointer update.
+- **decision_gate_sc2egset.md** with Q1..Q9 execution table and gate verdict.
+
 ### Changed
 
 ### Fixed

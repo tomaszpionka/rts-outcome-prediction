@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "spec_ref": "reports/specs/01_05_preregistration.md@7e259dd8 \u00a712",
+  "dataset": "sc2egset",
+  "columns": [
+    {
+      "name": "dataset_tag",
+      "type": "VARCHAR",
+      "nullable": false,
+      "description": "Dataset identifier"
+    },
+    {
+      "name": "quarter",
+      "type": "VARCHAR",
+      "nullable": false,
+      "description": "Quarter label YYYY-QN or 'overlap_window' for ICC rows"
+    },
+    {
+      "name": "feature_name",
+      "type": "VARCHAR",
+      "nullable": false,
+      "description": "Feature or target column name"
+    },
+    {
+      "name": "metric_name",
+      "type": "VARCHAR",
+      "nullable": false,
+      "description": "Metric: psi, cohen_d, icc_lpm_observed_scale, icc_anova_observed_scale, icc_glmm_latent_scale"
+    },
+    {
+      "name": "metric_value",
+      "type": "DOUBLE",
+      "nullable": true,
+      "description": "Metric value (NULL if not applicable)"
+    },
+    {
+      "name": "reference_window_id",
+      "type": "VARCHAR",
+      "nullable": true,
+      "description": "Reference period label: '2022-Q3Q4'"
+    },
+    {
+      "name": "cohort_threshold",
+      "type": "INTEGER",
+      "nullable": true,
+      "description": "Min matches in reference for cohort inclusion (NULL = uncohort-filtered)"
+    },
+    {
+      "name": "sample_size",
+      "type": "INTEGER",
+      "nullable": true,
+      "description": "N rows in tested period for this row"
+    },
+    {
+      "name": "notes",
+      "type": "VARCHAR",
+      "nullable": true,
+      "description": "Free-text notes: [SMALL-COHORT], [POP:tournament], [SC2EGSET-POST-GAME], etc."
+    }
+  ],
+  "m3_note": "Spec \u00a71 9-col contract differs from actual VIEW schema. Per INVARIANTS \u00a75 I8 partial: feature_name values match actual VIEW schema (faction/opponent_faction/duration_seconds). Phase 06 UNION joins on metric_name only.",
+  "b2_note": "PRIMARY PSI = uncohort-filtered (cohort_threshold=NULL for PSI rows). B2 critique fix.",
+  "b3_note": "ICC has 3 metric_name values: icc_lpm_observed_scale (primary), icc_anova_observed_scale (secondary), icc_glmm_latent_scale (tertiary, may be NULL)."
+}

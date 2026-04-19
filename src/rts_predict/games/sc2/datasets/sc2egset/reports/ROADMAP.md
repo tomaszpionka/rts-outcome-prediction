@@ -1429,6 +1429,152 @@ key_findings:
 
 ---
 
+### Step 01_05_01 — Q1 Quarterly Grain & Overlap Window
+
+```yaml
+step_number: "01_05_01"
+name: "Q1 Quarterly Grain & Overlap Window"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_01_quarterly_grain.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset_full.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/quarterly_row_counts_sc2egset.md"
+gate:
+  continue_predicate: "quarterly_row_counts_sc2egset.csv has 10 rows with all count columns > 0."
+  halt_predicate: "Any overlap quarter has zero rows."
+```
+
+### Step 01_05_02 — Q2 PSI Quarterly (Pre-Game Features)
+
+```yaml
+step_number: "01_05_02"
+name: "Q2 PSI Quarterly (Pre-Game Features)"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_02_psi_quarterly.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/psi_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/plots/psi_vs_quarter_sc2egset.png"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/psi_quarterly_sc2egset.md"
+gate:
+  continue_predicate: "psi_sc2egset.csv has 24 rows; all psi_value finite."
+  halt_predicate: "Any psi_value is NaN or Inf."
+```
+
+### Step 01_05_03 — Q3 Stratification & Secondary Regime
+
+```yaml
+step_number: "01_05_03"
+name: "Q3 Stratification & Secondary Regime"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_03_stratification_regime.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/tournament_era_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/tournament_era_sc2egset.md"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/tournament_tier_lookup.csv"
+gate:
+  continue_predicate: "tournament_era_sc2egset.csv exists with >= 1 non-empty tier row."
+  halt_predicate: "tournament_tier_lookup.csv has fewer than 70 rows."
+```
+
+### Step 01_05_04 — Q4 Triple Survivorship Analysis
+
+```yaml
+step_number: "01_05_04"
+name: "Q4 Triple Survivorship Analysis"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_04_survivorship.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_unconditional.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sensitivity.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/survivorship_sc2egset.md"
+gate:
+  continue_predicate: "survivorship_unconditional.csv has 10 rows; sensitivity.csv has >= 3 rows."
+  halt_predicate: "Any overlap quarter has fraction_active = 0."
+```
+
+### Step 01_05_05 — Q6 Variance Decomposition & ICC
+
+```yaml
+step_number: "01_05_05"
+name: "Q6 Variance Decomposition & ICC"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_05_variance_icc.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/variance_icc_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/icc.json"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/plots/icc_player_vs_faction.png"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/variance_icc_sc2egset.md"
+gate:
+  continue_predicate: "icc.json exists; primary ICC is in [0,1]; CI: low <= icc <= high."
+  halt_predicate: "Both LPM and ANOVA ICC fits fail to converge."
+```
+
+### Step 01_05_06 — Q8 DGP Diagnostics (duration_seconds)
+
+```yaml
+step_number: "01_05_06"
+name: "Q8 DGP Diagnostics (duration_seconds)"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_06_dgp_diagnostics.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/plots/dgp_diagnostic_duration_trend.png"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/dgp_diagnostic_sc2egset.md"
+gate:
+  continue_predicate: "dgp_diagnostic_sc2egset.csv exists; cohen_d values finite; prefix = dgp_diagnostic_."
+  halt_predicate: "Output file named without dgp_diagnostic_ prefix."
+```
+
+### Step 01_05_07 — Phase 06 Interface CSV
+
+```yaml
+step_number: "01_05_07"
+name: "Phase 06 Interface CSV"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_07_phase06_interface.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.csv"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.schema.json"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_sc2egset.md"
+gate:
+  continue_predicate: "phase06_interface_sc2egset.csv has 9 columns exactly; dataset_tag = 'sc2egset' constant."
+  halt_predicate: "Schema mismatch or empty file."
+```
+
+### Step 01_05_08 — Q7 Temporal Leakage Audit
+
+```yaml
+step_number: "01_05_08"
+name: "Q7 Temporal Leakage Audit"
+pipeline_section: "01_05 -- Temporal & Panel EDA"
+notebook_path: "sandbox/sc2/sc2egset/01_exploration/05_temporal_panel_eda/01_05_sc2_leakage_audit.py"
+completed_at: "2026-04-18"
+outputs:
+  artifacts:
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/leakage_audit_sc2egset.json"
+    - "reports/artifacts/01_exploration/05_temporal_panel_eda/leakage_audit_sc2egset.md"
+gate:
+  continue_predicate: "leakage_audit_sc2egset.json: future_leak_count=0; post_game_token_violations=[]; reference_window_assertion=PASS; halt_triggered=false."
+  halt_predicate: "halt_triggered=true."
+```
+
+---
+
 ## Phase 02 — Feature Engineering (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.

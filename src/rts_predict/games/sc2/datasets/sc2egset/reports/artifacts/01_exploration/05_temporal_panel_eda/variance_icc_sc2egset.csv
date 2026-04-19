@@ -1,0 +1,4 @@
+dataset_tag,target,cohort_threshold,sigma_between,sigma_within,icc,icc_ci_low,icc_ci_high,n_obs,n_groups,metric_name,notes
+sc2egset,won,10,0.011325,0.237224,0.0456,0.0058,0.0854,4034,152,icc_lpm_observed_scale,LPM observed-scale ICC; NOT latent-scale GLMM (B3 note; Lindstrom-Bates JASA 1988);[POP:tournament]
+sc2egset,won,10,0.542794,0.237181,0.0463,0.0283,0.0643,4034,152,icc_anova_observed_scale,ANOVA-based ICC for binary outcomes; Wu/Crespi/Wong (2012) CCT 33(5):869-880; observed scale; NOT latent-scale GLMM;[POP:tournament]
+sc2egset,won,10,,,,,,4034,152,icc_glmm_latent_scale,BinomialBayesMixedGLM failed or not converged: 'BayesMixedGLMResults' object has no attribute 'vcomp';[POP:tournament]
