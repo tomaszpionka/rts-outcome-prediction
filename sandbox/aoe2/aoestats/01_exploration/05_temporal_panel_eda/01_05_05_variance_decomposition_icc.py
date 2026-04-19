@@ -116,6 +116,22 @@ for n_players in sample_sizes:
         lmm_result = fit_random_intercept_lmm(df_samp, "won", "player_id")
         icc_lmm_val, ci_lo_lmm, ci_hi_lmm = compute_icc_lmm(lmm_result)
         print(f"  LMM ICC = {icc_lmm_val:.4f} [{ci_lo_lmm:.4f}, {ci_hi_lmm:.4f}]")
+        # Post-fix/01-05-aoestats-ngroups-ci-assert: CI sanity check.
+        # A valid delta-method CI must contain its point estimate. Prior to this
+        # PR, compute_icc_lmm raised AttributeError on `result.ngroups` and the
+        # bare `except Exception` silently recorded it as a convergence failure.
+        # The ANOVA CI was emitted uninspected and published with an inverted
+        # interval on the aoestats 50k run (point=0.0268, CI=[0.0494, 0.0759]).
+        if not np.isnan(icc_lmm_val) and not np.isnan(ci_lo_lmm) and not np.isnan(ci_hi_lmm):
+            assert ci_lo_lmm <= icc_lmm_val + 1e-9, (
+                f"LMM CI lower bound {ci_lo_lmm} > point {icc_lmm_val} (inverted CI — LMM math bug)"
+            )
+            assert ci_hi_lmm >= icc_lmm_val - 1e-9, (
+                f"LMM CI upper bound {ci_hi_lmm} < point {icc_lmm_val} (inverted CI — LMM math bug)"
+            )
+    except AssertionError:
+        # Sanity-check failure is a real bug, not a convergence issue. Re-raise.
+        raise
     except Exception as exc:
         convergence_warning = str(exc)
         print(f"  LMM failed: {exc}")
@@ -124,6 +140,18 @@ for n_players in sample_sizes:
     print("  Computing ANOVA ICC (bootstrap CI, this may take a moment)...")
     icc_anova_val, ci_lo_anova, ci_hi_anova = compute_icc_anova(df_samp, "won", "player_id")
     print(f"  ANOVA ICC = {icc_anova_val:.4f} [{ci_lo_anova:.4f}, {ci_hi_anova:.4f}]")
+    # CI sanity check — ANOVA bootstrap CI MUST contain its own point estimate.
+    # Per the sc2egset pattern (variance_icc_sc2egset.py); catches bootstrap
+    # resampling errors and prior aoestats 50k inverted-CI pathology.
+    if not np.isnan(icc_anova_val) and not np.isnan(ci_lo_anova) and not np.isnan(ci_hi_anova):
+        assert ci_lo_anova <= icc_anova_val + 1e-9, (
+            f"ANOVA CI lower bound {ci_lo_anova} > point {icc_anova_val} "
+            f"(inverted CI — check cluster-bootstrap resampling)"
+        )
+        assert ci_hi_anova >= icc_anova_val - 1e-9, (
+            f"ANOVA CI upper bound {ci_hi_anova} < point {icc_anova_val} "
+            f"(inverted CI — check cluster-bootstrap resampling)"
+        )
 
     icc_results[f"n{n_players // 1000}k"] = {
         "n_players_requested": n_players,
@@ -156,7 +184,13 @@ if icc_anova_50k is None:
 if icc_lmm_50k is None:
     icc_lmm_50k = float("nan")
 
-primary_icc = icc_anova_50k if not np.isnan(icc_lmm_50k) else icc_anova_50k
+# Post-fix/01-05-aoestats-ngroups-ci-assert: fix dead ternary.
+# Previous `primary_icc = icc_anova_50k if ... else icc_anova_50k` was a
+# tautology — both branches returned ANOVA. Intent was: prefer LMM when
+# available, fall back to ANOVA. With the `.ngroups` bug fixed, LMM is now
+# actually available; use it as primary (spec §8 literal binding for aoestats
+# under v1.0.1 — this dataset is NOT on v1.0.2 yet).
+primary_icc = icc_lmm_50k if not np.isnan(icc_lmm_50k) else icc_anova_50k
 
 if primary_icc >= 0.05:
     verdict = "PASSED"

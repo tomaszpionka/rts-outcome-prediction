@@ -13,16 +13,16 @@
       "n_players_actual": 744,
       "n_obs": 7909,
       "icc_lpm_observed_scale": {
-        "icc_point": null,
-        "ci_lo": null,
-        "ci_hi": null,
+        "icc_point": 0.0259,
+        "ci_lo": 0.0232,
+        "ci_hi": 0.0286,
         "method": "statsmodels MixedLM REML lbfgs",
-        "convergence_warning": "'MixedLMResults' object has no attribute 'ngroups'"
+        "convergence_warning": null
       },
       "icc_anova_observed_scale": {
         "icc_point": 0.0268,
-        "ci_lo": 0.0494,
-        "ci_hi": 0.0759,
+        "ci_lo": 0.0145,
+        "ci_hi": 0.0407,
         "method": "ANOVA Wu/Crespi/Wong 2012 CCT 33(5):869-880 + bootstrap CI Ukoumunne 2012 PMC3426610"
       },
       "icc_glmm_latent_scale": null
@@ -32,16 +32,16 @@
       "n_players_actual": 744,
       "n_obs": 7909,
       "icc_lpm_observed_scale": {
-        "icc_point": null,
-        "ci_lo": null,
-        "ci_hi": null,
+        "icc_point": 0.0259,
+        "ci_lo": 0.0232,
+        "ci_hi": 0.0286,
         "method": "statsmodels MixedLM REML lbfgs",
-        "convergence_warning": "'MixedLMResults' object has no attribute 'ngroups'"
+        "convergence_warning": null
       },
       "icc_anova_observed_scale": {
         "icc_point": 0.0268,
-        "ci_lo": 0.0494,
-        "ci_hi": 0.0759,
+        "ci_lo": 0.0145,
+        "ci_hi": 0.0407,
         "method": "ANOVA Wu/Crespi/Wong 2012 CCT 33(5):869-880 + bootstrap CI Ukoumunne 2012 PMC3426610"
       },
       "icc_glmm_latent_scale": null
@@ -51,16 +51,16 @@
       "n_players_actual": 744,
       "n_obs": 7909,
       "icc_lpm_observed_scale": {
-        "icc_point": null,
-        "ci_lo": null,
-        "ci_hi": null,
+        "icc_point": 0.0259,
+        "ci_lo": 0.0232,
+        "ci_hi": 0.0286,
         "method": "statsmodels MixedLM REML lbfgs",
-        "convergence_warning": "'MixedLMResults' object has no attribute 'ngroups'"
+        "convergence_warning": null
       },
       "icc_anova_observed_scale": {
         "icc_point": 0.0268,
-        "ci_lo": 0.0494,
-        "ci_hi": 0.0759,
+        "ci_lo": 0.0145,
+        "ci_hi": 0.0407,
         "method": "ANOVA Wu/Crespi/Wong 2012 CCT 33(5):869-880 + bootstrap CI Ukoumunne 2012 PMC3426610"
       },
       "icc_glmm_latent_scale": null

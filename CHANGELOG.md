@@ -50,6 +50,48 @@ merged to `master`.
   composite `future_leak_count` int is retained for JSON back-compat.
   Closes I3 VIOLATED on sc2egset per the 2026-04-19 pre-01_06 adversarial
   review. Does not change the `Q7 PASS` verdict.
+## [3.21.2] — 2026-04-19 (PR #TBD: fix/01-05-aoestats-ngroups-ci-assert)
+
+### Fixed
+
+- **aoestats `compute_icc_lmm` `.ngroups` attribute bug** at
+  `src/rts_predict/games/aoe2/datasets/aoestats/analysis/variance_decomposition.py:92-93`.
+  The function referenced `result.ngroups`, which does not exist on
+  statsmodels `MixedLMResults`. The correct accessor is `result.model.n_groups`
+  (the aoec port was already correct). Pre-fix, every LMM delta-method CI
+  call raised `AttributeError`, which `01_05_05_variance_decomposition_icc.py`'s
+  bare `except Exception` silently recorded as `convergence_warning`. The
+  "LMM failed to converge" claim in the aoestats research log was a
+  misdiagnosis. Flagged by the 2026-04-19 pre-01_06 adversarial review.
+- **aoestats ANOVA cluster-bootstrap CI was inverted** (lower bound > point
+  estimate) due to a cluster-bootstrap resampling bug at
+  `variance_decomposition.py:213-241`. When a group was sampled with
+  replacement multiple times, the bootstrap concatenated its rows but reused
+  the *original* group id, so `_icc_anova_point`'s pandas-groupby collapsed
+  the duplicated clusters back into one — inflating `k_bar` while holding
+  `n_groups` constant, biasing SSB upward, producing CIs that did not contain
+  their point estimate. Pre-fix aoestats 50k run: `point=0.0268`,
+  "CI"=[0.0494, 0.0759]. Post-fix: `[0.0145, 0.0407]` (contains point).
+  Fix ports the aoec cluster-bootstrap pattern: each resampled group is
+  re-tagged with a fresh unique id so duplicates count as distinct clusters
+  (Ukoumunne et al. 2012 PMC3426610).
+- **CI sanity asserts added** to `01_05_05_variance_decomposition_icc.py` —
+  `assert ci_lo ≤ point ≤ ci_hi` on both LMM and ANOVA results, matching the
+  sc2egset pattern. Catches any future re-occurrence of the inverted-CI
+  pathology.
+- **Dead ternary** `primary_icc = icc_anova if not np.isnan(icc_lmm) else
+  icc_anova` (both branches returned ANOVA) rewritten as
+  `primary_icc = icc_lmm if not np.isnan(icc_lmm) else icc_anova`. Spec §8
+  literal binding for aoestats (v1.0.1) prefers LMM as primary.
+
+### Changed
+
+- **aoestats ICC verdict retained: FALSIFIED.** With the bug fixed:
+  LMM ICC = 0.0259 [0.0232, 0.0286]; ANOVA ICC = 0.0268 [0.0145, 0.0407].
+  Both well below the pre-registered hypothesis range [0.05, 0.20]. The
+  direction of the conclusion is unchanged; the evidentiary chain is now
+  sound — LMM and ANOVA agree to within 0.001 on the point estimate, and
+  both CIs contain their respective points.
 
 ## [3.20.0] — 2026-04-19 (PR #TBD: feat/01-05-sc2egset)
 
