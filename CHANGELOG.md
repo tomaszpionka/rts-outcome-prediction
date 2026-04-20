@@ -19,7 +19,44 @@ merged to `master`.
 
 ### Removed
 
-## [3.29.1] — 2026-04-20 (PR #TBD: chore/purge-planning-pr-185)
+## [3.30.0] — 2026-04-20 (PR #TBD: docs/thesis-pass2-tg1-methodological-drift)
+
+### Changed
+
+- Pass-2 TG1 methodological drift correction across thesis §1.2, §2.6,
+  §4.4.4. Un-commits the Dimitriadis triptych and the within-game
+  statistical comparison protocol (Friedman + Wilcoxon-Holm + Bayesian
+  signed-rank). Preserves Option B end-state: ECE + reliability diagrams
+  + Murphy decomposition designated as the operational aggregate-level
+  diagnostic; triptych framed as one candidate extension. §4.4.4 now
+  enumerates three genuinely distinct inferential families (rank-based
+  frequentist with gating variants, Bayesian, resampling) rather than
+  committing to a single protocol.
+- ROPE width and Holm α both deferred to §4.4.2 methodology finalization
+  (invariant #7 full compliance restored — previously only ROPE was
+  flagged).
+- §4.1.4 line 213 carries explicit within-game/cross-game scoping
+  qualifier; Demšar §3.1.3 (N ≥ 5 blocks, within-game) and §3.2 (N ≥ 10
+  datasets, cross-game) thresholds distinguished rather than conflated.
+- WRITING_STATUS.md: §2.6 and §4.4.4 rows transitioned DRAFTED → REVISED;
+  §1.2 and §4.1.4 rows annotated with PR-TG1 notes.
+- REVIEW_QUEUE.md: new §1.2 ¶1 Pending row; PR-TG1 revision notes
+  appended to §2.6 and §4.4.4 rows; §4.4.4 flag count 2 → 3.
+
+### Added
+
+- planning/current_plan.md — Category F plan produced through 3
+  iterations of /critic (22+ revisions) and a reviewer-adversarial
+  Mode A pre-execution audit (A1–A6 findings folded in).
+- planning/current_plan.critique.md — Mode A findings documenting
+  the pre-execution methodology audit that produced the A1–A6
+  revisions.
+- 2 new [REVIEW:] flags: §2.6.3 Demšar §3.1.3 citation section
+  verification (WebFetch could not confirm section anchor from PDF);
+  §4.4.4 Pass-2 TG1 candidate-framing acceptability for examiner
+  review.
+
+## [3.29.1] — 2026-04-20 (PR #186: chore/purge-planning-pr-185)
 
 ### Removed
 
