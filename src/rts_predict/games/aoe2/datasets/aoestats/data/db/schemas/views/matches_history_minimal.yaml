@@ -131,7 +131,8 @@ invariants:
     evidence in 01_04_03b, not as a magic-number gate.
 - id: I6
   description: CREATE OR REPLACE VIEW DDL + every assertion SQL stored verbatim in
-    01_04_03_minimal_history_view.json sql_queries block.
+    01_04_03b_canonical_slot_amendment.json sql_queries block (post-amendment
+    source-of-truth; predecessor was 01_04_03_minimal_history_view.json pre-F1).
 - id: I7
   description: 1_000_000_000 nanoseconds-to-seconds divisor cites Arrow duration[ns]
     -> BIGINT behavior documented at pre_ingestion.py:271 + research_log.md:684.

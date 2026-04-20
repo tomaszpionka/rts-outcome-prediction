@@ -24,8 +24,8 @@
 # **Predecessor:** 01_04_03 (Minimal Cross-Dataset History View -- 9-col, 2026-04-18)
 # **Step scope:** Add `canonical_slot VARCHAR` derived column to `matches_history_minimal`
 # VIEW via `CREATE OR REPLACE VIEW` re-emission. Resolves BACKLOG F1 (Phase 02 unblocker)
-# and coupled W4 documentation delta (INVARIANTS §5 I5 PARTIAL → HOLDS). Column position
-# 8 (after `won`, before `duration_seconds`). Derivation: hash-on-match_id
+# and coupled W4 documentation delta (INVARIANTS §5 I5 PARTIAL → HOLDS). Column
+# position 7 (after `won`, before `duration_seconds`). Derivation: hash-on-match_id
 # (skill-orthogonal by structural construction). Schema widens 9 → 10 columns; row count
 # unchanged (35,629,894).
 # **Derivation:** `CASE WHEN (hash(match_id) + focal_team) % 2 = 0 THEN 'slot_A' ELSE 'slot_B' END`

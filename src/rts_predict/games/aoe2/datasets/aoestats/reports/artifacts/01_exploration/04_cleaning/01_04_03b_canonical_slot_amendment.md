@@ -11,7 +11,7 @@
 
 ## Summary
 
-Adds `canonical_slot VARCHAR` as column 8 (position 7, after `won`, before `duration_seconds`)
+Adds `canonical_slot VARCHAR` at position 7 (after `won`, before `duration_seconds`)
 to `matches_history_minimal` via `CREATE OR REPLACE VIEW`. The VIEW is now a 10-column
 schema (was 9-column from step 01_04_03). All 7 assertions pass. Row count preserved at
 35,629,894 (17,814,947 matches × 2 rows/match).
