@@ -19,7 +19,61 @@ merged to `master`.
 
 ### Removed
 
-## [3.31.0] — 2026-04-20 (PR #TBD: docs/thesis-pass2-tg2-factual-contradictions)
+## [3.32.0] — 2026-04-20 (PR #TBD: docs/thesis-pass2-tg3-luka3-narrowing)
+
+### Changed
+
+- Pass-2 TG3 Luka 3 narrowing against Thorrez 2024 EsportsBench across
+  thesis §3.5, §3.2.4, §1.3, §2.5.5. Three-part edit.
+- **§3.5 Luka 3 rewrite** (`03_related_work.md:187`) — hedge-only
+  novelty claim ("pierwsza znana nam") replaced with argued four-
+  constraint conjunction: (a) ML-classifier family vs paired-comparison
+  rating systems; (b) paired-game cross-comparison with AoE2-absence
+  anchor verified against EsportsBench v8.0 (2025-12-31); (c)
+  calibration-diagnostics absence-from-README (HuggingFace + GitHub);
+  (d) 1v1 scope. Lin2024NCT/Elbert2025EC/CetinTas2023 disqualifications
+  retained.
+- **§3.2.4 EsportsBench characterization** (`03_related_work.md:77`) —
+  supplementary sentence identifying EsportsBench as paired-comparison
+  rating-systems benchmark with per-game fit; SC1+SC2+WC3 named as RTS
+  representation, AoE2 absence explicit.
+- **§1.3 RQ1 hypothesis** (`01_introduction.md:31`) — surgical deletion
+  of miscited `[Thorrez2024]` from GBDT-dominance claim. Hodge2021 +
+  Tang2025 retained as correctly-supporting citations. Narrowed-
+  induction consequence (Dota-2-only base + margin caveat) documented
+  in WRITING_STATUS §1.3 note; broader cross-esport GBDT-dominance
+  citation extension deferred to Pass 2.
+- **§2.5.5 hybrid-strategy citations** (`02_theoretical_background.md`)
+  — line 181: `[Hodge2021, Thorrez2024]` → `[Hodge2021]` (EsportsBench
+  does not benchmark hybrid rating+GBDT pipelines). Line 177: claim
+  tightened from "rankingi... używane... jako cechy wejściowe w ML
+  pipelines" to "benchmarkuje paired-comparison rating systems (m.in.
+  Elo, Glicko, Glicko-2, TrueSkill) na danych esportowych"; Thorrez2024
+  citation retained with corrected scope.
+- ISO YYYY-MM-DD dates throughout; em-dash "—" for ranges. Unified
+  rating-family enumeration "m.in. Elo, Glicko, Glicko-2, TrueSkill"
+  across §3.2.4, §2.5.5:177, §3.5.
+- WRITING_STATUS.md: §1.3, §2.5, §3.2, §3.5 rows gain dated PR-TG3
+  notes; §1.3 note records narrowed-induction mitigation.
+- REVIEW_QUEUE.md: §1.3 row (line 22) question (2) resolved in-place;
+  §3.5 row (line 40) RQ3 novelty hedge resolved.
+
+### Added
+
+- `planning/current_plan.md` — Category F TG3 plan (1 /critic iteration
+  with 10 revisions + Mode A pre-execution audit with 3 revisions +
+  Mode C draft review with 2 prose fixes applied).
+- `planning/current_plan.critique.md` — Mode A findings (BLOCKER B-1
+  on EsportsBench advertised-metric overclaim + MAJOR W-1 narrowed-
+  induction mitigation + MAJOR W-2 asymmetric rating-family
+  enumeration); all resolved before execution.
+- Reduced-scope `[REVIEW:]` flag at §3.5:187 covering two residual
+  uncertainties: EsportsBench v9.0+ future-release monitoring
+  (post-2025-12-31 AoE2 addition or ML-classifier benchmark
+  introduction) AND preprint Table 2 calibration-metrics manual
+  verification.
+
+## [3.31.0] — 2026-04-20 (PR #188: docs/thesis-pass2-tg2-factual-contradictions)
 
 ### Changed
 
