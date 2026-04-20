@@ -55,7 +55,7 @@ The slot label depends **only on `match_id`** (a stable per-match identifier tha
 
 ## Assumptions & unknowns
 
-- **Assumption A1 (derivation — user-selected 2026-04-20).** Use **hash-on-`match_id`** derivation: `canonical_slot = CASE WHEN (hash(match_id) + focal_team) % 2 = 0 THEN 'slot_A' ELSE 'slot_B' END`. Justification: skill-orthogonal by construction — the hash depends only on `match_id`, an identifier independent of any player property. No empirical threshold test is needed; the derivation is orthogonal by the structure of the hash function applied to a match-level stable identifier. This is the same reasoning pattern as `01_04_05_i5_diagnosis.json:17` null-reference `hash(game_id) % 2`. Falsifier: if `match_id` were discovered to encode player identity (e.g., if `match_id` were derived from a player hash), the orthogonality claim would fail. `match_id` is assigned by the aoestats ingestion pipeline as a monotonic crawler counter (verified in `01_02_02` schema profiling); it does not encode player identity.
+- **Assumption A1 (derivation — user-selected 2026-04-20).** Use **hash-on-`match_id`** derivation: `canonical_slot = CASE WHEN (hash(match_id) + focal_team) % 2 = 0 THEN 'slot_A' ELSE 'slot_B' END`. Justification follows from the **mathematical structure of the derivation, not from any empirical claim about `match_id`'s content.** Given: (a) `hash(match_id)` depends only on the value `match_id`; (b) both rows of any single match share the same `match_id` value (by the UNION-ALL pivot over a 1-row-per-match clean source); (c) therefore `hash(match_id)` takes an identical value for both rows of a given match. The binary splitter `(hash + focal_team) % 2` with `focal_team ∈ {0, 1}` then distributes the two rows into complementary slot labels (0 and 1 mod 2 differ by 1). The per-match distinct-slot property is **independent of `match_id`'s semantic content**: even if `match_id` encoded player identity, both rows of a match would receive the same hash, and the `focal_team` pivot alone would determine the complementary assignment. Skill-orthogonality across matches follows from the hash function's avalanche property applied to per-match varying inputs — no empirical claim about `match_id`'s origin or monotonicity is required. This is the same reasoning pattern `01_04_05_i5_diagnosis.json:17` uses for its null-reference `hash(game_id) % 2`. Falsifier: the orthogonality argument would fail only if both rows of a single match received *different* `match_id` values — structurally impossible under the current VIEW which JOINs on a single `match_id` per row in `matches_1v1_clean`.
 - **Assumption A2 (scope of schema change).** `matches_1v1_clean` upstream does **not** gain a new `canonical_slot` column. Rationale: at 1-row-per-match grain, `p0_profile_id` and `p1_profile_id` already identify the two players orthogonally; `canonical_slot` is only meaningful at 2-row-per-match (focal vs. opponent) grain, which is the `matches_history_minimal` grain. `matches_1v1_clean.yaml` receives a descriptive note amendment in its `invariants` block explaining that the canonical-slot derivation is materialised downstream; no new column.
 - **Assumption A3 (VIEW is read-only projection, I9 preserved).** The existing view is created via `CREATE OR REPLACE VIEW matches_history_minimal AS ...` (see `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_03_minimal_history_view.py:146-191`). Adding a deterministic CASE expression computed from the existing p0/p1 halves is a pure projection — no raw mutation, I9 holds.
 - **Assumption A4 (row count neutrality).** `matches_history_minimal` remains at 35,629,894 rows (17,814,947 matches × 2). Adding a column changes schema width (9 → 10), not cardinality; we assert row count before and after.
@@ -94,23 +94,25 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
    ```
    **Hash function.** Use DuckDB's built-in `hash()` function (stable 64-bit hash). Apply to `m.match_id` (VARCHAR) directly; DuckDB handles string hashing natively. Output is a positive 64-bit integer; `% 2` yields 0 or 1.
    **Distinct-slot property.** For any given `match_id`, `hash(match_id)` is fixed. The two rows have `focal_team = 0` and `focal_team = 1` respectively, so `(hash + 0) % 2` and `(hash + 1) % 2` are always different — one is 0 and the other is 1. Hence the two rows always receive distinct slot labels.
-   **Orthogonality proof.** `hash(match_id) % 2` depends only on `match_id`, which is assigned by the aoestats ingestion pipeline as a monotonic crawler counter (per `01_02_02` schema profiling); it does not encode any player property (profile_id, skill, account age). Therefore `canonical_slot` is independent of player attributes by construction — no statistical test needed to establish this, it follows from the derivation's structure.
-3. **Emit amended DDL.** Rebuild `CREATE_MATCHES_HISTORY_MINIMAL_SQL` constant with the chosen CASE expression inserted between the `won` column and the `duration_seconds` column in both `p0_half` and `p1_half`. Place `canonical_slot` at column position 7 (after `won`, before `duration_seconds`) to keep the 9-column cross-dataset contract visually anchored and `dataset_tag` last.
-4. **Execute DDL.** `con.execute(CREATE_MATCHES_HISTORY_MINIMAL_SQL)`. Verify via `DESCRIBE matches_history_minimal` that column count = 10 and ordering is `[match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, canonical_slot, duration_seconds, dataset_tag]`.
-5. **Assertions (I6-compliant, SQL verbatim in JSON artifact).**
+   **Orthogonality proof (structural, not empirical).** `hash(match_id)` depends only on the value `match_id`. Both rows of any single match receive the same `match_id` (the VIEW's UNION-ALL pivot rebuilds from a 1-row-per-match source on `matches_1v1_clean.game_id` PK), so both rows receive the same hash. The binary splitter `(hash + focal_team) % 2` with `focal_team ∈ {0, 1}` distributes them into complementary slots: `0 % 2 ≠ 1 % 2` by binary arithmetic. The per-match distinct-slot property is **independent of `match_id`'s content** — even if `match_id` encoded player identity, both rows receive the same value so the `focal_team` pivot alone determines the complementary assignment. Skill-orthogonality across matches follows from the hash function's avalanche property. No empirical claim about `match_id`'s origin (vendor-provided, monotonic, UUID, etc.) is required for this argument.
+3. **Pre-amendment baseline re-verification (guards against stale-baseline drift, Pass 2 fix).** BEFORE recreating the VIEW, re-run the existing `01_04_03` validation SQL queries (row_count, distinct_match_ids, symmetry_violations, slot_bias, duration stats — SQL verbatim is cached in `01_04_03_minimal_history_view.json` under `sql_queries`) on the **current live DuckDB state** and compare to the cached JSON values. If any differ: abort with "baseline drift — re-baseline required" and escalate to planner (baseline drift would mean the DB has been re-ingested or re-materialised since 2026-04-18 and the cached BEFORE snapshot is unreliable). If all match: proceed. Document the pre-amendment verification outcome inline in the T01 JSON artifact under `baseline_reverification: {status: 'PASS' | 'DRIFT', 2026-04-18 cached values, 2026-04-20 live values}`.
+4. **Emit amended DDL.** Rebuild `CREATE_MATCHES_HISTORY_MINIMAL_SQL` constant with the chosen CASE expression inserted between the `won` column and the `duration_seconds` column in both `p0_half` and `p1_half`. Place `canonical_slot` at column position 7 (after `won`, before `duration_seconds`) to keep the 9-column cross-dataset contract visually anchored and `dataset_tag` last.
+5. **Execute DDL.** `con.execute(CREATE_MATCHES_HISTORY_MINIMAL_SQL)`. Verify via `DESCRIBE matches_history_minimal` that column count = 10 and ordering is `[match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, canonical_slot, duration_seconds, dataset_tag]`.
+6. **Assertions (I6-compliant, SQL verbatim in JSON artifact).**
    - `row_count_preserved`: `SELECT COUNT(*) FROM matches_history_minimal` returns exactly 35,629,894.
    - `canonical_slot_binary_cardinality`: `SELECT DISTINCT canonical_slot FROM matches_history_minimal ORDER BY 1` returns exactly `['slot_A', 'slot_B']` (two values, no NULL, no empty string).
    - `canonical_slot_symmetry`: for every match_id, the two rows have **distinct** canonical_slot values: `SELECT COUNT(*) FROM (SELECT match_id FROM matches_history_minimal GROUP BY match_id HAVING COUNT(DISTINCT canonical_slot) != 2) v` returns exactly 0. This follows from the distinct-slot property (step 2); assertion is confirmatory, not a magic-number gate.
    - `canonical_slot_balance` (sanity check, not a gate): `SELECT canonical_slot, COUNT(*) FROM matches_history_minimal GROUP BY canonical_slot` returns two rows each with count ≈ 17,814,947 (within ~0.1% of 50/50 by central-limit expectation for 17.8M hash samples). Report values; no threshold assertion — the balance is a property of the hash function, not a claim to defend.
    - `canonical_slot_null_count`: `SELECT COUNT(*) FROM matches_history_minimal WHERE canonical_slot IS NULL` returns 0 (A1). For A2, may be non-zero for tied matches; documented in the JSON.
    - `canonical_slot_win_rate` (report-only, not a gate): `SELECT canonical_slot, AVG(CAST(won AS INT)) AS wr, COUNT(*) AS n FROM matches_history_minimal GROUP BY canonical_slot`. Expected: both rates very close to 0.5 by the orthogonality-by-construction argument — any residual deviation is a property of `match_id` (not of the derivation). Report the values in the JSON artifact as evidence; do NOT gate on a magic-number threshold. Skill-orthogonality of `canonical_slot` is established by the derivation's structure, not by this statistic.
-   - `canonical_slot_I9_invariance_check`: existing columns (match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, duration_seconds, dataset_tag) all produce identical counts and AVG/MIN/MAX before vs after the amendment. Executor runs a `BEFORE_STATS` vs `AFTER_STATS` comparison (capture before recreating the view? Not possible — view is replaced in-place. Use the `01_04_03_minimal_history_view.json` baseline as BEFORE; compare to re-computed AFTER. Document the baseline commit hash for audit reproducibility).
-6. **Emit JSON artifact** at `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_03b_canonical_slot_amendment.json` with: `{step: "01_04_03b", dataset: "aoestats", derivation_choice: "hash_on_match_id", hash_function: "duckdb_builtin_hash_64bit", ddl_sql_verbatim: <...>, assertions: {row_count_preserved: true, cardinality_binary: true, per_match_distinct: true, balance_wr: {slot_A: <value>, slot_B: <value>}}, generated_date: "2026-04-20", predecessor_artifact: ".../01_04_03_minimal_history_view.json"}` plus every SQL verbatim with SHA-256 query hashes (mirrors the `01_04_05_i5_diagnosis.json` query_shas pattern).
-7. **Emit companion Markdown artifact** at `.../01_04_03b_canonical_slot_amendment.md` with narrative interpretation: (a) derivation choice + rationale (hash-on-match_id; skill-orthogonal by construction; profile_id and old_rating alternatives rejected with 01_04_05 Q4 citation for profile_id rejection), (b) ARTEFACT_EDGE → canonical_slot mapping, (c) downstream Phase 02 usage pattern, (d) cross-link to §4.4.6 flag closure.
+   - `canonical_slot_I9_invariance_check`: existing columns (match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, duration_seconds, dataset_tag) all produce identical counts and AVG/MIN/MAX before vs after the amendment. BEFORE snapshot sourced from the pre-amendment re-verification in step 3 (not from the stale cached `01_04_03_minimal_history_view.json`). This guards against the baseline-drift failure mode flagged by Pass 2 reviewer-adversarial.
+7. **Emit JSON artifact** at `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_03b_canonical_slot_amendment.json` with: `{step: "01_04_03b", dataset: "aoestats", derivation_choice: "hash_on_match_id", hash_function: "duckdb_builtin_hash_64bit", ddl_sql_verbatim: <...>, assertions: {row_count_preserved: true, cardinality_binary: true, per_match_distinct: true, balance_wr: {slot_A: <value>, slot_B: <value>}}, generated_date: "2026-04-20", predecessor_artifact: ".../01_04_03_minimal_history_view.json"}` plus every SQL verbatim with SHA-256 query hashes (mirrors the `01_04_05_i5_diagnosis.json` query_shas pattern).
+8. **Emit companion Markdown artifact** at `.../01_04_03b_canonical_slot_amendment.md` with narrative interpretation: (a) derivation choice + rationale (hash-on-match_id; skill-orthogonal by construction; profile_id and old_rating alternatives rejected with 01_04_05 Q4 citation for profile_id rejection), (b) ARTEFACT_EDGE → canonical_slot mapping, (c) downstream Phase 02 usage pattern, (d) cross-link to §4.4.6 flag closure.
 
 **Verification.**
 - Notebook runs end-to-end with no exceptions.
-- All 6 assertions in step 5 pass.
+- Pre-amendment baseline re-verification (step 3) PASSes.
+- All 6 assertions in step 6 pass.
 - `src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_03b_canonical_slot_amendment.json` exists with `assertions.all_passed: true`.
 - `DESCRIBE matches_history_minimal` shows 10 columns in declared order.
 
@@ -148,10 +150,12 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
        (mean +11.9 ELO). canonical_slot replaces team as the I5-compliant slot label
        for per-slot feature engineering in Phase 02.
        Derivation: CASE WHEN (hash(match_id) + focal_team) % 2 = 0 THEN 'slot_A'
-       ELSE 'slot_B' END. Skill-orthogonal by construction: the hash depends only on
-       match_id (a stable per-match identifier independent of player properties), so
-       canonical_slot cannot correlate with any player attribute. See 01_04_03b
-       artifact for DDL + assertions.
+       ELSE 'slot_B' END. Skill-orthogonal by structural construction: both rows of
+       any match receive the same hash(match_id) value (UNION-ALL of a
+       1-row-per-match source); the binary splitter (hash + focal_team) % 2 with
+       focal_team ∈ {0,1} distributes them into complementary slots. Independent of
+       match_id's semantic content — no empirical claim about its origin required.
+       See 01_04_03b artifact for DDL + assertions.
      notes: |
        PRE_GAME. Derived slot identity for Phase 02 per-slot features. NOT the
        upstream API team label. Every match has exactly one 'slot_A' row and one
@@ -227,14 +231,16 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
    **Amendment (2026-04-20 — BACKLOG F1 + W4).** The `canonical_slot VARCHAR`
    column is added to `matches_history_minimal` via hash-on-match_id derivation
    (`CASE WHEN (hash(match_id) + focal_team) % 2 = 0 THEN 'slot_A' ELSE 'slot_B' END`).
-   Skill-orthogonal by construction: the hash depends only on match_id, a stable
-   per-match identifier independent of player properties. Profile_id-ordered and
-   old_rating-ordered alternatives were both explicitly rejected (profile_id
-   correlates with account age per Q4 of this same artifact; old_rating is
-   skill-coupled by construction). I5 transitions PARTIAL → HOLDS in §5. Artifact:
-   `01_04_03b_canonical_slot_amendment.{json,md}`.
+   Skill-orthogonal by structural construction: both rows of any match share the
+   same match_id (UNION-ALL of a 1-row-per-match source), hence the same
+   hash(match_id); the binary splitter with focal_team ∈ {0,1} pivot distributes
+   them into complementary slots. The argument is independent of match_id's
+   semantic content — no empirical claim about its origin is required.
+   Profile_id-ordered and old_rating-ordered alternatives were both explicitly
+   rejected (profile_id correlates with account age per Q4 of this same artifact;
+   old_rating is skill-coupled by construction). I5 transitions PARTIAL → HOLDS
+   in §5. Artifact: `01_04_03b_canonical_slot_amendment.{json,md}`.
    ```
-   (If A2 is chosen, cite Q1 evidence instead.)
 
 **Verification.**
 - `grep "I5" INVARIANTS.md` returns the new HOLDS row; no remaining PARTIAL reference for I5.
@@ -275,16 +281,21 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
                               WHEN (hash(match_id) + focal_team) % 2 = 0
                               THEN 'slot_A' ELSE 'slot_B' END
 
-                          Orthogonality: `hash(match_id)` depends only on match_id,
-                          a stable per-match identifier independent of player
-                          properties (profile_id, old_rating, account age, skill).
-                          The hash produces a coin-flip per match; the coin-flip
-                          combined with the focal_team pivot distributes slot
-                          labels such that each match has exactly one slot_A row
-                          and one slot_B row. Profile_id-ordered and
-                          old_rating-ordered alternatives were both explicitly
-                          rejected (01_04_05 Q4 showed profile_id-ordering IS
-                          skill-correlated via account-age proxy).
+                          Orthogonality (structural, not empirical): `hash(match_id)`
+                          depends only on the value match_id. Both rows of any
+                          match share the same match_id (UNION-ALL of a
+                          1-row-per-match source), hence the same hash. The binary
+                          splitter `(hash + focal_team) % 2` with focal_team ∈ {0,1}
+                          distributes them into complementary slots — independently
+                          of match_id's semantic content. The argument requires no
+                          empirical claim about match_id's origin or structure; even
+                          if match_id encoded player identity, within-match
+                          distinct slots would still hold by the focal_team pivot
+                          alone. Profile_id-ordered and old_rating-ordered
+                          alternatives were both explicitly rejected (01_04_05 Q4
+                          showed profile_id-ordering IS skill-correlated via
+                          account-age proxy; old_rating is skill-coupled by
+                          construction).
 
                           Scope — one schema-level change + three documentation deltas:
                           - src/rts_predict/games/aoe2/datasets/aoestats/data/db/
@@ -338,11 +349,13 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
 **Objective.** Confirm that adding a column to `matches_history_minimal` does not silently break any existing aoestats 01_05 notebook. This is a read-only audit — no notebook re-run.
 
 **Instructions.**
-1. Grep all 01_05 aoestats notebooks for references to `matches_history_minimal`:
+1. Grep all aoestats notebooks (01_05 + 01_06) for references to `matches_history_minimal`:
    ```
-   grep -rn "matches_history_minimal" sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/
+   grep -rn "matches_history_minimal" \
+     sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/ \
+     sandbox/aoe2/aoestats/01_exploration/06_decision_gates/
    ```
-   Expected: every reference uses explicit `SELECT <col1, col2, ...>` or `DESCRIBE` — no `SELECT *` that would implicitly pull the new column.
+   Expected: every reference uses explicit `SELECT <col1, col2, ...>` / `DESCRIBE` / schema-YAML read — no `SELECT *` that would implicitly pull the new column. The 06_decision_gates scope was added post-Pass-2 review; known safe (schema-YAML reads, not SQL).
 2. If any notebook uses `SELECT * FROM matches_history_minimal`, flag in the audit log as a follow-up and escalate to plan revision (add a T06a notebook re-run task). Expected finding: zero `SELECT *` patterns (the project's sandbox rule in `sandbox/README.md` and the explicit per-column SELECT pattern observed in `01_04_03_minimal_history_view.py:158-190` suggest none exist).
 3. Similarly grep `src/rts_predict/games/aoe2/datasets/aoestats/` for `matches_history_minimal` references in the production code path; expected zero (Phase 02 has not started).
 4. Produce a short audit note appended to the T01 markdown artifact (`01_04_03b_canonical_slot_amendment.md`) with the grep output counts and the zero-impact conclusion.
@@ -356,6 +369,7 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
 
 **Read scope.**
 - `sandbox/aoe2/aoestats/01_exploration/05_temporal_panel_eda/*.py`
+- `sandbox/aoe2/aoestats/01_exploration/06_decision_gates/*.py`
 - `src/rts_predict/games/aoe2/datasets/aoestats/*.py`
 
 ---
@@ -430,7 +444,7 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
 
    **Source:** aoestats research_log.md 2026-04-20 F1+W4 entry.
 
-   Single-dataset amendment (aoestats only); sibling datasets (sc2egset, aoe2companion) unchanged. Adds `canonical_slot VARCHAR` to `matches_history_minimal` via hash-on-match_id derivation (skill-orthogonal by construction — the hash depends only on `match_id`, independent of any player property). Flips INVARIANTS.md §5 I5 PARTIAL → HOLDS and the 01_06 decision gate from READY_CONDITIONAL to READY_WITH_DECLARED_RESIDUALS. Spec §14 bumps to v1.1.0. Cross-dataset UNION ALL (if ever needed) must project the 9 shared columns only — aoestats extends locally. [PRE-canonical_slot] flag protocol in spec §9 transitions from ACTIVE to HISTORICAL.
+   Single-dataset amendment (aoestats only); sibling datasets (sc2egset, aoe2companion) unchanged. Adds `canonical_slot VARCHAR` to `matches_history_minimal` via hash-on-match_id derivation (skill-orthogonal by structural construction — both rows of any match share the same match_id hence the same hash; the binary splitter with focal_team pivot distributes them into complementary slots; argument independent of match_id's semantic content). Flips INVARIANTS.md §5 I5 PARTIAL → HOLDS and the 01_06 decision gate from READY_CONDITIONAL to READY_WITH_DECLARED_RESIDUALS. Spec §14 bumps to v1.1.0. Cross-dataset UNION ALL (if ever needed) must project the 9 shared columns only — aoestats extends locally. [PRE-canonical_slot] flag protocol in spec §9 transitions from ACTIVE to HISTORICAL.
 
    **Phase 02 implication:** GO-NARROW → GO-FULL for aoestats. Per-slot features (canonical_slot-conditioned old_rating, civ, faction stratifiers) now invariant-safe.
    ```
@@ -543,7 +557,7 @@ Tasks are ordered to cleanly separate (a) the code change (notebook + schema YAM
 
 All of the following must hold for the plan to be considered complete:
 
-1. **Notebook execution success.** `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_03b_canonical_slot_amendment.py` runs end-to-end with zero exceptions, and all 6 assertions in T01 step 5 return TRUE. Both `.py` and `.ipynb` committed.
+1. **Notebook execution success.** `sandbox/aoe2/aoestats/01_exploration/04_cleaning/01_04_03b_canonical_slot_amendment.py` runs end-to-end with zero exceptions, baseline re-verification (T01 step 3) PASSes, and all 6 assertions in T01 step 6 return TRUE. Both `.py` and `.ipynb` committed.
 2. **Row count preservation.** `SELECT COUNT(*) FROM matches_history_minimal` returns exactly **35,629,894** (identical to pre-amendment baseline). Assertion verified in `01_04_03b_canonical_slot_amendment.json` under `assertions.row_count_preserved: true`.
 3. **Schema width transition.** `DESCRIBE matches_history_minimal` returns **10 columns** in the order `[match_id, started_at, player_id, opponent_id, faction, opponent_faction, won, canonical_slot, duration_seconds, dataset_tag]`. Verified in both the notebook and `matches_history_minimal.yaml` (`schema_version: 10-col`).
 4. **canonical_slot well-formedness.** Distinct values set is exactly `{'slot_A', 'slot_B'}` with zero NULLs; every match_id has exactly one row with each slot value. Skill-orthogonality is established by construction (hash depends only on match_id, independent of player properties), not by a magic-number win-rate threshold. The balance statistic (per-slot win rate ≈ 0.5) is reported as confirmatory evidence, not gated.
