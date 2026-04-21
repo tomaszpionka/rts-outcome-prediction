@@ -121,8 +121,8 @@ Canonical fresh values (this branch, seed = 42, n_bootstrap = 200):
 - **Verdict:** *falsified (below range): ICC_anova = 0.003013
   [0.001724, 0.004202] below [0.05, 0.20]*. CI upper bound is more than
   10× below the lower limit of the pre-registered hypothesis range.
-- **Diagnostic (LMM LPM observed-scale):** `icc_lpm_observed_scale = 0.000485`
-  at 5k (converged=True); 0.002501 at 10k (converged=True). LMM reported
+- **Diagnostic (LMM LPM observed-scale):** `icc_lpm_observed_scale = 0.000491`
+  at 5k (converged=True); 0.002505 at 10k (converged=True). LMM reported
   delta-method CI [0.000466, 0.000504] at 5k is **not a valid frequentist
   CI** under Bernoulli + unbalanced-n_i design — flagged as
   `icc_lpm_ci_*_invalid_asymptotic` in the JSON and explicitly demoted in

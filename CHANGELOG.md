@@ -19,6 +19,20 @@ merged to `master`.
 
 ### Removed
 
+## [3.38.1] — 2026-04-21 (PR #TBD: chore/phase01-audit-cleanup)
+
+### Fixed
+
+- chore(phase01): Pass-01 audit cleanup PR — address all 7 NOTE-level findings surfaced by the reviewer-adversarial Phase 01 sign-off audits (sc2egset, aoestats, aoe2companion) run 2026-04-21. All findings are documentation staleness / artifact provenance gaps; zero methodology errors. Dataset PHASE_STATUS unchanged (all three remain `Phase 01 = complete`).
+- **Top-level `reports/research_log.md`** — index table deduplicated (was 5 rows for 3 datasets with stale dates; now 1 row per dataset with accurate last-entry dates: sc2egset 2026-04-19/01_06, aoestats 2026-04-20/BACKLOG F1+W4 canonical_slot, aoe2companion 2026-04-19/01_06). Source: sc2egset audit NOTE 5.
+- **`aoe2companion/reports/research_log.md:124`** — LPM ICC values corrected `0.000485 → 0.000491` (5k) and `0.002501 → 0.002505` (10k) to match canonical artifact `01_05_05_icc.json:18,39`. Source: aoe2companion audit NOTE 1 (thesis-citation trap prevention for §4.4.5).
+- **`aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.json:50-52`** — `sample_files` block paths relativized from machine-local absolute (`/Users/tomaszpionka/...`) to repo-root-relative (`src/rts_predict/...`); added `path_convention` marker citing I10 analogue. Source: aoe2companion audit NOTE 4 (reproducibility gap).
+- **`aoe2companion/reports/artifacts/01_exploration/06_decision_gates/risk_register_aoe2companion.md`** — new entry **AC-R06 [LOW] — CROSS_DATASET_ICC_SPEC_ASYMMETRY** documenting the aoec-specific spec v1.0.2 procedural divergences (5k LMM sample-size cap + GLMM omission) and citing the `cross_dataset_phase01_rollup.md §4 item 2` ANOVA-primary harmonization as the formal closure of the I8 AT RISK flag. Severity distribution header updated (LOW: 2 → 3). Source: aoe2companion audit NOTE 2.
+- **`aoe2companion/reports/ROADMAP.md:12-19`** + **`aoe2companion/reports/artifacts/01_exploration/06_decision_gates/modeling_readiness_aoe2companion.md:78`** — `cross_dataset_phase01_rollup.md` path citation clarified with explicit `repo-root` qualifier (cross-dataset artifact lives at `<repo>/reports/...`, not at `<dataset>/reports/...`). Source: aoe2companion audit NOTE 3.
+- **`aoestats/reports/artifacts/01_exploration/06_decision_gates/data_quality_report_aoestats.md:52`** — `matches_history_minimal` column count corrected `9 → 10 (post-canonical_slot amendment 2026-04-20 per PR #185 / BACKLOG F1+W4; aoestats locally extends the cross-dataset 9-col contract)`. Source: aoestats audit WARNING 1 (consumer-facing schema confusion prevention).
+- **`aoestats/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_06_temporal_leakage_audit_v1.md` §Q7.4** — new AMENDMENT block documenting the BACKLOG F6 back-tagging fix (2026-04-19: 30 per-slot rows back-tagged `[PRE-canonical_slot]`) and the PR #185 canonical_slot-column landing (2026-04-20: `canonical_slot present: False → True`; `[PRE-canonical_slot]` flag protocol ACTIVE → HISTORICAL per spec §9). Q7.4 FAILED line retained as historical pre-backfill record; overall audit verdict `PASS` unchanged. Source: aoestats audit NOTE 5.
+- **Remaining Phase-01-audit follow-ups (NOT in scope of this PR)** — sc2egset WARNINGs 1/2/3 (Phase 02 interface contract; mandated Phase 02 leakage-audit protocol; cross-region fragmentation quantification) and aoestats WARNING 2 + NOTEs 3/4 (old_rating PRE-GAME deferral closure; player_history_all interface docs; 43-day post-patch gap provenance) all deferred to Phase 02 kickoff planning (planner-science next session). NOTE 4 on sc2egset (cross-game faction encoding) also deferred to Phase 02 planning.
+
 ## [3.38.0] — 2026-04-21 (PR #TBD: docs/thesis-pass2-status-refresh-and-local-closures)
 
 ### Changed

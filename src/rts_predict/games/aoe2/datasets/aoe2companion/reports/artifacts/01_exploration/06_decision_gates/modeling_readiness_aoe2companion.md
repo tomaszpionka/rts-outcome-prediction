@@ -75,7 +75,7 @@ feature (I3 guard confirmed in 01_05_06).
 
 ## 6. Role Assignment Summary
 
-See cross-dataset rollup: `reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md`
+See cross-dataset rollup: repo-root `reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md` (cross-dataset artifact lives at repo root, not inside this dataset's tree).
 
 | Dimension | aoe2companion role |
 |-----------|--------------------|

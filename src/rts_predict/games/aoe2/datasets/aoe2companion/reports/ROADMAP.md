@@ -13,7 +13,8 @@
 > dimensions; co-PRIMARY for identity-rigor (D4); SUPPLEMENTARY on
 > skill-signal (D2, ICC FALSIFIED 0.003), patch-resolution (D5), and
 > N/A on in-game events (D6). Assigned at 01_06 per
-> `reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md`.
+> repo-root `reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md`
+> (cross-dataset artifact lives at repo root, not inside this dataset's tree).
 > Rationale: 30.5M matches, rename-stable profileId at 2.57% / 3.55%
 > (reconciled 2026-04-19). Skill-signal SUPPLEMENTARY status deferred
 > to sc2egset primary.**

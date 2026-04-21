@@ -8,7 +8,7 @@
 - BLOCKER: 0
 - HIGH: 1
 - MEDIUM: 1
-- LOW: 2
+- LOW: 3
 - RESOLVED: 1
 
 **0 BLOCKERs.** Verdict: READY_WITH_DECLARED_RESIDUALS. Phase 02 GO full scope.
@@ -57,4 +57,13 @@ map_id PSI > 1.1 in ALL 8 quarters (flagged_for_review). Driven by regular AoE2 
 - **Phase 02:** Duration POST_GAME_HISTORICAL; Phase 02 must not use duration_seconds as PRE_GAME feature (I3 enforced). Flag columns available for filtering if needed.
 - **Thesis:** §4.2.3
 - **Mitigation:** RESOLVED (flagged, not removed; rate 0.0016%)
+
+### AC-R06 [LOW] — CROSS_DATASET_ICC_SPEC_ASYMMETRY
+
+Per-dataset ICC-spec version asymmetry acknowledged but not formally closed at Phase 01. aoe2companion ran ICC under spec v1.0.2 (aoec-specific: LMM sample-size cap at 5k + GLMM omission, per `01_05_05_icc.json:2`); sc2egset and aoestats ran under spec v1.0.1. The cross-dataset rollup (`reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md` §4 item 2) reconciles this by noting all three datasets used ANOVA ICC as the primary estimator — which resolves the cross-dataset comparability concern for the primary statistic. The aoec-specific LMM sample-size cap and GLMM omission remain procedural divergences at the diagnostic-statistic tier but do not affect primary claims.
+
+- **Evidence:** `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/01_05_05_icc.json` (spec v1.0.2 header); `src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md:150` (I8 AT RISK flag); `reports/artifacts/01_exploration/06_decision_gates/cross_dataset_phase01_rollup.md` §4 item 2 (ANOVA-primary harmonization).
+- **Phase 02:** No impact on Phase 02 feature engineering — ANOVA ICC is the cross-dataset comparability anchor. LMM/GLMM diagnostics are aoec-specific notes.
+- **Thesis:** §4.4.5 (document the v1.0.2 aoec-specific scope; cite ANOVA-primary harmonization as the reconciliation mechanism).
+- **Mitigation:** RESOLVED (documented by cross-dataset rollup §4 item 2; LMM/GLMM divergences scoped as diagnostic-only).
 

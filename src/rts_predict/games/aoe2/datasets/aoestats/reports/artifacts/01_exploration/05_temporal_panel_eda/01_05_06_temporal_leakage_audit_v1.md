@@ -25,6 +25,8 @@ canonical_slot present: False
 [PRE-canonical_slot] flag active: True
 Phase 06 per-slot tagging check: FAILED: 133 per-slot rows missing [PRE-canonical_slot] tag
 
+**AMENDMENT 2026-04-19 (BACKLOG F6 backfill):** The Q7.4 FAILED sub-check above reflects pre-backfill state only. Per `research_log.md` 2026-04-19 BACKLOG F6 entry, 30 per-slot rows were back-tagged `[PRE-canonical_slot]` (15 quarters × 2 features), bringing the post-backfill tagged-rows total to 136. Further resolution 2026-04-20 via PR #185 (BACKLOG F1 + W4) landed the full `canonical_slot VARCHAR` column on `matches_history_minimal`, flipping `canonical_slot present: False → True` at the VIEW level and transitioning the `[PRE-canonical_slot]` flag protocol from ACTIVE to HISTORICAL (per spec §9). AO-R04 RESOLVED resolution cites this audit; the Q7.4 FAILED line is retained as the historical pre-backfill record.
+
 ## Overall verdict
 
 **PASS**
