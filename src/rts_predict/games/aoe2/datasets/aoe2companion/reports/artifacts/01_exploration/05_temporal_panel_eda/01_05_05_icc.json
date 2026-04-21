@@ -47,9 +47,10 @@
     }
   },
   "sample_files": {
-    "5k": "/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_5k.csv",
-    "10k": "/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_10k.csv",
-    "20k": "/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_20k.csv"
+    "5k": "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_5k.csv",
+    "10k": "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_10k.csv",
+    "20k": "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/05_temporal_panel_eda/icc_sample_profileIds_20k.csv",
+    "path_convention": "repo-root-relative (I10 analogue for JSON artifact provenance)"
   },
   "sql": {
     "cohort_query": "\nWITH eligible AS (\n  SELECT player_id, COUNT(*) AS n_matches_in_ref\n  FROM matches_history_minimal\n  WHERE started_at >= TIMESTAMP '2022-08-29'\n    AND started_at <  TIMESTAMP '2023-01-01'\n  GROUP BY player_id\n  HAVING COUNT(*) >= 10\n)\nSELECT\n  mhm.player_id,\n  mhm.faction,\n  CAST(mhm.won AS INTEGER) AS won,\n  e.n_matches_in_ref\nFROM matches_history_minimal mhm\nJOIN eligible e USING (player_id)\nWHERE mhm.started_at >= TIMESTAMP '2022-08-29'\n  AND mhm.started_at <  TIMESTAMP '2023-01-01'\n"

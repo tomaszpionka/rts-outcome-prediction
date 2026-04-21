@@ -49,7 +49,7 @@ Duration is POST_GAME_HISTORICAL and does not affect the prediction label `team1
 |---|---|---|
 | `matches_1v1_clean` | 17,814,947 | 20 (after drops/adds) |
 | `player_history_all` | 107,626,399 | 14 |
-| `matches_history_minimal` | 35,629,894 player rows | 9 (Phase-02-ready) |
+| `matches_history_minimal` | 35,629,894 player rows | 10 (Phase-02-ready, post-canonical_slot amendment 2026-04-20 per PR #185 / BACKLOG F1+W4; aoestats locally extends the cross-dataset 9-col contract) |
 
 **Validation assertions:**
 - Final matches_1v1_clean: 17,814,947 = expected ✓
