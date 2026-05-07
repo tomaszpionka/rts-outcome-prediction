@@ -1413,12 +1413,245 @@ research_log_entry: "Required on completion."
 
 ---
 
-## Phase 02 — Feature Engineering (placeholder)
+## Phase 02 — Feature Engineering
 
 Pipeline Sections: see `docs/PHASES.md`.
 Steps to be defined when Phase 01 gate is met.
 
-**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1, LOCKED 2026-04-21). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1.0.1, LOCKED 2026-05-06 (patch successor of CROSS-02-01-v1, LOCKED 2026-04-21)). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v3.0.1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+
+Reuse of the CROSS-02-01-v1.0.1 audit protocol by Pipeline Sections 02_03 and 02_06 follows CROSS-02-01-v1.0.1 §6. The design-time companion gate is `reports/specs/02_03_temporal_feature_audit_protocol.md` (CROSS-02-03-v1.0.1, LOCKED 2026-05-06); the design-time feature-family plan is `reports/specs/02_02_feature_engineering_plan.md` (CROSS-02-02-v1.0.1, LOCKED 2026-05-06).
+
+### Pipeline Section 02_01 — Pre-Game vs In-Game Boundary
+
+```yaml
+step_number: "02_01_01"
+name: "Feature-family registry skeleton (aoe2companion)"
+description: >-
+  Per-dataset declaration of Phase 02 candidate feature families for
+  aoe2companion: family_id, prediction_setting (pre_game /
+  history_enriched_pre_game / blocked_or_deferred),
+  source_table_or_event_family, source_grain, model_input_grain,
+  temporal_anchor, allowed_cutoff_rule, candidate_leakage_modes,
+  cold_start_handling, status. Registry is a planning / catalog artifact;
+  no feature value is computed. Constrained by
+  reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1),
+  reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1),
+  reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §8,
+  and reports/specs/02_03_temporal_feature_audit_protocol.md
+  (CROSS-02-03-v1.0.1) D1–D15. The aoe2companion source label is
+  "aoe2companion 1v1 Random Map records combining ranked (`rm_1v1`,
+  `internalLeaderboardId = 6`, ~54M `leaderboard_raw` rows) and
+  quickplay/matchmaking (`qp_rm_1v1`, `internalLeaderboardId = 18`, ~7M
+  `leaderboard_raw` rows; external API unavailable 2026-04-26)" per
+  CROSS-02-02-v1.0.1 §8.1; the combined cohort is **aoe2companion
+  mixed-mode (ID 6 + ID 18) and is NOT ranked-only** — Phase 02 prose,
+  labels, and stratification fields must preserve the ID 6 ranked
+  candidate vs ID 18 quickplay/matchmaking-derived distinction. Per
+  CROSS-02-02-v1.0.1 §8.4, `internalLeaderboardId` is a stratification /
+  sensitivity-control dimension, NOT a generic categorical model input;
+  every aoe2companion feature row co-registers a `leaderboard_id`
+  stratification column so that evaluation, error analysis, and
+  sensitivity arms preserve the ID 6 vs ID 18 distinction. The
+  `in_game_snapshot` setting is **NOT supported for aoe2companion** per
+  CROSS-02-02-v1.0.1 §3.2 (aoe2companion records carry no in-game replay
+  telemetry; the setting is structurally unavailable); no aoe2companion
+  family may be declared with `prediction_setting = in_game_snapshot`.
+  History features use history_time < target_time (strict inequality);
+  the aoe2companion per-dataset history anchor is `started` per
+  CROSS-02-00-v3.0.1 §3.2, applied as `ph.started < target.started_at`.
+  No magic cold-start constants — cold-start handling is expressed only
+  as gate categories per CROSS-02-02-v1.0.1 §9 (G-CS-1 through G-CS-6).
+  Rating reconstruction (Elo / Glicko-2) per CROSS-02-02-v1.0.1 §8.3 is
+  declared as **three separate feature families**: rating reconstructed
+  within ID 6 (rm_1v1 ranked candidate scope), rating reconstructed
+  within ID 18 (qp_rm_1v1 quickplay/matchmaking-derived scope), and
+  rating reconstructed across the combined ID 6 + ID 18 mixed-mode
+  scope; these MUST NOT be silently merged at the feature layer. Per
+  .claude/rules/data-analysis-lineage.md, no generated artifact is
+  evidence until the upstream notebook's assumptions, falsifiers, and
+  sanity checks are reviewed BEFORE artifact generation. NOT DELIVERED
+  IN THIS ROADMAP-STUB PR — this entry only declares the future step
+  per .claude/rules/data-analysis-lineage.md §"Non-batching rule for
+  empirical work" sequence step 1.
+phase: "02 -- Feature Engineering"
+pipeline_section: "02_01 -- Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "aoe2companion"
+question: >-
+  Which Phase 02 candidate feature families exist for aoe2companion,
+  declared per CROSS-02-02-v1.0.1 §8, and what is each family's
+  CROSS-02-03-v1.0.1 D1–D15 design-time disposition (allowed /
+  allowed_with_caveat / blocked_until_validation)?
+method: >-
+  Read CROSS-02-02-v1.0.1 §8 aoe2companion feature-family rows; emit a
+  per-family registry row per CROSS-02-03-v1.0.1 §3 audit-object schema;
+  classify each row according to CROSS-02-03-v1.0.1 §4 D1–D15 with N/A
+  for inapplicable dimensions; produce a planning-only catalog. No
+  feature value, no notebook output, no encoder fit. Every history-derived
+  family must explicitly declare the strict cutoff
+  `ph.started < target.started_at` at the registry-row level. Rating
+  reconstruction (CROSS-02-02-v1.0.1 §8.3) is registered as three
+  separate families: within ID 6, within ID 18, and combined; no
+  silent merge across leaderboard scopes is permitted. The notebook
+  scaffold + one validation module that materialize this registry are
+  produced by a SEPARATE FUTURE PR per
+  .claude/rules/data-analysis-lineage.md §"Non-batching rule" sequence
+  steps 2–9; THIS PR delivers only step 1 (ROADMAP stub).
+stratification: >-
+  Per family: dataset_tag = aoe2companion; prediction_setting; AoE2 civ
+  (focal/opponent and matchup); map; `internalLeaderboardId ∈ {6, 18}`
+  per CROSS-02-02-v1.0.1 §8.4 (stratification / sensitivity control,
+  NOT a generic categorical feature). The leaderboard ID is co-registered
+  alongside every aoe2companion feature row so that evaluation, error
+  analysis, and sensitivity arms can preserve the ID 6 ranked candidate
+  (rm_1v1) vs ID 18 quickplay/matchmaking-derived (qp_rm_1v1) distinction.
+predecessors: "01_06_04"
+notebook_path: >-
+  sandbox/aoe2/aoe2companion/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py
+inputs:
+  duckdb_tables:
+    - "matches_history_minimal"
+    - "player_history_all"
+  schema_yamls:
+    - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/views/matches_history_minimal.yaml"
+    - "src/rts_predict/games/aoe2/datasets/aoe2companion/data/db/schemas/views/player_history_all.yaml"
+  prior_artifacts:
+    - "src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/01_exploration/06_decision_gates/modeling_readiness_aoe2companion.md"
+  external_references:
+    - "reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1)"
+    - "reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §8"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1) §3 / §4 D1–D15"
+    - ".claude/rules/data-analysis-lineage.md"
+    - ".claude/scientific-invariants.md (I3, I5, I6, I7, I8, I9, I10)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_aoe2companion.csv"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/aoe2/datasets/aoe2companion/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_aoe2companion.md"
+reproducibility: >-
+  All registry rows derived from CROSS-02-02-v1.0.1 §8 verbatim; no magic
+  constants (Invariant I7); cold-start handling expressed as gate
+  categories per CROSS-02-02-v1.0.1 §9 (G-CS-1 through G-CS-6) — no
+  numeric pseudocount m, threshold K, smoothing strength α, or
+  imputation constant is declared at this layer.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Every history-feature family in the registry declares
+      allowed_cutoff_rule "history_time < target_time" (strict; per
+      CROSS-02-00-v3.0.1 §3.2) — for aoe2companion specifically
+      `ph.started < target.started_at`, where `started` is the
+      aoe2companion per-dataset history anchor (TIMESTAMP, pass-through
+      from `matches_raw.started` per CROSS-02-00-v3.0.1 §3.2). The
+      `in_game_snapshot` setting is structurally NOT supported for
+      aoe2companion per CROSS-02-02-v1.0.1 §3.2; no aoe2companion family
+      may be declared in that setting.
+  - number: "5"
+    how_upheld: >-
+      Every per-player family declares symmetric focal_* / opponent_*
+      construction; none commits a slot-asymmetric definition. The
+      aoe2companion source already exposes a per-player row in
+      `player_history_all` keyed by `(matchId, profileId)`; the registry
+      requires explicit symmetric mirroring of focal and opponent
+      histories per CROSS-02-02-v1.0.1 §8.3.
+  - number: "6"
+    how_upheld: >-
+      Registry rows trace to CROSS-02-00-v3.0.1 §5 column classifications
+      and CROSS-02-02-v1.0.1 §8 verbatim; no value is paraphrased. The
+      aoe2companion mixed-mode (ID 6 + ID 18) framing is preserved
+      verbatim per CROSS-02-02-v1.0.1 §8.1 and
+      thesis/pass2_evidence/aoe2_ladder_provenance_audit.md §4.3 (ID 6
+      Tier 2 ranked candidate; ID 18 Tier 3 quickplay/matchmaking-derived).
+  - number: "7"
+    how_upheld: >-
+      No magic numbers. Every cold-start gate is declared as a category;
+      every numeric value (window length, threshold K, pseudocount m,
+      smoothing strength α) is deferred to a per-dataset Phase 02
+      ROADMAP step that derives it empirically from training folds or
+      cites prior literature.
+  - number: "8"
+    how_upheld: >-
+      Every per-dataset polymorphic vocabulary (civ, map,
+      `internalLeaderboardId`, gameMode) carries the
+      `dataset_tag = 'aoe2companion'` partition note; no encoder is
+      declared as fit cross-dataset. The aoe2companion civ vocabulary
+      is partitioned from aoestats at the registry layer; the
+      aoe2companion map vocabulary is disjoint from sc2egset and is
+      partitioned from aoestats at the registry layer.
+  - number: "9"
+    how_upheld: >-
+      Registry is read-only against Phase 01 outputs; no model is built
+      at this step. Source-stratified evaluation by
+      `internalLeaderboardId ∈ {6, 18}` per CROSS-02-02-v1.0.1 §8.4 is
+      registered as a stratification dimension on every aoe2companion
+      feature row so that downstream evaluation can preserve the ID 6
+      ranked candidate (rm_1v1) vs ID 18 quickplay/matchmaking-derived
+      (qp_rm_1v1) distinction.
+  - number: "10"
+    how_upheld: >-
+      No raw-table or feature-table filename is declared with an absolute
+      path; lineage uses the same relative-path convention used by the
+      Phase 01 raw tables.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only
+    after the future scaffold-and-validation PR materializes the registry
+    CSV + MD; at that point the predicate is "the planned CSV and MD
+    exist at the declared paths and are non-empty."
+  continue_predicate: >-
+    A future PR may begin Step 02_01_02 (or the next 02_01 step in the
+    ROADMAP) only after this Step 02_01_01 has reached its CSV + MD
+    artifact-check at a future PR, the CROSS-02-01-v1.0.1
+    post-materialization audit gate has been re-run for any feature
+    column the registry triggers materialization of, and a per-family
+    CROSS-02-03-v1.0.1 §10 verdict is recorded for every registry row.
+  halt_predicate: >-
+    Halt before generating any registry artifact if any of the following
+    hold (per .claude/rules/data-analysis-lineage.md §"Stop conditions"):
+      - any aoe2companion family is declared with prediction_setting
+        in_game_snapshot (structurally not supported per
+        CROSS-02-02-v1.0.1 §3.2; aoe2companion records carry no in-game
+        replay telemetry);
+      - the aoe2companion combined ID 6 + ID 18 scope is called
+        ranked-only anywhere in the registry (CROSS-02-02-v1.0.1 §8.1
+        violation; CROSS-02-03-v1.0.1 D14 source-label discipline
+        violation; the combined scope is aoe2companion mixed-mode and
+        is not ranked-only);
+      - the ID 18 quickplay/matchmaking qualifier is dropped or replaced
+        with a ranked label (CROSS-02-03-v1.0.1 D14 violation; ID 18 is
+        `qp_rm_1v1` quickplay/matchmaking-derived per CROSS-02-02-v1.0.1
+        §8.1, not ranked);
+      - `internalLeaderboardId` is declared as a generic categorical
+        model input rather than a stratification / sensitivity-control
+        dimension (CROSS-02-02-v1.0.1 §8.4 violation;
+        CROSS-02-03-v1.0.1 D12 stratification-vs-feature violation;
+        G-L-9 source-mode-leakage falsifier);
+      - any history-derived row lacks the strict
+        `ph.started < target.started_at` cutoff against the per-dataset
+        anchor (CROSS-02-00-v3.0.1 §3.2 violation; Invariant I3
+        violation);
+      - any cold-start row pins a numeric pseudocount, threshold, or
+        smoothing constant without a fold-aware empirical derivation or
+        literature citation (Invariant I7);
+      - rating reconstruction is declared as silently merging ID 6 and
+        ID 18 scopes (CROSS-02-02-v1.0.1 §8.3 violation; the three
+        rating-reconstruction families — within ID 6, within ID 18, and
+        combined — must be registered as three separate feature
+        families and never silently merged at the feature layer);
+      - the future notebook scaffold attempts to batch ROADMAP +
+        notebook + artifact + next step in one execution, contrary to
+        the non-batching rule.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > §4.5 Feature engineering plan (aoe2companion registry)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per .claude/rules/data-analysis-lineage.md
+  §"Non-batching rule" sequence (step 1 — ROADMAP stub only — does not
+  produce a research_log entry). Required on the future scaffold-and-
+  validation PR per the standard step-completion protocol; entry goes
+  into src/rts_predict/games/aoe2/datasets/aoe2companion/reports/research_log.md.
+```
 
 ---
 

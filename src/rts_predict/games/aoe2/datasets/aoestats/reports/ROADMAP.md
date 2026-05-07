@@ -1745,12 +1745,230 @@ research_log_entry: "Required on completion."
 
 ---
 
-## Phase 02 — Feature Engineering (placeholder)
+## Phase 02 — Feature Engineering
 
 Pipeline Sections: see `docs/PHASES.md`.
 Steps to be defined when Phase 01 gate is met.
 
-**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1, LOCKED 2026-04-21). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1.0.1, LOCKED 2026-05-06 (patch successor of CROSS-02-01-v1, LOCKED 2026-04-21)). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v3.0.1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+
+Reuse of the CROSS-02-01-v1.0.1 audit protocol by Pipeline Sections 02_03 and 02_06 follows CROSS-02-01-v1.0.1 §6. The design-time companion gate is `reports/specs/02_03_temporal_feature_audit_protocol.md` (CROSS-02-03-v1.0.1, LOCKED 2026-05-06); the design-time feature-family plan is `reports/specs/02_02_feature_engineering_plan.md` (CROSS-02-02-v1.0.1, LOCKED 2026-05-06).
+
+### Pipeline Section 02_01 — Pre-Game vs In-Game Boundary
+
+```yaml
+step_number: "02_01_01"
+name: "Feature-family registry skeleton (aoestats)"
+description: >-
+  Per-dataset declaration of Phase 02 candidate feature families for aoestats:
+  family_id, prediction_setting (pre_game / history_enriched_pre_game /
+  blocked_or_deferred), source_table_or_event_family, source_grain,
+  model_input_grain, temporal_anchor, allowed_cutoff_rule,
+  candidate_leakage_modes, cold_start_handling, status. Registry is a
+  planning / catalog artifact; no feature value is computed. Constrained by
+  reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1),
+  reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1),
+  reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §7,
+  and reports/specs/02_03_temporal_feature_audit_protocol.md
+  (CROSS-02-03-v1.0.1) D1–D15. The aoestats source label is "aoestats 1v1
+  Random Map records (source label `leaderboard='random_map'`; queue
+  semantics unverified against upstream API documentation; Tier 4)" per
+  CROSS-02-02-v1.0.1 §7.1; aoestats is aoestats Tier 4 semantic opacity per
+  thesis/pass2_evidence/aoe2_ladder_provenance_audit.md §4.1.7 / §4.3.
+  aoestats MUST NOT be called unqualified ranked ladder — the
+  `leaderboard='random_map'` filter is an upstream source label, not proof
+  of ranked-ladder semantics; queue semantics (ranked vs quickplay vs
+  custom-lobby contamination) cannot be verified from available external
+  documentation. The `in_game_snapshot` setting is NOT supported for
+  aoestats per CROSS-02-02-v1.0.1 §3.2 (aoestats records carry no in-game
+  replay telemetry; the setting is structurally unavailable); no aoestats
+  family may be declared with `prediction_setting = in_game_snapshot`.
+  History features use history_time < target_time (strict inequality); the
+  aoestats per-dataset history anchor is `started_timestamp` per
+  CROSS-02-00-v3.0.1 §3.2, applied as `ph.started_timestamp <
+  target.started_at`. The DuckDB session for any cross-column TIMESTAMPTZ ↔
+  TIMESTAMP comparison MUST run with `SET TimeZone = 'UTC'` per
+  CROSS-02-00-v3.0.1 §3.3 (UTC session discipline; `started_timestamp` is
+  TIMESTAMPTZ, `matches_history_minimal.started_at` is TIMESTAMP). Focal /
+  opponent projection from the aoestats source `p0_*` / `p1_*` grain uses
+  the aoestats-only `canonical_slot` column on `matches_history_minimal`
+  per CROSS-02-00-v3.0.1 §5.2 (skill-orthogonal slot assignment, hashed on
+  match_id; NOT in the cross-dataset MHM UNION ALL). `new_rating` is
+  POST_GAME and is excluded from any pre_game / history_enriched_pre_game
+  feature lineage; `old_rating` is CONDITIONAL_PRE_GAME per
+  CROSS-02-00-v3.0.1 §5.5 (pre-game iff `leaderboard = 'random_map' AND
+  (time_since_prior_match_days < 7 OR time_since_prior_match_days IS
+  NULL)`). No magic cold-start constants — cold-start handling is
+  expressed only as gate categories per CROSS-02-02-v1.0.1 §9 (G-CS-1
+  through G-CS-6). Per .claude/rules/data-analysis-lineage.md, no
+  generated artifact is evidence until the upstream notebook's
+  assumptions, falsifiers, and sanity checks are reviewed BEFORE artifact
+  generation. NOT DELIVERED IN THIS ROADMAP-STUB PR — this entry only
+  declares the future step per .claude/rules/data-analysis-lineage.md
+  §"Non-batching rule for empirical work" sequence step 1.
+phase: "02 -- Feature Engineering"
+pipeline_section: "02_01 -- Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "aoestats"
+question: >-
+  Which Phase 02 candidate feature families exist for aoestats, declared
+  per CROSS-02-02-v1.0.1 §7, and what is each family's CROSS-02-03-v1.0.1
+  D1–D15 design-time disposition (allowed / allowed_with_caveat /
+  blocked_until_validation)?
+method: >-
+  Read CROSS-02-02-v1.0.1 §7 aoestats feature-family rows; emit a
+  per-family registry row per CROSS-02-03-v1.0.1 §3 audit-object schema;
+  classify each row according to CROSS-02-03-v1.0.1 §4 D1–D15 with N/A
+  for inapplicable dimensions; produce a planning-only catalog. No
+  feature value, no notebook output, no encoder fit. Every history-derived
+  family must explicitly declare the strict cutoff `ph.started_timestamp
+  < target.started_at` and the `SET TimeZone = 'UTC'` DuckDB session
+  discipline (CROSS-02-00-v3.0.1 §3.3) at the registry-row level. The
+  notebook scaffold + one validation module that materialize this
+  registry are produced by a SEPARATE FUTURE PR per
+  .claude/rules/data-analysis-lineage.md §"Non-batching rule" sequence
+  steps 2–9; THIS PR delivers only step 1 (ROADMAP stub).
+stratification: >-
+  Per family: dataset_tag = aoestats; prediction_setting; AoE2 civ
+  (focal/opponent and matchup); map. AoE2 civilizations are
+  stratification axes declared at the family level (50 civs in aoestats
+  1v1 scope per aoestats INVARIANTS.md §1) but not encoded as registry
+  rows here.
+predecessors: "01_06_04"
+notebook_path: >-
+  sandbox/aoe2/aoestats/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py
+inputs:
+  duckdb_tables:
+    - "matches_history_minimal"
+    - "player_history_all"
+  schema_yamls:
+    - "src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/views/matches_history_minimal.yaml"
+    - "src/rts_predict/games/aoe2/datasets/aoestats/data/db/schemas/views/player_history_all.yaml"
+  prior_artifacts:
+    - "src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/06_decision_gates/modeling_readiness_aoestats.md"
+  external_references:
+    - "reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1)"
+    - "reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §7"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1) §3 / §4 D1–D15"
+    - ".claude/rules/data-analysis-lineage.md"
+    - ".claude/scientific-invariants.md (I3, I5, I6, I7, I8, I9, I10)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_aoestats.csv"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_aoestats.md"
+reproducibility: >-
+  All registry rows derived from CROSS-02-02-v1.0.1 §7 verbatim; no magic
+  constants (Invariant I7); cold-start handling expressed as gate
+  categories per CROSS-02-02-v1.0.1 §9 (G-CS-1 through G-CS-6) — no
+  numeric pseudocount m, threshold K, smoothing strength α, or
+  imputation constant is declared at this layer.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Every history-feature family in the registry declares
+      allowed_cutoff_rule "history_time < target_time" (strict; per
+      CROSS-02-00-v3.0.1 §3.3) — for aoestats specifically
+      `ph.started_timestamp < target.started_at`, with the DuckDB session
+      discipline `SET TimeZone = 'UTC'` (CROSS-02-00-v3.0.1 §3.3)
+      declared at the registry-row level for any TIMESTAMPTZ ↔ TIMESTAMP
+      comparison. The `in_game_snapshot` setting is structurally NOT
+      supported for aoestats per CROSS-02-02-v1.0.1 §3.2; no aoestats
+      family may be declared in that setting. `new_rating` (POST_GAME)
+      is excluded; `old_rating` is CONDITIONAL_PRE_GAME per
+      CROSS-02-00-v3.0.1 §5.5 and is admitted only under the conditional
+      window.
+  - number: "5"
+    how_upheld: >-
+      Every per-player family declares symmetric focal_* / opponent_*
+      construction; none commits a slot-asymmetric definition. The
+      aoestats source `p0_*` / `p1_*` grain MUST be projected to the
+      focal / opponent grain via the aoestats-only `canonical_slot`
+      column on `matches_history_minimal` per CROSS-02-00-v3.0.1 §5.2
+      (skill-orthogonal slot, hash-on-match_id; aoestats-local, not in
+      the MHM UNION ALL).
+  - number: "6"
+    how_upheld: >-
+      Registry rows trace to CROSS-02-00-v3.0.1 §5 column classifications
+      and CROSS-02-02-v1.0.1 §7 verbatim; no value is paraphrased. The
+      aoestats Tier 4 semantic opacity framing is preserved verbatim per
+      CROSS-02-02-v1.0.1 §7.1 and thesis/pass2_evidence/aoe2_ladder_provenance_audit.md.
+  - number: "7"
+    how_upheld: >-
+      No magic numbers. Every cold-start gate is declared as a category;
+      every numeric value (window length, threshold K, pseudocount m,
+      smoothing strength α) is deferred to a per-dataset Phase 02
+      ROADMAP step that derives it empirically from training folds or
+      cites prior literature.
+  - number: "8"
+    how_upheld: >-
+      Every per-dataset polymorphic vocabulary (civ, map, leaderboard)
+      carries the dataset_tag = 'aoestats' partition note; no encoder
+      is declared as fit cross-dataset. The aoestats civ vocabulary
+      (50 civs in 1v1 scope) is disjoint from sc2egset race vocabulary;
+      the aoestats map vocabulary is disjoint from sc2egset and is
+      partitioned from aoe2companion at the registry layer.
+  - number: "9"
+    how_upheld: >-
+      Registry is read-only against Phase 01 outputs; no model is built;
+      no source-stratified evaluation claim is encoded yet.
+  - number: "10"
+    how_upheld: >-
+      No raw-table or feature-table filename is declared with an absolute
+      path; lineage uses the same relative-path convention used by the
+      Phase 01 raw tables.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only
+    after the future scaffold-and-validation PR materializes the registry
+    CSV + MD; at that point the predicate is "the planned CSV and MD
+    exist at the declared paths and are non-empty."
+  continue_predicate: >-
+    A future PR may begin Step 02_01_02 (or the next 02_01 step in the
+    ROADMAP) only after this Step 02_01_01 has reached its CSV + MD
+    artifact-check at a future PR, the CROSS-02-01-v1.0.1
+    post-materialization audit gate has been re-run for any feature
+    column the registry triggers materialization of, and a per-family
+    CROSS-02-03-v1.0.1 §10 verdict is recorded for every registry row.
+  halt_predicate: >-
+    Halt before generating any registry artifact if any of the following
+    hold (per .claude/rules/data-analysis-lineage.md §"Stop conditions"):
+      - any aoestats family is declared with prediction_setting
+        in_game_snapshot (structurally not supported per
+        CROSS-02-02-v1.0.1 §3.2; aoestats records carry no in-game
+        replay telemetry);
+      - aoestats is called unqualified ranked ladder anywhere in the
+        registry (Tier 4 violation; CROSS-02-03-v1.0.1 D14 violation;
+        aoestats MUST NOT be called unqualified ranked ladder);
+      - `new_rating` (POST_GAME) is declared as a `pre_game` or
+        `history_enriched_pre_game` feature (CROSS-02-00-v3.0.1 §5.5
+        violation; Invariant I3 violation);
+      - `old_rating` is declared as unconditional PRE_GAME (it is
+        CONDITIONAL_PRE_GAME per CROSS-02-00-v3.0.1 §5.5; pre-game iff
+        `leaderboard = 'random_map' AND (time_since_prior_match_days < 7
+        OR time_since_prior_match_days IS NULL)`);
+      - any history-derived row lacks the strict
+        `ph.started_timestamp < target.started_at` cutoff against the
+        per-dataset anchor;
+      - the DuckDB session for any future cross-column TIMESTAMPTZ ↔
+        TIMESTAMP comparison is not declared as `SET TimeZone = 'UTC'`
+        (CROSS-02-00-v3.0.1 §3.3 violation);
+      - any cold-start row pins a numeric pseudocount, threshold, or
+        smoothing constant without a fold-aware empirical derivation or
+        literature citation (Invariant I7);
+      - the future notebook scaffold attempts to batch ROADMAP +
+        notebook + artifact + next step in one execution, contrary to
+        the non-batching rule.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > §4.5 Feature engineering plan (aoestats registry)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per .claude/rules/data-analysis-lineage.md
+  §"Non-batching rule" sequence (step 1 — ROADMAP stub only — does not
+  produce a research_log entry). Required on the future scaffold-and-
+  validation PR per the standard step-completion protocol; entry goes
+  into src/rts_predict/games/aoe2/datasets/aoestats/reports/research_log.md.
+```
 
 ---
 

@@ -1902,12 +1902,199 @@ research_log_entry: "Required on completion."
 
 ---
 
-## Phase 02 — Feature Engineering (placeholder)
+## Phase 02 — Feature Engineering
 
 Pipeline Sections: see `docs/PHASES.md`.
 Steps to be defined when Phase 01 gate is met.
 
-**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1, LOCKED 2026-04-21). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+**Mandatory entry requirement (added 2026-04-21 per WP-2):** Before any step in Pipeline Section 02_01 exits, a leakage-audit artifact must be produced per `reports/specs/02_01_leakage_audit_protocol.md` (CROSS-02-01-v1.0.1, LOCKED 2026-05-06 (patch successor of CROSS-02-01-v1, LOCKED 2026-04-21)). The audit verifies cutoff-time structural filters, POST-GAME token absence from feature lineage, normalization fit-scope, and reference-window assertion. `verdict = PASS` is required for 02_01 exit. v1 enforcement is convention-based (reviewer-adversarial gate); automated tooling enforcement is a §7 future-amendment target. Input contract: `reports/specs/02_00_feature_input_contract.md` (CROSS-02-00-v3.0.1). Protocol is reused (not re-gated) by 02_03 and 02_06.
+
+Reuse of the CROSS-02-01-v1.0.1 audit protocol by Pipeline Sections 02_03 and 02_06 follows CROSS-02-01-v1.0.1 §6. The design-time companion gate is `reports/specs/02_03_temporal_feature_audit_protocol.md` (CROSS-02-03-v1.0.1, LOCKED 2026-05-06); the design-time feature-family plan is `reports/specs/02_02_feature_engineering_plan.md` (CROSS-02-02-v1.0.1, LOCKED 2026-05-06).
+
+### Pipeline Section 02_01 — Pre-Game vs In-Game Boundary
+
+```yaml
+step_number: "02_01_01"
+name: "Feature-family registry skeleton (sc2egset)"
+description: >-
+  Per-dataset declaration of Phase 02 candidate feature families for sc2egset:
+  family_id, prediction_setting (pre_game / history_enriched_pre_game /
+  in_game_snapshot / blocked_or_deferred), source_table_or_event_family,
+  source_grain, model_input_grain, temporal_anchor, allowed_cutoff_rule,
+  candidate_leakage_modes, cold_start_handling, status. Registry is a
+  planning / catalog artifact; no feature value is computed. Constrained by
+  reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1),
+  reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1),
+  reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §6,
+  and reports/specs/02_03_temporal_feature_audit_protocol.md
+  (CROSS-02-03-v1.0.1) D1–D15. SC2 in_game_snapshot families are bound by
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv:
+  only rows with status_in_game_snapshot ∈ {eligible_for_phase02_now,
+  eligible_with_caveat} may be declared (12 of 15 rows); the three
+  blocked_until_additional_validation rows (mind_control_event_count,
+  army_centroid_at_cutoff_snapshot, playerstats_cumulative_economy_fields)
+  remain excluded. The slot_identity_consistency row is recorded by the
+  CSV as status_in_game_snapshot = eligible_for_phase02_now with
+  notes_for_phase02 = "feature-engineering sanity gate; not a model input"
+  and eligibility_scope = "structural validity check: per-replay assertion
+  …"; the Phase 02 registry MUST therefore represent it as a registry-level
+  classification sanity_gate_not_model_input — a registry-introduced
+  classification derived from the CSV's notes_for_phase02 + eligibility_scope
+  fields and the PR #208 Phase 02 guidance, not a verbatim CSV
+  status_in_game_snapshot value. The CSV's status_in_game_snapshot value
+  for that row remains eligible_for_phase02_now and is NOT being
+  reclassified at the CSV layer. Tracker-derived features are never pre-game
+  (Invariant I3; Amendment 2 of PR #208). History features use
+  history_time < target_time (strict inequality; CROSS-02-00-v3.0.1 §3.3);
+  in_game_snapshot features use event.loop <= cutoff_loop. No magic
+  cold-start constants — cold-start handling is expressed only as gate
+  categories per CROSS-02-02-v1.0.1 §9 (G-CS-1 through G-CS-6). Per
+  .claude/rules/data-analysis-lineage.md, no generated artifact is
+  evidence until the upstream notebook's assumptions, falsifiers, and
+  sanity checks are reviewed BEFORE artifact generation. NOT DELIVERED IN
+  THIS ROADMAP-STUB PR — this entry only declares the future step per
+  .claude/rules/data-analysis-lineage.md §"Non-batching rule for empirical
+  work" sequence step 1.
+phase: "02 -- Feature Engineering"
+pipeline_section: "02_01 -- Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: >-
+  Which Phase 02 candidate feature families exist for sc2egset, declared
+  per CROSS-02-02-v1.0.1 §6, and what is each family's CROSS-02-03-v1.0.1
+  D1–D15 design-time disposition (allowed / allowed_with_caveat /
+  blocked_until_validation / sanity_gate_not_model_input)?
+method: >-
+  Read CROSS-02-02-v1.0.1 §6 sc2egset feature-family rows and
+  tracker_events_feature_eligibility.csv; emit a per-family registry row
+  per CROSS-02-03-v1.0.1 §3 audit-object schema; classify each row
+  according to CROSS-02-03-v1.0.1 §4 D1–D15 with N/A for inapplicable
+  dimensions; record D13 SC2-tracker-eligibility verdicts directly from
+  the CSV without re-derivation; produce a planning-only catalog. No
+  feature value, no notebook output, no encoder fit. The notebook
+  scaffold + one validation module that materialize this registry are
+  produced by a SEPARATE FUTURE PR per .claude/rules/data-analysis-lineage.md
+  §"Non-batching rule" sequence steps 2–9; THIS PR delivers only step 1
+  (ROADMAP stub).
+stratification: >-
+  Per family: dataset_tag = sc2egset; prediction_setting; source event
+  family. SC2 races (Prot / Terr / Zerg / Rand) are stratification axes
+  declared at the family level (see RISK-26 — Random race semantics) but
+  not encoded as registry rows here.
+predecessors: "01_06_04"
+notebook_path: >-
+  sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py
+inputs:
+  duckdb_tables:
+    - "matches_history_minimal"
+    - "player_history_all"
+  schema_yamls:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml"
+  prior_artifacts:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/06_decision_gates/modeling_readiness_sc2egset.md"
+  external_references:
+    - "reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1)"
+    - "reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §6"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1) §3 / §4 D1–D15"
+    - ".claude/rules/data-analysis-lineage.md"
+    - ".claude/scientific-invariants.md (I3, I5, I6, I7, I8, I9, I10)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_sc2egset.csv"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_sc2egset.md"
+reproducibility: >-
+  All registry rows derived from CROSS-02-02-v1.0.1 §6 and the tracker
+  CSV at the cited path; no magic constants (Invariant I7); cold-start
+  handling expressed as gate categories per CROSS-02-02-v1.0.1 §9
+  (G-CS-1 through G-CS-6) — no numeric pseudocount m, threshold K,
+  smoothing strength α, or imputation constant is declared at this layer.
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Every history-feature family in the registry declares
+      allowed_cutoff_rule "history_time < target_time" (strict; per
+      CROSS-02-00-v3.0.1 §3.3). Every in_game_snapshot family declares
+      "event.loop <= cutoff_loop". No tracker-derived family is declared
+      with prediction_setting pre_game or history_enriched_pre_game
+      (Amendment 2 of PR #208).
+  - number: "5"
+    how_upheld: >-
+      Every per-player family declares symmetric focal_* / opponent_*
+      construction; none commits a slot-asymmetric definition. RISK-24 is
+      cited; the data-dependent slot-assignment falsifier is enumerated.
+  - number: "6"
+    how_upheld: >-
+      Registry rows trace to CROSS-02-00-v3.0.1 §5 column classifications
+      and the tracker CSV verbatim; no value is paraphrased.
+  - number: "7"
+    how_upheld: >-
+      No magic numbers. Every cold-start gate is declared as a category;
+      every numeric value (window length, cutoff_loop, threshold K,
+      pseudocount m, smoothing strength α) is deferred to a per-dataset
+      Phase 02 ROADMAP step that derives it empirically from training
+      folds or cites prior literature.
+  - number: "8"
+    how_upheld: >-
+      Every per-dataset polymorphic vocabulary (race / civ, map,
+      leaderboard) carries the dataset_tag = 'sc2egset' partition note;
+      no encoder is declared as fit cross-dataset.
+  - number: "9"
+    how_upheld: >-
+      Registry is read-only against Phase 01 outputs; no model is built;
+      no source-stratified evaluation claim is encoded yet.
+  - number: "10"
+    how_upheld: >-
+      No raw-table or feature-table filename is declared with an absolute
+      path; lineage uses the same relative-path convention used by the
+      Phase 01 raw tables.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only
+    after the future scaffold-and-validation PR materializes the registry
+    CSV + MD; at that point the predicate is "the planned CSV and MD
+    exist at the declared paths and are non-empty."
+  continue_predicate: >-
+    A future PR may begin Step 02_01_02 (or the next 02_01 step in the
+    ROADMAP) only after this Step 02_01_01 has reached its CSV + MD
+    artifact-check at a future PR, the CROSS-02-01-v1.0.1
+    post-materialization audit gate has been re-run for any feature
+    column the registry triggers materialization of, and a per-family
+    CROSS-02-03-v1.0.1 §10 verdict is recorded for every registry row.
+  halt_predicate: >-
+    Halt before generating any registry artifact if any of the following
+    hold (per .claude/rules/data-analysis-lineage.md §"Stop conditions"):
+      - any sc2egset tracker-derived row is declared with
+        prediction_setting pre_game or history_enriched_pre_game
+        (Invariant I3 violation; Amendment 2 of PR #208 violation);
+      - any blocked_until_additional_validation tracker row from
+        tracker_events_feature_eligibility.csv (mind_control_event_count,
+        army_centroid_at_cutoff_snapshot, playerstats_cumulative_economy_fields)
+        appears in the registry as an eligible candidate;
+      - any history-derived row lacks the strict history_time < target_time
+        cutoff against the per-dataset anchor (sc2egset:
+        ph.details_timeUTC < target.started_at);
+      - any in_game_snapshot row uses event.loop > cutoff_loop or expresses
+        the cutoff only in seconds without a corresponding loop value
+        (V1 lps caveat);
+      - any cold-start row pins a numeric pseudocount, threshold, or
+        smoothing constant without a fold-aware empirical derivation or
+        literature citation (Invariant I7);
+      - the future notebook scaffold attempts to batch ROADMAP +
+        notebook + artifact + next step in one execution, contrary to
+        the non-batching rule.
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > §4.5 Feature engineering plan (sc2egset registry)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per .claude/rules/data-analysis-lineage.md
+  §"Non-batching rule" sequence (step 1 — ROADMAP stub only — does not
+  produce a research_log entry). Required on the future scaffold-and-
+  validation PR per the standard step-completion protocol; entry goes
+  into src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
+```
 
 ---
 
