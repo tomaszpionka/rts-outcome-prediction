@@ -19,6 +19,19 @@ merged to `master`.
 
 ### Removed
 
+## [3.47.0] — 2026-05-07 (PR #<TBD>: phase02/roadmap-stubs-feature-registry)
+
+### Added
+
+- SC2EGSet ROADMAP stub added for Step 02_01_01 feature-family registry.
+- aoestats ROADMAP stub added for Step 02_01_01 feature-family registry.
+- aoe2companion ROADMAP stub added for Step 02_01_01 feature-family registry.
+- ROADMAP-stub only: no notebooks created, no feature generation, no generated artifacts, no raw data edits, no status YAML edits, no research_log edits, no thesis edits.
+- CROSS-02-00-v3.0.1, CROSS-02-01-v1.0.1, CROSS-02-02-v1.0.1, CROSS-02-03-v1.0.1 preserved as locked inputs.
+- SC2 tracker features constrained by tracker_events_feature_eligibility.csv.
+- aoestats Tier 4 semantic opacity preserved.
+- aoe2companion mixed-mode ID 6 + ID 18 preserved.
+
 ## [3.46.0] — 2026-05-06 (PR #210: docs/phase02-contracts-lock-and-planning-cleanup)
 
 ### Changed
