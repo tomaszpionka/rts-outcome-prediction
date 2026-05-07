@@ -29,8 +29,9 @@ PR #211 is already merged at master commit `6e220ad989ce715bb1f016ac6f76252c346c
 (version 3.47.0). That PR delivered the ROADMAP stub for Step 02_01_01 (lineage sequence
 step 1). This plan starts from master at version 3.47.0. Do NOT re-merge PR #211.
 
-The current branch `phase02/sc2egset-feature-registry-scaffold` does not yet exist; it is
-created from master at the start of implementation.
+The branch `phase02/sc2egset-feature-registry-scaffold` already exists and carries two
+planning-only commits (`cba28e30`, `bed813e4`). Execution begins on that branch; the
+next commit will be the scaffold commit.
 
 Active dataset step registry: Step 02_01_01 is **not present** — no entry exists for
 this step. The last recorded step is `01_06_04` (completed 2026-04-19). Step 02_01_01
@@ -203,8 +204,9 @@ None. All open questions (OQ1–OQ3) are resolved in Assumptions above.
 
 Three commits, in order:
 
-1. **Planning commit** (already done at HEAD `cba28e30`): `planning/current_plan.md`
-   only — `docs(planning): plan sc2egset feature registry scaffold`
+1. **Planning commits** (already done; branch HEAD = `bed813e4`): two
+   `docs(planning):` commits — `cba28e30` (initial plan) and `bed813e4` (corrected
+   plan). Implementation starts on top of `bed813e4`.
 
 2. **Scaffold commit**: notebook pair (`.py` + `.ipynb`) + validation module
    (`validate_registry_skeleton.py`) only. Commit message:
@@ -448,6 +450,8 @@ Raises `AssertionError` with a descriptive message on any failure.
   blocked_until_additional_validation}` for every row
 - Assert `feature_family_id` is non-null, non-empty, unique across all rows
 - Assert every `feature_family_id` starts with `sc2egset.` (dataset-prefixed per OQ1)
+- Assert every row has `dataset_tag == "sc2egset"` (single-dataset skeleton; no
+  multi-dataset rows admitted)
 - Assert no row has a materialized feature-value column (column count == 13 exactly)
 
 **V-2 — Tracker eligibility split counts**
@@ -543,9 +547,12 @@ All must hold for merge:
 - **Primary gate**: `@reviewer-deep` (Opus) at T09 after PR is created
 - **Reviewer-adversarial**: invoked ONLY if reviewer-deep raises an unresolved
   methodology BLOCKER
-- Do not invoke reviewer-adversarial upfront or by default
-- No `planning/current_plan.critique.md` required before execution (per
-  data-analysis-lineage.md exception for Phase 02 readiness work)
+- Do not invoke reviewer-adversarial upfront or by default. Per
+  `.claude/rules/data-analysis-lineage.md` line 24: "For this active Phase 02 readiness
+  PR, do not invoke reviewer-adversarial unless the plan is amended or reviewer-deep
+  raises a BLOCKER requiring adversarial methodology review." The reviewer-deep critique
+  (this file's `planning/current_plan.critique.md`) fulfills the Category A critique
+  slot; no separate upfront adversarial critique is produced.
 
 ---
 
@@ -580,7 +587,10 @@ Executor must HALT if `git status` lists any of:
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
 - `reports/research_log.md`
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
-- `reports/specs/02_0*.md`
+- `reports/specs/02_00_feature_input_contract.md`
+- `reports/specs/02_01_leakage_audit_protocol.md`
+- `reports/specs/02_02_feature_engineering_plan.md`
+- `reports/specs/02_03_temporal_feature_audit_protocol.md`
 - `src/rts_predict/games/aoe2/**`
 - `thesis/**`
 - `.claude/**`
