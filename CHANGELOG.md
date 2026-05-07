@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.47.0] — 2026-05-07 (PR #<TBD>: phase02/roadmap-stubs-feature-registry)
+## [3.47.0] — 2026-05-07 (PR #211: phase02/roadmap-stubs-feature-registry)
 
 ### Added
 
