@@ -1,13 +1,13 @@
 # Planning Index
 
 ## Active plan
-- phase02/sc2egset-feature-registry-scaffold (2026-05-07) — SC2EGSet Step 02_01_01 notebook scaffold + one validation module
+- phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start (2026-05-08) — SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation
 
 ## Archive
 
-| Branch | Date | Category | Description | Plan file |
-|--------|------|----------|-------------|-----------|
-| phase02/sc2egset-feature-registry-scaffold | 2026-05-07 | A | SC2EGSet Step 02_01_01 notebook scaffold + one validation module | current_plan.md |
+| Branch | Date | Category | Description | Plan file | Merged PR |
+|--------|------|----------|-------------|-----------|-----------|
+| phase02/sc2egset-feature-registry-scaffold | 2026-05-07 | A | SC2EGSet Step 02_01_01 notebook scaffold + one validation module | current_plan.md | #212 (merged 2026-05-08 at master 18d30a81) |
 
 ## Agent routing
 
