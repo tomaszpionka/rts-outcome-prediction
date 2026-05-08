@@ -19,6 +19,21 @@ merged to `master`.
 
 ### Removed
 
+## [3.48.0] — 2026-05-08 (PR #212: phase02/sc2egset-feature-registry-scaffold)
+
+### Added
+
+- SC2EGSet Phase 02 feature-family registry scaffold notebook pair (`sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.{py,ipynb}`): 26-row in-memory registry skeleton (5 `pre_game` + 6 `history_enriched_pre_game` + 4 `in_game_snapshot` eligible_for_phase02_now + 7 `in_game_snapshot` eligible_with_caveat + 1 sanity_gate + 3 blocked), with cell outputs confirming "ALL PASS (V-1 through V-6)".
+- Validation module `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py` exposing `validate_registry_skeleton(skeleton, tracker_csv_path) -> None` with assertions V-1 through V-6: schema integrity, tracker eligibility split counts, blocked tracker families remain blocked, `slot_identity_consistency` registry reclassification, zero tracker-derived rows in `pre_game`/`history_enriched_pre_game`, and history strict-`<` with `details_timeUTC` provenance.
+- 30 unit tests for the validation module covering V-1 through V-6 plus helper edge cases (`tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_skeleton.py`).
+- Implements lineage sequence step 2 (scaffold + one validation module) per `.claude/rules/data-analysis-lineage.md` §"Non-batching rule for empirical work". No feature values computed, no report artifacts produced, no STEP_STATUS.yaml / PIPELINE_SECTION_STATUS.yaml / PHASE_STATUS.yaml edits, no research_log.md entries, and no notebook_regeneration_manifest.md entries in this PR (all deferred to a subsequent artifacts/log/status/manifest PR after reviewed execution).
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.47.0] — 2026-05-07 (PR #211: phase02/roadmap-stubs-feature-registry)
 
 ### Added
