@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.48.0] — 2026-05-08 (PR #TBD: phase02/sc2egset-feature-registry-scaffold)
+## [3.48.0] — 2026-05-08 (PR #212: phase02/sc2egset-feature-registry-scaffold)
 
 ### Added
 
