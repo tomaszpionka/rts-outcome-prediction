@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.50.0] — 2026-05-09 (PR #TBD: phase02/sc2egset-feature-registry-v8-source-grain-well-formedness)
+## [3.50.0] — 2026-05-09 (PR #214: phase02/sc2egset-feature-registry-v8-source-grain-well-formedness)
 
 ### Added
 
