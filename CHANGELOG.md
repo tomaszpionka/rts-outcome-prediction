@@ -19,6 +19,22 @@ merged to `master`.
 
 ### Removed
 
+## [3.49.0] — 2026-05-09 (PR #TBD: phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start)
+
+### Added
+
+- V-1 strict `feature_family_id` segment alignment: every row must follow `sc2egset.<prediction_setting>.<family>` and the second dot-segment must equal `prediction_setting` verbatim (closes PR #212 reviewer-deep follow-up #1).
+- V-7 `cold_start_handling` vocabulary/sentinel validation: active/candidate rows use `G-CS-1..G-CS-6` (CROSS-02-02-v1.0.1 §9.1); `blocked_or_deferred` rows whose `status == "blocked_until_additional_validation"` use the literal `"blocked"` sentinel; numeric tokens forbidden everywhere (Invariant I7).
+- New tests for V-1 strict and V-7 (happy and failure paths). Total targeted-file test count: 48 (30 pre-existing + 18 new).
+- Notebook scaffold narrative + executed-output banner updated to `ALL PASS (V-1 through V-7)`.
+- Non-batching discipline: this PR remains within lineage sequence step 6 ("next validation module") per `.claude/rules/data-analysis-lineage.md`. No report artifacts, no `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` / `research_log.md` / `notebook_regeneration_manifest.md` updates; Step 02_01_01 remains not closed.
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.48.0] — 2026-05-08 (PR #212: phase02/sc2egset-feature-registry-scaffold)
 
 ### Added
