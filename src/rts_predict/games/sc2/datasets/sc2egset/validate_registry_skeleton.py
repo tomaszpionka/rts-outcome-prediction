@@ -11,7 +11,7 @@ Binding specs:
       §5.1 (sc2egset ``temporal_anchor = details_timeUTC``; ``started_at``
       is the cross-dataset alias and is rejected for sc2egset rows)
 
-Scope (eight assertions across V-1..V-7 implemented here):
+Scope (nine assertions across V-1..V-8 implemented here):
     V-1 Schema integrity: 13 required columns, controlled vocabularies for
         ``prediction_setting`` and ``status``, dataset-prefixed unique
         ``feature_family_id``, single-dataset ``dataset_tag``.
@@ -35,6 +35,17 @@ Scope (eight assertions across V-1..V-7 implemented here):
         "blocked_until_additional_validation"`` must carry the literal
         sentinel ``"blocked"``; numeric tokens are forbidden everywhere
         (Invariant I7).
+    V-8 ``source_grain`` structural well-formedness:
+        every row's ``source_grain`` matches the parenthesised
+        tuple form ``(filename[, key1[, key2]])``; tracker-event
+        rows draw the extra keys from
+        ``{playerId, controlPlayerId, killerPlayerId,
+           owner_via_unitborn_lineage}``; non-tracker rows draw
+        the extra keys from
+        ``{player_id_worldwide, opponent_player_id_worldwide}``,
+        or use the bare ``(filename)`` form for match-level rows.
+        V-8 is NOT spec-D10 (focal/opponent symmetry); D10 is
+        deferred.
 
 Deferred to subsequent validation modules (NOT covered here):
     - Per-row optimal G-CS gate fit (which gate suits each family
@@ -51,6 +62,7 @@ notebook caller is responsible for surfacing PASS/FAIL output.
 from __future__ import annotations
 
 import csv
+import re
 from pathlib import Path
 from typing import Any
 
@@ -137,6 +149,47 @@ BLOCKED_SENTINEL: str = "blocked"
 # V-7 carve-out predicate components.
 BLOCKED_PREDICTION_SETTING: str = "blocked_or_deferred"
 BLOCKED_STATUS: str = "blocked_until_additional_validation"
+
+# CROSS-02-03-v1.0.1 §3 audit-object schema for source_grain — the
+# column carries tuple-of-key-columns expressions describing the
+# identity-key composition each source feeds into the model row.
+# The on-disk skeleton uses a richer encoding than the spec's
+# prose-style description; V-8 validates the encoding's structural
+# well-formedness and provenance-key consistency with the source
+# table. V-8 is NOT spec-D10 (which is focal/opponent symmetry
+# and p0/p1 projection — Invariant I5 — deferred to a future V-9).
+SOURCE_GRAIN_TUPLE_REGEX: re.Pattern[str] = re.compile(
+    r"^\(filename(?:,\s*[A-Za-z_][A-Za-z0-9_]*)*\)$"
+)
+
+# Tracker-event-row attribution keys documented in
+# tracker_events_feature_eligibility.csv `notes_for_phase02` /
+# `eligibility_scope` / `evidence_source` columns:
+#   - playerId: PlayerStats / PlayerSetup / Upgrade
+#   - controlPlayerId: UnitBorn / UnitInit
+#   - killerPlayerId: UnitDied direct attribution
+#   - owner_via_unitborn_lineage: UnitTypeChange / UnitDied
+#     lineage-attributed / UnitPositions
+TRACKER_ATTRIBUTION_KEYS: frozenset[str] = frozenset(
+    {
+        "playerId",
+        "controlPlayerId",
+        "killerPlayerId",
+        "owner_via_unitborn_lineage",
+    }
+)
+
+# Non-tracker (history / pre_game) row grain keys: the
+# worldwide-identity columns documented in INVARIANTS.md §2 /
+# Branch (iii) and CROSS-02-00-v3.0.1 §3.2 (sc2egset native
+# toon_id / player_id_worldwide). Bare-match rows (map / patch /
+# version) carry no extra key — represented as the empty tuple.
+NON_TRACKER_GRAIN_KEYS: frozenset[str] = frozenset(
+    {"player_id_worldwide", "opponent_player_id_worldwide"}
+)
+
+# Tracker source-table prefix used for V-8 partitioning.
+TRACKER_SOURCE_TABLE_PREFIX: str = "tracker_events_raw"
 
 # Substrings that, if present in allowed_cutoff_rule, indicate post-outcome /
 # target-game leakage references.
@@ -501,10 +554,80 @@ def _check_v7_cold_start_vocabulary(
             )
 
 
+def _check_v8_source_grain_well_formedness(
+    skeleton: list[dict[str, Any]],
+) -> None:
+    """V-8: source_grain structural well-formedness + provenance-key consistency.
+
+    For every row, asserts:
+        1. ``source_grain`` is a non-empty string.
+        2. ``source_grain`` matches the regex
+           ``^\\(filename(?:,\\s*[A-Za-z_][A-Za-z0-9_]*)*\\)$``
+           (parenthesised tuple beginning with ``filename``,
+           optionally followed by comma-separated identifier keys).
+        3. If the row's ``source_table_or_event_family`` starts
+           with ``"tracker_events_raw"``: every key after
+           ``filename`` is in :data:`TRACKER_ATTRIBUTION_KEYS`.
+        4. Otherwise (non-tracker row): every key after
+           ``filename`` is in :data:`NON_TRACKER_GRAIN_KEYS`.
+           The bare ``(filename)`` form (no extra keys) is
+           accepted only on non-tracker rows.
+
+    V-8 is NOT a check of CROSS-02-03-v1.0.1 §4.1 D10 (focal/opponent
+    symmetry and p0/p1 projection); D10 is deferred to a future V-9
+    against the ``per_player_construction`` column.
+    """
+    for row in skeleton:
+        ffid = row["feature_family_id"]
+        sg = row["source_grain"]
+        src = row.get("source_table_or_event_family", "") or ""
+
+        # 1. Non-empty string.
+        assert isinstance(sg, str), (
+            f"V-8: row '{ffid}' source_grain is not a string "
+            f"(got {type(sg).__name__!r}); expected str"
+        )
+        assert sg, (
+            f"V-8: row '{ffid}' source_grain is empty"
+        )
+
+        # 2. Structural regex.
+        assert SOURCE_GRAIN_TUPLE_REGEX.match(sg), (
+            f"V-8: row '{ffid}' source_grain='{sg}' does not match "
+            f"the well-formed tuple pattern "
+            f"'(filename[, key1[, key2]])'"
+        )
+
+        # Extract keys after 'filename' (strip parens, split, drop 'filename').
+        inner = sg.strip("()")
+        parts = [p.strip() for p in inner.split(",")]
+        # parts[0] is 'filename' by regex; remaining parts are extra keys.
+        extra_keys = parts[1:]
+
+        # 3 + 4. Provenance-key consistency.
+        is_tracker = src.startswith(TRACKER_SOURCE_TABLE_PREFIX)
+        if is_tracker:
+            for k in extra_keys:
+                assert k in TRACKER_ATTRIBUTION_KEYS, (
+                    f"V-8: tracker row '{ffid}' (source_table_or_event_family="
+                    f"'{src}') has source_grain='{sg}' containing key "
+                    f"'{k}' not in tracker attribution vocabulary "
+                    f"{sorted(TRACKER_ATTRIBUTION_KEYS)}"
+                )
+        else:
+            for k in extra_keys:
+                assert k in NON_TRACKER_GRAIN_KEYS, (
+                    f"V-8: non-tracker row '{ffid}' (source_table_or_event_family="
+                    f"'{src}') has source_grain='{sg}' containing key "
+                    f"'{k}' not in non-tracker grain-key vocabulary "
+                    f"{sorted(NON_TRACKER_GRAIN_KEYS)}"
+                )
+
+
 def validate_registry_skeleton(
     skeleton: list[dict[str, Any]], tracker_csv_path: Path | str
 ) -> None:
-    """Run V-1..V-7 structural assertions on the registry skeleton.
+    """Run V-1..V-8 structural assertions on the registry skeleton.
 
     Args:
         skeleton: List of row dicts; one dict per planned feature family.
@@ -516,14 +639,15 @@ def validate_registry_skeleton(
 
     Raises:
         AssertionError: with a descriptive message naming the failing
-            check (V-1..V-7) and the offending row(s) on any structural
+            check (V-1..V-8) and the offending row(s) on any structural
             violation.
 
     Check order:
         V-1 base schema integrity → V-1 strict id-segment alignment →
         V-2 tracker split counts → V-3 blocked families →
         V-4 slot_identity_consistency → V-5 no tracker in pre_game →
-        V-6 history strict ``<`` → V-7 cold_start_handling vocabulary.
+        V-6 history strict ``<`` → V-7 cold_start_handling vocabulary →
+        V-8 source_grain well-formedness.
     """
     _check_v1_schema_integrity(skeleton)
     _check_v1_strict_id_segment_alignment(skeleton)
@@ -534,3 +658,4 @@ def validate_registry_skeleton(
     _check_v5_no_tracker_in_pre_game(skeleton, tracker_rows)
     _check_v6_history_strict_lt(skeleton)
     _check_v7_cold_start_vocabulary(skeleton)
+    _check_v8_source_grain_well_formedness(skeleton)

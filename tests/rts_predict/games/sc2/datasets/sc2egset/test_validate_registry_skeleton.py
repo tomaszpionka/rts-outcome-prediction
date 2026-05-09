@@ -46,6 +46,7 @@ def _row(
     temporal_anchor: str = "details_timeUTC",
     allowed_cutoff_rule: str = "match_time < target_time",
     cold_start_handling: str = "G-CS-1",
+    source_grain: str = "(filename, player_id_worldwide)",
 ) -> dict[str, Any]:
     """Build a minimal valid skeleton row with sensible defaults."""
     return {
@@ -53,7 +54,7 @@ def _row(
         "dataset_tag": "sc2egset",
         "prediction_setting": prediction_setting,
         "source_table_or_event_family": source_table_or_event_family,
-        "source_grain": "(filename, player_id_worldwide)",
+        "source_grain": source_grain,
         "model_input_grain": "(focal_match_id, focal_player)",
         "target_grain": "(focal_match_id, focal_player)",
         "temporal_anchor": temporal_anchor,
@@ -92,6 +93,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             source_table_or_event_family="tracker_events_raw.UnitBorn",
             temporal_anchor="event.loop",
             allowed_cutoff_rule="event.loop <= cutoff_loop",
+            source_grain="(filename, controlPlayerId)",
         ),
         _row(
             feature_family_id="sc2egset.in_game_snapshot.slot_identity_consistency",
@@ -100,6 +102,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             source_table_or_event_family="tracker_events_raw.PlayerSetup",
             temporal_anchor="event.loop",
             allowed_cutoff_rule="event.loop <= cutoff_loop",
+            source_grain="(filename, playerId)",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.mind_control_event_count",
@@ -109,6 +112,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
+            source_grain="(filename, playerId)",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
@@ -118,6 +122,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
+            source_grain="(filename, owner_via_unitborn_lineage)",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
@@ -127,6 +132,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
+            source_grain="(filename, playerId)",
         ),
     ]
 
@@ -731,3 +737,165 @@ def test_v7_alphanumeric_with_equals_fails(
     # "alpha=0.5" not in COLD_START_GATE_VOCAB → V-7 vocabulary failure.
     with pytest.raises(AssertionError, match=r"V-7.*alpha=0\.5"):
         validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+# ---------------------------------------------------------------------------
+# V-8 source_grain structural well-formedness
+# ---------------------------------------------------------------------------
+
+
+def test_v8_valid_skeleton_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """V-8 happy path: the fixture skeleton (with corrected tracker source_grain values) passes."""
+    validate_registry_skeleton(valid_skeleton, TRACKER_CSV_PATH)
+
+
+def test_v8_unparenthesised_source_grain_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """source_grain without parentheses must be rejected by V-8 regex."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Mutate first row (pre_game, non-tracker) to a grain string missing parens.
+    skel[0]["source_grain"] = "filename, playerId"
+    with pytest.raises(AssertionError, match=r"V-8.*does not match"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_missing_filename_prefix_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """source_grain not starting with 'filename' must be rejected by V-8 regex."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["source_grain"] = "(player_id_worldwide)"
+    with pytest.raises(AssertionError, match=r"V-8.*does not match"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_invalid_identifier_key_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A key beginning with a digit must be rejected by V-8 regex (Invariant I7)."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["source_grain"] = "(filename, 123player)"
+    with pytest.raises(AssertionError, match=r"V-8.*does not match"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_unknown_tracker_attribution_key_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A tracker row with a key not in the tracker attribution vocabulary must fail V-8."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Find the count_units_built_by_cutoff_loop row (tracker_events_raw.UnitBorn).
+    for row in skel:
+        if row["source_table_or_event_family"] == "tracker_events_raw.UnitBorn":
+            # ownerPlayerId is NOT in TRACKER_ATTRIBUTION_KEYS.
+            row["source_grain"] = "(filename, ownerPlayerId)"
+            break
+    with pytest.raises(
+        AssertionError, match=r"V-8.*tracker.*ownerPlayerId.*not in tracker attribution"
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_unknown_non_tracker_grain_key_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-tracker row with a key not in the worldwide-identity vocabulary must fail V-8."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Find the focal_player_history row (matches_flat — non-tracker).
+    for row in skel:
+        if row["source_table_or_event_family"] == "matches_flat":
+            # profile_id is the aoestats key, not in NON_TRACKER_GRAIN_KEYS.
+            row["source_grain"] = "(filename, profile_id)"
+            break
+    with pytest.raises(
+        AssertionError, match=r"V-8.*non-tracker.*profile_id.*not in non-tracker grain-key"
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_non_string_source_grain_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-string source_grain value (e.g. int) must be rejected by V-8."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["source_grain"] = 12345  # type: ignore[assignment]
+    with pytest.raises(AssertionError, match=r"V-8.*not a string"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v8_blocked_row_source_grain_still_validates() -> None:
+    """Blocked rows carry real grain tuples (not a 'blocked' sentinel) and pass V-8.
+
+    Documents the asymmetry: sentinels exist on cold_start_handling,
+    model_input_grain, target_grain, temporal_anchor, allowed_cutoff_rule,
+    and candidate_leakage_modes, but NOT on source_grain — because the
+    source table provenance (and hence the natural key) is known even when
+    downstream model usage is blocked.
+    """
+    skeleton = [
+        # Minimal non-tracker pre_game row to satisfy V-3 for the three
+        # blocked tracker families — we add them below.
+        _row(
+            feature_family_id="sc2egset.pre_game.focal_race_with_opponent_race_pair",
+            prediction_setting="pre_game",
+            status="allowed",
+            source_table_or_event_family="replay_players_raw",
+            temporal_anchor="details_timeUTC",
+            allowed_cutoff_rule="snapshot_at_match_start",
+        ),
+        # history row to satisfy V-6.
+        _row(
+            feature_family_id="sc2egset.history_enriched_pre_game.focal_player_history",
+            prediction_setting="history_enriched_pre_game",
+            status="allowed",
+            source_table_or_event_family="matches_flat",
+            temporal_anchor="details_timeUTC",
+            allowed_cutoff_rule="history_time < target_time",
+        ),
+        # in_game_snapshot row to satisfy V-4 (slot_identity_consistency).
+        _row(
+            feature_family_id="sc2egset.in_game_snapshot.slot_identity_consistency",
+            prediction_setting="in_game_snapshot",
+            status="sanity_gate_not_model_input",
+            source_table_or_event_family="tracker_events_raw.PlayerSetup",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="event.loop <= cutoff_loop",
+            source_grain="(filename, playerId)",
+        ),
+        # The three V-3-required blocked tracker families — all with REAL grain tuples.
+        _row(
+            feature_family_id="sc2egset.blocked_or_deferred.mind_control_event_count",
+            prediction_setting="blocked_or_deferred",
+            status="blocked_until_additional_validation",
+            source_table_or_event_family="tracker_events_raw.UnitOwnerChange",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
+            source_grain="(filename, playerId)",  # real grain tuple, NOT "blocked"
+        ),
+        _row(
+            feature_family_id="sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
+            prediction_setting="blocked_or_deferred",
+            status="blocked_until_additional_validation",
+            source_table_or_event_family="tracker_events_raw.UnitPositions",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
+            source_grain="(filename, owner_via_unitborn_lineage)",  # real grain tuple
+        ),
+        _row(
+            feature_family_id="sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
+            prediction_setting="blocked_or_deferred",
+            status="blocked_until_additional_validation",
+            source_table_or_event_family="tracker_events_raw.PlayerStats",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
+            source_grain="(filename, playerId)",  # real grain tuple, NOT "blocked"
+        ),
+    ]
+    # V-8 must pass — blocked rows with real grain tuples are valid.
+    validate_registry_skeleton(skeleton, TRACKER_CSV_PATH)

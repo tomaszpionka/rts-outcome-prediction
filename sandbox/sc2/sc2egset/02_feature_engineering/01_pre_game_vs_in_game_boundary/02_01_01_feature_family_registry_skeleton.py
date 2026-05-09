@@ -140,8 +140,9 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #
 # ### Downstream decision
 # If V-1..V-7 ALL PASS, the skeleton structure is admissible as a candidate
-# registry; subsequent PRs may add validation modules D2, D3, D6, D8, D9, D10,
-# D11, D12, D15 and ultimately materialize the registry artifact. If ANY
+# registry; subsequent PRs may add validation modules for D2, D3, D6 (full),
+# D8, D9, D10 (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1), D12,
+# D15 and ultimately materialize the registry artifact. If ANY
 # check fails, halt before any artifact generation; do not patch outputs;
 # report the failing V-N and offending row(s) to the parent session.
 #
@@ -473,7 +474,7 @@ SKELETON: list[dict[str, str]] = (
 print(f"SKELETON row count: {len(SKELETON)}")
 
 # %% [markdown]
-# ## Validation module (V-1 through V-7)
+# ## Validation module (V-1 through V-8)
 #
 # `validate_registry_skeleton` (in
 # `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`)
@@ -497,14 +498,14 @@ print(f"SKELETON row count: {len(SKELETON)}")
 # per-row optimal G-CS gate fit (which gate suits each family
 # scientifically), per-player construction symmetry (Invariant I5),
 # candidate-leakage-mode coverage against CROSS-02-01-v1.0.1, and audit
-# dimensions D2/D3/D6/D8/D9/D10/D11/D12/D15.
+# dimensions D2/D3/D6/D8/D9/D10/D12/D15.
 
 # %%
 # Run the single validation module. AssertionError halts execution; the
 # notebook does NOT catch or mask exceptions. On success the module returns
 # None and the cell prints an explicit ALL PASS banner.
 validate_registry_skeleton(SKELETON, tracker_csv_path=TRACKER_CSV)
-print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
+print("validate_registry_skeleton: ALL PASS (V-1 through V-8)")
 
 # %% [markdown]
 # ## Conclusion
@@ -535,8 +536,10 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
 # - Add validation modules for audit dimensions D2 (controlled vocabularies
 #   beyond V-1), D3 (per-row cold-start gate value check), D6 (candidate
 #   leakage modes against CROSS-02-01-v1.0.1), D8 (per_player_construction
-#   symmetry), D9 (allowed_cutoff_rule structural parsing), D10 (source-grain
-#   well-formedness), D11 (model_input_grain consistency), D12 (target_grain
+#   symmetry), D9 (allowed_cutoff_rule structural parsing), D10
+#   (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1; NOT
+#   source-grain — V-8 of this PR covers source-grain well-formedness;
+#   spec-D10 is symmetry, deferred to a future V-9), D12 (target_grain
 #   consistency with prediction_setting), D15 (cross-row consistency of
 #   tracker-event-family references against the eligibility CSV).
 # - After all validation modules pass on review, materialize the registry
