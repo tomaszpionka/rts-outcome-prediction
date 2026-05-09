@@ -1,8 +1,8 @@
-"""Tests for ``validate_registry_skeleton`` (V-1..V-6).
+"""Tests for ``validate_registry_skeleton`` (V-1..V-7).
 
 Covers the SC2EGSet Step 02_01_01 registry skeleton validation module. Uses
 the actual tracker eligibility CSV shipped in the repo for V-2/V-4/V-5
-checks and synthetic in-memory skeletons for V-1/V-3/V-6 failure cases.
+checks and synthetic in-memory skeletons for V-1/V-3/V-6/V-7 failure cases.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from typing import Any
 import pytest
 
 from rts_predict.games.sc2.datasets.sc2egset.validate_registry_skeleton import (
+    COLD_START_GATE_VOCAB,
     REQUIRED_COLUMNS,
     validate_registry_skeleton,
 )
@@ -44,6 +45,7 @@ def _row(
     source_table_or_event_family: str = "matches_flat",
     temporal_anchor: str = "details_timeUTC",
     allowed_cutoff_rule: str = "match_time < target_time",
+    cold_start_handling: str = "G-CS-1",
 ) -> dict[str, Any]:
     """Build a minimal valid skeleton row with sensible defaults."""
     return {
@@ -57,7 +59,7 @@ def _row(
         "temporal_anchor": temporal_anchor,
         "allowed_cutoff_rule": allowed_cutoff_rule,
         "candidate_leakage_modes": "none",
-        "cold_start_handling": "G-CS-1",
+        "cold_start_handling": cold_start_handling,
         "status": status,
         "per_player_construction": "symmetric",
     }
@@ -106,6 +108,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             source_table_or_event_family="tracker_events_raw.UnitOwnerChange",
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
@@ -114,6 +117,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             source_table_or_event_family="tracker_events_raw.UnitPositions",
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
@@ -122,6 +126,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             source_table_or_event_family="tracker_events_raw.PlayerStats",
             temporal_anchor="event.loop",
             allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",
         ),
     ]
 
@@ -559,4 +564,170 @@ def test_v6_history_post_outcome_token_fails(
             )
             break
     with pytest.raises(AssertionError, match="V-6.*post-outcome"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+# ---------------------------------------------------------------------------
+# V-1 strict: feature_family_id second-segment alignment
+# ---------------------------------------------------------------------------
+
+
+def test_v1_strict_valid_skeleton_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """V-1 strict happy path: the fixture skeleton passes all checks."""
+    validate_registry_skeleton(valid_skeleton, TRACKER_CSV_PATH)
+
+
+def test_v1_strict_id_too_few_segments_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """feature_family_id with only 2 dot-segments must be rejected."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["feature_family_id"] = "sc2egset.no_dot"
+    with pytest.raises(AssertionError, match=r"V-1 strict.*sc2egset\.no_dot"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v1_strict_segment_mismatch_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Second dot-segment differing from prediction_setting must be rejected."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Row 1 has prediction_setting="history_enriched_pre_game".
+    # Swapping the second segment to WRONG_SEGMENT triggers V-1 strict.
+    skel[1]["feature_family_id"] = (
+        "sc2egset.WRONG_SEGMENT.focal_player_history"
+    )
+    with pytest.raises(AssertionError, match=r"V-1 strict.*WRONG_SEGMENT"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v1_strict_blocked_row_correct_segment_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Blocked rows with sc2egset.blocked_or_deferred.<family> pass V-1 strict."""
+    # The fixture already contains three blocked_or_deferred rows; this test
+    # documents that the conjunction pattern is V-1-strict-clean.
+    validate_registry_skeleton(valid_skeleton, TRACKER_CSV_PATH)
+
+
+# ---------------------------------------------------------------------------
+# V-7 cold_start_handling vocabulary + sentinel
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("token", sorted(COLD_START_GATE_VOCAB))
+def test_v7_vocabulary_each_gcs_token_passes(
+    valid_skeleton: list[dict[str, Any]],
+    token: str,
+) -> None:
+    """Each G-CS-N token in the controlled vocabulary must be accepted."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Mutate the first model-input row (pre_game, status=allowed).
+    skel[0]["cold_start_handling"] = token
+    validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_sentinel_under_conjunction_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Fixture's three conjunction-satisfying rows carry 'blocked' and must pass."""
+    # Step 0 already updated the fixture; this test documents the sentinel path.
+    validate_registry_skeleton(valid_skeleton, TRACKER_CSV_PATH)
+
+
+def test_v7_carve_out_status_mismatch_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Conjunction fails when status != 'blocked_until_additional_validation'.
+
+    A blocked_or_deferred row with status='allowed' means the conjunction
+    does NOT hold, so 'blocked' is treated as an unknown vocabulary token
+    (expected one of G-CS-1..G-CS-6) and V-7 fires.
+
+    Note: V-3 fires BEFORE V-7 in orchestrator order when a blocked family
+    has the wrong status. To isolate V-7, we use a fresh row whose
+    feature_family_id does NOT contain any BLOCKED_TRACKER_FAMILIES name.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    # Insert a new blocked_or_deferred row whose family name is NOT one of the
+    # three blocked tracker families (so V-3 does not fire first).
+    skel.append(
+        _row(
+            feature_family_id="sc2egset.blocked_or_deferred.custom_deferred_family",
+            prediction_setting="blocked_or_deferred",
+            status="allowed",  # conjunction fails
+            source_table_or_event_family="matches_flat",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="blocked",
+            cold_start_handling="blocked",  # sentinel, but conjunction not met
+        )
+    )
+    with pytest.raises(AssertionError, match="V-7"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_carve_out_prediction_setting_mismatch_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-blocked_or_deferred row carrying sentinel 'blocked' must be rejected."""
+    skel = copy.deepcopy(valid_skeleton)
+    # Row 0: prediction_setting="pre_game", status="allowed".
+    # Setting cold_start_handling to "blocked" → conjunction fails →
+    # "blocked" not in G-CS-1..G-CS-6 → V-7 fires.
+    skel[0]["cold_start_handling"] = "blocked"
+    with pytest.raises(AssertionError, match="V-7"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_numeric_integer_token_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Integer string cold_start_handling value must be rejected (Invariant I7)."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["cold_start_handling"] = "5"
+    with pytest.raises(AssertionError, match="V-7"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_numeric_decimal_token_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Decimal string cold_start_handling value must be rejected (Invariant I7)."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["cold_start_handling"] = "0.25"
+    with pytest.raises(AssertionError, match="V-7"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_unknown_token_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """An out-of-vocabulary token must be rejected."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["cold_start_handling"] = "G-CS-99"
+    with pytest.raises(AssertionError, match=r"V-7.*G-CS-99"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_non_string_cold_start_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-string cold_start_handling value must be rejected."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["cold_start_handling"] = 5  # type: ignore[assignment]
+    with pytest.raises(AssertionError, match="V-7"):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v7_alphanumeric_with_equals_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A token like 'alpha=0.5' is not numeric and not in the vocabulary, so V-7 fires."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["cold_start_handling"] = "alpha=0.5"
+    # float("alpha=0.5") raises ValueError → passes numeric check →
+    # "alpha=0.5" not in COLD_START_GATE_VOCAB → V-7 vocabulary failure.
+    with pytest.raises(AssertionError, match=r"V-7.*alpha=0\.5"):
         validate_registry_skeleton(skel, TRACKER_CSV_PATH)

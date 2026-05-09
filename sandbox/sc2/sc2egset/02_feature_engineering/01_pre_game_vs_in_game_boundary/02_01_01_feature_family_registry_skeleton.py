@@ -91,7 +91,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #
 # ### Measurement claim
 # `validate_registry_skeleton(skeleton, tracker_csv_path)` runs V-1 through
-# V-6 assertions and raises `AssertionError` with a descriptive message on any
+# V-7 structural assertions and raises `AssertionError` with a descriptive message on any
 # violation. ALL PASS means the skeleton is structurally admissible as a Phase
 # 02 candidate registry — it does NOT mean any feature has been computed,
 # materialized, or admitted as a model input. This is a registry-level audit,
@@ -105,13 +105,17 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # A drift of ±1 in any bucket halts validation immediately.
 #
 # ### Falsifier
-# Any of the six structural checks fails — V-1 (schema integrity), V-2
+# Any of the seven structural checks fails — V-1 (schema integrity + strict
+# feature_family_id second-segment alignment with prediction_setting), V-2
 # (tracker split counts), V-3 (blocked families remain blocked), V-4
 # (`slot_identity_consistency` is `sanity_gate_not_model_input` while CSV
 # remains `eligible_for_phase02_now`), V-5 (zero tracker-derived rows in
 # `pre_game`/`history_enriched_pre_game`), V-6 (history rows use strict `<`
 # with sc2egset `details_timeUTC` provenance, not `<=`, and reject the
-# cross-dataset alias `started_at`).
+# cross-dataset alias `started_at`), V-7 (validates cold_start_handling
+# vocabulary/sentinel discipline: G-CS-1..G-CS-6 for active/candidate rows,
+# literal "blocked" only under the blocked_or_deferred +
+# blocked_until_additional_validation conjunction; numeric tokens forbidden).
 #
 # ### Expected artifact or report
 # **None.** This scaffold PR explicitly produces NO report artifacts. Planned
@@ -125,7 +129,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #   in-game snapshot)
 # - CROSS-02-01-v1.0.1 (leakage-mode taxonomy)
 # - CROSS-02-02-v1.0.1 §6 (sc2egset feature families) and §9 (cold-start
-#   gates G-CS-1..G-CS-6 — no magic numbers per Invariant I7)
+#   gates G-CS-1..G-CS-6 for active and candidate rows; the literal "blocked" sentinel for blocked_or_deferred rows where status == "blocked_until_additional_validation" — no magic numbers per Invariant I7)
 # - CROSS-02-03-v1.0.1 §3 (13-column audit object) and §5.1 (sc2egset
 #   `temporal_anchor = details_timeUTC`)
 # - `tracker_events_feature_eligibility.csv` (upstream evidence; not modified
@@ -135,7 +139,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #   `sanity_gate_not_model_input`).
 #
 # ### Downstream decision
-# If V-1..V-6 ALL PASS, the skeleton structure is admissible as a candidate
+# If V-1..V-7 ALL PASS, the skeleton structure is admissible as a candidate
 # registry; subsequent PRs may add validation modules D2, D3, D6, D8, D9, D10,
 # D11, D12, D15 and ultimately materialize the registry artifact. If ANY
 # check fails, halt before any artifact generation; do not patch outputs;
@@ -167,7 +171,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # ### Stop conditions
 # Halt before declaring this Step complete or proceeding to artifact
 # generation if:
-# - Any V-1..V-6 assertion raises `AssertionError`.
+# - Any V-1..V-7 assertion raises `AssertionError`.
 # - The tracker CSV cannot be read or its row counts have drifted from
 #   5 / 7 / 3.
 # - A tracker family appears with `prediction_setting in {pre_game,
@@ -255,9 +259,12 @@ print(f"Counts by status_in_game_snapshot: {status_counts}")
 # `validate_registry_skeleton.REQUIRED_COLUMNS`. No `def`, `class`, or
 # `lambda` is used anywhere in the notebook; rows are plain dict literals
 # expressed via column-tuple keys to keep cells under the 50-line cap.
-# Cold-start handling values use only the gate vocabulary G-CS-1..G-CS-6
-# (CROSS-02-02-v1.0.1 §9); no numeric pseudocount, threshold, smoothing
-# strength, or imputation constant appears (Invariant I7).
+# Cold-start handling values follow controlled discipline:
+# active and candidate rows use only the gate vocabulary G-CS-1..G-CS-6
+# (CROSS-02-02-v1.0.1 §9.1); blocked_or_deferred rows whose status is
+# "blocked_until_additional_validation" use the literal sentinel "blocked".
+# No numeric pseudocount, threshold, smoothing strength, or imputation
+# constant appears anywhere (Invariant I7).
 _COLS = (
     "feature_family_id",
     "dataset_tag",
@@ -466,11 +473,11 @@ SKELETON: list[dict[str, str]] = (
 print(f"SKELETON row count: {len(SKELETON)}")
 
 # %% [markdown]
-# ## Validation module (V-1 through V-6)
+# ## Validation module (V-1 through V-7)
 #
 # `validate_registry_skeleton` (in
 # `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`)
-# implements six structural checks against the 13-column audit object schema
+# implements the V-1..V-7 structural validation surface against the 13-column audit object schema
 # defined in CROSS-02-03-v1.0.1 §3:
 #
 # | Check | What it asserts |
@@ -482,17 +489,22 @@ print(f"SKELETON row count: {len(SKELETON)}")
 # | V-5 | No skeleton row whose `source_table_or_event_family` references a tracker event family declares `prediction_setting in {pre_game, history_enriched_pre_game}` (Invariant I3 / PR #208 Amendment 2). |
 # | V-6 | Every `history_enriched_pre_game` row uses strict `<` (not `<=`) and `temporal_anchor = details_timeUTC` (not the cross-dataset alias `started_at`); `allowed_cutoff_rule` does not reference post-outcome tokens (CROSS-02-03-v1.0.1 §5.1; Invariant I3). |
 #
-# Checks NOT in scope of this scaffold PR (deferred to subsequent validation
-# modules): cold-start gate vocabulary check (G-CS-1..G-CS-6), per-player
-# construction symmetry (Invariant I5), candidate-leakage-mode coverage
-# against CROSS-02-01-v1.0.1, and audit dimensions D2/D3/D6/D8/D9/D10/D11/D12/D15.
+# Checks IN scope as of this PR (V-1 strict + V-7): feature_family_id
+# second-segment alignment with prediction_setting, and cold-start
+# vocabulary/sentinel discipline (G-CS-1..G-CS-6 for active rows; literal
+# "blocked" sentinel under the carve-out conjunction).
+# Checks NOT YET in scope (deferred to subsequent validation modules):
+# per-row optimal G-CS gate fit (which gate suits each family
+# scientifically), per-player construction symmetry (Invariant I5),
+# candidate-leakage-mode coverage against CROSS-02-01-v1.0.1, and audit
+# dimensions D2/D3/D6/D8/D9/D10/D11/D12/D15.
 
 # %%
 # Run the single validation module. AssertionError halts execution; the
 # notebook does NOT catch or mask exceptions. On success the module returns
 # None and the cell prints an explicit ALL PASS banner.
 validate_registry_skeleton(SKELETON, tracker_csv_path=TRACKER_CSV)
-print("validate_registry_skeleton: ALL PASS (V-1 through V-6)")
+print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
 
 # %% [markdown]
 # ## Conclusion
