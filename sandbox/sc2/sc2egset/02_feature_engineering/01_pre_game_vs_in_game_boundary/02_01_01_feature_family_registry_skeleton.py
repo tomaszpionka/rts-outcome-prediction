@@ -122,7 +122,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # CSV / MD registry artifacts under
 # `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`
 # are deferred to a subsequent artifacts PR after reviewed execution of all
-# additional validation modules (D2, D3, D6, D8, D9, D10, D11, D12, D15).
+# additional validation modules (D2, D3, D6, D8, D9, D10, D12, D15).
 #
 # ### Lineage source
 # - CROSS-02-00-v3.0.1 §3.3 (strict `<` for history features; `<=` for
@@ -139,9 +139,10 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #   `sanity_gate_not_model_input`).
 #
 # ### Downstream decision
-# If V-1..V-7 ALL PASS, the skeleton structure is admissible as a candidate
-# registry; subsequent PRs may add validation modules D2, D3, D6, D8, D9, D10,
-# D11, D12, D15 and ultimately materialize the registry artifact. If ANY
+# If V-1..V-8 ALL PASS, the skeleton structure is admissible as a candidate
+# registry; subsequent PRs may add validation modules for D2, D3, D6 (full),
+# D8, D9, D10 (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1), D12,
+# D15 and ultimately materialize the registry artifact. If ANY
 # check fails, halt before any artifact generation; do not patch outputs;
 # report the failing V-N and offending row(s) to the parent session.
 #
@@ -171,7 +172,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # ### Stop conditions
 # Halt before declaring this Step complete or proceeding to artifact
 # generation if:
-# - Any V-1..V-7 assertion raises `AssertionError`.
+# - Any V-1..V-8 assertion raises `AssertionError`.
 # - The tracker CSV cannot be read or its row counts have drifted from
 #   5 / 7 / 3.
 # - A tracker family appears with `prediction_setting in {pre_game,
@@ -473,11 +474,11 @@ SKELETON: list[dict[str, str]] = (
 print(f"SKELETON row count: {len(SKELETON)}")
 
 # %% [markdown]
-# ## Validation module (V-1 through V-7)
+# ## Validation module (V-1 through V-8)
 #
 # `validate_registry_skeleton` (in
 # `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`)
-# implements the V-1..V-7 structural validation surface against the 13-column audit object schema
+# implements the V-1..V-8 structural validation surface against the 13-column audit object schema
 # defined in CROSS-02-03-v1.0.1 §3:
 #
 # | Check | What it asserts |
@@ -489,22 +490,21 @@ print(f"SKELETON row count: {len(SKELETON)}")
 # | V-5 | No skeleton row whose `source_table_or_event_family` references a tracker event family declares `prediction_setting in {pre_game, history_enriched_pre_game}` (Invariant I3 / PR #208 Amendment 2). |
 # | V-6 | Every `history_enriched_pre_game` row uses strict `<` (not `<=`) and `temporal_anchor = details_timeUTC` (not the cross-dataset alias `started_at`); `allowed_cutoff_rule` does not reference post-outcome tokens (CROSS-02-03-v1.0.1 §5.1; Invariant I3). |
 #
-# Checks IN scope as of this PR (V-1 strict + V-7): feature_family_id
-# second-segment alignment with prediction_setting, and cold-start
-# vocabulary/sentinel discipline (G-CS-1..G-CS-6 for active rows; literal
-# "blocked" sentinel under the carve-out conjunction).
+# Checks IN scope as of this PR (V-1 base, V-1 strict, V-2..V-7 from PRs
+# #212/#213, V-8 source-grain structural well-formedness + provenance-key
+# consistency from this PR).
 # Checks NOT YET in scope (deferred to subsequent validation modules):
 # per-row optimal G-CS gate fit (which gate suits each family
 # scientifically), per-player construction symmetry (Invariant I5),
 # candidate-leakage-mode coverage against CROSS-02-01-v1.0.1, and audit
-# dimensions D2/D3/D6/D8/D9/D10/D11/D12/D15.
+# dimensions D2/D3/D6/D8/D9/D10/D12/D15.
 
 # %%
 # Run the single validation module. AssertionError halts execution; the
 # notebook does NOT catch or mask exceptions. On success the module returns
 # None and the cell prints an explicit ALL PASS banner.
 validate_registry_skeleton(SKELETON, tracker_csv_path=TRACKER_CSV)
-print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
+print("validate_registry_skeleton: ALL PASS (V-1 through V-8)")
 
 # %% [markdown]
 # ## Conclusion
@@ -517,7 +517,7 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
 # `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`
 # and a paired MD narrative) are deferred to a subsequent artifacts PR after
 # reviewed execution of all additional validation modules (D2, D3, D6, D8,
-# D9, D10, D11, D12, D15).
+# D9, D10, D12, D15).
 #
 # ### Status / log / manifest updates
 # **None in this PR.** No edit to STEP_STATUS.yaml, PIPELINE_SECTION_STATUS.yaml,
@@ -535,8 +535,10 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-7)")
 # - Add validation modules for audit dimensions D2 (controlled vocabularies
 #   beyond V-1), D3 (per-row cold-start gate value check), D6 (candidate
 #   leakage modes against CROSS-02-01-v1.0.1), D8 (per_player_construction
-#   symmetry), D9 (allowed_cutoff_rule structural parsing), D10 (source-grain
-#   well-formedness), D11 (model_input_grain consistency), D12 (target_grain
+#   symmetry), D9 (allowed_cutoff_rule structural parsing), D10
+#   (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1; NOT
+#   source-grain — V-8 of this PR covers source-grain well-formedness;
+#   spec-D10 is symmetry, deferred to a future V-9), D12 (target_grain
 #   consistency with prediction_setting), D15 (cross-row consistency of
 #   tracker-event-family references against the eligibility CSV).
 # - After all validation modules pass on review, materialize the registry
