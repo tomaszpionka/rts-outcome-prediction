@@ -1,6 +1,6 @@
 """Validation module for SC2EGSet Step 02_01_01 feature-family registry skeleton.
 
-This module implements the V-1..V-6 structural assertions for the planned
+This module implements the V-1..V-8 structural assertions for the planned
 26-row registry skeleton declared in
 ``sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py``.
 
@@ -11,10 +11,12 @@ Binding specs:
       §5.1 (sc2egset ``temporal_anchor = details_timeUTC``; ``started_at``
       is the cross-dataset alias and is rejected for sc2egset rows)
 
-Scope (six checks implemented here):
+Scope (eight checks implemented here):
     V-1 Schema integrity: 13 required columns, controlled vocabularies for
         ``prediction_setting`` and ``status``, dataset-prefixed unique
         ``feature_family_id``, single-dataset ``dataset_tag``.
+    V-1 strict: ``feature_family_id`` second dot-segment must equal
+        ``prediction_setting`` verbatim; at least 3 dot-segments required.
     V-2 Tracker eligibility split counts: ``eligible_for_phase02_now`` = 5,
         ``eligible_with_caveat`` = 7, ``blocked_until_additional_validation`` = 3.
     V-3 Blocked tracker families remain blocked in the skeleton.
@@ -26,10 +28,17 @@ Scope (six checks implemented here):
     V-6 ``history_enriched_pre_game`` rows use strict ``<`` and the
         sc2egset-specific ``details_timeUTC`` provenance anchor; the
         cross-dataset alias ``started_at`` is rejected.
+    V-7 ``cold_start_handling`` vocabulary + sentinel under conjunction
+        carve-out: active/candidate rows must carry a token from
+        ``{G-CS-1..G-CS-6}``; rows where ``prediction_setting ==
+        "blocked_or_deferred"`` AND ``status ==
+        "blocked_until_additional_validation"`` must carry the literal
+        sentinel ``"blocked"``; numeric tokens are forbidden everywhere
+        (Invariant I7).
 
 Deferred to subsequent validation modules (NOT covered here):
-    - Cold-start gate vocabulary check (gates G-CS-1..G-CS-6 only,
-      no magic numbers per Invariant I7).
+    - Per-row optimal G-CS gate fit (which gate suits each family
+      scientifically).
     - Per-player construction symmetry (Invariant I5).
     - Candidate-leakage-mode coverage against CROSS-02-01-v1.0.1.
 
@@ -105,6 +114,29 @@ PRE_GAME_OR_HISTORY: frozenset[str] = frozenset(
 # cross-dataset alias and is rejected for sc2egset history rows.
 SC2EGSET_HISTORY_TEMPORAL_ANCHOR = "details_timeUTC"
 REJECTED_HISTORY_TEMPORAL_ANCHOR = "started_at"
+
+# CROSS-02-02-v1.0.1 OQ1 + 2026-05-08 V-1 strict refinement.
+# feature_family_id format: sc2egset.<prediction_setting>.<family>
+# The second dot-segment must equal row["prediction_setting"] verbatim.
+FEATURE_FAMILY_ID_MIN_SEGMENTS: int = 3
+
+# CROSS-02-02-v1.0.1 §9.1 cold-start gate controlled vocabulary
+# (G-CS-1..G-CS-6). Active model-input rows MUST carry one of these
+# tokens. The literal "blocked" sentinel is reserved for the V-7
+# carve-out (see BLOCKED_SENTINEL).
+COLD_START_GATE_VOCAB: frozenset[str] = frozenset(
+    {"G-CS-1", "G-CS-2", "G-CS-3", "G-CS-4", "G-CS-5", "G-CS-6"}
+)
+
+# V-7 carve-out sentinel. Used ONLY for rows where the conjunction
+# (prediction_setting == "blocked_or_deferred" AND
+#  status == "blocked_until_additional_validation") holds. Outside
+# the conjunction the sentinel is forbidden; inside it is required.
+BLOCKED_SENTINEL: str = "blocked"
+
+# V-7 carve-out predicate components.
+BLOCKED_PREDICTION_SETTING: str = "blocked_or_deferred"
+BLOCKED_STATUS: str = "blocked_until_additional_validation"
 
 # Substrings that, if present in allowed_cutoff_rule, indicate post-outcome /
 # target-game leakage references.
@@ -189,6 +221,25 @@ def _check_v1_schema_integrity(skeleton: list[dict[str, Any]]) -> None:
         assert dt == EXPECTED_DATASET_TAG, (
             f"V-1: row '{ffid}' has dataset_tag '{dt}'; expected "
             f"'{EXPECTED_DATASET_TAG}' (single-dataset skeleton)"
+        )
+
+
+def _check_v1_strict_id_segment_alignment(
+    skeleton: list[dict[str, Any]],
+) -> None:
+    """V-1 strict: feature_family_id second segment must equal prediction_setting."""
+    for row in skeleton:
+        ffid = row["feature_family_id"]
+        parts = ffid.split(".")
+        assert len(parts) >= FEATURE_FAMILY_ID_MIN_SEGMENTS, (
+            f"V-1 strict: feature_family_id '{ffid}' has {len(parts)} dot-segment(s); "
+            f"expected at least {FEATURE_FAMILY_ID_MIN_SEGMENTS} "
+            "(format: sc2egset.<prediction_setting>.<family>)"
+        )
+        expected_ps = row["prediction_setting"]
+        assert parts[1] == expected_ps, (
+            f"V-1 strict: feature_family_id '{ffid}' second segment is "
+            f"'{parts[1]}'; expected '{expected_ps}' (must equal prediction_setting verbatim)"
         )
 
 
@@ -390,10 +441,70 @@ def _check_v6_history_strict_lt(skeleton: list[dict[str, Any]]) -> None:
             )
 
 
+def _check_v7_cold_start_vocabulary(
+    skeleton: list[dict[str, Any]],
+) -> None:
+    """V-7: cold_start_handling vocabulary + sentinel under conjunction carve-out.
+
+    For each row:
+        - If prediction_setting == "blocked_or_deferred" AND
+          status == "blocked_until_additional_validation":
+            assert cold_start_handling == "blocked".
+        - Else (every other row, including all model-input
+          pre_game / history_enriched_pre_game / in_game_snapshot /
+          sanity_gate rows):
+            assert cold_start_handling in COLD_START_GATE_VOCAB.
+    For ALL rows: assert cold_start_handling is NOT a numeric
+    pseudocount / threshold / window / smoothing constant
+    (Invariant I7 — no magic numbers).
+    """
+    for row in skeleton:
+        cs = row["cold_start_handling"]
+        ps = row["prediction_setting"]
+        st = row["status"]
+        ffid = row["feature_family_id"]
+
+        # Type guard (F2): assert cs is a string before any numeric check.
+        assert isinstance(cs, str), (
+            f"V-7: row '{ffid}' cold_start_handling is not a string "
+            f"(got {type(cs).__name__!r}); expected str"
+        )
+
+        # Numeric check (F2 — widened exception): float(cs) succeeding
+        # means cs is a magic number, which violates Invariant I7.
+        try:
+            float(cs)
+        except (ValueError, TypeError):
+            pass  # good path — string is not numeric
+        else:
+            raise AssertionError(
+                f"V-7: row '{ffid}' cold_start_handling='{cs}' is a "
+                f"numeric token; numeric pseudocounts, thresholds, windows, "
+                f"and smoothing constants are forbidden (Invariant I7)"
+            )
+
+        # Conjunction predicate.
+        is_carve_out = (ps == BLOCKED_PREDICTION_SETTING and st == BLOCKED_STATUS)
+
+        if is_carve_out:
+            assert cs == BLOCKED_SENTINEL, (
+                f"V-7: carve-out row '{ffid}' (prediction_setting='{ps}', "
+                f"status='{st}') has cold_start_handling='{cs}'; "
+                f"expected literal '{BLOCKED_SENTINEL}'"
+            )
+        else:
+            assert cs in COLD_START_GATE_VOCAB, (
+                f"V-7: row '{ffid}' (prediction_setting='{ps}', "
+                f"status='{st}') has cold_start_handling='{cs}'; "
+                f"expected one of {sorted(COLD_START_GATE_VOCAB)} "
+                f"(controlled vocabulary)"
+            )
+
+
 def validate_registry_skeleton(
     skeleton: list[dict[str, Any]], tracker_csv_path: Path | str
 ) -> None:
-    """Run V-1..V-6 structural assertions on the registry skeleton.
+    """Run V-1..V-7 structural assertions on the registry skeleton.
 
     Args:
         skeleton: List of row dicts; one dict per planned feature family.
@@ -405,13 +516,21 @@ def validate_registry_skeleton(
 
     Raises:
         AssertionError: with a descriptive message naming the failing
-            check (V-1..V-6) and the offending row(s) on any structural
+            check (V-1..V-7) and the offending row(s) on any structural
             violation.
+
+    Check order:
+        V-1 base schema integrity → V-1 strict id-segment alignment →
+        V-2 tracker split counts → V-3 blocked families →
+        V-4 slot_identity_consistency → V-5 no tracker in pre_game →
+        V-6 history strict ``<`` → V-7 cold_start_handling vocabulary.
     """
     _check_v1_schema_integrity(skeleton)
+    _check_v1_strict_id_segment_alignment(skeleton)
     tracker_rows = _read_tracker_rows(tracker_csv_path)
     _check_v2_tracker_split_counts(tracker_rows)
     _check_v3_blocked_families(skeleton)
     _check_v4_slot_identity_consistency(skeleton, tracker_rows)
     _check_v5_no_tracker_in_pre_game(skeleton, tracker_rows)
     _check_v6_history_strict_lt(skeleton)
+    _check_v7_cold_start_vocabulary(skeleton)
