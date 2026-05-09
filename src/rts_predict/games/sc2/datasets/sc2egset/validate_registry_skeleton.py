@@ -1,6 +1,6 @@
 """Validation module for SC2EGSet Step 02_01_01 feature-family registry skeleton.
 
-This module implements the V-1..V-7 structural assertions for the planned
+This module implements the V-1..V-8 structural assertions for the planned
 26-row registry skeleton declared in
 ``sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py``.
 

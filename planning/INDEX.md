@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- phase02/sc2egset-feature-registry-v8-source-grain-well-formedness (2026-05-09) — SC2EGSet Step 02_01_01 V-8 source-grain structural well-formedness validation
+- phase02/sc2egset-feature-registry-v8-source-grain-well-formedness (2026-05-09; PR #214) — SC2EGSet Step 02_01_01 V-8 source-grain structural well-formedness validation
 
 ## Archive
 

@@ -1,4 +1,4 @@
-"""Tests for ``validate_registry_skeleton`` (V-1..V-7).
+"""Tests for ``validate_registry_skeleton`` (V-1..V-8).
 
 Covers the SC2EGSet Step 02_01_01 registry skeleton validation module. Uses
 the actual tracker eligibility CSV shipped in the repo for V-2/V-4/V-5
