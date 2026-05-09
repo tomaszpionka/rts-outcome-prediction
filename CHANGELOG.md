@@ -19,6 +19,25 @@ merged to `master`.
 
 ### Removed
 
+## [3.50.0] — 2026-05-09 (PR #TBD: phase02/sc2egset-feature-registry-v8-source-grain-well-formedness)
+
+### Added
+
+- V-8 source-grain structural well-formedness and provenance-key consistency validation: every row's `source_grain` matches the parenthesised tuple form `(filename[, key1[, key2]])`; tracker-event rows draw extra keys from `{playerId, controlPlayerId, killerPlayerId, owner_via_unitborn_lineage}`; non-tracker rows draw extra keys from `{player_id_worldwide, opponent_player_id_worldwide}` or use the bare `(filename)` form for match-level rows.
+- Tuple-style `source_grain` syntax and known provenance-key checks (regex shape + set-membership against the documented vocabularies).
+- Separate tracker provenance-key validation from non-tracker source-grain validation (partition on `source_table_or_event_family.startswith("tracker_events_raw")`).
+- Blocked rows (`prediction_setting == "blocked_or_deferred"` AND `status == "blocked_until_additional_validation"`) use real provenance-grain tuples, not a `"blocked"` sentinel — sentinels exist on `cold_start_handling`, `model_input_grain`, `target_grain`, `temporal_anchor`, `allowed_cutoff_rule`, `candidate_leakage_modes`, but NOT on `source_grain`.
+- Notebook scaffold narrative + executed-output banner updated to `validate_registry_skeleton: ALL PASS (V-1 through V-8)`.
+- 8 new V-8 tests (happy path, regex-malformed × 3, unknown tracker key, unknown non-tracker key, non-string source_grain, blocked-row source_grain still validates). Targeted-file test count: 56 (48 pre-existing + 8 new).
+- V-8 is NOT CROSS-02-03-v1.0.1 §4.1 D10 (focal/opponent symmetry — Invariant I5); D10 is deferred to a future V-9 against the `per_player_construction` column. Notebook narrative explicitly disambiguates V-8 from spec-D10.
+- Non-batching discipline: this PR remains within lineage sequence step 6 ("next validation module") per `.claude/rules/data-analysis-lineage.md`. No report artifacts, no `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` / `research_log.md` / `notebook_regeneration_manifest.md` updates; Step 02_01_01 remains not closed.
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.49.0] — 2026-05-09 (PR #213: phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start)
 
 ### Added
