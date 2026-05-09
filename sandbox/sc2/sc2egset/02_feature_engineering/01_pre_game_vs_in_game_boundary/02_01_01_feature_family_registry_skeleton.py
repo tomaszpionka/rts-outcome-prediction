@@ -91,7 +91,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #
 # ### Measurement claim
 # `validate_registry_skeleton(skeleton, tracker_csv_path)` runs V-1 through
-# V-6 assertions and raises `AssertionError` with a descriptive message on any
+# V-7 structural assertions and raises `AssertionError` with a descriptive message on any
 # violation. ALL PASS means the skeleton is structurally admissible as a Phase
 # 02 candidate registry — it does NOT mean any feature has been computed,
 # materialized, or admitted as a model input. This is a registry-level audit,
@@ -105,13 +105,17 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # A drift of ±1 in any bucket halts validation immediately.
 #
 # ### Falsifier
-# Any of the six structural checks fails — V-1 (schema integrity), V-2
+# Any of the seven structural checks fails — V-1 (schema integrity + strict
+# feature_family_id second-segment alignment with prediction_setting), V-2
 # (tracker split counts), V-3 (blocked families remain blocked), V-4
 # (`slot_identity_consistency` is `sanity_gate_not_model_input` while CSV
 # remains `eligible_for_phase02_now`), V-5 (zero tracker-derived rows in
 # `pre_game`/`history_enriched_pre_game`), V-6 (history rows use strict `<`
 # with sc2egset `details_timeUTC` provenance, not `<=`, and reject the
-# cross-dataset alias `started_at`).
+# cross-dataset alias `started_at`), V-7 (validates cold_start_handling
+# vocabulary/sentinel discipline: G-CS-1..G-CS-6 for active/candidate rows,
+# literal "blocked" only under the blocked_or_deferred +
+# blocked_until_additional_validation conjunction; numeric tokens forbidden).
 #
 # ### Expected artifact or report
 # **None.** This scaffold PR explicitly produces NO report artifacts. Planned
@@ -135,7 +139,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #   `sanity_gate_not_model_input`).
 #
 # ### Downstream decision
-# If V-1..V-6 ALL PASS, the skeleton structure is admissible as a candidate
+# If V-1..V-7 ALL PASS, the skeleton structure is admissible as a candidate
 # registry; subsequent PRs may add validation modules D2, D3, D6, D8, D9, D10,
 # D11, D12, D15 and ultimately materialize the registry artifact. If ANY
 # check fails, halt before any artifact generation; do not patch outputs;
@@ -167,7 +171,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # ### Stop conditions
 # Halt before declaring this Step complete or proceeding to artifact
 # generation if:
-# - Any V-1..V-6 assertion raises `AssertionError`.
+# - Any V-1..V-7 assertion raises `AssertionError`.
 # - The tracker CSV cannot be read or its row counts have drifted from
 #   5 / 7 / 3.
 # - A tracker family appears with `prediction_setting in {pre_game,
@@ -473,7 +477,7 @@ print(f"SKELETON row count: {len(SKELETON)}")
 #
 # `validate_registry_skeleton` (in
 # `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`)
-# implements six structural checks against the 13-column audit object schema
+# implements the V-1..V-7 structural validation surface against the 13-column audit object schema
 # defined in CROSS-02-03-v1.0.1 §3:
 #
 # | Check | What it asserts |

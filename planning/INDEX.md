@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start (2026-05-08) — SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation
+- phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start (2026-05-08; PR #213) — SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation
 
 ## Archive
 

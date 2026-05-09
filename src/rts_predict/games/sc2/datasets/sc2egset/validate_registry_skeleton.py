@@ -1,6 +1,6 @@
 """Validation module for SC2EGSet Step 02_01_01 feature-family registry skeleton.
 
-This module implements the V-1..V-8 structural assertions for the planned
+This module implements the V-1..V-7 structural assertions for the planned
 26-row registry skeleton declared in
 ``sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py``.
 
@@ -11,7 +11,7 @@ Binding specs:
       §5.1 (sc2egset ``temporal_anchor = details_timeUTC``; ``started_at``
       is the cross-dataset alias and is rejected for sc2egset rows)
 
-Scope (eight checks implemented here):
+Scope (eight assertions across V-1..V-7 implemented here):
     V-1 Schema integrity: 13 required columns, controlled vocabularies for
         ``prediction_setting`` and ``status``, dataset-prefixed unique
         ``feature_family_id``, single-dataset ``dataset_tag``.
