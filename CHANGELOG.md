@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.49.0] — 2026-05-09 (PR #TBD: phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start)
+## [3.49.0] — 2026-05-09 (PR #213: phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start)
 
 ### Added
 
