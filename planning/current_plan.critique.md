@@ -1,247 +1,256 @@
-# Plan critique — SC2EGSet Step 02_01_01 V-8 source-grain structural well-formedness
+# Plan critique — SC2EGSet Step 02_01_01 V-9 per-player construction / focal-opponent symmetry
 
 ---
 target_plan: planning/current_plan.md
-target_branch: phase02/sc2egset-feature-registry-v8-source-grain-well-formedness
-target_commit_at_review: master @ 7b26b40f (workspace HEAD; branch not yet created)
+target_branch: phase02/sc2egset-feature-registry-v9-symmetry
+target_commit_at_review: master @ 664c869a (workspace HEAD; branch not yet created at critique time)
 reviewer: reviewer-deep
-reviewer_date: 2026-05-09
+reviewer_date: 2026-05-10
 critique_round: 1
-verdict: PASS-WITH-FIXES
+verdict: PASS
 ---
 
 ## §Summary verdict
 
-The plan's central methodological move — pivoting from the user's framing "V-8 = D10 source-grain well-formedness" to "V-8 = source-grain structural well-formedness + provenance-key consistency, explicitly disjoint from spec-D10 (focal/opponent symmetry)" — is correct and well-supported. Spec text is verified verbatim, the absence of a controlled enum on the `source_grain` column is verified by live extraction, and the proposed helper passes 26/26 rows of the merged skeleton with 0 violations. The notebook narrative renaming is also correct: the deferred-D-list at lines 538–539 inherited from PR #212 misnamed D10, and that local documentation defect is what this PR closes alongside the new validator. This is not a methodology BLOCKER; reviewer-adversarial is NOT required.
+This is the cleanest of the four sequential V-N validator plans (PR #212 → #213 → #214 → this PR) and the strongest methodologically. The plan finally lands the actual spec-D10 binding — focal/opponent symmetry / Invariant I5 — at the registry-skeleton layer, and does so with a correct two-clause split: sub-clause 1 (symmetry, all datasets) is enforced for sc2egset; sub-clause 2 (aoestats `canonical_slot` p0/p1 projection) is recorded N/A for sc2egset on a spec-bound rationale (CROSS-02-00-v3.0.1 §5.2 documents `canonical_slot` as "aoestats-ONLY"). The validator design reuses V-7's conjunction predicate verbatim instead of redefining it — a mechanical signal of disciplined plan authoring. The on-disk skeleton's per_player_construction column has a clean two-value partition (23 × `"symmetric"` + 3 × `"blocked"` + 0 of anything else), so V-9 is non-vacuous and structurally guaranteed to pass on the unmodified skeleton. The Step 0 fixture lift is correctly identified as mandatory and is mechanically identical to the PR #214 / PR #213 patterns. No blockers and no required mechanical fixes were found. The single methodological choice that warrants discussion — admitting only `"symmetric"` and rejecting `"asymmetric"` outright at the registry layer — is defensible because Invariant I5 is categorical and asymmetric per-player construction is forbidden at the methodology layer above the registry; this critique walks through that argument explicitly in §Per-question finding 12 and concludes adversarial escalation is not warranted.
 
-The plan does, however, contain several mechanical accuracy defects that would either trip the executor or muddy the diff at gate time. None are scientific; all are fixable in the plan text. The most material defect is an internal arithmetic inconsistency in the file-count gate (§Gate Condition §1 says "EXACTLY 8 files" while the §File Manifest lists 9). Three smaller mechanical fixes round out the required-fix list.
+The plan is unusually long (1281 lines) but the length is earned: it carries explicit live-verification of every load-bearing claim against master `664c869a`, an explicit D-coverage matrix, and an Open-Questions block resolving the four methodology decisions that could otherwise drift in execution. Verdict: PASS — ready for T01 dispatch.
 
-## §Re-verification of D10 spec claim
+## §Re-verification of D10 spec claim (sub-clause 1 + sub-clause 2 N/A)
 
-Spec text at `reports/specs/02_03_temporal_feature_audit_protocol.md` line 161 (CROSS-02-03-v1.0.1 §4.1) reads verbatim:
+D10 verbatim from `reports/specs/02_03_temporal_feature_audit_protocol.md` line 161 (CROSS-02-03-v1.0.1 §4.1):
 
 > **D10** | Focal/opponent symmetry and p0/p1 projection | Every per-player feature is computed by the same SQL pattern or function for the focal player and the opponent (Invariant I5). For aoestats, the `p0_*` / `p1_*` source asymmetry is resolved via the `canonical_slot` focal/opponent assignment (CROSS-02-00-v3.0.1 §5.2; aoestats-only column) before any feature computation that depends on player role. RISK-24 routes the operationalization to a Phase 02 ROADMAP step.
 
-**Verdict: PASS.** D10 is unambiguously focal/opponent symmetry and p0/p1 projection (Invariant I5). It is NOT source-grain. The notebook's inherited paraphrase at line 538–539 (`D10 (source-grain well-formedness)`) disagrees with the locked spec. The plan's pivot is methodologically sound.
+Two sub-clauses are clearly identifiable:
+- **Sub-clause 1 (symmetry, all datasets per Invariant I5):** "Every per-player feature is computed by the same SQL pattern or function for the focal player and the opponent (Invariant I5)." — V-9 binds this for sc2egset.
+- **Sub-clause 2 (aoestats p0/p1 projection):** "For aoestats, the `p0_*` / `p1_*` source asymmetry is resolved via the `canonical_slot` focal/opponent assignment (CROSS-02-00-v3.0.1 §5.2; aoestats-only column) before any feature computation that depends on player role." — explicitly aoestats-bound.
 
-A confirming side-observation: spec D3 ("Source grain vs model grain") is the source-grain ↔ model-input-grain reconcilability dimension — which the plan explicitly defers to a future V-N. There is **no spec dimension** for "source-grain structural well-formedness"; V-8 is genuinely a registry-layer well-formedness validator that does not peg to a specific D-ID. The plan is honest about this: §Scope says "V-8 is NOT a controlled-vocabulary enum check ... it is NOT a focal/opponent-symmetry check ... it is NOT a relational source-grain ↔ model-input-grain reconcilability check (that is D3, deferred to a future V-N)."
+Confirming side-evidence on sub-clause 2's aoestats-only nature:
+- `reports/specs/02_00_feature_input_contract.md` line 380 (§5.2 aoestats `matches_history_minimal` table): `canonical_slot | VARCHAR | PRE_GAME | aoestats-ONLY; slot_A/slot_B; hash-on-match_id; skill-orthogonal; NOT in MHM UNION ALL`.
+- `reports/specs/02_00_feature_input_contract.md` line 369 section header: "§5.2 `matches_history_minimal` — aoestats (10 cols; canonical_slot is aoestats-local)".
+- The sc2egset MHM table at §5.1 of the same spec carries no `canonical_slot` column. Live grep against `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/raw/*.yaml` returned no `canonical_slot` hits.
 
-## §Re-verification of source_grain enumeration
+**Verdict: PASS.** D10 has exactly two sub-clauses; sub-clause 1 is what V-9 binds for sc2egset; sub-clause 2 is N/A for sc2egset on a spec-bound rationale and is correctly deferred to a future aoestats-side V-N PR.
 
-Live extraction by importing the on-disk SKELETON at master `7b26b40f` yields exactly 7 distinct `source_grain` values, with the counts matching the plan's §Verification §2 verbatim:
+## §Re-verification of `per_player_construction` partition
 
-| count | source_grain |
-|-------|--------------|
-| 8 | `(filename, player_id_worldwide)` |
-| 8 | `(filename, playerId)` |
-| 3 | `(filename, controlPlayerId)` |
-| 3 | `(filename, owner_via_unitborn_lineage)` |
-| 2 | `(filename)` |
-| 1 | `(filename, player_id_worldwide, opponent_player_id_worldwide)` |
-| 1 | `(filename, killerPlayerId)` |
+Live extraction against the merged 26-row SKELETON in `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py` at master `664c869a`:
 
-Total: 26 rows. **Verdict: PASS** on count, distinct-value count, and the per-bucket breakdown.
+| Source block | Row | per_player_construction |
+|---|---|---|
+| SKELETON_PRE_GAME (lines 293–315) | `focal_race_with_opponent_race_pair` | `"symmetric"` |
+| | `map_type_encoded` | `"symmetric"` |
+| | `patch_version_encoded` | `"symmetric"` |
+| | `matchup_encoded` | `"symmetric"` |
+| | `is_mmr_missing_flag` | `"symmetric"` |
+| SKELETON_HISTORY (lines 324–356) | `focal_player_history` | `"symmetric"` |
+| | `opponent_player_history` | `"symmetric"` |
+| | `matchup_history_aggregate` | `"symmetric"` |
+| | `reconstructed_rating` | `"symmetric"` |
+| | `cross_region_fragmentation_handling` | `"symmetric"` |
+| | `in_game_history_aggregate` | `"symmetric"` |
+| SKELETON_IN_GAME_NOW (lines 364–382) | `count_units_built_by_cutoff_loop` | `"symmetric"` |
+| | `count_units_killed_by_cutoff_loop` | `"symmetric"` |
+| | `morph_count_by_cutoff_loop` | `"symmetric"` |
+| | `building_construction_count_by_cutoff_loop` | `"symmetric"` |
+| SKELETON_IN_GAME_CAVEAT (lines 391–428) | `minerals_collection_rate_history_mean` | `"symmetric"` |
+| | `army_value_at_5min_snapshot` | `"symmetric"` |
+| | `supply_used_at_cutoff_snapshot` | `"symmetric"` |
+| | `food_used_max_history` | `"symmetric"` |
+| | `time_to_first_expansion_loop` | `"symmetric"` |
+| | `count_units_lost_by_cutoff_loop` | `"symmetric"` |
+| | `count_upgrades_by_cutoff_loop` | `"symmetric"` |
+| SKELETON_GATE_AND_BLOCKED (lines 437–459) | `slot_identity_consistency` (sanity_gate) | `"symmetric"` |
+| | `mind_control_event_count` (carve-out) | `"blocked"` |
+| | `army_centroid_at_cutoff_snapshot` (carve-out) | `"blocked"` |
+| | `playerstats_cumulative_economy_fields` (carve-out) | `"blocked"` |
 
-## §Re-verification of blocked-row sentinel claim
+Tallies: 23 × `"symmetric"` (5 pre_game + 6 history + 4 in_game_now + 7 in_game_caveat + 1 sanity_gate) + 3 × `"blocked"` (carve-out trio) + 0 × anything else.
 
-The 3 carve-out rows in the merged SKELETON carry the following literal `source_grain` values:
+**Verdict: PASS.** Partition matches the plan's §Verification §3 verbatim. The sanity_gate row carries `"symmetric"` (not a sentinel), as the plan claims. The 3 carve-out rows carry the `"blocked"` literal exactly. V-9 has 0 violations on the unmodified skeleton.
 
-| feature_family_id | source_grain |
-|---|---|
-| `sc2egset.blocked_or_deferred.mind_control_event_count` | `(filename, playerId)` |
-| `sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot` | `(filename, owner_via_unitborn_lineage)` |
-| `sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields` | `(filename, playerId)` |
+## §Re-verification of Invariant I5 binding
 
-**Verdict: PASS.** All 3 carve-out rows carry real source-table key tuples. None carries a `"blocked"` sentinel on `source_grain`. The sentinel is correctly confined to `model_input_grain`, `target_grain`, `temporal_anchor`, `allowed_cutoff_rule`, `candidate_leakage_modes`, and `cold_start_handling` — six columns — exactly as the plan claims. V-8 has no carve-out conjunction and applies the same rule to all 26 rows. This is correct.
+Invariant I5 verbatim from `.claude/scientific-invariants.md` line 158:
+
+> Both players in every game must be treated identically by the feature pipeline. The same function that computes features for the focal player also computes features for the opponent. No player slot receives privileged treatment. The model input is always structured as `(focal_player_features, opponent_features, context_features)` and this structure is identical regardless of which player is focal.
+
+23/23 model-input-or-sanity-gate rows carry `"symmetric"`. 0/23 carry `"asymmetric"` or any other token. The 3 carve-out rows are not model inputs (they carry `prediction_setting = "blocked_or_deferred"` and `status = "blocked_until_additional_validation"`) and so are exempt from the I5 binding at this layer.
+
+Cross-confirming spec evidence:
+- CROSS-02-02-v1.0.1 §5.1 (line 189–193 of `reports/specs/02_02_feature_engineering_plan.md`): "Focal/opponent symmetry (Invariant I5). Every per-player feature must be computed with the same function or SQL pattern for the focal player and the opponent."
+- CROSS-02-02-v1.0.1 §6.2 line 239: opponent_player_history is "Symmetric (Invariant I5): same SQL pattern as focal."
+- CROSS-02-02-v1.0.1 §4.2 line 167: "symmetric focal/opponent projection is a binding pre-modeling step (Invariant I5 symmetry)".
+
+**Verdict: PASS.** Invariant I5 is upheld at the registry-skeleton layer. V-9 enforces this structurally.
+
+## §Re-verification of V-7 constant reusability
+
+`src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py` exposes the relevant constants at module scope:
+
+- Line 147: `BLOCKED_SENTINEL: str = "blocked"`
+- Line 150: `BLOCKED_PREDICTION_SETTING: str = "blocked_or_deferred"`
+- Line 151: `BLOCKED_STATUS: str = "blocked_until_additional_validation"`
+
+The V-7 helper at line 540 uses the exact predicate `is_carve_out = (ps == BLOCKED_PREDICTION_SETTING and st == BLOCKED_STATUS)` and at line 543 asserts `cs == BLOCKED_SENTINEL`. The V-9 helper proposed in the plan (T01 step 2) uses the literally-identical predicate `is_carve_out = (ps == BLOCKED_PREDICTION_SETTING and st == BLOCKED_STATUS)` and asserts `ppc == BLOCKED_SENTINEL` — no redefinition.
+
+**Verdict: PASS.** All three constants exist at module scope, are public-import-safe, and are reusable by V-9 without redefinition. The plan's claim is correct.
+
+## §Re-verification of fixture state
+
+`tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_skeleton.py` line 65 verbatim:
+
+```python
+        "per_player_construction": "symmetric",
+```
+
+This line is inside the `_row()` helper's returned dict literal (lines 52–66) and is the single source of `per_player_construction` for every fixture row. Live count: the `valid_skeleton` fixture (lines 70–137) emits 7 rows via `_row()`, and indices 4, 5, 6 are the three blocked rows (`mind_control_event_count`, `army_centroid_at_cutoff_snapshot`, `playerstats_cumulative_economy_fields`) per the fixture body inspection at lines 107–136. The other 4 rows (indices 0–3: pre_game, history, in_game_snapshot model-input, sanity_gate `slot_identity_consistency`) are non-blocked and correctly inherit `"symmetric"` from the kwarg default the plan adds in T02.
+
+**Verdict: PASS.** Plan's §Assumption 5 is correct: as-is, V-9 would FAIL on the existing fixture's three blocked rows because the V-9 conjunction predicate holds (`prediction_setting = "blocked_or_deferred"` AND `status = "blocked_until_additional_validation"`), so V-9 demands `BLOCKED_SENTINEL` ("blocked"), but the fixture provides `"symmetric"`. T02b Step 0 fixture lift on indices 4, 5, 6 is mandatory and the plan correctly identifies all 3 rows by feature_family_id.
+
+## §Re-verification of notebook narrative line numbers
+
+Verified live against `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py` at master `664c869a`:
+
+| Plan claim | File state | Match? |
+|---|---|---|
+| Line 484 starts the "Checks IN scope" markdown table | Line 484: `# \| Check \| What it asserts \|` | YES |
+| Lines 484–491 = the 6-row V-1..V-6 table | Lines 486–491 enumerate V-1 through V-6 (one row per line) | YES |
+| Line 493 = "Checks IN scope as of this PR" sentence | Line 493: `# Checks IN scope as of this PR (V-1 base, V-1 strict, V-2..V-7 from PRs` | YES |
+| Line 500 = deferred-D-list `D2/D3/D6/D8/D9/D10/D12/D15` | Line 500: `# dimensions D2/D3/D6/D8/D9/D10/D12/D15.` | YES |
+| Line 507 = print-banner `(V-1 through V-8)` | Line 507: `print("validate_registry_skeleton: ALL PASS (V-1 through V-8)")` | YES |
+| Lines 535–543 = Follow-ups list with D8 misnaming + stale "deferred to a future V-9" | Lines 535–543 contain literally `D8 (per_player_construction\n#   symmetry)` and `D10 ... NOT\n#   source-grain — V-8 of this PR covers source-grain well-formedness;\n#   spec-D10 is symmetry, deferred to a future V-9` | YES |
+
+**Verdict: PASS.** Every line number cited in the plan is correct against master `664c869a`. T03's surgical narrative-only edits at lines 484–491 (table append), 493 (sentence), 500 (D-list), 507 (banner), and 535–543 (Follow-ups) are well-targeted and avoid the SKELETON_* row literals at lines 269–474.
 
 ## §Per-question findings
 
-### 1. D10 misnaming claim — **PASS**
-Verified above. The renaming is the right call.
+### 1. D10 spec text (sub-clause 1) verification — **PASS**
 
-### 2. Source-grain no-enum claim — **PASS**
-Verified above. The 7 distinct values are tuple-of-key-columns expressions, not a closed vocabulary enum.
+Re-verified D10 verbatim above. Sub-clause 1 is "Every per-player feature is computed by the same SQL pattern or function for the focal player and the opponent (Invariant I5)" — exactly what V-9 binds. The plan quotes this correctly in §Problem Statement (Verification 1) and in §Literature Context.
 
-### 3. Blocked-row sentinel claim — **PASS**
-Verified above. 3 carve-out rows × real grain tuples, 0 sentinels on `source_grain`.
+### 2. D10 sub-clause 2 N/A determination for sc2egset — **PASS**
 
-### 4. V-8 helper design — **PASS-WITH-NOTE**
+CROSS-02-00-v3.0.1 §5.2 documents `canonical_slot` as "aoestats-ONLY" / "NOT in MHM UNION ALL" (§5.2 line 380). The sc2egset `matches_history_minimal` schema at §5.1 of the same spec carries no `canonical_slot` column. SC2EGSet's per-player slot semantics derive from `replay_players_raw` (per-player rows) and tracker `playerId` / `controlPlayerId` / `killerPlayerId` / `owner_via_unitborn_lineage`, all of which are already per-player-keyed. Sub-clause 2 has no operational target on sc2egset, so the N/A determination is methodologically defensible. The plan defers operationalization to a future aoestats-side V-N PR — the correct cross-game routing.
 
-Live simulation of `_check_v8_source_grain_well_formedness` against the on-disk SKELETON: **0 violations**, all 26 rows pass.
+### 3. `per_player_construction` column existence and value partition (live) — **PASS**
 
-Edge-case probing on the regex `^\(filename(?:,\s*[A-Za-z_][A-Za-z0-9_]*)*\)$`:
+Verified above. Column is `_COLS[12]` in the notebook (line 282) and `REQUIRED_COLUMNS[12]` in the validator (line 82). Partition: 23 × `"symmetric"` + 3 × `"blocked"` + 0 × anything else. Sanity-gate row carries `"symmetric"` (not a sentinel). Carve-out rows carry the literal `"blocked"`.
 
-| Input | Match? | Notes |
-|-------|--------|-------|
-| `()` | NO | rejects empty tuple — good |
-| `(filename)` | YES | bare match-level form |
-| `(filename,)` | NO | trailing comma rejected — good |
-| `( filename)` | NO | leading whitespace rejected — good |
-| `(Filename)` | NO | case-sensitive — good |
-| `(filename, 123abc)` | NO | numeric prefix rejected — good (this is the implicit I7 check) |
-| `(filename,playerId)` | YES | no-space comma accepted (`\s*` allows zero spaces) |
-| `(filename, _playerId)` | YES | leading-underscore identifiers accepted (Python convention) |
-| `(filename, playerId,)` | NO | trailing comma rejected — good |
-| `(filename, player.id)` | NO | dotted identifiers rejected — good |
+### 4. Invariant I5 binding — **PASS**
 
-Tracker partition: live evaluation confirms 15 tracker rows, all using exclusively `{playerId, controlPlayerId, killerPlayerId, owner_via_unitborn_lineage}` (the 4 documented attribution keys). 0 tracker rows use bare `(filename)`. Non-tracker partition: 11 rows; 9 use `player_id_worldwide`, 1 uses both worldwide-identity keys, 2 use bare `(filename)` (`map_type_encoded`, `patch_version_encoded`). All keys are in the declared vocabulary. The bare-`(filename)` form is correctly accepted on the non-tracker side and is not actually used on the tracker side, but the helper as written would also accept it on the tracker side (an empty `extra_keys` list passes the `for k in extra_keys` loop trivially). **Note:** this is intentional and harmless — no tracker row in the merged skeleton uses bare `(filename)`, but if a future row did, V-8 would not fire. If a stricter "tracker rows must carry exactly one attribution key" rule is desirable, that is a future V-N concern, not a V-8 fix.
+Verified above. All 23 model-input-or-sanity-gate rows carry `"symmetric"`. The categorical rejection of `"asymmetric"` at the registry-skeleton layer is the methodologically correct binding for I5; see §Per-question finding 12 below for the longer treatment.
 
-### 5. Step 0 fixture-update completeness — **PASS**
+### 5. V-9 helper design — **PASS**
 
-The 5 fixture rows the plan names are present at the expected positions in `tests/.../test_validate_registry_skeleton.py`:
+Line-by-line review of the proposed `_check_v9_per_player_construction_vocabulary` helper:
 
-| `source_table_or_event_family` | feature_family_id (fixture row) | proposed `source_grain` |
-|---|---|---|
-| `tracker_events_raw.UnitBorn` | `count_units_built_by_cutoff_loop` | `(filename, controlPlayerId)` |
-| `tracker_events_raw.PlayerSetup` | `slot_identity_consistency` | `(filename, playerId)` |
-| `tracker_events_raw.UnitOwnerChange` | `mind_control_event_count` | `(filename, playerId)` |
-| `tracker_events_raw.UnitPositions` | `army_centroid_at_cutoff_snapshot` | `(filename, owner_via_unitborn_lineage)` |
-| `tracker_events_raw.PlayerStats` | `playerstats_cumulative_economy_fields` | `(filename, playerId)` |
+- **Reuses V-7 constants without redefinition.** The plan's T01 §Instructions §1 introduces a single new constant `PER_PLAYER_CONSTRUCTION_VOCAB = frozenset({"symmetric"})` and explicitly NOTES that the conjunction predicate is "literally identical to V-7's" (Verification §8). T01 step 2's helper body uses `BLOCKED_PREDICTION_SETTING`, `BLOCKED_STATUS`, `BLOCKED_SENTINEL` by name — no shadowing, no redefinition.
+- **Type-guard for non-empty string.** The proposed helper has both `assert isinstance(ppc, str)` and `assert ppc` (non-empty). This matches V-7's pattern at lines 521–524 and V-8's at lines 586–592.
+- **Conjunction predicate is identical.** `is_carve_out = (ps == BLOCKED_PREDICTION_SETTING and st == BLOCKED_STATUS)` — character-for-character match to V-7 line 540.
+- **Branches are correctly inverted.** Carve-out → must equal `BLOCKED_SENTINEL` (`"blocked"`); else (every model-input + sanity_gate row) → must be in `PER_PLAYER_CONSTRUCTION_VOCAB` (i.e., `"symmetric"`). Both failure messages cite Invariant I5 / CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1 in the assertion text.
+- **No new conjunction logic introduced.** The plan calls this out explicitly as a stop condition in T01 §Task-specific stop condition (item c).
 
-Each proposed `source_grain` matches the merged-skeleton tracker partition for the same source. The history fixture row uses `source_table_or_event_family="matches_flat"` (non-tracker) and inherits the default `(filename, player_id_worldwide)` — clean. The pre_game fixture row uses `source_table_or_event_family="replay_players_raw"` (non-tracker) and inherits the same default — clean.
+### 6. Step-0 fixture lift completeness — **PASS**
 
-No additional fixture rows need updating. **Verdict: PASS.**
+Verified above. Three named fixture rows exist at the expected indices (4, 5, 6) with the named feature_family_ids; the helper currently hard-codes `"symmetric"` on all 7 rows; the four non-blocked fixture rows (indices 0–3) correctly inherit `"symmetric"` from the kwarg default added in T02. T02b Step 0 lifts exactly the 3 blocked rows by passing `per_player_construction="blocked"` explicitly. The Step 0 mandatoriness is correctly identified.
 
-### 6. Narrative line numbers — **PASS-WITH-NOTE**
+### 7. Notebook narrative line numbers — **PASS**
 
-Lines as they exist at master `7b26b40f`:
+Verified above. All 5 cited line locations (484–491, 493, 500, 507, 535–543) match the file state at master `664c869a` exactly.
 
-- Line 144 is the *second* line of the multi-line spillover that begins at line 143. The plan's "Before" quote spans lines 143–144. Calling it "line 144" is mildly imprecise.
-- Line 500 is the *last* line of the deferred-D-list block spanning lines 496–500. The plan promises to "rename source-grain well-formedness out of D10" at line 500, but at line 500 the D-list is just D-IDs without parenthetical names. The phrase "source-grain well-formedness" only appears at lines 538–539. The plan should specify the replacement at line 500 simply drops `D11` from the list.
-- Line 507 print-banner — exact match.
-- Line 539 — second line of the spillover starting at line 538 (`D10 (source-grain` straddles 538–539).
+### 8. Changed-files scope (EXACTLY 9) — **PASS**
 
-**Verdict: PASS-WITH-NOTE.** All four target locations are correct in intent. The line-number labels are slightly imprecise on the multi-line spillovers. Minor fix; non-blocker.
+§File Manifest / Allowed lists 9 committed files. §Gate Condition §1 says "EXACTLY 9 files" matching the manifest count. The lessons-learned-from-PR-#214-F1 file-count discipline is applied correctly. (The two `.github/tmp/*.txt` scratch files are explicitly listed as "not committed".)
 
-### 7. Changed-files scope — **FIX**
+### 9. PR #213/#214 follow-up handling — **PASS**
 
-The §File Manifest / Allowed table enumerates 9 committed files: 4 code + 2 release + 3 planning = 9.
+Three PR #213/#214 carry-forward items are deferred to a separate hygiene PR:
+- defensive-branch coverage on validator lines 347 / 415 / 421
+- test-infra `parents[6]` magic at test file line 25
+- V-8 helper bare-`(filename)` permissiveness on tracker rows
 
-The §Gate Condition §1 reads "EXACTLY 8 files". This is wrong — total committed files = 9. The gate-condition arithmetic is off-by-one. This will cause the executor (or reviewer-deep at T09) to flag a false-positive "extra file" failure if read literally. **Fix: change "EXACTLY 8 files" to "EXACTLY 9 files"** (see §Required fixes §F1).
+None of these affects V-9's correctness or scope. Deferring them keeps the V-9 PR's diff narrow (9 files, validator additions only) and avoids blending hygiene changes with a methodology-binding validator. Defensible.
 
-### 8. PR #213 follow-up handling — **PASS**
+### 10. D-coverage matrix (post-V-9) — **PASS**
 
-- Item #3 (`_row()` conjunction-discipline reminder docstring): folded into T02 as optional addition. Reasonable.
-- Items #4 (defensive-branch coverage on lines 294/362/368) and #5 (`parents[6]` test-infra magic): deferred to a hygiene PR. Defensible per the same rationale as PR #213.
-- Item #6 (plan-frontmatter date semantics): resolved as "plan-authoring date convention" with `date: 2026-05-09`. Internally consistent with PR #213's convention.
+Plan's §Literature Context table is accurate against the merged D-list. After V-9, only D2, D3, D4-in_game, D5-in_game, D6-full, D8 remain unaddressed at the registry-skeleton layer. The conclusion "Step 02_01_01 closure is NOT defensible after this PR" is correct and the plan correctly does not attempt closure.
 
-### 9. D-coverage matrix — **PASS-WITH-NOTE**
+### 11. Test list completeness — **PASS-WITH-NOTE**
 
-Plan §Problem Statement claims "After PR #213, eight CROSS-02-03-v1.0.1 §4.1 audit dimensions remain unaddressed by skeleton-layer validators (D2, D3, D4 in_game side, D5 in_game side, D8, D10, plus D6 partial and D9/D15 which are post-materialization and out-of-scope at this layer)". Cross-checking against §4.1 D1–D15:
+Plan T02b lists 7 V-9 tests covering the carve-out conjunction in both directions, the type-guard, and the asymmetric/unknown-token rejections. Two minor test-shape gaps that the executor may want to fold in opportunistically (NOT BLOCKERS):
 
-| Dim | Title | Coverage status after PR #213 |
-|---|---|---|
-| D1 | Prediction setting admissibility | covered (V-1 controlled vocab) |
-| D2 | Source classification + temporal availability | NOT covered |
-| D3 | Source grain vs model grain | NOT covered (V-8 ≠ D3) |
-| D4 | Temporal anchor correctness | history side covered (V-6); in_game side NOT |
-| D5 | Cutoff operator correctness | history side covered (V-6); in_game side NOT |
-| D6 | Target-game exclusion | partially covered (V-6 strict-`<` + post-outcome tokens) |
-| D7 | Post-game token exclusion | covered (V-6 token list) |
-| D8 | Full-replay aggregate exclusion | NOT covered |
-| D9 | Normalization fit-scope | post-materialization, out of registry layer |
-| D10 | Focal/opponent symmetry | NOT covered (intentional; future V-9 candidate) |
-| D11 | Cold-start vocabulary, no magic numbers | covered (V-7) |
-| D12 | Source-mode label discipline | partially relevant; sc2egset has no source-mode column |
-| D13 | SC2 tracker eligibility | covered (V-2/V-3/V-4/V-5) |
-| D14 | AoE2 source-label discipline | N/A for sc2egset |
-| D15 | Artifact-lineage readiness | methodological discipline, not row-level |
+**Note 1 — empty-string test missing.** V-9's helper proposes `assert ppc, ...` for empty-string, but no test exercises it. If the executor adds `test_v9_empty_string_fails` (set row 0's `per_player_construction = ""`), V-9's coverage on the new helper is provably 100% on every line.
 
-Plan's enumeration is approximately right but reads slightly off. The in_game side of D4 / D5 is genuinely uncovered (V-6 only checks the history side); the plan doesn't currently flag this. **Non-blocker.** A future V-9 plan should restate the matrix accurately.
+**Note 2 — sanity_gate row passes path is not asserted explicitly.** Test 1 (happy path) is the only test that exercises the sanity_gate row's `"symmetric"` value; if the executor wanted a more explicit assertion (e.g., `test_v9_sanity_gate_carries_symmetric_passes`), it would document the design decision that the sanity_gate row is treated identically to model-input rows for V-9 purposes. Not a coverage requirement but a clarity-of-intent one.
 
-### 10. Test list completeness — **PASS-WITH-NOTE**
+Both notes are PASS-WITH-NOTE follow-ups, not BLOCKERS. The 7 listed tests are sufficient for V-9's correctness.
 
-Plan T02b §Heading says "seven new tests" but the body lists **eight** tests numbered 1–8. The eighth is `test_v8_blocked_row_source_grain_still_validates` which is the most methodologically interesting one. Discrepancy in three places: heading, §Verification ("48+7=55"), and implicit reference in §Acceptance §3. **Fix: harmonize to "eight new tests" and "48+8=56 tests".** See §Required fixes §F2.
+### 12. Methodology defensibility — admitting only `"symmetric"` — **PASS**
 
-Edge cases not covered by the proposed test list:
-- Empty `source_grain` (string `""`): would fail the explicit `assert sg, ...` in the helper. Currently uncovered by the proposed 8 tests.
-- Whitespace-only `source_grain` (`"   "`): would pass the empty check and fail the regex. Uncovered.
+This is the load-bearing methodological choice and warrants the longest treatment.
 
-**Non-blocker:** the plan can add one more test or fold this assertion's coverage into one of the existing tests.
+**The choice.** V-9 admits exactly one non-blocked token: `"symmetric"`. Any other value — `"asymmetric"`, `"match_level"`, `"per_player_role"`, etc. — is rejected outright at the registry-skeleton layer.
 
-### 11. Numeric-token concern carry-over — **PASS**
+**The case for the choice (plan's argument).** Invariant I5 is categorical: "Both players in every game must be treated identically by the feature pipeline." Asymmetric per-player feature construction is not just discouraged; it is forbidden by the binding methodology layer. Admitting `"asymmetric"` as a legal token at the registry would create a vocabulary slot that no row may legitimately occupy, which is a methodological smell — controlled vocabularies should describe what is actually allowed, not enumerate forbidden states. The on-disk skeleton has 0 asymmetric rows because the spec authors correctly understood that asymmetric construction is forbidden; V-9 ratifies that empirical fact at the structural layer.
 
-The regex `^\(filename(?:,\s*[A-Za-z_][A-Za-z0-9_]*)*\)$` requires `[A-Za-z_]` as the first character of every key. This is a syntactically tight implicit I7 numeric-token rejection: a key beginning with a digit (`123player`) cannot match. Test 4 (`test_v8_invalid_identifier_key_fails`) exercises exactly this with `(filename, 123player)`. The test failure mode is "regex does not match" rather than "numeric token rejected" — the diagnostic message is `"V-8.*does not match"`, which is fine. No separate I7 numeric helper is needed. **Plan is sound; no fix needed.**
+**The case against the choice (steel-man).** A hypothetical future row that legitimately needs asymmetric construction — say, a "focal player did X to opponent" direction-of-action feature where the SQL for the focal-side computation differs from the opponent-side computation by a slot-aware filter — would be rejected at the registry layer before it can even be discussed.
 
-### 12. Honesty check — **PASS-WITH-NOTE**
+**Adjudication.** The steel-man is weaker than it appears. Three reasons:
 
-The plan's framing is largely accurate and transparent. Notable wins: honest about D10 misnaming (Defect 1), honest about no-enum (Defect 2), honest about scope ("V-8 in this PR closes a skeleton-layer well-formedness gap on the `source_grain` column without committing to spec-D10 semantics"), honest about V-9 candidate selection.
+1. **The methodological forbidding is upstream of V-9.** Invariant I5 categorically forbids asymmetric per-player computation, with the rationale: `P(A wins | A focal) + P(B wins | A focal) = 1`. Asymmetric construction breaks this consistency. Any direction-of-action feature must be representable as a symmetric pair (e.g., `focal_kills_opponent_units` and `opponent_kills_focal_units`, computed by the same SQL with role-swapped inputs). The "different SQL per slot" scenario is a methodological violation, not an unmet design need.
 
-Mild overstatements / minor inaccuracies:
-1. §Verification §3 says "9/9 non-tracker keys in-vocab or bare-form". The non-tracker partition has 11 rows: 9 use `player_id_worldwide`, 1 also uses `opponent_player_id_worldwide` (so row contributes 2 keys), 2 are bare. Counted per-row-with-keys: 9. Counted per-key: 10. The "9/9" is defensible as "9 rows-with-extra-keys, all of which carry only in-vocab keys" but slightly muddles the denominator. **Non-blocker.**
-2. §Problem Statement says "After PR #213, eight ... dimensions ... plus D6 partial" totals 6 fully + 1 partial + 2 out-of-scope = 9 items, not 8. Arithmetic mild slip. **Non-blocker.**
+2. **The skeleton is the right layer to enforce this categorically.** The registry-skeleton layer is precisely the layer at which feature-family declarations get reviewed against Invariant I5. If a future feature family genuinely needs asymmetric construction, the path is to (a) amend the spec with an explicit Invariant I5 carve-out and a worked counterexample, then (b) widen `PER_PLAYER_CONSTRUCTION_VOCAB`. This is the correct sequencing — vocabulary widening downstream of spec amendment, not the other way around.
 
-## §Required fixes (PASS-WITH-FIXES)
+3. **`"match_level"` for map/patch rows is the only plausible alternative token, and the plan addresses it directly.** Map and patch rows carry an identical constant for both players in a match — which IS the degenerate case of symmetric construction. The on-disk skeleton already encodes it as `"symmetric"`; widening to admit `"match_level"` would require a prior skeleton-row-content change that is explicitly out of scope.
 
-### F1 (most material) — Gate Condition §1 file count off-by-one
+**Verdict: PASS — defensible.** Reviewer-adversarial escalation is NOT warranted.
 
-**Where:** `planning/current_plan.md` §Gate Condition item 1 (and §Acceptance criteria item 4 if it contradicts).
+### 13. Honesty check — **PASS**
 
-**Problem:** "EXACTLY 8 files" should be "EXACTLY 9 files": 4 code + 2 release + 3 planning = 9.
+The plan is unusually transparent. Five honesty markers worth noting:
 
-**Fix:** Change `EXACTLY 8 files` to `EXACTLY 9 files` in §Gate Condition §1.
+1. **Live verification block (§Verification before finalizing this plan, items 1–10).** Every load-bearing claim is explicitly marked "verified live by the planner against master `664c869a`" with file:line citations.
+2. **N/A determination for sub-clause 2 is spec-bound, not assertion.** §Verification §5 cites CROSS-02-00-v3.0.1 §5.2 verbatim and the sc2egset MHM column count as evidence.
+3. **Step 02_01_01 NOT closed by this PR.** §Out of scope and §Literature Context (D-coverage matrix) explicitly state that 5 dimensions plus D6 partial remain unaddressed. No silent closure attempt.
+4. **The "symmetric-only" choice is flagged in §Unknowns as potentially drawing methodological pushback from reviewer-deep**, with the resolution argument prepared in advance. This signals genuine self-skepticism.
+5. **Three carry-forward follow-ups from PR #213/#214 are explicitly deferred** (§Verification §10, §Out of scope) rather than silently dropped.
 
-**Severity:** PASS-WITH-FIX. If left unfixed, T09 / reviewer-deep will misread the diff as "extra file" violation.
+No claim is overstated. **Framing is accurate.**
 
-### F2 — T02b heading vs body test count mismatch
+## §Required fixes (if PASS-WITH-FIXES)
 
-**Where:** `planning/current_plan.md` §T02b §Objective heading and §Verification.
+None.
 
-**Problem:** Heading says "seven new tests"; body lists eight tests (numbered 1–8); §Verification says "48 + 7 = 55 tests".
+## §Blockers (if BLOCKED)
 
-**Fix:** Replace "seven" with "eight" in §Objective heading. Replace "48 + 7 = 55" with "48 + 8 = 56" in §Verification.
-
-**Severity:** PASS-WITH-FIX. Defensive accuracy.
-
-### F3 — T03 line-number precision (multi-line spillovers)
-
-**Where:** `planning/current_plan.md` §T03 instructions table.
-
-**Problem:** Lines 144 and 539 are the *second* lines of multi-line comment spillovers. The actual D-list and the `D10 (source-grain ...)` phrase span lines 143–144 and 538–539 respectively.
-
-**Fix:** Update line numbers to "lines 143–144" and "lines 538–539".
-
-**Severity:** PASS-WITH-FIX. Minor; executor would still find the right text.
-
-### F4 — Line 500 narrative correction wording
-
-**Where:** `planning/current_plan.md` §T03 instructions table for "Line 500".
-
-**Problem:** Plan says "(rewritten block dropping D11, renaming D10 to focal/opponent symmetry)". At line 500 the only correction needed is to drop D11 from the list (since V-7 covers it). The "rename D10 to symmetry" phrasing is more accurate at lines 538–539, not at line 500.
-
-**Fix:** Clarify §T03 row "Line 500" to "drop `D11` from the deferred-D-list (V-7 covers it)" only. The "rename D10 to symmetry" instruction stays unique to the lines-538–539 row.
-
-**Severity:** PASS-WITH-FIX. Mechanical clarity.
+None. Reviewer-adversarial escalation is NOT warranted.
 
 ## §Notes for the executor
 
-- **N1** — The bare `(filename)` form is *currently* used only by non-tracker rows (`map_type_encoded`, `patch_version_encoded`). The V-8 helper as written would also accept it on the tracker side. No tracker row uses this form, so the helper is correct as designed.
+These are advisory and non-blocking — none affects T01 dispatch.
 
-- **N2** — The regex `[A-Za-z_]` first-character requirement implicitly enforces I7 (no numeric tokens in keys). Test 4 exercises this with `(filename, 123player)`. The diagnostic is "does not match" rather than "I7 numeric"; this is acceptable.
+1. **Optional: add `test_v9_empty_string_fails`.** Per §Per-question finding 11 Note 1, the empty-string branch in the new V-9 helper (`assert ppc, ...`) is reachable but not exercised by any of the 7 listed tests. A one-line test at the end of the V-9 test block would prove 100% coverage on the helper's added lines.
 
-- **N3** — When updating the fixture (§T02b Step 0), confirm that the default-passing rows (history row at fixture index 1, pre_game row at fixture index 0) remain untouched.
+2. **Optional: add `test_v9_sanity_gate_carries_symmetric_passes`.** Per §Per-question finding 11 Note 2, this would document the explicit design decision that the sanity_gate row is treated identically to model-input rows for V-9 vocabulary purposes.
 
-- **N4** — Order of orchestrator checks after this PR will be: V-1 base → V-1 strict → V-2 → V-3 → V-4 → V-5 → V-6 → V-7 → V-8.
+3. **T03 line-replacement table cell for "Lines 484–491 (markdown table) — append a `V-9` row".** The plan's "After" content is a single very long markdown table row; the executor should preserve the leading `# ` comment marker on every continuation line to keep the markdown cell parseable by jupytext. Verify the resulting `.py` cell still round-trips through `jupytext --sync` cleanly.
 
-- **N5** — `(filename, 0x10)` would be rejected by the regex (`0` is not in `[A-Za-z_]`).
+4. **T03 should preserve the existing leading `#   ` comment-indentation** on the rewritten Follow-ups paragraph (lines 535–543) so the bulleted hierarchy renders identically in the .ipynb. The plan's "After" content uses `# - D10 sub-clause 2 ...` to introduce a new bullet — confirm this matches the existing bullet style at line 535.
 
-- **N6** — `source_table_or_event_family == ""` would route to the non-tracker branch. No SKELETON row has empty `source_table_or_event_family` (V-1 catches this case earlier).
+5. **T08 CHANGELOG bullet wording.** The plan's proposed bullet at T08 is long and includes nested escaped quotes (`{\"symmetric\"}`). Consider verifying the CHANGELOG markdown renders cleanly on GitHub before pushing.
 
-- **N7** — The new constant `TRACKER_SOURCE_TABLE_PREFIX = "tracker_events_raw"` is a candidate for cross-helper reuse, but DO NOT refactor V-5 in this PR.
-
-- **N8** — When jupytext-syncing the .ipynb after T03, confirm the diff against master shows ONLY the four narrative locations.
-
-- **N9** — Test count at master `7b26b40f` is 48. After T02b lands 8 new V-8 tests + 5 fixture-row updates, total = 56. F2 fixes the count.
-
-- **N10** — `pyproject.toml` line 3 currently reads `version = "3.49.0"`. T08 mechanical bump to `3.50.0` is clean. CHANGELOG `[Unreleased]` section is empty.
+6. **T09 reviewer-deep dispatch.** The plan correctly routes T09 to reviewer-deep (per `.claude/rules/data-analysis-lineage.md` line 24 Phase 02 carve-out) and only escalates to reviewer-adversarial on a methodology BLOCKER. No action needed; just preserve the routing.
 
 ## §Acceptance for plan-side close
 
-This plan is approved for execution after the following are applied to `planning/current_plan.md`:
+The plan is approved for execution. T01 may fire. The executor is expected to:
 
-1. **F1** — Gate Condition §1 file count: change "EXACTLY 8 files" to "EXACTLY 9 files".
-2. **F2** — T02b heading and verification: change "seven new tests" to "eight new tests" and "48 + 7 = 55 tests" to "48 + 8 = 56 tests".
-3. **F3** — T03 line-number precision: update "line 144" → "lines 143–144" and "line 539" → "lines 538–539".
-4. **F4** — T03 line-500 narrative correction: clarify that the line-500 correction is "drop D11 from the deferred-D-list" only, not the D10 rename (the D10 rename is at lines 538–539).
+1. Land the `docs(planning)` commit carrying this critique + the active-plan row update in `planning/INDEX.md` BEFORE T01 begins.
+2. Execute T01 → T02 → T02b (Step 0 fixture lift first, then 7 V-9 tests) → T03 → T04 → T05 → T06 → T07 → T08 → T09 in that order, halting on any §Stop condition.
+3. Honor the §File Manifest / Forbidden list — no `STEP_STATUS.yaml`, no `research_log.md`, no `INVARIANTS.md`, no `02_*` spec edits, no SKELETON_* row literal modifications, no aoestats / AoE2 file touches.
+4. At T09, expect reviewer-deep to PASS (methodology defensibility for "symmetric-only" was adjudicated in §Per-question finding 12 above; if reviewer-deep at T09 raises a fresh methodology BLOCKER on grounds not enumerated here, route to reviewer-adversarial).
+5. After merge, update `planning/INDEX.md` archive row with the merge SHA and PR number.
 
-After applying F1–F4, the plan reads accurately and the executor can proceed without ambiguity. No methodology BLOCKER was raised; the D10 misnaming pivot is sound; the V-8 helper design is correct on all 26 rows by live verification; the fixture update scope is correct. **Reviewer-adversarial is NOT needed.**
+The non-batching lineage discipline (sequence step 6 — "Next validation module") is preserved: this PR adds exactly one validator, makes no artifact, and does not close Step 02_01_01.

@@ -1,8 +1,9 @@
-"""Tests for ``validate_registry_skeleton`` (V-1..V-8).
+"""Tests for ``validate_registry_skeleton`` (V-1..V-9).
 
 Covers the SC2EGSet Step 02_01_01 registry skeleton validation module. Uses
 the actual tracker eligibility CSV shipped in the repo for V-2/V-4/V-5
-checks and synthetic in-memory skeletons for V-1/V-3/V-6/V-7 failure cases.
+checks and synthetic in-memory skeletons for V-1/V-3/V-6/V-7/V-9 failure
+cases.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import pytest
 
 from rts_predict.games.sc2.datasets.sc2egset.validate_registry_skeleton import (
     COLD_START_GATE_VOCAB,
+    PER_PLAYER_CONSTRUCTION_VOCAB,
     REQUIRED_COLUMNS,
     validate_registry_skeleton,
 )
@@ -47,6 +49,7 @@ def _row(
     allowed_cutoff_rule: str = "match_time < target_time",
     cold_start_handling: str = "G-CS-1",
     source_grain: str = "(filename, player_id_worldwide)",
+    per_player_construction: str = "symmetric",
 ) -> dict[str, Any]:
     """Build a minimal valid skeleton row with sensible defaults."""
     return {
@@ -62,7 +65,7 @@ def _row(
         "candidate_leakage_modes": "none",
         "cold_start_handling": cold_start_handling,
         "status": status,
-        "per_player_construction": "symmetric",
+        "per_player_construction": per_player_construction,
     }
 
 
@@ -113,6 +116,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, playerId)",
+            per_player_construction="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
@@ -123,6 +127,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, owner_via_unitborn_lineage)",
+            per_player_construction="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
@@ -133,6 +138,7 @@ def valid_skeleton() -> list[dict[str, Any]]:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, playerId)",
+            per_player_construction="blocked",
         ),
     ]
 
@@ -875,6 +881,7 @@ def test_v8_blocked_row_source_grain_still_validates() -> None:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, playerId)",  # real grain tuple, NOT "blocked"
+            per_player_construction="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
@@ -885,6 +892,7 @@ def test_v8_blocked_row_source_grain_still_validates() -> None:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, owner_via_unitborn_lineage)",  # real grain tuple
+            per_player_construction="blocked",
         ),
         _row(
             feature_family_id="sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
@@ -895,7 +903,188 @@ def test_v8_blocked_row_source_grain_still_validates() -> None:
             allowed_cutoff_rule="blocked",
             cold_start_handling="blocked",
             source_grain="(filename, playerId)",  # real grain tuple, NOT "blocked"
+            per_player_construction="blocked",
         ),
     ]
     # V-8 must pass — blocked rows with real grain tuples are valid.
     validate_registry_skeleton(skeleton, TRACKER_CSV_PATH)
+
+
+# ---------------------------------------------------------------------------
+# V-9 per_player_construction controlled vocabulary + sentinel
+# ---------------------------------------------------------------------------
+
+
+def test_v9_valid_skeleton_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """V-9 happy path: fixture with 3 blocked rows carrying 'blocked' passes."""
+    # After Step 0, the fixture already carries per_player_construction="blocked"
+    # on the 3 carve-out rows and "symmetric" on the 4 non-blocked rows.
+    validate_registry_skeleton(valid_skeleton, TRACKER_CSV_PATH)
+
+
+def test_v9_asymmetric_on_model_input_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A model-input row with per_player_construction='asymmetric' must be rejected.
+
+    Invariant I5 categorically forbids asymmetric per-player feature construction;
+    V-9 enforces this at the registry-skeleton layer.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    # Row 0: pre_game, status="allowed" — a model-input row; conjunction does NOT hold.
+    skel[0]["per_player_construction"] = "asymmetric"
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9.*asymmetric",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_unknown_token_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """An out-of-vocabulary token on a model-input row must be rejected by V-9."""
+    skel = copy.deepcopy(valid_skeleton)
+    # "match_level" is not in PER_PLAYER_CONSTRUCTION_VOCAB and is not the
+    # blocked sentinel — V-9 must reject it.
+    skel[0]["per_player_construction"] = "match_level"
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9.*match_level",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_sentinel_under_conjunction_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Explicit documentation: all 3 carve-out rows carry 'blocked' and pass V-9.
+
+    This test is intentionally redundant with test_v9_valid_skeleton_passes to
+    document that the sentinel branch is exercised by the fixture: the three
+    blocked_or_deferred / blocked_until_additional_validation rows carry
+    per_player_construction='blocked', satisfying the conjunction carve-out.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    # Confirm the three carve-out rows carry the sentinel.
+    carve_out_ids = {
+        "sc2egset.blocked_or_deferred.mind_control_event_count",
+        "sc2egset.blocked_or_deferred.army_centroid_at_cutoff_snapshot",
+        "sc2egset.blocked_or_deferred.playerstats_cumulative_economy_fields",
+    }
+    for row in skel:
+        if row["feature_family_id"] in carve_out_ids:
+            assert row["per_player_construction"] == "blocked"
+    validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_sentinel_outside_conjunction_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-carve-out row carrying 'blocked' sentinel must be rejected by V-9.
+
+    Row 0 is pre_game/status='allowed' — the conjunction does NOT hold.
+    'blocked' is not in PER_PLAYER_CONSTRUCTION_VOCAB, so V-9 fires.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    # Row 0: pre_game, status="allowed" — conjunction does NOT hold.
+    skel[0]["per_player_construction"] = "blocked"
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9.*blocked",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_non_string_per_player_construction_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """A non-string per_player_construction value must be rejected by V-9 type guard."""
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["per_player_construction"] = 0  # type: ignore[assignment]
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9.*not a string",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_status_mismatch_rejects_sentinel(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """blocked_or_deferred row with wrong status means conjunction fails; sentinel rejected.
+
+    A row with prediction_setting='blocked_or_deferred' but status='allowed'
+    does NOT satisfy the conjunction, so 'blocked' is not in
+    PER_PLAYER_CONSTRUCTION_VOCAB and V-9 fires.
+    Uses a fresh row whose feature_family_id does NOT match any
+    BLOCKED_TRACKER_FAMILIES name to avoid V-3 firing first.
+    cold_start_handling is set to a valid G-CS token (not 'blocked') so that
+    V-7 does not fire before V-9.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    skel.append(
+        _row(
+            feature_family_id="sc2egset.blocked_or_deferred.custom_deferred_v9",
+            prediction_setting="blocked_or_deferred",
+            status="allowed",  # conjunction fails — status is wrong
+            source_table_or_event_family="matches_flat",
+            temporal_anchor="event.loop",
+            allowed_cutoff_rule="match_time < target_time",
+            cold_start_handling="G-CS-1",  # valid vocab; avoids V-7 firing first
+            per_player_construction="blocked",  # sentinel without conjunction
+        )
+    )
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_empty_string_fails(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """Empty string per_player_construction must be rejected by V-9 non-empty guard.
+
+    Proves 100% line coverage on the ``assert ppc, ...`` branch in the V-9 helper.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    skel[0]["per_player_construction"] = ""
+    with pytest.raises(
+        AssertionError,
+        match=r"V-9.*empty",
+    ):
+        validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_sanity_gate_carries_symmetric_passes(
+    valid_skeleton: list[dict[str, Any]],
+) -> None:
+    """The sanity_gate row (slot_identity_consistency) carries 'symmetric' and passes V-9.
+
+    Documents the design decision: the sanity_gate row is treated identically to
+    model-input rows for V-9 purposes — its sanity-gate semantics live on the
+    ``status`` column, not on ``per_player_construction``.
+    """
+    skel = copy.deepcopy(valid_skeleton)
+    # Find the sanity_gate row and assert it carries "symmetric".
+    sanity_rows = [
+        r for r in skel
+        if "slot_identity_consistency" in r["feature_family_id"]
+    ]
+    assert len(sanity_rows) == 1
+    assert sanity_rows[0]["per_player_construction"] == "symmetric"
+    # Full validation must pass.
+    validate_registry_skeleton(skel, TRACKER_CSV_PATH)
+
+
+def test_v9_per_player_construction_vocab_size() -> None:
+    """Lock the V-9 controlled vocabulary width: exactly 1 token ('symmetric').
+
+    Any future vocabulary expansion requires deliberate spec amendment
+    (CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1 / Invariant I5 update).
+    """
+    assert PER_PLAYER_CONSTRUCTION_VOCAB == frozenset({"symmetric"})

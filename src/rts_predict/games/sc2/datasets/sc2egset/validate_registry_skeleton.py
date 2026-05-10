@@ -1,6 +1,6 @@
 """Validation module for SC2EGSet Step 02_01_01 feature-family registry skeleton.
 
-This module implements the V-1..V-8 structural assertions for the planned
+This module implements the V-1..V-9 structural assertions for the planned
 26-row registry skeleton declared in
 ``sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py``.
 
@@ -11,7 +11,7 @@ Binding specs:
       §5.1 (sc2egset ``temporal_anchor = details_timeUTC``; ``started_at``
       is the cross-dataset alias and is rejected for sc2egset rows)
 
-Scope (nine assertions across V-1..V-8 implemented here):
+Scope (ten assertions across V-1..V-9 implemented here):
     V-1 Schema integrity: 13 required columns, controlled vocabularies for
         ``prediction_setting`` and ``status``, dataset-prefixed unique
         ``feature_family_id``, single-dataset ``dataset_tag``.
@@ -45,12 +45,22 @@ Scope (nine assertions across V-1..V-8 implemented here):
         ``{player_id_worldwide, opponent_player_id_worldwide}``,
         or use the bare ``(filename)`` form for match-level rows.
         V-8 is NOT spec-D10 (focal/opponent symmetry); D10 is
-        deferred.
+        covered by V-9.
+    V-9 ``per_player_construction`` controlled vocabulary +
+        sentinel under conjunction carve-out:
+            model-input and sanity-gate rows must carry the literal
+            ``"symmetric"`` (Invariant I5 binding —
+            CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1: focal/opponent
+            symmetry); rows where ``prediction_setting ==
+            "blocked_or_deferred"`` AND ``status ==
+            "blocked_until_additional_validation"`` must carry the
+            literal sentinel ``"blocked"``. ``"asymmetric"`` is
+            categorically rejected. D10 sub-clause 2 (aoestats p0/p1
+            projection via ``canonical_slot``) is N/A for sc2egset.
 
 Deferred to subsequent validation modules (NOT covered here):
     - Per-row optimal G-CS gate fit (which gate suits each family
       scientifically).
-    - Per-player construction symmetry (Invariant I5).
     - Candidate-leakage-mode coverage against CROSS-02-01-v1.0.1.
 
 The module exposes exactly one public function,
@@ -190,6 +200,24 @@ NON_TRACKER_GRAIN_KEYS: frozenset[str] = frozenset(
 
 # Tracker source-table prefix used for V-8 partitioning.
 TRACKER_SOURCE_TABLE_PREFIX: str = "tracker_events_raw"
+
+# CROSS-02-03-v1.0.1 §4.1 D10 (sub-clause 1) controlled vocabulary
+# for the per_player_construction column. V-9 binds Invariant I5
+# (focal/opponent symmetry) at the registry-skeleton layer for
+# sc2egset: every model-input-or-sanity-gate row must carry
+# "symmetric"; only carve-out rows (the V-7 conjunction
+# prediction_setting == "blocked_or_deferred" AND status ==
+# "blocked_until_additional_validation") may carry the literal
+# sentinel "blocked" (BLOCKED_SENTINEL).
+#
+# D10 sub-clause 2 (aoestats p0/p1 projection via canonical_slot,
+# CROSS-02-00-v3.0.1 §5.2) is N/A for sc2egset — sc2egset has no
+# canonical_slot column; per-player slot semantics are already
+# established via replay_players_raw and tracker player-id columns.
+# Sub-clause 2 is deferred to a future aoestats-side V-N PR.
+PER_PLAYER_CONSTRUCTION_VOCAB: frozenset[str] = frozenset(
+    {"symmetric"}
+)
 
 # Substrings that, if present in allowed_cutoff_rule, indicate post-outcome /
 # target-game leakage references.
@@ -624,10 +652,73 @@ def _check_v8_source_grain_well_formedness(
                 )
 
 
+def _check_v9_per_player_construction_vocabulary(
+    skeleton: list[dict[str, Any]],
+) -> None:
+    """V-9: per_player_construction controlled vocabulary + sentinel under conjunction.
+
+    For each row:
+        - If prediction_setting == "blocked_or_deferred" AND
+          status == "blocked_until_additional_validation":
+              assert per_player_construction == BLOCKED_SENTINEL.
+        - Else (every other row, including all model-input
+          pre_game / history_enriched_pre_game / in_game_snapshot
+          rows AND the sanity_gate row):
+              assert per_player_construction in PER_PLAYER_CONSTRUCTION_VOCAB
+              (i.e., "symmetric").
+
+    For ALL rows: assert per_player_construction is a non-empty
+    string.
+
+    V-9 binds CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1 (Invariant
+    I5: focal/opponent symmetry) for sc2egset. D10 sub-clause 2
+    (aoestats p0/p1 projection via canonical_slot) is N/A for
+    sc2egset and is deferred to a future aoestats-side V-N PR.
+
+    The conjunction predicate is identical in shape to V-7's
+    cold-start sentinel pattern; the helper deliberately reuses
+    the BLOCKED_PREDICTION_SETTING / BLOCKED_STATUS / BLOCKED_SENTINEL
+    constants without redefinition.
+    """
+    for row in skeleton:
+        ppc = row["per_player_construction"]
+        ps = row["prediction_setting"]
+        st = row["status"]
+        ffid = row["feature_family_id"]
+
+        # Type guard: per_player_construction must be a non-empty string.
+        assert isinstance(ppc, str), (
+            f"V-9: row '{ffid}' per_player_construction is not a string "
+            f"(got {type(ppc).__name__!r}); expected str"
+        )
+        assert ppc, (
+            f"V-9: row '{ffid}' per_player_construction is empty"
+        )
+
+        # Conjunction predicate (identical to V-7).
+        is_carve_out = (
+            ps == BLOCKED_PREDICTION_SETTING and st == BLOCKED_STATUS
+        )
+
+        if is_carve_out:
+            assert ppc == BLOCKED_SENTINEL, (
+                f"V-9: carve-out row '{ffid}' (prediction_setting='{ps}', "
+                f"status='{st}') has per_player_construction='{ppc}'; "
+                f"expected literal '{BLOCKED_SENTINEL}'"
+            )
+        else:
+            assert ppc in PER_PLAYER_CONSTRUCTION_VOCAB, (
+                f"V-9: row '{ffid}' (prediction_setting='{ps}', "
+                f"status='{st}') has per_player_construction='{ppc}'; "
+                f"expected one of {sorted(PER_PLAYER_CONSTRUCTION_VOCAB)} "
+                f"(Invariant I5 / CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1)"
+            )
+
+
 def validate_registry_skeleton(
     skeleton: list[dict[str, Any]], tracker_csv_path: Path | str
 ) -> None:
-    """Run V-1..V-8 structural assertions on the registry skeleton.
+    """Run V-1..V-9 structural assertions on the registry skeleton.
 
     Args:
         skeleton: List of row dicts; one dict per planned feature family.
@@ -639,7 +730,7 @@ def validate_registry_skeleton(
 
     Raises:
         AssertionError: with a descriptive message naming the failing
-            check (V-1..V-8) and the offending row(s) on any structural
+            check (V-1..V-9) and the offending row(s) on any structural
             violation.
 
     Check order:
@@ -647,7 +738,8 @@ def validate_registry_skeleton(
         V-2 tracker split counts → V-3 blocked families →
         V-4 slot_identity_consistency → V-5 no tracker in pre_game →
         V-6 history strict ``<`` → V-7 cold_start_handling vocabulary →
-        V-8 source_grain well-formedness.
+        V-8 source_grain well-formedness →
+        V-9 per_player_construction controlled vocabulary.
     """
     _check_v1_schema_integrity(skeleton)
     _check_v1_strict_id_segment_alignment(skeleton)
@@ -659,3 +751,4 @@ def validate_registry_skeleton(
     _check_v6_history_strict_lt(skeleton)
     _check_v7_cold_start_vocabulary(skeleton)
     _check_v8_source_grain_well_formedness(skeleton)
+    _check_v9_per_player_construction_vocabulary(skeleton)
