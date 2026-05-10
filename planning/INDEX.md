@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- phase02/sc2egset-feature-registry-v9-symmetry (2026-05-10) — SC2EGSet Step 02_01_01 V-9 per-player construction / focal-opponent symmetry validation (spec-D10 sub-clause 1)
+- phase02/sc2egset-feature-registry-v9-symmetry (2026-05-10) — SC2EGSet Step 02_01_01 V-9 per-player construction / focal-opponent symmetry validation (spec-D10 sub-clause 1) (PR #215)
 
 ## Archive
 
