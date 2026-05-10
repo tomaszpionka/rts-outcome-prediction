@@ -19,6 +19,12 @@ merged to `master`.
 
 ### Removed
 
+## [3.51.0] — 2026-05-10 (PR #N: phase02/sc2egset-feature-registry-v9-symmetry)
+
+### Added
+
+- V-9 per-player construction / focal-opponent symmetry validation (spec-D10 sub-clause 1; Invariant I5). Controlled vocabulary `{"symmetric"}` for model-input and sanity-gate rows; carve-out sentinel `"blocked"` under the V-7 conjunction (`prediction_setting == "blocked_or_deferred"` AND `status == "blocked_until_additional_validation"`). Fixture lift on three blocked rows (`mind_control_event_count`, `army_centroid_at_cutoff_snapshot`, `playerstats_cumulative_economy_fields`). D10 sub-clause 2 (aoestats `canonical_slot` p0/p1 projection) recorded N/A for sc2egset and deferred to a future aoestats-side V-N.
+
 ## [3.50.0] — 2026-05-09 (PR #214: phase02/sc2egset-feature-registry-v8-source-grain-well-formedness)
 
 ### Added
