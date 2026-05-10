@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.51.0] — 2026-05-10 (PR #N: phase02/sc2egset-feature-registry-v9-symmetry)
+## [3.51.0] — 2026-05-10 (PR #215: phase02/sc2egset-feature-registry-v9-symmetry)
 
 ### Added
 
