@@ -489,22 +489,23 @@ print(f"SKELETON row count: {len(SKELETON)}")
 # | V-4 | Skeleton row for `slot_identity_consistency` has `status = sanity_gate_not_model_input`; CSV row independently still reads `status_in_game_snapshot = eligible_for_phase02_now` (CSV must NOT be modified). |
 # | V-5 | No skeleton row whose `source_table_or_event_family` references a tracker event family declares `prediction_setting in {pre_game, history_enriched_pre_game}` (Invariant I3 / PR #208 Amendment 2). |
 # | V-6 | Every `history_enriched_pre_game` row uses strict `<` (not `<=`) and `temporal_anchor = details_timeUTC` (not the cross-dataset alias `started_at`); `allowed_cutoff_rule` does not reference post-outcome tokens (CROSS-02-03-v1.0.1 §5.1; Invariant I3). |
+# | V-9 | Every row's `per_player_construction` matches the controlled vocabulary `{"symmetric"}` for model-input and sanity-gate rows, OR equals the sentinel `"blocked"` under the V-7 conjunction (`prediction_setting == "blocked_or_deferred"` AND `status == "blocked_until_additional_validation"`). Invariant I5 / CROSS-02-03-v1.0.1 §4.1 D10 sub-clause 1. D10 sub-clause 2 (aoestats `canonical_slot` p0/p1 projection) is N/A for sc2egset. |
 #
 # Checks IN scope as of this PR (V-1 base, V-1 strict, V-2..V-7 from PRs
-# #212/#213, V-8 source-grain structural well-formedness + provenance-key
-# consistency from this PR).
+# #212/#213, V-8 source-grain structural well-formedness from PR #214,
+# V-9 per_player_construction controlled vocabulary + sentinel from this PR).
 # Checks NOT YET in scope (deferred to subsequent validation modules):
 # per-row optimal G-CS gate fit (which gate suits each family
-# scientifically), per-player construction symmetry (Invariant I5),
-# candidate-leakage-mode coverage against CROSS-02-01-v1.0.1, and audit
-# dimensions D2/D3/D6/D8/D9/D10/D12/D15.
+# scientifically), candidate-leakage-mode coverage against CROSS-02-01-v1.0.1,
+# and audit
+# dimensions D2/D3/D6/D8/D9/D12/D15.
 
 # %%
 # Run the single validation module. AssertionError halts execution; the
 # notebook does NOT catch or mask exceptions. On success the module returns
 # None and the cell prints an explicit ALL PASS banner.
 validate_registry_skeleton(SKELETON, tracker_csv_path=TRACKER_CSV)
-print("validate_registry_skeleton: ALL PASS (V-1 through V-8)")
+print("validate_registry_skeleton: ALL PASS (V-1 through V-9)")
 
 # %% [markdown]
 # ## Conclusion
@@ -534,13 +535,16 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-8)")
 # ### Follow-ups
 # - Add validation modules for audit dimensions D2 (controlled vocabularies
 #   beyond V-1), D3 (per-row cold-start gate value check), D6 (candidate
-#   leakage modes against CROSS-02-01-v1.0.1), D8 (per_player_construction
-#   symmetry), D9 (allowed_cutoff_rule structural parsing), D10
-#   (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1; NOT
-#   source-grain — V-8 of this PR covers source-grain well-formedness;
-#   spec-D10 is symmetry, deferred to a future V-9), D12 (target_grain
-#   consistency with prediction_setting), D15 (cross-row consistency of
-#   tracker-event-family references against the eligibility CSV).
+#   leakage modes against CROSS-02-01-v1.0.1), D8 (full-replay aggregate
+#   exclusion for in_game_snapshot rows per CROSS-02-03-v1.0.1 §4.1; NOT
+#   per_player_construction symmetry — that is D10 sub-clause 1, covered
+#   by V-9 of this PR), D9 (allowed_cutoff_rule structural parsing), D12
+#   (target_grain consistency with prediction_setting), D15 (cross-row
+#   consistency of tracker-event-family references against the eligibility
+#   CSV).
+# - D10 sub-clause 2 (aoestats `canonical_slot` p0/p1 projection per
+#   CROSS-02-00-v3.0.1 §5.2; aoestats-ONLY column) is N/A for sc2egset
+#   and is deferred to a future aoestats-side V-N PR.
 # - After all validation modules pass on review, materialize the registry
 #   CSV / MD artifact under
 #   `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`,
