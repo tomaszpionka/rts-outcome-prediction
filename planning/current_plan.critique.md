@@ -60,7 +60,7 @@ The seven fixes below are mechanical wording corrections, not methodology issues
 5. CROSS-02-03-v1.0.1 §1.3 (lines 61-78): Confirmed verbatim — "do not replace ... complementary, not redundant ... CROSS-02-03 audits definitions; CROSS-02-01-v1.0.1 audits materialized columns. Both gates are mandatory."
 6. REQUIRED_COLUMNS count (validate_registry_skeleton.py lines 79-93): Confirmed exactly 13.
 7. 26-row partition (5+6+4+7+4=26): Confirmed — SKELETON_PRE_GAME=5, SKELETON_HISTORY=6, SKELETON_IN_GAME_NOW=4, SKELETON_IN_GAME_CAVEAT=7, SKELETON_GATE_AND_BLOCKED=4. Sum = 26.
-8. Manifest vocabulary docstring (lines 8-13): Confirmed five tokens: `confirmed_intact | not_yet_assessed | flagged_stale | regenerated_pending_log | phase_blocked`. The new token does not collide; alphabetical position immediately before `regenerated_pending_log` is correct.
+8. Manifest vocabulary docstring (lines 8-13): Confirmed five tokens: `confirmed_intact | not_yet_assessed | flagged_stale | regenerated_pending_log | phase_blocked`. The new token does not collide; alphabetical position immediately before `phase_blocked` is correct.
 9. Validator scope (validate_registry_skeleton.py lines 14-59): V-1 through V-9 all present and described. The plan's V-N → CROSS-02-03 dimension mapping matches the validator docstring.
 
 ## §Mechanical fixes (F1–F7)
@@ -112,7 +112,7 @@ The artifact is sc2egset-only. The disclaimer's per-dimension table correctly ma
 | 3 | Artifact PR plan reviewed by reviewer-adversarial | SATISFIED — this dispatch. |
 | 4 | Artifact MD includes verbatim disclaimer | SATISFIED — plan §"Disclaimer text — verbatim" reproduces all 5 elements. T01 step 4 forbids paraphrase; T02 enforces no SKELETON-literal modification. |
 | 5 | STEP_STATUS.yaml MUST NOT flip to `complete`; preferably untouched | SATISFIED — §Problem Statement (c) commits to no-touch with full schema rationale; §Stop conditions #2 makes any STEP_STATUS diff a hard halt. |
-| 6 | Manifest entry uses non-`confirmed_intact` status | SATISFIED — new token `provisional_through_v9_pending_post_materialization_audit` introduced in §Problem Statement (d). |
+| 6 | Manifest entry uses non-`confirmed_intact` status | SATISFIED — new token `partial_coverage_v9_baseline` introduced in §Problem Statement (d). |
 | 7 | Path (a) commitment enumerated per deferred dimension in MD | SATISFIED — disclaimer §"What V-1..V-9 do NOT enforce" + §"Commitment path" tables enumerate D2 / D3 / D4-in_game / D5-in_game / D6-full / D8 / D9 / D10-sub-2 / D12 / D14 / D15 with per-row commitment paths. |
 
 All 7 prior conditions met.
@@ -120,7 +120,7 @@ All 7 prior conditions met.
 ## §New findings (reviewer-adversarial)
 
 - **F-1 (FACTUAL ERROR — disclaimer D8 row)**: The disclaimer claimed `full_replay_min_loop_blocked` was a column on the eligibility CSV. Verified: it is NOT a column (CSV has 12 columns; no `full_replay_min_loop_blocked` column). It IS a token in the `upstream_verdicts` cell of the `time_to_first_expansion_loop` row. **Hard-blocking** because the disclaimer is reproduced verbatim into the artifact MD; a citation slip ships into the artifact unless fixed in the plan first.
-- **F-2 (METHODOLOGY GAP — manifest token semantics)**: The token `provisional_through_v9_pending_post_materialization_audit` names ONE of the two unsatisfied `continue_predicate` clauses but elides the other. The 3-clause predicate has both clause 2 (post-materialization audit) AND clause 3 (per-family §10 verdict) unsatisfied. The token name encodes only clause 2. The plan's docstring sentence does enumerate both, but the token name itself is semantically lossy.
+- **F-2 (METHODOLOGY GAP — manifest token semantics)**: The token `partial_coverage_v9_baseline` names ONE of the two unsatisfied `continue_predicate` clauses but elides the other. The 3-clause predicate has both clause 2 (post-materialization audit) AND clause 3 (per-family §10 verdict) unsatisfied. The token name encodes only clause 2. The plan's docstring sentence does enumerate both, but the token name itself is semantically lossy.
 - **F-3 (REVIEWER ROUTING ASYMMETRY — T10)**: Verdict vocabulary asymmetry between reviewer-deep (`PASS / PASS-WITH-NOTES / FIX / BLOCKER`) and reviewer-adversarial (`PASS / PASS-WITH-NOTES / APPROVE-WITH-CONDITIONS / BLOCKED`). Plan should explicitly enumerate reviewer-deep `PASS-WITH-FIXES` semantics in T10 stop condition.
 - **F-4 (IDEMPOTENCY HONESTY — Gate Condition 7 + T01 step 4)**: The plan accepts day-granularity for `executed_at` for byte-identical re-runs within the same UTC day. The artifact MD §Provenance block should declare this caveat verbatim so the reproducibility claim is examiner-defensible.
 - **F-5 (DRIFT FROM PLANNER NUMBERING — T05)**: T05 is a no-op slot. Harmless; current plan has the explanatory note. Not a methodology blocker.
