@@ -143,7 +143,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 #   `sanity_gate_not_model_input`).
 #
 # ### Downstream decision
-# If V-1..V-8 ALL PASS, the skeleton structure is admissible as a candidate
+# If V-1..V-9 ALL PASS, the skeleton structure is admissible as a candidate
 # registry; subsequent PRs may add validation modules for D2, D3, D6 (full),
 # D8, D9, D10 (focal/opponent symmetry per CROSS-02-03-v1.0.1 §4.1), D12,
 # D15 and ultimately materialize the registry artifact. If ANY
@@ -176,7 +176,7 @@ logger.info("Tracker CSV exists: %s", TRACKER_CSV.exists())
 # ### Stop conditions
 # Halt before declaring this Step complete or proceeding to artifact
 # generation if:
-# - Any V-1..V-8 assertion raises `AssertionError`.
+# - Any V-1..V-9 assertion raises `AssertionError`.
 # - The tracker CSV cannot be read or its row counts have drifted from
 #   5 / 7 / 3.
 # - A tracker family appears with `prediction_setting in {pre_game,
@@ -478,11 +478,11 @@ SKELETON: list[dict[str, str]] = (
 print(f"SKELETON row count: {len(SKELETON)}")
 
 # %% [markdown]
-# ## Validation module (V-1 through V-8)
+# ## Validation module (V-1 through V-9)
 #
 # `validate_registry_skeleton` (in
 # `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`)
-# implements the V-1..V-8 structural validation surface against the 13-column audit object schema
+# implements the V-1..V-9 structural validation surface against the 13-column audit object schema
 # defined in CROSS-02-03-v1.0.1 §3:
 #
 # | Check | What it asserts |
@@ -497,7 +497,8 @@ print(f"SKELETON row count: {len(SKELETON)}")
 #
 # Checks IN scope as of this PR (V-1 base, V-1 strict, V-2..V-7 from PRs
 # #212/#213, V-8 source-grain structural well-formedness from PR #214,
-# V-9 per_player_construction controlled vocabulary + sentinel from this PR).
+# V-9 per_player_construction controlled vocabulary + sentinel from PR #215;
+# this PR adds artifact emission, no new validators).
 # Checks NOT YET in scope (deferred to subsequent validation modules):
 # per-row optimal G-CS gate fit (which gate suits each family
 # scientifically), candidate-leakage-mode coverage against CROSS-02-01-v1.0.1,
@@ -775,21 +776,40 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-9); artifact emitted"
 # ## Conclusion
 #
 # ### Artifacts produced
-# **None.** Per `.claude/rules/data-analysis-lineage.md` §"Non-batching rule
-# for empirical work", this PR delivers lineage sequence step 2 only —
-# scaffold + one validation module. No CSV, MD, JSON, or PNG artifact is
-# written by this notebook. Planned future artifacts (registry CSV at
-# `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`
-# and a paired MD narrative) are deferred to a subsequent artifacts PR after
-# reviewed execution of all additional validation modules (D2, D3, D6, D8,
-# D9, D10, D12, D15).
+# When this notebook is executed end-to-end, the artifact-emission cells above
+# write a 26-row × 14-column CSV
+# (`02_01_01_feature_family_registry.csv`) and a paired MD
+# (`02_01_01_feature_family_registry.md`) under `ARTIFACTS_DIR` =
+# `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`.
+# Both files are tagged `validated_through = V-9` in the MD's `## Provenance`
+# block. This is **provisional**: closure of Step 02_01_01 is NOT claimed.
+# The ROADMAP `continue_predicate` for Step 02_01_01 has three clauses —
+# (1) CSV + MD artifact-check, (2) CROSS-02-01-v1.0.1 post-materialization
+# audit re-run for any feature column the registry triggers materialization
+# of, and (3) per-family CROSS-02-03-v1.0.1 §10 verdict recorded for every
+# registry row. This artifact satisfies clause (1) only. Clauses (2) and (3)
+# remain open. The artifact's `## Provisional artifact disclaimer (validated
+# through V-9)` section contains the verbatim per-dimension coverage table
+# (D2 / D3 / D4-in_game / D5-in_game / D6-full / D8 / D9 / D10 sub-2 / D12 /
+# D14 / D15) enumerating each unaddressed CROSS-02-03 dimension and its
+# commitment path to resolution before the thesis defense.
 #
 # ### Status / log / manifest updates
-# **None in this PR.** No edit to STEP_STATUS.yaml, PIPELINE_SECTION_STATUS.yaml,
-# PHASE_STATUS.yaml, per-dataset `research_log.md`, cross-game
-# `reports/research_log.md`, or
-# `thesis/pass2_evidence/notebook_regeneration_manifest.md`. All deferred to
-# the artifacts/log/status/manifest PR that closes Step 02_01_01.
+# STEP_STATUS.yaml, PIPELINE_SECTION_STATUS.yaml, PHASE_STATUS.yaml,
+# `reports/ROADMAP.md`, and `.claude/scientific-invariants.md` are
+# deliberately untouched by this PR. Rationale (per `planning/current_plan.md`
+# §Problem Statement (c)): the ROADMAP `continue_predicate` for Step 02_01_01
+# is three-clause and this artifact satisfies clause (1) only; flipping any
+# status file to `complete` would falsely assert closure that the
+# post-materialization audit and per-family §10 verdicts have not yet
+# delivered. The per-dataset `research_log.md` IS updated with a
+# partial-coverage entry (in a subsequent commit, T09), recording the
+# `validated_through = V-9` artifact emission, the three-clause
+# `continue_predicate`'s current state, and the deferred-dimension commitment
+# paths. `thesis/pass2_evidence/notebook_regeneration_manifest.md` IS
+# updated (also at T09) with a new `partial_coverage_v9_baseline` status
+# token and a manifest row pointing to this notebook + the two artifact
+# files + the disclaimer's coverage table.
 #
 # ### Thesis mapping
 # Phase 02 readiness — feature input contract foundations for sc2egset.
@@ -797,22 +817,27 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-9); artifact emitted"
 # completion criteria.
 #
 # ### Follow-ups
-# - Add validation modules for audit dimensions D2 (controlled vocabularies
-#   beyond V-1), D3 (per-row cold-start gate value check), D6 (candidate
-#   leakage modes against CROSS-02-01-v1.0.1), D8 (full-replay aggregate
+# - Step 02_01_01 remains open after this artifact PR; closure requires the
+#   3-clause `continue_predicate`'s clauses 2 and 3 (CROSS-02-01-v1.0.1
+#   post-materialization audit re-run + per-family CROSS-02-03-v1.0.1 §10
+#   verdicts) — see ROADMAP.
+# - Resolve the deferred CROSS-02-03 dimensions against the V-9 D-coverage
+#   baseline established by this artifact: D2 (source classification +
+#   temporal availability), D3 (source grain vs model grain), D4 in-game
+#   side (temporal anchor correctness for in-game features beyond V-6's
+#   history-side check), D5 in-game side (cutoff operator correctness for
+#   in-game features beyond V-6's history-side check), D6 full (target-game
+#   exclusion on the in-game / full-replay side), D8 (full-replay aggregate
 #   exclusion for in_game_snapshot rows per CROSS-02-03-v1.0.1 §4.1; NOT
-#   per_player_construction symmetry — that is D10 sub-clause 1, covered
-#   by V-9 of this PR), D9 (allowed_cutoff_rule structural parsing), D12
-#   (target_grain consistency with prediction_setting), D15 (cross-row
-#   consistency of tracker-event-family references against the eligibility
-#   CSV).
+#   per_player_construction symmetry — that is D10 sub-clause 1, already
+#   covered by V-9), D9 (normalization fit-scope, post-materialization-only
+#   per CROSS-02-03-v1.0.1 §4.1), D12 (source-mode label discipline; N/A
+#   for sc2egset which has no source-mode column), D14 (AoE2 source-label
+#   discipline; N/A for sc2egset), and D15 (artifact-lineage readiness,
+#   methodology-discipline asserted by lineage chain). Each is operationalized
+#   at its appropriate later layer (materialization step 02_01_02 +
+#   CROSS-02-01-v1.0.1 post-materialization audit), not through additional
+#   V-N registry-layer validators.
 # - D10 sub-clause 2 (aoestats `canonical_slot` p0/p1 projection per
 #   CROSS-02-00-v3.0.1 §5.2; aoestats-ONLY column) is N/A for sc2egset
 #   and is deferred to a future aoestats-side V-N PR.
-# - After all validation modules pass on review, materialize the registry
-#   CSV / MD artifact under
-#   `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`,
-#   then update STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS,
-#   `research_log.md`, and `notebook_regeneration_manifest.md`.
-# - Step 02_01_01 is NOT complete after this scaffold PR; completion requires
-#   the subsequent artifacts/log/status/manifest PR.
