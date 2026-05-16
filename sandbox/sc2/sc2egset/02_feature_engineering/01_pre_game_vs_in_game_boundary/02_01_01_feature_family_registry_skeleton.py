@@ -575,6 +575,7 @@ _GIT_SHA = subprocess.check_output(
     ["git", "rev-parse", "--short", "HEAD"], text=True
 ).strip()
 _PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+_POETRY_VERSION = subprocess.check_output(["poetry", "--version"], text=True).strip()
 _SEED = "not_applicable_deterministic_export"
 _NOTEBOOK_PATH = (
     "sandbox/sc2/sc2egset/02_feature_engineering/"
@@ -721,6 +722,7 @@ _PROVENANCE_BLOCK = (
     f"| executed_at (UTC date) | `{_EXECUTED_AT}` |\n"
     f"| git_sha | `{_GIT_SHA}` |\n"
     f"| python_version | `{_PYTHON_VERSION}` |\n"
+    f"| poetry_version | `{_POETRY_VERSION}` |\n"
     f"| seed | `{_SEED}` |\n"
     f"| artifact_csv_path | `{_ARTIFACT_CSV_PATH}` |\n"
     f"| artifact_md_path | `{_ARTIFACT_MD_PATH}` |\n"
@@ -747,6 +749,7 @@ _REFERENCES_BLOCK = (
 MD_BODY = (
     "# SC2EGSet Step 02_01_01 — Feature-family registry "
     "(provisional, validated through V-9)\n\n"
+    "## Provisional artifact disclaimer (validated through V-9)\n\n"
     f"{_DISCLAIMER_TEXT}\n"
     "## Provenance\n\n"
     f"{_PROVENANCE_BLOCK}\n\n"
@@ -766,7 +769,7 @@ _md_path.write_text(MD_BODY, encoding="utf-8")
 print(f"SKELETON row count: {len(csv_rows)}")
 print(f"CSV path: {_csv_path}")
 print(f"MD path: {_md_path}")
-print("artifact emission complete")
+print("validate_registry_skeleton: ALL PASS (V-1 through V-9); artifact emitted")
 
 # %% [markdown]
 # ## Conclusion
