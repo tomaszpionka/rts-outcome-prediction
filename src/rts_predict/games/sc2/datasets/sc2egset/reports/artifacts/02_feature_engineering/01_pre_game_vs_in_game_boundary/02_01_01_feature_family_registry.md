@@ -102,15 +102,15 @@ full Phase 02 leakage-clearance claim.
 | manifest_status_token | `partial_coverage_v9_baseline` |
 | non_supersession | CROSS-02-01-v1.0.1 remains mandatory |
 | executed_at (UTC date) | `2026-05-16` |
-| git_sha | `c10da8ef` |
+| git_sha (execution HEAD short SHA) | `0dbd42f7` |
 | python_version | `3.12.13` |
 | poetry_version | `Poetry (version 2.4.1)` |
 | seed | `not_applicable_deterministic_export` |
-| artifact_csv_path | `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv` |
-| artifact_md_path | `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md` |
+| artifact_csv_path | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv` |
+| artifact_md_path | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md` |
 | regenerated_via | `poetry run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=300 sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.ipynb` |
 
-Re-running the notebook on the same UTC day produces a byte-identical artifact. Cross-UTC-day re-runs differ only in the `executed_at` field; semantic content (CSV rows, MD body, disclaimer) is identical.
+Re-running the notebook produces a byte-identical artifact when the UTC date, the execution `git_sha`, and the tool-version environment (`python_version`, `poetry_version`) are all unchanged. Cross-UTC-day reruns differ only in the `executed_at` field. Reruns from a different git SHA (e.g., after a commit) differ in the `git_sha` field by design. Semantic content (registry rows, disclaimer, deferred-dimension table) is unchanged unless the notebook source changes.
 
 ## Row counts by block
 

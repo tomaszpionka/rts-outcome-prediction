@@ -525,13 +525,23 @@ print("validate_registry_skeleton: ALL PASS (V-1 through V-9); artifact emission
 # `python_version`) are computed at notebook execution time, not at notebook
 # edit time, so the artifact reflects the actual run rather than the source
 # commit. The `executed_at` field uses `datetime.now(timezone.utc).date()`
-# (timezone-explicit UTC); re-running on the same UTC day yields byte-identical
-# artifacts and cross-UTC-day re-runs differ only in `executed_at`. No
+# (timezone-explicit UTC). Byte-identical regeneration requires three
+# invariants to hold simultaneously: same UTC date, same execution git SHA,
+# and same tool-version environment (`python_version`, `poetry_version`).
+# Cross-UTC-day re-runs differ only in `executed_at`; re-runs from a new
+# commit differ in `git_sha`. No
 # `STEP_STATUS.yaml` / `PHASE_STATUS.yaml` / spec / validator file is touched
 # by this cell; closure of Step 02_01_01 is explicitly NOT claimed (see the
 # disclaimer's §"Step 02_01_01 closure status — partial" subsection).
 
 # %%
+# Repo root is computed via `git rev-parse --show-toplevel` so that provenance
+# paths in the MD are repo-relative (e.g.,
+# `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/...`) rather
+# than absolute `/Users/...` paths that leak the executor's local checkout.
+_REPO_ROOT: Path = Path(
+    subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+)
 ARTIFACTS_DIR: Path = (
     get_reports_dir("sc2", "sc2egset")
     / "artifacts"
@@ -585,8 +595,12 @@ _NOTEBOOK_PATH = (
 _VALIDATOR_MODULE = (
     "src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py"
 )
-_ARTIFACT_CSV_PATH = str(ARTIFACTS_DIR / "02_01_01_feature_family_registry.csv")
-_ARTIFACT_MD_PATH = str(ARTIFACTS_DIR / "02_01_01_feature_family_registry.md")
+_ARTIFACT_CSV_PATH = str(
+    (ARTIFACTS_DIR / "02_01_01_feature_family_registry.csv").relative_to(_REPO_ROOT)
+)
+_ARTIFACT_MD_PATH = str(
+    (ARTIFACTS_DIR / "02_01_01_feature_family_registry.md").relative_to(_REPO_ROOT)
+)
 _REGENERATION_COMMAND = (
     "poetry run jupyter nbconvert --to notebook --execute --inplace "
     "--ExecutePreprocessor.timeout=300 "
@@ -721,7 +735,7 @@ _PROVENANCE_BLOCK = (
     f"| manifest_status_token | `{_MANIFEST_STATUS}` |\n"
     f"| non_supersession | {_NON_SUPERSESSION} |\n"
     f"| executed_at (UTC date) | `{_EXECUTED_AT}` |\n"
-    f"| git_sha | `{_GIT_SHA}` |\n"
+    f"| git_sha (execution HEAD short SHA) | `{_GIT_SHA}` |\n"
     f"| python_version | `{_PYTHON_VERSION}` |\n"
     f"| poetry_version | `{_POETRY_VERSION}` |\n"
     f"| seed | `{_SEED}` |\n"
@@ -729,9 +743,13 @@ _PROVENANCE_BLOCK = (
     f"| artifact_md_path | `{_ARTIFACT_MD_PATH}` |\n"
     f"| regenerated_via | `{_REGENERATION_COMMAND}` |\n"
     f"\n"
-    f"Re-running the notebook on the same UTC day produces a byte-identical "
-    f"artifact. Cross-UTC-day re-runs differ only in the `executed_at` field; "
-    f"semantic content (CSV rows, MD body, disclaimer) is identical."
+    f"Re-running the notebook produces a byte-identical artifact when the UTC "
+    f"date, the execution `git_sha`, and the tool-version environment "
+    f"(`python_version`, `poetry_version`) are all unchanged. Cross-UTC-day "
+    f"reruns differ only in the `executed_at` field. Reruns from a different "
+    f"git SHA (e.g., after a commit) differ in the `git_sha` field by design. "
+    f"Semantic content (registry rows, disclaimer, deferred-dimension table) "
+    f"is unchanged unless the notebook source changes."
 )
 
 # %%
