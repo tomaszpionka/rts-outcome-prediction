@@ -2,6 +2,82 @@
 
 ---
 
+## 2026-05-16 — [Phase 02 / Step 02_01_01] Provisional feature-family registry artifact (validated through V-9)
+
+**Category:** A (science / Phase 02 feature-engineering registry artifact)
+**Dataset:** sc2egset
+**Branch:** phase02/sc2egset-registry-artifact-provisional-v9
+**PR:** #216
+**Step scope:** Step 02_01_01 — Feature-family registry skeleton (sc2egset) — provisional artifact emission only; step closure is NOT claimed.
+**validated_through:** V-9
+**closure_status:** partial
+**manifest_status_token:** partial_coverage_v9_baseline
+
+**Artifacts produced:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md`
+
+### What
+
+Emitted the first on-disk artifact for Step 02_01_01: CSV + MD at `validated_through = V-9`. The artifact is provisional and does not constitute closure of Step 02_01_01.
+
+- CSV: 26 data rows + 1 header row = 27 lines total; 14 columns (13 REQUIRED_COLUMNS + appended `block` column); 5 block partitions: `pre_game=5`, `history_enriched_pre_game=6`, `in_game_now=4`, `in_game_caveat=7`, `gate_and_blocked=4`.
+- MD companion: includes verbatim `## Provisional artifact disclaimer (validated through V-9)` section; per-dimension deferred-coverage table for D2/D3/D4-in_game/D5-in_game/D6-full/D8/D9/D10-sub-2/D12/D14/D15; explicit non-supersession of CROSS-02-01-v1.0.1; partial-closure framing.
+
+### Why
+
+Lineage sequence step 7 under `.claude/rules/data-analysis-lineage.md` §"Non-batching rule for empirical work" ("Only after all validation modules pass, generate artifacts"). V-9 is the user-declared stopping point for registry-layer validators in this cycle. PR #212 → #213 → #214 → #215 completed steps 1–6 of the non-batching sequence; this PR delivers step 7 (artifact generation) and partial step 8 (this lineage entry + manifest row).
+
+### How (reproducibility)
+
+- Notebook path: `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.py`
+- Validator module: `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`
+- Execution banner confirmed: `validate_registry_skeleton: ALL PASS (V-1 through V-9); artifact emitted`
+- Execution command: `poetry run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry_skeleton.ipynb`
+- Idempotency confirmed: CSV and MD are byte-identical across reruns on the same UTC date with the same `execution_git_sha` and tool-version environment. Cross-UTC-day reruns differ only in `executed_at`; reruns from a different git SHA differ in the provenance `git_sha` field by design.
+
+### Findings
+
+26-row registry CSV partition (5+6+4+7+4=26). D-coverage at artifact emission:
+
+- Covered by V-1..V-9: D1, D7, D11, D13 (full); D5-history-side, D6-history-side (partial); D10-sub-clause-1 (V-9).
+- Deferred to materialization step / post-materialization audit: D2, D3, D4-in_game, D5-in_game, D6-full, D8.
+- Post-materialization-only / methodology discipline: D9, D15.
+- N/A for sc2egset: D10-sub-clause-2, D12, D14.
+
+### What this means
+
+Registry artifact is on disk and citable in Chapter 4 §4.5 ONLY alongside the future post-materialization audit artifact; alone it does NOT constitute a Phase 02 leakage-clearance claim. Step 02_01_01 remains open.
+
+### Decisions taken
+
+- `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`, `ROADMAP.md`, `INVARIANTS.md` deliberately untouched. Rationale: ROADMAP `continue_predicate` is a conjunctive 3-clause gate (artifact-check + post-materialization audit re-run + per-family §10 verdict); this artifact satisfies clause 1 only; flipping `STEP_STATUS.yaml` to `complete` would misrepresent closure status.
+- Manifest vocabulary extended with `partial_coverage_v9_baseline` to accurately characterize a freshly emitted partial-coverage Phase 02 artifact (none of the existing 5 tokens correctly described this state).
+- Provenance uses repo-relative artifact paths and documents three sources of provenance variation (UTC date, git SHA, tool versions).
+
+### Decisions deferred
+
+- Materialization step (02_01_02 or successor).
+- CROSS-02-01-v1.0.1 post-materialization audit re-run.
+- Per-family CROSS-02-03-v1.0.1 §10 verdicts for every registry row.
+- Resolution of deferred dimensions D2 / D3 / D4-in_game / D5-in_game / D6-full / D8 (operationalized at materialization layer).
+
+### Acknowledged trade-offs
+
+The partial-coverage framing is honest by design. The deferred dimensions carry explicit commitment paths in the artifact MD; no dimension is silently dropped.
+
+### Thesis mapping
+
+Chapter 4 §4.5 (feature-engineering registry / Phase 02 registry baseline). The registry artifact is cited ONLY alongside the future post-materialization audit artifact. The registry artifact alone does NOT constitute a full Phase 02 leakage-clearance claim.
+
+### Open questions / follow-ups
+
+- Launch materialization step 02_01_02 (or successor) after Step 02_01_01 is formally closed.
+- Re-run CROSS-02-01-v1.0.1 post-materialization audit for any column materialized from this registry.
+- Record per-family CROSS-02-03-v1.0.1 §10 verdicts for every registry row before Step 02_01_01 closure.
+
+---
+
 ## 2026-05-05 — [Phase 01 / Step 01_03_05] Tracker events semantic validation (GATE-14A6)
 
 **Category:** A (science)
