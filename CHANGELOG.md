@@ -19,6 +19,23 @@ merged to `master`.
 
 ### Removed
 
+## [3.53.0] — 2026-05-17 (PR #218: thesis/sc2-tracker-eligibility-section-4-3)
+
+### Added
+
+- New Chapter 4 subsection `§4.3.3 Walidacja semantyczna strumienia tracker_events_raw (Step 01_03_05; GATE-14A6 — narrowed)` in `thesis/chapters/04_data_and_methodology.md` (TQ-02 from PR #217 audit §12).
+- Repaired stale §4.3.2 paragraph (TQ-01): Step 01_03_05 is complete as of 2026-05-05; GATE-14A6 outcome is `narrowed`, not `closed`; tracker-derived features remain never pre-game (Invariant I3 / Amendment 2).
+- Renumbered AoE2-specific feature subsection from §4.3.3 to §4.3.4; updated §4.1.3 cross-reference to point to both new §4.3.3 and renumbered §4.3.4.
+- `thesis/WRITING_STATUS.md` Chapter 4 rows updated to reflect Step 01_03_05 completion; line 75 GATE-14A6 wording repaired to keep §4.4 FINAL status gated by Phase 02 materialization + CROSS-02-01-v1.0.1 (does NOT imply §4.4 is unblocked).
+- `thesis/chapters/REVIEW_QUEUE.md` carries Pending row routing the new prose through reviewer-deep + reviewer-adversarial gates.
+- Explicit non-claims preserved: no Phase 02 closure, no Step 02_01_01 closure, no final feature catalog, no leakage-free materialized features, no model-ready feature matrix, no model results, no tabular-vs-GNN conclusion.
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.52.2] — 2026-05-17 (PR #217 amendment: thesis/phase01-phase02-writing-readiness-audit)
 
 ### Added
