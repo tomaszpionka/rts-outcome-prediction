@@ -85,7 +85,11 @@ External citation: `[Bialecki2023]` (already in `thesis/references.bib:5` — Bi
 
 Cross-reference posture. §4.5 must connect back to §4.3.3 "Walidacja semantyczna strumienia `tracker_events_raw` (Step 01_03_05; GATE-14A6 — narrowed)" (Chapter 4 lines 333–351, drafted in PR #218) at the locus where in-game-snapshot families enter the registry. The cross-reference is **read-only against §4.3.3** — the writer-thesis must NOT promote any of the 3 `blocked_until_additional_validation` tracker families (`mind_control_event_count`, `army_centroid_at_cutoff_snapshot`, `playerstats_cumulative_economy_fields`) into §4.5 prose as Phase-02-ready, and must NOT collapse the GATE-14A6 outcome from `narrowed` to `closed`. The 3 blocked rows appear in the registry CSV (rows 25–27) only with `status = blocked_until_additional_validation` and `block = gate_and_blocked`; that classification is the only allowed framing in §4.5.
 
-[OPINION] Polish title proposal (writer-thesis chooses among three; default = first). Three candidates, ordered by my recommendation: (1) **"Rejestr rodzin cech Phase 02 — prowizoryczny artefakt skeletonu rejestru (V-9)"** — defaults to the artifact-as-skeleton framing and embeds the V-9 validator level; (2) **"Prowizoryczny rejestr rodzin cech Phase 02 (artefakt skeletonu, V-9)"** — same content with provisional framing fronted; (3) **"Rejestr rodzin cech i status walidacji Phase 02"** — neutral framing, lighter on validator detail. The default carries the provisional + V-9 anchor in the title itself, which examiner-frames the section without ambiguity. Writer-thesis may swap (1)→(2) without re-review if a Polish reader's flow prefers it; (3) requires reviewer-deep sign-off because it loses the V-9 anchor.
+[OPINION] Polish title — **user-resolved (P01, 2026-05-17).** The approved title is:
+
+**`## 4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9`**
+
+This is a Chapter 4 **top-level numbered section** (two hashes `##`), sibling to §4.1, §4.2, §4.3, §4.4 — NOT a child subsection of §4.4.6 (which would be `### 4.5`). The title intentionally avoids `skeleton` to satisfy FC19. The phrase "prowizoryczny artefakt rejestru rodzin cech" is descriptive prose, not a formal TAXONOMY unit. No `docs/TAXONOMY.md` edit is required or authorized.
 
 ## Assumptions & unknowns
 
@@ -162,6 +166,12 @@ Verbatim from dispatch + cross-referenced to Forbidden Claims F1–F18 in `thesi
 | FC16 | Any unqualified "ranked ladder" framing for aoestats or for the aoe2companion combined ID 6 + ID 18 scope | F10 / F11; AoE2 source-label discipline in `.claude/scientific-invariants.md` AoE2 section |
 | FC17 | Any Friedman-omnibus-at-N=2 cross-game claim | F15 |
 | FC18 | Any claim that flips a STATUS YAML or that requires a STATUS YAML flip to be true | repository state |
+| FC19 | Registry-skeleton vs registry terminological consistency. Within §4.5, use ONE form consistently (e.g., *"rejestr rodzin cech (poziom V-9)"* OR *"artefakt rejestru rodzin cech na poziomie V-9"*); do NOT alternate. The approved chapter title avoids "skeleton" to enforce this discipline at the heading level. | P01 approved |
+| FC20 | No "covers all D1–D15" cross-reference leakage. Forbid Polish equivalents *"pokrywa wszystkie wymiary D1–D15"* / *"adresuje wszystkie wymiary projektowe"*. Allowed phrasing: "mechanically enforces a subset of D1–D15 (D1, D5/D6 history-side, D7, D10-sub-1, D11, D13, D15); defers D2, D3, D4-in_game, D5-in_game, D6-full, D8, D9 to materialization + CROSS-02-01-v1.0.1; declares D10-sub-2, D12, D14, D15 as N/A or AoE2-side". | P01 approved |
+| FC21 | No implicit "Phase 02 ready" framing via cross-reference composition. Forbid Polish verbs *"zapewniona"*, *"zabezpieczona"*, *"gotowa"*, *"kompletna"* (or English "ready", "complete", "secured", "ensured") when describing Phase 02 status. | P01 approved |
+| FC22 | No "provisional" phrasing with positive valence implying near-completion. Polish *"prowizoryczny"* MUST be paired at first usage with a structural disqualifier ("satisfies clause 1 only of the 3-clause continue_predicate"). Do NOT use alongside *"bliskie ukończenia"* / *"prawie gotowe"* / *"wstępne"*. | P01 approved |
+| FC23 | `partial_coverage_v9_baseline` must NOT be translated. The manifest token is a code-level identifier; gloss in Polish as *"token statusu `partial_coverage_v9_baseline`"* or *"określenie statusu w manifeście"*, NOT *"token częściowego pokrycia poziomu V-9"*. Elevated from OQ6. | P01 approved |
+| FC24 | Prevent F-numbering drift recurrence. F1–F18 are canonical from audit §8. §4.5 prose MAY cite the audit in a footnote but MUST NOT renumber / refactor / re-label; use `audit §8 row F-N` format verbatim. | P01 approved |
 
 ## Halt conditions specific to this PR
 
@@ -172,7 +182,7 @@ Verbatim from dispatch (preserved in plan as load-bearing constraint).
 - Halt if STATUS YAML semantics require a flip. **Resolved at planning time:** the prose explicitly carries non-closure anchors (11–14); no flip is required.
 - Halt if reviewer-adversarial finds the provisional framing indefensible. T01 verdict gates T02; T04 verdict gates T04b/T05; if either round finds the framing indefensible, halt and re-plan.
 - Halt if writer-thesis attempts to write outside §4.5 + minimal cross-reference scope. T03 verifies file scope; only the 5 files in the File Manifest may be touched.
-- Halt if any prose implies closure / finality. T03 verifies all 18 forbidden-claim items.
+- Halt if any prose implies closure / finality. T03 verifies all 24 forbidden-claim items (FC1–FC24).
 - Halt if any of the 21 required-claim anchors is NOT supported by repo evidence. Verified at planning time (Section 2 of planner's chat output, all 21 SUPPORTED). T02 verifies again before drafting.
 - Halt if `02_01_01_feature_family_registry.csv` shape ≠ 26 data rows × 14 columns. Verified at planning time (`wc -l` = 27; header has 14 fields). T02 re-verifies before drafting.
 - Halt if PHASE_STATUS / PIPELINE_SECTION_STATUS / STEP_STATUS shows any closure (Phase 02 / section 02_01 / step 02_01_01) for SC2EGSet. Verified at planning time (all three uphold non-closure). T02 re-verifies before drafting.
@@ -182,7 +192,7 @@ Verbatim from dispatch (preserved in plan as load-bearing constraint).
 
 These are non-negotiable. T02 dispatch prompt MUST embed all of the following.
 
-- **Insertion locus.** New §4.5 is inserted into `thesis/chapters/04_data_and_methodology.md` after line 428 (closing paragraph of §4.4.6) with a blank line + `---` separator + blank line + `### 4.5 ...` heading. No edits to lines 1–428. No edits to any line after the new §4.5 block (there are no lines after 428 currently; the chapter ends at 428).
+- **Insertion locus.** New §4.5 is inserted into `thesis/chapters/04_data_and_methodology.md` after line 428 (closing paragraph of §4.4.6) with a blank line + `---` separator + blank line + the approved heading `## 4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9`. No edits to lines 1–428. No edits to any line after the new §4.5 block (there are no lines after 428 currently; the chapter ends at 428). **Chapter 4 top-level numbered sections use `##`.** §4.5 must be a sibling top-level section after §4.4, not a child subsection of §4.4.6. The writer-thesis validation must grep for `^## 4\.5`.
 - **File scope per T02.** Only the 5 files in the File Manifest may be touched: `thesis/chapters/04_data_and_methodology.md`, `thesis/WRITING_STATUS.md`, `thesis/chapters/REVIEW_QUEUE.md`, `CHANGELOG.md` (T05 only), `pyproject.toml` (T05 only). Writer-thesis touches the first three at T02; T05 touches the last two.
 - **No THESIS_STRUCTURE.md edit.** Out of scope for this PR.
 - **No `docs/TAXONOMY.md` edit.** Out of scope unless reviewer-deep mandates at T03; default = no-touch.
@@ -230,7 +240,7 @@ T00 is complete (bootstrap commit `1ffb4df1`). Tasks T01–T06 below carry execu
 
 **Instructions:**
 1. Parent session dispatches `@reviewer-deep` and `@reviewer-adversarial` in parallel, both reading `planning/current_plan.md` (this file, post-replacement) at branch `thesis/phase02-registry-methodology-section-4-5` HEAD.
-2. `@reviewer-deep` prompt MUST include: (a) the 21 required-claim anchors verbatim from §"Required claim surface"; (b) the 18 forbidden-claim items verbatim from §"Forbidden claims for writer-thesis"; (c) the 9 halt conditions verbatim from §"Halt conditions specific to this PR"; (d) the 9 hard constraints verbatim from §"Hard constraints for writer-thesis dispatch"; (e) the 7 reviewer-deep checks verbatim from §"Reviewer-specific concerns"; (f) the file scope (5 allowed files) verbatim from §File Manifest.
+2. `@reviewer-deep` prompt MUST include: (a) the 21 required-claim anchors verbatim from §"Required claim surface"; (b) the 24 forbidden-claim items verbatim from §"Forbidden claims for writer-thesis" (FC1–FC24; FC19–FC24 added by P01 post-T01); (c) the 9 halt conditions verbatim from §"Halt conditions specific to this PR"; (d) the 9 hard constraints verbatim from §"Hard constraints for writer-thesis dispatch"; (e) the 7 reviewer-deep checks verbatim from §"Reviewer-specific concerns"; (f) the file scope (5 allowed files) verbatim from §File Manifest. **Note: T01 already completed with FC1–FC18; FC19–FC24 fold into T03 dispatch.**
 3. `@reviewer-adversarial` prompt MUST include: (a) all of (a)–(d) above; (b) the 6 examiner scenarios verbatim from §"Reviewer-specific concerns"; (c) instruction to stress-test the provisional framing — does it survive examination?
 4. Both reviewers return a combined verdict (PASS / PASS-WITH-NOTES / REQUIRE-REVISION / BLOCK). Parent session aggregates verdicts. If reviewer-adversarial returns BLOCK or REQUIRE-REVISION, halt and re-plan. If reviewer-deep returns BLOCK or REQUIRE-REVISION but reviewer-adversarial passes, parent decides whether to re-plan or proceed with deep-review fixes embedded into the plan. Combined verdict requires user approval before T02.
 5. Persist the reviewer-adversarial output to `planning/current_plan.critique.md` as the load-bearing critique artifact (reviewer-adversarial is responsible for writing this file per its agent contract). Commit both reviewer outputs in one commit: `docs(planning): reviewer-deep + reviewer-adversarial verdicts for PR 219 plan`. Push to PR #219.
@@ -257,25 +267,33 @@ T00 is complete (bootstrap commit `1ffb4df1`). Tasks T01–T06 below carry execu
 
 ### T02 — writer-thesis drafts §4.5 (after T01 PASS + user approval)
 
-**Objective:** Draft the new §4.5 subsection of Chapter 4 carrying all 21 required-claim anchors and avoiding all 18 forbidden claims. Update WRITING_STATUS.md (new §4.5 row) and REVIEW_QUEUE.md (new Pending row).
+**Objective:** Draft the new §4.5 subsection of Chapter 4 carrying all 21 required-claim anchors and avoiding all 24 forbidden claims (FC1–FC24; FC19–FC24 user-approved at P01). Update WRITING_STATUS.md (new §4.5 row) and REVIEW_QUEUE.md (new Pending row).
 
 **Instructions:**
 1. Parent session re-verifies (one-line bash each) immediately before T02 dispatch: (a) registry CSV line count = 27 and column count = 14; (b) registry MD `validated_through = V-9` and `manifest_status_token = partial_coverage_v9_baseline` still present; (c) `STEP_STATUS.yaml` does NOT contain `02_01_01`; (d) `PIPELINE_SECTION_STATUS.yaml` does NOT list `02_01`; (e) `PHASE_STATUS.yaml` Phase 02 = `not_started`; (f) aoestats + aoe2companion `PHASE_STATUS.yaml` Phase 02 both = `not_started`; (g) `thesis/pass2_evidence/notebook_regeneration_manifest.md` line 12 + line 73 unchanged; (h) Chapter 4 ends at line 428.
 2. If any verification fails, HALT and re-plan. Do NOT dispatch writer-thesis.
 3. Parent session dispatches `@writer-thesis` (Opus required — methodology-load-bearing) with the following embedded verbatim in the prompt:
    - The 21 required-claim anchors from §"Required claim surface".
-   - The 18 forbidden-claim items from §"Forbidden claims for writer-thesis".
+   - The 24 forbidden-claim items from §"Forbidden claims for writer-thesis" (FC1–FC24, including user-approved FC19–FC24 from P01).
    - The 9 halt conditions from §"Halt conditions specific to this PR".
-   - The 9 hard constraints from §"Hard constraints for writer-thesis dispatch", including: insertion locus (after Chapter 4 line 428 + `---` separator), file scope (3 files this task touches; CHANGELOG + pyproject.toml deferred to T05), length target (5,000–7,500 znaków), voice register (argumentative, bezosobowy akademicki polski), 4 bolded-subsection structure (a)/(b)/(c)/(d).
+   - The 9 hard constraints from §"Hard constraints for writer-thesis dispatch", including: insertion locus (after Chapter 4 line 428 + `---` separator + approved `## 4.5` heading), file scope (3 files this task touches; CHANGELOG + pyproject.toml deferred to T05), length target (5,000–7,500 znaków), voice register (argumentative, bezosobowy akademicki polski), 4 bolded-subsection structure (a)/(b)/(c)/(d).
    - The 3 alternatives-considered paragraphs from §"Must justify".
    - The 1 external citation `[Bialecki2023]` (no new bibkey).
    - The 6 internal cross-references (paths).
    - The numerical-consistency discipline: 26 data rows, 14 columns, 13 + 1 split, 5+6+4+7+4 block distribution, 11 deferred-dimension table rows; max 3 representative feature-family IDs cited (one per non-blocked block); NEVER from `gate_and_blocked`.
-   - Polish title default = "Rejestr rodzin cech Phase 02 — prowizoryczny artefakt skeletonu rejestru (V-9)" (alternatives in plan §Literature context).
+   - Polish title: user-approved (P01, 2026-05-17) = `## 4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9` (top-level `##` heading; no `skeleton` wording; no alternative titles permitted).
    - WRITING_STATUS.md row shape from §"Hard constraints".
    - REVIEW_QUEUE.md entry shape from §"Hard constraints".
    - DO NOT modify WRITING_STATUS.md line 75 (GATE-14A6 wording for §4.3.3 row).
    - DO NOT touch `docs/TAXONOMY.md`, any `thesis/pass2_evidence/**` file, any other thesis chapter, any STATUS YAML, any ROADMAP, any research_log, any spec, any notebook, any agent file, any `.claude/` rule.
+   - **Envelope tightenings (P01-approved, mandatory for T02 dispatch):**
+     1. **Cited-as-of-SHA HTML comment discipline** (PR #218 precedent). At the top of §4.5 insert: `<!-- Cited-as-of-SHA: master @ f1add6ce -->` + `<!-- Registry CSV: <SHA-at-T02-time> -->` + `<!-- Registry MD: <SHA-at-T02-time> -->` + `<!-- notebook_regeneration_manifest.md: <SHA-at-T02-time> -->`. Populate the SHAs at T02 time by running `git log --format="%H" -1 -- <file-path>` for each artifact file.
+     2. **4-vs-3 `gate_and_blocked` row disambiguation.** When citing the block distribution, state explicitly: "`gate_and_blocked` has 4 rows total; 3 are `blocked_until_additional_validation`, 1 is the `slot_identity_consistency` sanity gate (not a model-blocking row)."
+     3. **"Provisional" glossing discipline.** At first usage of *prowizoryczny*, pair it with the structural disqualifier: "satisfies clause 1 only of the 3-clause continue_predicate". Forbid synonymy with "preliminary/draft/interim/near-final".
+     4. **Why §4.5 lives in Chapter 4 (methodology) not Chapter 5 (results).** Include one explicit sentence rationale (e.g., the registry is a declaration artifact — a methodological discipline commitment — not an empirical result or a materialised feature value).
+     5. **No temporal-progression framing for AoE2 asymmetry.** Use "differential per-dataset progress profile"; forbid "lagging", "behind", "pending", "will catch up", "priorities".
+     6. **Registry-skeleton vs registry terminological consistency** per FC19 (one form only throughout §4.5).
+     7. **F-number citation discipline** per FC24 (use `audit §8 row F-N` verbatim; do not renumber).
 4. After writer-thesis completes drafting, commit + push: `docs(thesis): add Chapter 4 §4.5 Phase 02 registry methodology framing (provisional, V-9)`.
 5. Run Chat Handoff Summary per `.claude/rules/thesis-writing.md` §"Chat Handoff Summary Format" Data-fed sections variant.
 
@@ -309,13 +327,13 @@ T00 is complete (bootstrap commit `1ffb4df1`). Tasks T01–T06 below carry execu
 
 **Instructions:**
 1. Parent session dispatches `@reviewer-deep` against the drafted prose at PR #219 HEAD (post-T02 commit).
-2. reviewer-deep prompt MUST include: (a) the 21 required-claim anchors verbatim; (b) the 18 forbidden-claim items verbatim; (c) the 9 hard constraints verbatim; (d) the 7 reviewer-deep checks verbatim from §"Reviewer-specific concerns".
+2. reviewer-deep prompt MUST include: (a) the 21 required-claim anchors verbatim; (b) the 24 forbidden-claim items verbatim (FC1–FC24; FC19–FC24 user-approved at P01); (c) the 9 hard constraints verbatim; (d) the 7 reviewer-deep checks verbatim from §"Reviewer-specific concerns".
 3. reviewer-deep returns verdict (PASS / PASS-WITH-NOTES / REQUIRE-REVISION / BLOCK) with per-anchor + per-forbidden-claim accounting.
 4. If REQUIRE-REVISION or BLOCK, T04b fixes; otherwise proceed to T04.
 
 **Verification:**
 - reviewer-deep output cites all 21 anchors as PRESENT in the drafted prose.
-- reviewer-deep output cites all 18 forbidden claims as ABSENT in the drafted prose.
+- reviewer-deep output cites all 24 forbidden claims as ABSENT in the drafted prose.
 - reviewer-deep output cites all 7 reviewer-deep checks as PASS.
 - File scope verified by `git diff` against the 3 manifest files only.
 
@@ -340,7 +358,9 @@ T00 is complete (bootstrap commit `1ffb4df1`). Tasks T01–T06 below carry execu
 
 **Instructions:**
 1. Parent session dispatches `@reviewer-adversarial` against drafted prose at PR #219 HEAD (post-T02 commit, post-T03 fixes if any).
-2. reviewer-adversarial prompt MUST include: (a) the 21 required-claim anchors verbatim; (b) the 18 forbidden-claim items verbatim; (c) the 6 examiner scenarios verbatim from §"Reviewer-specific concerns"; (d) explicit instruction to attempt the most aggressive examiner reading — does the provisional framing survive?
+2. reviewer-adversarial prompt MUST include: (a) the 21 required-claim anchors verbatim; (b) the 24 forbidden-claim items verbatim (FC1–FC24; FC19–FC24 user-approved at P01); (c) the 6 examiner scenarios verbatim from §"Reviewer-specific concerns"; (d) explicit instruction to attempt the most aggressive examiner reading — does the provisional framing survive?; (e) **two additional P01-approved sentence-surface checks:**
+   - **Sentence-level upgrade-in-meaning check.** Scan every sentence for paraphrases that subtly upgrade "provisional → effectively complete", "narrowed → effectively closed", "deferred → handled". These upgrades are NOT covered by grep-based forbidden-phrase checks and must be detected manually.
+   - **Cross-reference reading test.** Read §4.3.3 + §4.5 as a continuous narrative. Verify that no sentence in §4.5, *combined with* §4.3.3, produces an implicit "Phase 02 is ready" claim. The two sections must compose without leaking readiness.
 3. reviewer-adversarial returns per-scenario verdict + overall verdict (PASS / PASS-WITH-NOTES / REQUIRE-REVISION / BLOCK). Per `.claude/rules/data-analysis-lineage.md` agent-routing discipline, the 3-round adversarial cap applies symmetrically — if T04 returns REQUIRE-REVISION twice in a row after T04b fixes, escalate to user; if T04 returns BLOCK, halt and re-plan.
 4. Persist verdict to `planning/current_plan.critique.md` (append to T01 critique under a new `## T04 — drafted-prose adversarial review` heading). Commit: `docs(planning): reviewer-adversarial verdict on §4.5 drafted prose (PR 219)`.
 
@@ -394,7 +414,7 @@ T00 is complete (bootstrap commit `1ffb4df1`). Tasks T01–T06 below carry execu
 
 **Instructions:**
 1. Update `CHANGELOG.md`: move `[Unreleased]` content (currently empty per inspection at line 12) into a new `## [3.54.0] — 2026-05-17 (PR #219: thesis/phase02-registry-methodology-section-4-5)` block under the existing `## [Unreleased]` header. Block content (1 line each):
-   - **Added:** `thesis/chapters/04_data_and_methodology.md` — NEW §4.5 "Rejestr rodzin cech Phase 02 — prowizoryczny artefakt skeletonu rejestru (V-9)" carrying the SC2EGSet provisional feature-family registry artifact (PR #216) at `validated_through = V-9` with manifest token `partial_coverage_v9_baseline`, deferred-dimension table (11 rows), non-supersession of CROSS-02-01-v1.0.1 post-materialization audit, and per-dataset Phase 02 asymmetry framing. Routed from `thesis/pass2_evidence/phase01_phase02_writing_readiness_audit.md` §11 row 5 / §12 TQ-03.
+   - **Added:** `thesis/chapters/04_data_and_methodology.md` — NEW §4.5 "Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9" carrying the SC2EGSet provisional feature-family registry artifact (PR #216) at `validated_through = V-9` with manifest token `partial_coverage_v9_baseline`, deferred-dimension table (11 rows), non-supersession of CROSS-02-01-v1.0.1 post-materialization audit, and per-dataset Phase 02 asymmetry framing. Routed from `thesis/pass2_evidence/phase01_phase02_writing_readiness_audit.md` §11 row 5 / §12 TQ-03.
    - **Added:** `thesis/WRITING_STATUS.md` — one Chapter 4 row for §4.5 (status DRAFTED).
    - **Added:** `thesis/chapters/REVIEW_QUEUE.md` — one Pending Pass 2 entry for §4.5.
 2. Update `pyproject.toml` line 3: `version = "3.53.0"` → `version = "3.54.0"`.
@@ -491,9 +511,9 @@ Allowed file touches across T01–T06. Every file touched by any task is listed 
 
 PR #219 may be merged when ALL of the following observable conditions hold:
 
-- **Chapter 4 §4.5 exists.** `grep -nE "^### 4\.5" thesis/chapters/04_data_and_methodology.md` returns exactly one match at line > 428.
+- **Chapter 4 §4.5 exists.** `grep -nE "^## 4\.5" thesis/chapters/04_data_and_methodology.md` returns exactly one match at line > 428.
 - **All 21 required-claim anchors are PRESENT in §4.5 prose.** Verified by reviewer-deep at T03 with per-anchor accounting; recorded in T03 verdict.
-- **All 18 forbidden-claim phrasings are ABSENT in §4.5 prose.** Verified by reviewer-deep at T03 and reviewer-adversarial at T04 with per-item accounting.
+- **All 24 forbidden-claim phrasings are ABSENT in §4.5 prose (FC1–FC24).** Verified by reviewer-deep at T03 and reviewer-adversarial at T04 with per-item accounting.
 - **The 6 reviewer-adversarial examiner scenarios all return defensible verdicts** (PASS or PASS-WITH-NOTES). Recorded in T04 critique.
 - **WRITING_STATUS.md carries one new Chapter 4 §4.5 row** with status DRAFTED; line 75 (GATE-14A6 wording for §4.3.3) byte-identical to master.
 - **REVIEW_QUEUE.md carries one new Pending entry** for §4.5.
@@ -521,13 +541,54 @@ PR #219 may be merged when ALL of the following observable conditions hold:
 
 ## Open questions
 
-- **OQ1 — Polish title choice.** Three candidates listed in §"Literature context" / §"Hard constraints". Resolves at: writer-thesis chooses among candidates at T02; default = (1) "Rejestr rodzin cech Phase 02 — prowizoryczny artefakt skeletonu rejestru (V-9)". reviewer-adversarial at T04 may flag the title if it loses the V-9 anchor.
+- **OQ1 — Polish title choice.** **RESOLVED (P01, 2026-05-17).** User-approved title: `## 4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9`. No alternative titles. No `skeleton` wording. See §"Resolved user decisions before T02".
 - **OQ2 — Whether to inline the deferred-dimension table or summarize it.** Plan-side decision: inline verbatim (11-row table from registry MD lines 44–56). Resolves at: writer-thesis follows plan default; reviewer-deep at T03 verifies inline-table parity with registry MD.
 - **OQ3 — Whether to enumerate all 26 registry rows.** Plan-side decision: do NOT enumerate; cite the 5+6+4+7+4 block distribution and pick at most 1 example per non-blocked block. Resolves at: writer-thesis follows plan default; reviewer-deep at T03 verifies no row-by-row enumeration.
 - **OQ4 — Whether the §4.5 prose modifies `thesis/THESIS_STRUCTURE.md`.** Resolved at planning time: NO; THESIS_STRUCTURE.md is OUT OF SCOPE for this PR. A separate Cat E PR may sync it later if user requests. reviewer-deep at T03 verifies no THESIS_STRUCTURE.md edit attempt.
 - **OQ5 — Polish-language rendering of `validated_through = V-9`.** Two options: (i) keep the English literal `validated_through = V-9` as a code-level identifier; (ii) gloss in Polish as *zwalidowany do poziomu V-9* with the code-level identifier in parentheses. Resolves at: writer-thesis chooses; reviewer-deep at T03 verifies localization fidelity. Default = (ii).
-- **OQ6 — Polish-language rendering of `partial_coverage_v9_baseline`.** Resolved at planning time: keep the English token verbatim as a code-level identifier (it appears verbatim in the manifest file). Gloss may be added in Polish prose if writer-thesis judges it improves readability, but the token string is not translated.
+- **OQ6 — Polish-language rendering of `partial_coverage_v9_baseline`.** **RESOLVED and ELEVATED TO FC23 (P01, 2026-05-17).** `partial_coverage_v9_baseline` must remain verbatim in §4.5 prose. Do NOT translate this token into Polish. Gloss in Polish as *"token statusu `partial_coverage_v9_baseline`"* or *"określenie statusu w manifeście"*; NOT *"token częściowego pokrycia poziomu V-9"*. This is now a forbidden-claim item (FC23) — see §"Forbidden claims for writer-thesis".
 - **OQ7 — Whether to record a `research_log` entry for §4.5 drafting.** Per `.claude/rules/thesis-writing.md` Category F flow + `ARCHITECTURE.md` Progress Tracking, Cat F does NOT require a `research_log.md` update (Cat F updates `REVIEW_QUEUE.md` and `WRITING_STATUS.md`). Resolved at planning time: NO research_log entry; the registry-artifact research_log entry at sc2egset `research_log.md:5` already records the artifact emission. reviewer-deep at T03 verifies no research_log touch.
+
+---
+
+## Resolved user decisions before T02
+
+All items below were resolved and approved by the user in P01 (2026-05-17) and are now binding constraints on T02 dispatch and all subsequent tasks.
+
+**OQ1 resolved — Polish title (no skeleton wording).**
+Approved title verbatim: `## 4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9`
+- `##` = two hashes; top-level Chapter 4 section, sibling to §4.1–§4.4, NOT a child of §4.4.6.
+- The title intentionally avoids `skeleton` to satisfy FC19.
+- The phrase "prowizoryczny artefakt rejestru rodzin cech" is descriptive prose, not a formal TAXONOMY unit.
+- No `docs/TAXONOMY.md` edit is required or authorized.
+- writer-thesis validation must grep for `^## 4\.5`; any result for `^### 4\.5` is a FAIL.
+
+**OQ6 resolved — manifest token verbatim (elevated to FC23).**
+- `partial_coverage_v9_baseline` must remain verbatim in §4.5 prose.
+- Do NOT translate this token into Polish.
+- Gloss as *"token statusu `partial_coverage_v9_baseline`"* or *"określenie statusu w manifeście"*; NOT *"token częściowego pokrycia poziomu V-9"*.
+- This token is now FC23 in the forbidden-claims list.
+
+**FC19–FC24 approved** for fold-in to T02 writer-thesis dispatch prompt and T03/T04 reviewer prompts. See §"Forbidden claims for writer-thesis" table rows FC19–FC24 for verbatim text.
+
+**9 envelope tightenings approved** — 7 for T02, 2 for T04:
+
+*For T02 dispatch (7):*
+1. Cited-as-of-SHA HTML comment discipline — anchor §4.5 to `master @ f1add6ce` + registry CSV/MD/manifest SHAs at T02 time.
+2. 4-vs-3 `gate_and_blocked` row disambiguation — state explicitly: 4 rows total; 3 are `blocked_until_additional_validation`; 1 is `slot_identity_consistency` sanity gate (not a model-blocking row).
+3. "Provisional" glossing discipline at first usage with structural disqualifier ("satisfies clause 1 only of the 3-clause continue_predicate"); forbid synonymy with "preliminary/draft/interim/near-final".
+4. Why §4.5 lives in Chapter 4 (methodology) not Chapter 5 (results) — one-sentence rationale required.
+5. No temporal-progression framing for AoE2 asymmetry — use "differential per-dataset progress profile"; forbid "lagging", "behind", "pending", "will catch up", "priorities".
+6. Registry-skeleton vs registry terminological consistency per FC19.
+7. F-number citation discipline per FC24.
+
+*For T04 reviewer-adversarial dispatch (2):*
+8. Sentence-level surface check for upgrade-in-meaning: scan every sentence for paraphrases that subtly upgrade "provisional → effectively complete", "narrowed → effectively closed", "deferred → handled".
+9. Cross-reference reading test: read §4.3.3 + §4.5 as continuous narrative; verify no sentence in §4.5 combined with §4.3.3 produces implicit "Phase 02 is ready" claim.
+
+**Cited-as-of-SHA HTML comment discipline approved** — anchors §4.5 to `master @ f1add6ce` + registry artifact SHAs at T02 time (per PR #218 precedent).
+
+**writer-thesis remains NOT invoked** at planning time. T02 has not started.
 
 ---
 

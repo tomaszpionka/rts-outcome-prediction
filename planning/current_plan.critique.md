@@ -116,4 +116,4 @@ The plan respects PR #216 / PR #217 / PR #218 coupling correctly: cites PR #216 
 
 ---
 
-**Status:** Critique complete. Parent session halts for user approval before T02 (writer-thesis) dispatch.
+**Status:** All open conditions resolved by P01 commit on 2026-05-17. OQ1 title approved (no skeleton wording; `## 4.5` top-level heading). OQ6 elevated to FC23. FC19–FC24 user-approved and folded into T02/T03/T04 dispatch constraints. 9 envelope tightenings (7 for T02 + 2 for T04) approved. writer-thesis NOT yet invoked.
