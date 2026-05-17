@@ -19,6 +19,33 @@ merged to `master`.
 
 ### Removed
 
+## [3.54.0] — 2026-05-17 (PR #219: thesis/phase02-registry-methodology-section-4-5)
+
+### Added
+
+- Added new Chapter 4 section `§4.5 Rejestr rodzin cech Phase 02 — prowizoryczny artefakt walidowany do V-9` in `thesis/chapters/04_data_and_methodology.md` (TQ-03 from PR #217 audit §12).
+- §4.5 explains the SC2EGSet provisional feature-family registry artifacts emitted by PR #216: `02_01_01_feature_family_registry.csv` and `02_01_01_feature_family_registry.md`.
+- §4.5 defines the registry as a Step artifact and thesis methodology construct, not a new `docs/TAXONOMY.md` unit.
+- §4.5 records that the registry has 26 data rows and 14 columns: 13 required registry columns plus appended `block`.
+- §4.5 states that the registry contains feature-family declarations, not feature values; it is not a final feature catalog and not a model-ready feature matrix.
+- §4.5 preserves `validated_through = V-9` and `partial_coverage_v9_baseline` verbatim.
+- §4.5 explains deferred CROSS-02-03 design-time dimensions D2, D3, D4-in_game, D5-in_game, D6-full, D8, D9, D10-sub-2, D12, D14, and D15, with D15 framed as artifact-lineage readiness / methodology discipline (not N/A).
+- §4.5 states that CROSS-02-01-v1.0.1 post-materialization leakage audit remains mandatory for any materialized feature column.
+- §4.5 states that Step 02_01_01, Pipeline Section 02_01, and Phase 02 remain open / not complete; no status YAML is flipped by this PR.
+- §4.5 states that AoE2 Phase 02 has ROADMAP stubs only and no comparable registry artifact yet; the prose preserves cross-game asymmetry without parity framing.
+- `thesis/WRITING_STATUS.md` Chapter 4 row added for §4.5; line 75 (PR #218 GATE-14A6) unchanged.
+- `thesis/chapters/REVIEW_QUEUE.md` carries Pending row routing the new §4.5 prose through reviewer-deep + reviewer-adversarial gates.
+- Reviewer-deep T03 returned PASS-WITH-FIXES (zero blockers); reviewer-adversarial T04 returned APPROVE (zero blockers, zero required fixes).
+
+### Changed
+
+### Fixed
+
+- Corrected `thesis/chapters/04_data_and_methodology.md` §4.5 post-table wording so D15 is no longer grouped with N/A / AoE2-side deferred dimensions; D15 is now explicitly framed as artifact-lineage readiness confirmed by lineage chain (T03b FIX-1 discharging the T03 reviewer-deep MUST-FIX-BEFORE-T04).
+- Corrected `thesis/WRITING_STATUS.md` §4.5 row length figure from false-low `~7.3k znaków polskich` to actual `~11.4k znaków polskich prose-only / ~14.7k total including table and HTML provenance comments` (T03b FIX-3).
+
+### Removed
+
 ## [3.53.0] — 2026-05-17 (PR #218: thesis/sc2-tracker-eligibility-section-4-3)
 
 ### Added
