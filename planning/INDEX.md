@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-ch1-ch4-citation-literature-audit (2026-05-17) — Category F audit-only: Chapters 1–4 citation & literature support audit before supervisor handoff; no chapter prose / no references.bib edits (draft PR)
+- docs/thesis-ch1-ch4-citation-literature-audit (2026-05-17) — Category F audit-only: Chapters 1–4 citation & literature support audit before supervisor handoff; no chapter prose / no references.bib edits (draft PR #220)
 
 ## Archive
 

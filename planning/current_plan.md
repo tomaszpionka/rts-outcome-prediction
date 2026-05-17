@@ -139,6 +139,22 @@ Cross-cutting decision rules (apply to every dimension):
   Re-verify online ONLY for: loci not covered by any prior pass2 file;
   Chapter 1/2/4 loci (T14 covered Chapter 3); or a prior file that
   explicitly left the item open for Pass-2.
+- **Chapter-prose freshness carve-out (mandatory).** The reuse rule above
+  applies verbatim ONLY to *static* facts (bib/DOI/arXiv/venue/dataset
+  metadata). For any **chapter-prose locus** (a claim whose support depends
+  on what a chapter line currently says), before setting
+  `reused_prior_evidence` the executor MUST re-read the current chapter line
+  at HEAD and confirm the prior pass2 file's locus-level description still
+  matches. If the chapter prose changed since the prior pass2 file froze its
+  description, classify the current state freshly and record the prior
+  file's now-stale description as `prior_pass2_locus_description_stale`,
+  citing both. **Known instance:**
+  `phase01_phase02_writing_readiness_audit.md` TQ-04 describes §3.2.4 as
+  carrying an EsportsBench internal contradiction
+  (`v9.0/2025-09-30` vs `v8.0 planowana`), but T14 (commit `8104be38`,
+  2026-04-27 — an ancestor of the readiness audit `b8716095`) already
+  cleaned §3.2.4 to `v9.0, cutoff 2026-03-31`; that TQ-04 sub-claim is
+  stale at HEAD and MUST NOT be reused verbatim.
 
 **Dimension 1 — Bibkey existence + metadata.** Extract every citation key
 cited in Ch1–4 prose + per-chapter `## References` footers; confirm each
@@ -162,8 +178,8 @@ stated limitation, primary-vs-reimplementation provenance. Non-load-bearing
 background citations get Dimension-1 metadata check only.
 
 **Dimension 3 — REVIEW-flag triage.** Enumerate every flag in Ch1–4
-(expected ≈ Ch1:8, Ch2:18, Ch3:14+1, Ch4:34+1; plus ~10 `[POP:]` /
-`[PRE-canonical_slot]` annotations triaged under a separate
+(expected ≈ Ch1:8, Ch2:18, Ch3:14+1, Ch4:34+1; plus ≈18 `[POP:]` /
+`[PRE-canonical_slot]` annotations — Ch4 only, Ch1–3 = 0 — triaged under a separate
 "annotation, not a flag" disposition with its own count line). Classify
 each flag into exactly one fixed value: `fix_before_supervisor`,
 `ok_to_send_with_flag`, `manual_full_text_required`,
@@ -194,6 +210,13 @@ Legend: **R** = reuse prior pass2 evidence (cite file; no re-fetch);
 **W** = web-verifiable (≤3 formulations to preferred primary);
 **M** = likely `manual_full_text_required`; **Repo** = filesystem/artifact check.
 
+**Operative-verdict precedence (NIT-1 resolution, binding).** Where a route
+letter is followed by a parenthetical, the **parenthetical verdict is
+operative and binding**; the leading letter denotes only the verification
+*channel*, never the conclusion. The executor must read the parenthetical —
+not the letter — to determine the recorded `verification_result`, and must
+apply the Chapter-prose freshness carve-out before any `reused_prior_evidence`.
+
 **Chapter 1.** GarciaMendez2025 authors/target/accuracy → **R** then W-confirm
 (EntComp DOI 10.1016/j.entcom.2025.101027 / arXiv 2510.19671; prior log: 2
 authors, target = streaming not RTS → Ch1 flag =
@@ -213,15 +236,28 @@ protocol version not patch date; likely `ok_to_send_with_flag`).
 Liquipedia_GameSpeed + Vinyals2017 22.4 loops/s → **W** (+ repo 160-loop/10s
 cross-check reuse readiness §3.3). Aligulac/Glicko-2/TrueSkill/Bnet-MMR
 grey-lit → **R** (prior log, flagged grey-lit, `ok_to_send_with_flag`).
-EsportsBench §2.5.5 version/cutoff → **R** (CRITICAL: prior log shows current
-v9.0/2026-03-31 vs prose v8.0/2025-12-31 → `conflict_recorded_not_fixed`,
-HIGH). Demsar2006/Friedman/Wilcoxon N → **M** (PDF binary,
+EsportsBench version/cutoff — **three distinct loci, do NOT collapse to a
+binary**: (i) §2.5.5 `02_theoretical_background.md:179` still carries stale
+`v8.0/2025-12-31` (T14 was Chapter-3-only and did not touch it) →
+`conflict_recorded_not_fixed`, **HIGH**, channel Repo+R (read the live line;
+cite `literature_verification_log.md` note 4); (ii) §3.2.4
+`03_related_work.md:77` and §3.5 `03_related_work.md:189` were already
+corrected to `v9.0/2026-03-31` by T14 → `reused_prior_evidence` per
+`literature_verification_log.md` (apply the Chapter-prose freshness carve-out
+to confirm HEAD still matches); (iii)
+`phase01_phase02_writing_readiness_audit.md` TQ-04's "§3.2.4 internal
+contradiction" sub-claim is **stale at HEAD** → record
+`prior_pass2_locus_description_stale`, do NOT reuse verbatim.
+Demsar2006/Friedman/Wilcoxon N → **M** (PDF binary,
 `manual_full_text_required`; do not re-attempt). Gneiting2007 + ECE → **R/Repo**
 prose check (§2.6.2 states ECE is NOT a proper scoring rule → `supported`;
 consistent with `methodology_risk_register.md` F14).
 
 **Chapter 3 (mostly R — T14 already did this on 2026-04-26).**
-Thorrez2024/EsportsBench version + Table 2 + 80.13% → **R+M**;
+Thorrez2024/EsportsBench: §3.2.4/§3.5 version/cutoff already T14-corrected →
+`reused_prior_evidence` (NOT the stale TQ-04 §3.2.4 sub-claim — see the Ch2
+EsportsBench three-locus note + Chapter-prose freshness carve-out); Table 2
+80.13% / Glicko-2-vs-Aligulac row → **M** (PDF binary);
 Khan2024SCPhi2 attribution → **R** (MDPI AI 5(4) 2338–2352; Tarassoli2024
 phantom already deleted PR-TG4); exact accuracy → M. Yang2017Dota 9:1 +
 58.69%/Kinkade → **R** (60.07% closed; split semantics M).
@@ -490,6 +526,7 @@ allowed; agent routing; reviewer routing; what not to claim).
 | AR-6 | duplicating / contradicting `literature_verification_log.md` | Ch3 routed **R**; new web only Ch1/2; reviewer-deep T01 check |
 | AR-7 | treating `[POP:]`/`[PRE-canonical_slot]` as Pass-2 flags | D3 separate "annotation, not a flag" disposition |
 | AR-8 | Polish note drifting into anglicyzmy / descriptive register | `.claude/author-style-brief-pl.md`; reviewer-deep T03 check |
+| AR-9 | inheriting a prior-pass2 locus-conclusion the chapter has since outgrown (stale TQ-04 §3.2.4) | Chapter-prose freshness carve-out (mandatory re-read of HEAD before `reused_prior_evidence`; `prior_pass2_locus_description_stale` tag); reviewer-deep T03 check |
 
 ## Repo-policy resolutions
 
