@@ -19,6 +19,30 @@ merged to `master`.
 
 ### Removed
 
+## [3.52.2] — 2026-05-17 (PR #217 amendment: thesis/phase01-phase02-writing-readiness-audit)
+
+### Added
+
+- Existing-draft conformance audit appended to `thesis/pass2_evidence/phase01_phase02_writing_readiness_audit.md` as §10 (six-category conformance comparison of existing draft chapter prose against post-PR #216 repository evidence), §11 (Draft correction backlog), and §12 (Writing agent task queue). Category E docs-only extension; no thesis chapter prose modified.
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [3.52.1] — 2026-05-17 (PR #217: docs/thesis-phase01-phase02-writing-readiness-audit)
+
+### Added
+
+- Phase 01/02 writing readiness audit at `thesis/pass2_evidence/phase01_phase02_writing_readiness_audit.md` (Category E docs-only; cross-dataset; maps existing Phase 01/02 evidence to thesis sections; enumerates forbidden claims and a drafting queue).
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.52.0] — 2026-05-16 (PR #216: phase02/sc2egset-registry-artifact-provisional-v9)
 
 ### Added
