@@ -19,6 +19,24 @@ merged to `master`.
 
 ### Removed
 
+## [3.52.0] — 2026-05-16 (PR #216: phase02/sc2egset-registry-artifact-provisional-v9)
+
+### Added
+
+- SC2EGSet Step 02_01_01 provisional feature-family registry artifact emitted under `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`.
+- Registry CSV: 26 data rows, 14 columns (13 REQUIRED_COLUMNS + `block` metadata column), validated through V-9. Closure of Step 02_01_01 is NOT claimed; STEP_STATUS.yaml is untouched.
+- Registry MD companion: provisional disclaimer, per-dimension deferred-coverage table (D2/D3/D4-in_game/D5-in_game/D6-full/D8/D9/D10-sub-2/D12/D14/D15), non-supersession of CROSS-02-01-v1.0.1 post-materialization audit gate, and partial closure framing. Artifact status token: `partial_coverage_v9_baseline`.
+- Notebook execution generates both artifacts deterministically; provenance includes repo-relative artifact paths, `executed_at` UTC date, `git_sha` (execution HEAD), `python_version`, and `poetry_version`.
+- No feature values, no scaler fit, no model training, no final feature catalog claim in this release segment.
+- CROSS-02-01-v1.0.1 post-materialization audit gate remains mandatory for any future feature column the registry triggers materialization of.
+- Lineage log/manifest updates (`research_log.md` + `notebook_regeneration_manifest.md` with `partial_coverage_v9_baseline` token) are handled in the following T09 checkpoint of PR #216.
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.51.0] — 2026-05-10 (PR #215: phase02/sc2egset-feature-registry-v9-symmetry)
 
 ### Added
