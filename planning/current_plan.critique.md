@@ -1,153 +1,110 @@
-# Plan critique — SC2EGSet Step 02_01_01 provisional registry artifact (validated through V-9)
+# Critique of planning/current_plan.md (PR #218 — TQ-02 + TQ-01)
 
----
-target_plan: planning/current_plan.md
-target_branch: phase02/sc2egset-registry-artifact-provisional-v9
-target_commit_at_review: f20ccd4f (empty bootstrap commit on top of master 396f162c)
-draft_pr_number: 216
-draft_pr_url: "https://github.com/tomaszpionka/rts-outcome-prediction/pull/216"
-reviewers:
-  - reviewer-deep
-  - reviewer-adversarial
-reviewer_date: 2026-05-10
-critique_round: 1
-combined_verdict: PASS-WITH-FIXES (mechanical) + APPROVE-WITH-CONDITIONS (mechanical) — fixes applied; ready for T01
-fixes_applied: 8
-fixes_skipped: 3
----
-
-## Combined verdict — round 1
-
-Both reviewers were dispatched in parallel against `planning/current_plan.md` at branch HEAD `f20ccd4f` (empty bootstrap commit on top of master `396f162c`). Both returned non-blocking verdicts; all required fixes were mechanical wording / numbering / factual-citation items, none touching load-bearing methodology.
-
-| Reviewer | Verdict | Required fixes | Skipped |
-|---|---|---|---|
-| reviewer-deep | PASS-WITH-FIXES | F1, F2, F3, F4, F5, F6, F7 | F1 (verified correct via INDEX.md row 11), F4 (cascading scope; non-blocking), F7 (low-priority advisory) |
-| reviewer-adversarial | APPROVE-WITH-CONDITIONS | C1 (HARD), C2, C3, C4 | none |
-
-Fixes applied to the plan in this same `docs(planning)` commit:
-- **C1** (HARD-BLOCKING per adversarial; factual error in disclaimer D8 row): `full_replay_min_loop_blocked` is NOT a column on `tracker_events_feature_eligibility.csv` — it is a token in the `upstream_verdicts` cell of the `time_to_first_expansion_loop` row. Verified via `head -1` on the CSV (12 columns total; no `full_replay_min_loop_blocked` column). Disclaimer D8 row commitment-path cell rewritten to cite `upstream_verdicts cell, which records full_replay_min_loop_blocked=True verdict`.
-- **C2**: §Problem Statement (d) docstring sentence — replaced "at least one of the three ROADMAP `continue_predicate` clauses ... is not yet satisfied" (which implies one MAY be satisfied) with "BOTH the CROSS-02-01-v1.0.1 post-materialization audit re-run AND the per-family CROSS-02-03-v1.0.1 §10 verdict for every registry row remain unsatisfied" (factually accurate; both clauses 2 + 3 are unsatisfied at this artifact PR).
-- **C3**: T10 §Operation §Stop condition — clarified that reviewer-deep `PASS-WITH-FIXES` is non-blocking IF fixes are addressed in a follow-up commit before T11; `BLOCKER` (deep) and `BLOCKED` (adversarial) are equivalent halt severities.
-- **C4 + F6**: T01 §Instructions §4 (provenance block specification) — `executed_at` field now uses `datetime.now(timezone.utc).date().isoformat()` (timezone-explicit UTC; not local-tz `date.today()`); the provenance block MUST include the disclosure sentence about same-UTC-day byte-identicality vs cross-UTC-day metadata drift.
-- **F2** (3-place phrasing consistency): Gate Condition 3, Acceptance criteria 2, Validation gates 2 all rewritten to "26 data rows + 1 header row = 27 lines total; 14 columns".
-- **F3**: T02 §Operation step 1 — "already done at PR #215 merge. Verify." replaced with "Live check during plan authoring confirmed line 477 still reads `(V-1 through V-8)` on master `396f162c` ... **This is a real edit, NOT a verify-only.**". Verified by parent via `sed -n '477p'` on the notebook .py.
-- **F5**: T06 §Stop condition — explicit grep test added: `grep -c "^### " 02_01_01_feature_family_registry.md` returning exactly `5`.
-
-Fixes skipped with rationale:
-- **F1** (verify PR #213 lineage attribution as "V-1 strict + V-7"): Verified correct via `planning/INDEX.md` line 11 verbatim — "PR #213 ... SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation". No edit needed.
-- **F4** (renumber T05 deliberate-gap → T06→T05 etc.): Reviewer-deep marked non-blocking ("worth fixing for cleanliness"). Renumber would touch ~15-20 cross-references throughout the plan; risk-vs-benefit unfavorable. T05 stays as a documented no-op slot. The audit-trail oddity (gap between T04 and T06) is a known small cost.
-- **F7** (clarify `.github/tmp/commit.txt` per-task usage in §File Manifest): Low-priority advisory. The existing manifest row "scratch (created and removed within session per memory `feedback_git_commit_format`; not committed)" is sufficient; per-task usage is implicit in T07 / T08 / T09 / T11 stop conditions which each say "commit.txt removed".
-
-After fixes, the plan is ready for T01. The 3-round adversarial cap is at round 1 of 3.
+**Plan under review:** `planning/current_plan.md` as of commit `d78beb07` (+ mechanical anchor #4 fix applied in the commit that lands this critique).
+**PR:** [#218](https://github.com/tomaszpionka/rts-outcome-prediction/pull/218) — `thesis/sc2-tracker-eligibility-section-4-3`
+**Base:** `master @ 0a933be6`
+**Critique produced by:** `reviewer-adversarial` (Mode A, pre-execution plan critique), `reviewer-deep` (structural correctness + evidence-chain spot-check), parallel dispatch 2026-05-17
+**Critique template:** `docs/templates/plan_critique_template.md` (Mode A)
 
 ---
 
-# Reviewer-deep — round 1 (PASS-WITH-FIXES)
+## 1. Executive verdict
 
-## §Summary
+**PASS-WITH-NOTES (zero blockers).** Both reviewer-deep and reviewer-adversarial returned PASS-WITH-NOTES. The plan is structurally sound, evidence-chain complete on the 4 of 12 spot-checked anchors that bound the load-bearing claims (anchors 1, 2, 5, 6), and methodologically defensible. One mechanical evidence-path fix (anchor #4) has been applied in the commit that lands this critique. The reviewer-adversarial findings are NOT structural fixes to the plan — they are mandatory enhancements to the future T02 writer-thesis dispatch prompt.
 
-All load-bearing methodology decisions verify against on-disk state. The closure-status framing is honest and consistent across all surfaces (disclaimer / research_log / CHANGELOG / PR body). The STEP_STATUS no-touch decision is well-justified by the conjunctive `continue_predicate` and the absent per-step `in_progress` vocabulary. The 26-row partition arithmetic checks (5+6+4+7+4=26). The disclaimer's V-N → D-N mapping table matches the validator's actual scope. The non-supersession block is verbatim CROSS-02-03-v1.0.1 §1.3.
+**T02 dispatch may proceed** after the user resolves Open Questions Q-A (subsection numbering), Q-B (WRITING_STATUS line 75 inclusion), and Q-D (version-bump policy — already verified by reviewer-deep against the live `.claude/rules/git-workflow.md:14`).
 
-The seven fixes below are mechanical wording corrections, not methodology issues. None should block T01.
+## 2. Critical findings
 
-## §Verified facts (reviewer-deep)
+**None at BLOCKER level.** The plan does not require Phase 02 / Step 02_01_01 closure, does not promote any `blocked_until_additional_validation` row, does not assert leakage-free materialized features, does not invent external citations beyond the pre-authorized `[Bialecki2023]` + `[BlizzardS2Protocol]` bibkeys, and does not bypass `reviewer-adversarial` at the final gate (T04). The forbidden-claim list is the strongest part of the plan.
 
-1. STEP_STATUS schema (Plan §c, lines 138-178): Confirmed — STEP_STATUS.yaml lacks any documented `in_progress` token in its comment block. All entries are `complete` + timestamps. No Phase 02 step entry exists. The "no-touch" rationale is sound.
-2. PIPELINE_SECTION_STATUS (lines 1-22): Confirmed — three statuses `complete | in_progress | not_started`, "in_progress when ANY step is in_progress or complete". No Phase 02 pipeline section exists yet.
-3. PHASE_STATUS (lines 1-11): Confirmed — three statuses `complete | in_progress | not_started`. Phase 02 = `not_started`.
-4. ROADMAP `continue_predicate` (lines 2060-2066): Confirmed verbatim — conjunctive 3-clause: artifact-check + post-materialization audit re-run + per-family §10 verdict.
-5. CROSS-02-03-v1.0.1 §1.3 (lines 61-78): Confirmed verbatim — "do not replace ... complementary, not redundant ... CROSS-02-03 audits definitions; CROSS-02-01-v1.0.1 audits materialized columns. Both gates are mandatory."
-6. REQUIRED_COLUMNS count (validate_registry_skeleton.py lines 79-93): Confirmed exactly 13.
-7. 26-row partition (5+6+4+7+4=26): Confirmed — SKELETON_PRE_GAME=5, SKELETON_HISTORY=6, SKELETON_IN_GAME_NOW=4, SKELETON_IN_GAME_CAVEAT=7, SKELETON_GATE_AND_BLOCKED=4. Sum = 26.
-8. Manifest vocabulary docstring (lines 8-13): Confirmed five tokens: `confirmed_intact | not_yet_assessed | flagged_stale | regenerated_pending_log | phase_blocked`. The new token does not collide; alphabetical position immediately before `phase_blocked` is correct.
-9. Validator scope (validate_registry_skeleton.py lines 14-59): V-1 through V-9 all present and described. The plan's V-N → CROSS-02-03 dimension mapping matches the validator docstring.
+## 3. Reviewer-deep findings (structural correctness + evidence chain)
 
-## §Mechanical fixes (F1–F7)
+| Finding | Severity | Status |
+|---|---|---|
+| Anchor #4 evidence path cites `sc2egset/reports/INVARIANTS.md:97` which contains PSI prose, NOT Amendment 2 wording. Correct source: `thesis/pass2_evidence/phase02_readiness_hardening.md:294` (verbatim); `thesis/pass2_evidence/methodology_risk_register.md:399, 404` (corroborating); `.claude/scientific-invariants.md:131` (I3 line). | NOTE → mechanical fix | **APPLIED** in the commit that lands this critique. |
+| Q-D version-bump status downgrade — live `.claude/rules/git-workflow.md:14` confirms "minor for feat/refactor/docs"; Q-D recommended default `3.52.2 → 3.53.0` is verified. | NOTE | **Resolved** — user may treat Q-D as already verified. |
+| Optional: CSV row line numbers (rows 11/12/15 = file lines 12/13/16 with header). | NOTE | Defer — reviewer-deep T03 will catch any drift. |
+| Audit TQ-02 F-numbering drift in `phase01_phase02_writing_readiness_audit.md:699` (uses old F8 wording vs. correct F16). | NOTE | Defer — out of PR #218 scope; future audit-file repair. |
 
-- **F1**: `non_batching_lineage_position` (frontmatter, line 36) attributes "V-1 strict + V-7" to PR #213. Verify against actual PR #213 contents.
-- **F2**: 3-place phrasing inconsistency for "26 + header" across §Acceptance §2, §Gate §3, T06 stop condition.
-- **F3**: T02 step 1 says "V-8 → V-9 already done at PR #215 merge. Verify." On-disk read of notebook line 477 still shows V-8. The "already done" claim is wrong. Mark as a real edit.
-- **F4**: T05 is a deliberate no-op slot. Renumber T06→T05 etc. for cleanliness. Non-blocking.
-- **F5**: T06 stop-condition `grep` test for "all five disclaimer subsections" should specify the literal `grep -c "^### "` expected count = 5.
-- **F6**: T01 specifies `executed_at = date.today().isoformat()` for idempotency. Use `datetime.now(UTC).date().isoformat()` for timezone-explicit UTC.
-- **F7**: `.github/tmp/commit.txt` Allowed table row should clarify per-task usage at T07, T08, T09, T11.
+Reviewer-deep verdict: **PASS-WITH-NOTES.** All 4 spot-checked anchors (1, 2, 5, 6) verified empirically. PR diff scope is only `planning/current_plan.md`. No forbidden file touched. No thesis prose touched.
 
-## §Honesty audit (reviewer-deep)
+## 4. Reviewer-adversarial Mode A findings (methodology defensibility)
 
-The plan's prose framing is consistently honest. No instance of overclaim or weaseling found. The phrase "this is provisional" appears in 4+ surfaces. The "STEP_STATUS untouched" claim appears in 6+ surfaces. The "CROSS-02-01-v1.0.1 post-materialization audit still mandatory" carries through commit message, CHANGELOG, PR body, and disclaimer.
+The reviewer-adversarial findings are **mandatory enhancements to the T02 writer-thesis dispatch prompt**, not structural plan fixes. They must be folded verbatim into the dispatch prompt before T02 fires.
 
-## §Cross-game generalization (reviewer-deep)
+### 4.1 Methodology defensibility per examiner scenario
 
-The artifact is sc2egset-only. The disclaimer's per-dimension table correctly marks D10-sub-2 / D12 / D14 as N/A for sc2egset and defers to a future aoestats-side V-N PR. Cross-game framing readiness preserved.
+| Scenario | Verdict | Risk |
+|---|---|---|
+| **A** — examiner asks "if tracker features are never pre-game, why is `slot_identity_consistency` in the eligibility CSV at all?" | **CONCERN** | The CSV `status_in_game_snapshot` for row 14 is `eligible_for_phase02_now`, the same value as 4 model-input rows. The new §4.3.3 must explicitly state that the `eligible_for_phase02_now` column is a *semantic eligibility* classification, not a *model-input* classification, and that the `notes_for_phase02` field distinguishes the 1 sanity-gate row from 4 model-input rows. |
+| **B** — examiner asks "what's the difference between `eligible_for_phase02_now` and `eligible_with_caveat`?" | **PASS** | Required-claim #5 enforces the 5+7 partition and the "must contrast" list at T02 step 4 forces a contrast against `closed`. The dispatch should also note that `eligible_with_caveat` can be defensibly characterized as "eligible *under* the recorded per-row scope/caveat," not as a weaker eligibility tier. |
+| **C** — examiner asks "why are 3 rows blocked? What changes when they become unblocked?" | **CONCERN** | All 3 blocked rows have `planned_for_phase02 = no` from the outset; the plan's framing "15 candidate tracker families: 12 planned-yes + 3 blocked" risks an examiner reading it as "3 *planned* families were blocked at validation time" when the on-disk truth is "3 candidate families were marked not-planned during V3/V4/V5/V6 because the source-confirmation gates failed." The dispatch must clarify this. |
+| **D** — examiner asks "what does GATE-14A6 actually gate? Why `narrowed` not `closed`?" | **PASS** | Required-claim #2 mandates both the affirmative `narrowed` AND the negative `NOT closed`. Required-claim #8 mandates citing `full_tracker_scope_closed_predicate_satisfied = false`. Risk: `methodology_risk_register.md:399` uses "GATE-14A6 closed to `narrowed`" which is semantically loaded; the writer-thesis brief should explicitly forbid the "closed to narrowed" phrasing surface. |
+| **E** — examiner asks "how does this interact with Phase 02 leakage audit?" | **PASS** | Required-claims #11/#12 + the "must cite" list item for `02_01_leakage_audit_protocol.md` force the writer to embed the non-supersession statement. Residual concern: the dispatch should require the writer to distinguish *semantic* eligibility validation from *column-level* leakage audit. |
 
-## §Verdict — reviewer-deep
+### 4.2 Claim-surface refinements (mandatory for T02 dispatch prompt)
 
-**PASS-WITH-FIXES.** Apply F1–F7 (mechanical), then proceed to T01. All four load-bearing methodology decisions (no-touch on STEP_STATUS; non-supersession of CROSS-02-01-v1.0.1; verbatim disclaimer; new manifest token) verify against on-disk state.
+1. **Claim #2 (`narrowed`, NOT `closed`) — sharpen against the "closed to narrowed" phrasing.** Prefer the structurally equivalent *"GATE-14A6 outcome: `narrowed`; not `closed`"*; forbid the surface phrasing *"gate zamknięto"* / *"gate is closed"* without the explicit suffix.
+2. **Claim #5 (5+7 partition).** The writer-thesis must plant one sentence stating that the 7 `eligible_with_caveat` per-row caveats are *heterogeneous in nature* (referencing the CSV `caveat` column as the per-row source of truth).
+3. **Claim #7 (`slot_identity_consistency` sanity gate).** Writer-thesis must state explicitly that this row is the only `eligible_for_phase02_now` row whose `notes_for_phase02` flags it as non-model-input.
+4. **Claim #8 (`full_tracker_scope_closed_predicate_satisfied: False`) — keep verbatim.** The CSV-side predicate name has examiner-defensibility value precisely because it is a machine-readable field; require it appear verbatim or in close Polish paraphrase.
+5. **Required-claim #11 (non-supersession of leakage-free claim).** Require *constructive* phrasing — *"semantic eligibility validation under Step 01_03_05 does NOT substitute for column-level leakage audit under CROSS-02-01-v1.0.1; the latter remains mandatory at materialization"* — not implicational phrasing.
+6. **Implicit forward-promise risk.** Add to Halt condition HALT-1: writer-thesis must include a `Cited-as-of-SHA` comment in the new §4.3.3 referencing the master @ `0a933be6` SHA.
+
+### 4.3 Additional forbidden claims (mandatory for T02 dispatch prompt)
+
+The existing 12-row forbidden-claim table is sound. Add:
+
+- **F-new-13 (verb-level hedge-then-overclaim).** Forbid the patterns *"validates"*, *"demonstrates"*, *"proves"*, *"shows that"* in any sentence whose subject is Step 01_03_05 or GATE-14A6. Permit *"is consistent with"*, *"indicates that"*, *"supports"*, *"records"*.
+- **F-new-14 (causality leak).** Forbid any sentence framing Step 01_03_05 results as causing or implying *future* model behavior (e.g., *"ponieważ Krok 01_03_05 zwalidował 12 rodzin, modele będą w stanie..."*). Permit only *forward-bounded* phrasing.
+- **F-new-15 (in-game-snapshot ≠ in-game-state).** Forbid the claim that any tracker feature is an *"in-game state"* feature. The artifact's terminology is `status_in_game_snapshot` — a *snapshot* at a cutoff loop, NOT continuous state.
+- **F-new-16 (eligibility CSV as feature catalog).** Forbid the claim or implication that `tracker_events_feature_eligibility.csv` is the *feature catalog*. The catalog is the Phase 02 §02_01 registry artifact, a different document. The eligibility CSV is a *classification of candidate families*, not a feature inventory.
+- **F-new-17 (RISK-21 wording transplant).** Forbid verbatim transplant of the `methodology_risk_register.md:404` wording recommendation into §4.3.3. That paragraph is an English template for the risk register, not Polish prose for the methodology chapter.
+
+### 4.4 Envelope-tightening recommendations for T02 writer-thesis dispatch
+
+1. **Coupling rationale defended in PR body** — the dispatch should include a one-sentence rationale at the top of the PR body cover: *"§4.3.2 stale paragraph + new §4.3.3 share a single evidence base; splitting would leave §4.3.2 with a dangling forward-reference for one PR cycle."*
+2. **Subsection numbering Q-A: recommend hard-binding to (a) `### 4.3.3` + renumber AoE2 → `### 4.3.4`.** Option (b) (embedded prose block) is examiner-vulnerable; forbid it. Option (c) re-opens the §4.3 hierarchy.
+3. **WRITING_STATUS Q-B: recommend YES, with corrected wording.** Line 75 (verified) says *"§4.4 in-game feature subsection CANNOT reach FINAL status until SC2 `tracker_events` semantic validation executes (Step 01_03_05, not yet scheduled)."* The repair must replace *"Step 01_03_05, not yet scheduled"* with *"Step 01_03_05 complete 2026-05-05; GATE-14A6 outcome `narrowed`. The §4.4 subsection's FINAL status remains gated by Phase 02 materialization + CROSS-02-01-v1.0.1 audit, not by Step 01_03_05 alone."* — DO NOT over-correct toward "§4.4 unblocked."
+4. **Bibkey constraint: `[BlizzardS2Protocol]` placement.** Verify the bibkey's first appearance in Chapter 4 before adding a new citation; if it already cites at line ~25 or ~222, the new §4.3.3 should reference it on a sub-claim (e.g., *"tracker events introduced in protocol version 2.0.8 per `[BlizzardS2Protocol]`"*) rather than at the same provenance locus.
+5. **Adversarial round cap definition (T04).** Define "round" as one full pass over the new §4.3.3 prose (not just the changed sentences); partial-pass review can otherwise infinitely chase tail-fixes.
+6. **CHANGELOG block phrasing (T05).** Phrase the CHANGELOG entry as a *user-readable description of the methodology change* (e.g., *"§4.3.3 (new): SC2 tracker eligibility framing; §4.3.2 paragraph repair (Step 01_03_05 complete; GATE-14A6 outcome `narrowed`)"*).
+7. **Mode-C reviewer-adversarial scope (T04) — add sentence-level surface check.** "Does the prose introduce a sentence that an examiner could read as upgrading `narrowed` to `closed`?" Examiners read for upgrade in meaning, not in token.
+
+## 5. Sign-off
+
+**T02 dispatch may proceed** after the user resolves:
+
+- **Q-A** (subsection numbering): recommend binding to `### 4.3.3` + renumber AoE2 → `### 4.3.4` (the plan's recommended default; option (b) introduces examiner-visible structural hedging).
+- **Q-B** (WRITING_STATUS line 75): recommend YES, with the corrected wording specified in §4.4 item 3 above.
+- **Q-D** (version-bump policy): **VERIFIED** — the plan's assumption (3.52.2 → 3.53.0 minor) matches `.claude/rules/git-workflow.md:14` per reviewer-deep; no further user resolution required.
+
+**Mandatory folds into the T02 writer-thesis dispatch prompt:**
+
+1. The 5 additional forbidden claims F-new-13 through F-new-17 (§4.3 above).
+2. The 6 claim-surface refinements (§4.2 above).
+3. The 7 envelope-tightening notes (§4.4 above).
+4. Explicit clarification that the 3 blocked rows have `planned_for_phase02 = no` (Scenario C).
+5. Explicit clarification that `slot_identity_consistency` is the only sanity gate among 5 `eligible_for_phase02_now` rows (Scenario A).
+6. Hard prohibition on the "closed to narrowed" phrasing surface (Scenario D).
+
+Open Question Q-C (V3 fixed-point divide-by-4096 surface) is correctly left to writer-thesis discretion. Open Question Q-E (table vs prose) is correctly left to writer-thesis discretion within the expected-length envelope.
+
+The plan respects the canonical audit §10–§12 routing as the authoritative source. The plan does not overclaim coverage of PR #216 (provisional registry) or PR #217 (writing audit) — it correctly scopes itself to TQ-01 + TQ-02 only, deferring TQ-03 (Phase 02 registry methodology §4.5), TQ-04 (EsportsBench harmonization), and TQ-05 (aoestats CSV row-count) to future PRs.
+
+## 6. Relevant file paths (for parent / writer-thesis dispatch persistence)
+
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.md` — the amended plan with anchor #4 fix.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.critique.md` — this file.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/thesis/chapters/04_data_and_methodology.md` — T02 target; lines 324–333 are the §4.3.2 / future §4.3.3 scope.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/thesis/WRITING_STATUS.md` — line 75 is the GATE-14A6 sentence verified; conditional on Q-B = YES.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv` — 15-row contract; load-bearing.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/01_03_05_tracker_events_semantic_validation.md` — lines 10–16 define `narrowed` / `closed` predicates; load-bearing.
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/thesis/pass2_evidence/phase02_readiness_hardening.md:294` — Amendment 2 verbatim wording (corrected anchor #4 source).
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/thesis/pass2_evidence/methodology_risk_register.md:399,404` — RISK-21 corroborating; **English template, NOT for verbatim Polish transplant** (F-new-17).
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/scientific-invariants.md:131` — I3 source ("No feature for game T may use information from game T or later").
 
 ---
 
-# Reviewer-adversarial — round 1 (APPROVE-WITH-CONDITIONS)
-
-## §Lens assessments
-
-- **Temporal discipline**: N/A — this artifact emits the registry skeleton's catalog row tuples; no feature value is computed and no per-game prediction occurs. The disclaimer's "Non-supersession" block correctly defers all temporal enforcement (D5/D6 in-game, D8) to the post-materialization audit (CROSS-02-01-v1.0.1 §2.1/§2.2).
-- **Statistical methodology**: N/A — no statistical comparison is run.
-- **Feature engineering soundness**: SOUND with one factual error (F-1 below). The `block` column choice (single CSV with partition tag) is consistent with §Open Questions Q8; the 26-row × 14-column shape matches `REQUIRED_COLUMNS + ["block"]`; cold-start vocabulary is asserted by V-7 (orthogonal to artifact emission); no magic numbers introduced.
-- **Thesis defensibility**: STRONG. The disclaimer's five-section structure (V-N mapping, deferred dimensions, non-supersession, partial closure, commitment paths) survives an external examiner who asks "what does this artifact actually claim?" The registry-MD claim shape (`validated_through = V-9`, partial closure, non-supersession) is consistent across CSV-block, MD-disclaimer, research_log entry (T09), CHANGELOG bullet (T08), and PR body (T11).
-- **Cross-game comparability**: MAINTAINED. The disclaimer correctly marks D10-sub-2 / D12 / D14 as "N/A for sc2egset", with D10-sub-2 explicitly deferred to "a future aoestats-side V-N PR".
-
-## §Examiner's questions answered by the plan
-
-1. *"Why is Step 02_01_01 not closed in STEP_STATUS after this artifact lands?"* — Answered in §Problem Statement (c) + disclaimer §"Step 02_01_01 closure status — partial" + research_log entry T09. The answer is a 4-point STEP_STATUS no-touch rationale with citations.
-2. *"What does V-9 actually rule out, given that the spec authors already encoded `symmetric` everywhere?"* — Answered honestly in disclaimer paragraph after the V-N table: "structural guard against future drift, not a violation detector". Gives V-9 a defensible regression-prevention purpose without undermining its value.
-3. *"Why is `validated_through = V-9` not a Phase 02 leakage-clearance claim on its own?"* — Answered in disclaimer §"Non-supersession" + §"Commitment path" — the artifact is citable in Chapter 4 §4.5 ONLY alongside the post-materialization audit artifact.
-
-## §Prior-round condition compliance (7 conditions from the disclaimer-authoring round)
-
-| # | Condition | Status |
-|---|-----------|--------|
-| 1 | V-9 PR ships standalone | SATISFIED — PR #215 merged at master `396f162c`. |
-| 2 | Artifact PR is a separate plan/execute cycle | SATISFIED — this is the separate plan. |
-| 3 | Artifact PR plan reviewed by reviewer-adversarial | SATISFIED — this dispatch. |
-| 4 | Artifact MD includes verbatim disclaimer | SATISFIED — plan §"Disclaimer text — verbatim" reproduces all 5 elements. T01 step 4 forbids paraphrase; T02 enforces no SKELETON-literal modification. |
-| 5 | STEP_STATUS.yaml MUST NOT flip to `complete`; preferably untouched | SATISFIED — §Problem Statement (c) commits to no-touch with full schema rationale; §Stop conditions #2 makes any STEP_STATUS diff a hard halt. |
-| 6 | Manifest entry uses non-`confirmed_intact` status | SATISFIED — new token `partial_coverage_v9_baseline` introduced in §Problem Statement (d). |
-| 7 | Path (a) commitment enumerated per deferred dimension in MD | SATISFIED — disclaimer §"What V-1..V-9 do NOT enforce" + §"Commitment path" tables enumerate D2 / D3 / D4-in_game / D5-in_game / D6-full / D8 / D9 / D10-sub-2 / D12 / D14 / D15 with per-row commitment paths. |
-
-All 7 prior conditions met.
-
-## §New findings (reviewer-adversarial)
-
-- **F-1 (FACTUAL ERROR — disclaimer D8 row)**: The disclaimer claimed `full_replay_min_loop_blocked` was a column on the eligibility CSV. Verified: it is NOT a column (CSV has 12 columns; no `full_replay_min_loop_blocked` column). It IS a token in the `upstream_verdicts` cell of the `time_to_first_expansion_loop` row. **Hard-blocking** because the disclaimer is reproduced verbatim into the artifact MD; a citation slip ships into the artifact unless fixed in the plan first.
-- **F-2 (METHODOLOGY GAP — manifest token semantics)**: The token `partial_coverage_v9_baseline` names ONE of the two unsatisfied `continue_predicate` clauses but elides the other. The 3-clause predicate has both clause 2 (post-materialization audit) AND clause 3 (per-family §10 verdict) unsatisfied. The token name encodes only clause 2. The plan's docstring sentence does enumerate both, but the token name itself is semantically lossy.
-- **F-3 (REVIEWER ROUTING ASYMMETRY — T10)**: Verdict vocabulary asymmetry between reviewer-deep (`PASS / PASS-WITH-NOTES / FIX / BLOCKER`) and reviewer-adversarial (`PASS / PASS-WITH-NOTES / APPROVE-WITH-CONDITIONS / BLOCKED`). Plan should explicitly enumerate reviewer-deep `PASS-WITH-FIXES` semantics in T10 stop condition.
-- **F-4 (IDEMPOTENCY HONESTY — Gate Condition 7 + T01 step 4)**: The plan accepts day-granularity for `executed_at` for byte-identical re-runs within the same UTC day. The artifact MD §Provenance block should declare this caveat verbatim so the reproducibility claim is examiner-defensible.
-- **F-5 (DRIFT FROM PLANNER NUMBERING — T05)**: T05 is a no-op slot. Harmless; current plan has the explanatory note. Not a methodology blocker.
-
-## §Conditions for approval (C1–C4)
-
-- **C1**: §"Disclaimer text — verbatim" D8 row — change `full_replay_min_loop_blocked column` to `upstream_verdicts cell, which records the full_replay_min_loop_blocked=True verdict for V-7 time-to-first-event families`. Hard fix.
-- **C2**: §Problem Statement (d) docstring sentence — strengthen "at least one of three" → "BOTH ... unsatisfied".
-- **C3**: §T10 Stop condition — append reviewer-deep `PASS-WITH-FIXES` (non-blocking IF fixes addressed before T11) and `BLOCKER`/`BLOCKED` halt-equivalence.
-- **C4**: T01 step 4 + §Gate Condition 5 — provenance block disclosure about same-UTC-day vs cross-UTC-day reproducibility.
-
-## §Verdict — reviewer-adversarial
-
-**APPROVE-WITH-CONDITIONS.** All 7 prior-round conditions met. C1 is hard-fix (factual error in verbatim-reproduced text). C2-C4 are methodology refinements that strengthen examiner-defensibility without changing the artifact's load-bearing claim shape. None requires a new V-N validator, a spec amendment, or a STEP_STATUS touch. The 3-round adversarial cap is at round 1; two more rounds available if the parent disagrees with C1.
-
----
-
-# Acceptance for plan-side close
-
-After parent's mechanical-fix application (C1, C2, C3, C4+F6, F2, F3, F5; F1/F4/F7 skipped with rationale), the plan is approved for execution. T01 may fire after this `docs(planning)` commit lands.
-
-The executor at T01 should:
-1. Land the artifact-emission cell + narrative-correction edits at T01 + T02.
-2. Run the pre-commit-equivalent checks at T03 + T04.
-3. Execute the notebook end-to-end at T06 (T05 is a no-op slot).
-4. Commit artifacts (T07), release (T08), and lineage (T09) as separate commits per the plan.
-5. Dispatch BOTH reviewer-deep AND reviewer-adversarial in parallel at T10 (post-execution gate).
-6. Mark PR #216 ready at T11 only after both reviewers PASS / PASS-WITH-NOTES / APPROVE-WITH-CONDITIONS.
-
-The non-batching lineage discipline (sequence step 7 — "Only after all validation modules pass, generate artifacts") is preserved. The artifact does NOT batch a new validator with the artifact emission, and does NOT touch the next Step (02_01_02). Closure of Step 02_01_01 is explicitly deferred to a future PR satisfying clauses 2 and 3 of the ROADMAP `continue_predicate`.
+**Status:** Critique complete. Parent session halts for user approval before T02 (writer-thesis) dispatch.
