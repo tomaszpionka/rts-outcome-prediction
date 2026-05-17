@@ -1,11 +1,11 @@
 ---
 title: "Phase 01/02 Writing Readiness Audit (cross-dataset) — amended with existing-draft conformance audit"
 category: E
-branch: docs/thesis-phase01-phase02-writing-readiness-audit
+branch: thesis/phase01-phase02-writing-readiness-audit
 date: 2026-05-17
 planner_model: claude-opus-4-7
-branch_prefix: docs/
-branch_name: docs/thesis-phase01-phase02-writing-readiness-audit
+branch_prefix: thesis/
+branch_name: thesis/phase01-phase02-writing-readiness-audit
 pr_title: "docs(thesis): Phase 01/02 writing readiness audit (cross-dataset; sc2egset+aoestats+aoe2companion) — amended with existing-draft conformance audit"
 base_ref: "master @ e45ca996"
 base_commit: e45ca996
@@ -412,4 +412,4 @@ The executor MUST halt and report (not silently proceed) if any of the following
 
 The amendment introduces only one genuine planning-time methodology call that may benefit from user confirmation before T06 executes; the others are operational and resolved by the §10.6 routing decisions themselves.
 
-- **Q1.** Should §11 (Draft correction backlog) include rows for placeholder subsections (e.g., `04_data_and_methodology.md` §4.3.1 currently a `<!-- Planowane: -->` HTML-comment) as "missing-claim" rows, or should those be deferred to the Category-F PR for that subsection (which will draft from scratch)? **Recommended default:** include them as `issue_type = missing-claim, severity = LOW, agent = defer`, so that the Category-F PR has a single canonical anchor for the missing content; this avoids invisible scope drift if a future agent silently skips the placeholder. Resolves by: user decision before T07 commits.
+- **Q1 [RESOLVED 2026-05-17 by user].** Placeholder-only chapters `thesis/chapters/05_experiments_and_results.md`, `thesis/chapters/06_discussion.md`, and `thesis/chapters/07_conclusions.md` are NOT overclaim blockers. Include them in §11 (Draft correction backlog) as `issue_type = missing-claim` rows with `severity = LOW` and `agent_to_use = defer`. Future writing PRs may activate them only after Phase 03 evidence exists. T07 implementation must honor this resolution verbatim.
