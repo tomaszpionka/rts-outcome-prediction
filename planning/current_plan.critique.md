@@ -5,121 +5,69 @@ reviewer_model: claude-opus-4-7 (reviewer-deep — user-directed substitute plan
 category: F
 ---
 
-# Critique: aoestats row-count + [POP:]-scope caveat (plan-review provenance)
+# Critique: Chapters 1–4 supervisor handoff package (plan-review provenance)
 
 > **Reviewer substitution (user-directed, binding).** reviewer-deep is the
 > mandatory plan gate (T01) and final gate (T03); reviewer-adversarial is
 > conditional (escalation trigger only). `critique_required: false`
 > substituted by this mandatory reviewer-deep plan review. Mirrors
-> PR #221 (M-1) / #222 (M-2). User selected Option A verbatim at plan
-> approval ⇒ reviewer-adversarial NOT mandatorily pre-triggered.
+> PR #221/#222/#223. Documentation-relay PR; no new methodology.
 
 **Plan under review:** `planning/current_plan.md`
-**Branch:** `docs/thesis-aoestats-rowcount-scope-caveat` | **PR:** #223 (draft)
-**Base:** `adf933031bb8c9d335d07d1e23d867603c244371` (master, PR #222 merged) | **Bootstrap:** `47286229`
+**Branch:** `docs/thesis-ch1-ch4-supervisor-handoff-package` | **PR:** #224 (draft)
+**Base:** `855bdbb684862d50859d39e5742fac78b6cfad89` (master, PR #223 merged) | **Bootstrap:** `44c46ec3`
 
 ## Invariants & temporal discipline
 
-Pure prose-clarification PR: zero data/feature/model/notebook/artifact
-mutation (read-only verification of an already-generated EDA artifact
-only). Scientific invariants #1–#9 **n-a** (`invariants_touched: []`
-accurate). Temporal-discipline assessment: **n-a**.
+Documentation-relay PR: zero data/feature/model/notebook/artifact touch;
+the deliverable relays flag counts + PR identifiers, not data-derived
+values. Scientific invariants #1–#9 **n-a** (`invariants_touched: []`
+accurate). Temporal-discipline assessment: **n-a** (Phase-03+
+escalation rule does not apply — no scientific code).
 
-## Round 1 — reviewer-deep plan review (2026-05-18): PASS-WITH-NITS
+## Round 1 — reviewer-deep plan review (2026-05-18): PASS
 
-No blockers. reviewer-deep **independently re-derived the load-bearing
-on-disk artifact state**: `phase06_interface_aoestats.csv` = 137 lines =
-1 header + 136 data rows; **136 `[POP:ranked_ladder]`**; 30
-`[PRE-canonical_slot]`. Confirms the plan's CRITICAL FINDING — the
-audit/brief prescription ("0 tags / not tag-carried / implicit-via-spec")
-is STALE and FALSE post-F6 (and `WRITING_STATUS.md:67` still carries the
-false pre-F6 text, confirming OQ-3's leave-as-historical containment).
+No blockers. Independently verified:
 
-The Option A NEW string is **on-disk-true and Tier-4-safe**: gives
-"137 wierszy łącznie: 1 nagłówek + 136 wierszy danych"; states a token
-IS present in all 136 data rows; contains NO "0 tags / not tag-carried"
-claim; names the artifact token as the provisional `[POP:ranked_ladder]`
-operationally superseded in the prose by the disciplined
-`[POP:1v1_random_map]`; does NOT assert `[POP:ranked_ladder]` is correct
-discipline (aligns with `cross_dataset_comparability_matrix.md` CX-17 /
-Tier-4). OLD string unique at line 212 (line 428 uses a distinct
-`136 wierszy danych` string → structurally untouched); sc2egset 35/35 +
-aoe2companion 74/74 + dataset-conditional preserved; line-212/214
-`[REVIEW]` flags outside the OLD string; R02 (`01_04_01_data_cleaning.md`)
-and `02_00` grounding real and cited as provenance only; scope
-structurally airtight; planning-drift RC 0; all Cat-F sections present;
-T00–T05 coherent.
+- **§6 Polish note byte-identical to the user's supplied verbatim text**
+  (zero-line `diff`; identical MD5 `88ad09adef3daf8860d1b88fb36ef8e2`;
+  2239 bytes). No completed-experiment/results claim — the only model
+  sentence is the explicit negation "Żaden model nie został jeszcze
+  wytrenowany"; Ch5–7 not represented as ready.
+- 8-section fidelity to the audit: §1 uses `ready_to_send_with_disclaimer`
+  and correctly **supersedes** the pre-#221 audit §10 "send 1/3/4, hold
+  Chapter 2" framing (M-1 merged #221 → all four chapters sendable
+  together); §4 maps M-1→#221 / M-2→#222 / M-3→#223 with accurate
+  issue/fix/impact (independently confirmed via `gh pr view` + `git log`
+  + CHANGELOG `[3.56.0]`/`[3.57.0]`/`[3.58.0]`); §5 totals reconcile
+  (Ch1=8/Ch2=18/Ch3=14+1/Ch4=34+1=76 Pass-2 — grep-confirmed on the
+  chapter files; 41 ok_to_send_with_flag / 9 manual_full_text_required /
+  14 future_phase_dependent = audit §1 count line).
+- Ch5–7 confirmed BLOCKED/skeleton (Ch5 77L all BLOCKED; Ch6 §6.1–4
+  BLOCKED + §6.5 SKELETON; Ch7 §7.1/2 BLOCKED) — §1/§3/§8 correctly say
+  "do not send as substantive".
+- §2/§7 optional-only attachments (user OQ-2) — stricter than the audit
+  §10 recommendation, not contradictory.
+- Scope structurally bound (triple-layered: per-task File scope + File
+  Manifest "Explicitly NOT modified" + Gate `git diff ⊆`); no path to a
+  `thesis/chapters/**` / `references.bib` / `WRITING_STATUS.md` /
+  `REVIEW_QUEUE.md` / other-`pass2_evidence/**` edit.
+- planning-drift RC 0; `## Literature context` heading EXACT (no
+  parenthetical — the PR #223 first-bootstrap regression is not
+  repeated); version 3.58.0→3.59.0 (docs⇒minor) correct; INDEX archives
+  #223 + sets this branch active.
 
-**Non-blocker nits — grep-battery counting-mode defects in the plan's
-own verification commands (could cause FALSE gate failures if run
-literally; the authoritative single-hunk `git diff` guard is correct):**
-1. `grep -c '\[REVIEW:'` returns the LINE count (≈27, many flags share
-   one long markdown paragraph line), not the occurrence count (34).
-2. Post-edit `grep -c '136 wierszy danych'` legitimately goes 1 → 2
-   because the NEW line-212 string contains that substring — "count
-   unchanged vs base" is false as written.
-
-**Resolution (applied at T01 as in-scope mechanical plan-doc fixes,
-planning/current_plan.md only):** T02 "Verification (grep battery)" and
-Gate Condition §2 amended — flag invariants now use OCCURRENCE counts
-(`grep -o '\[REVIEW' …|wc -l`==34, `grep -o '\[UNVERIFIED' …|wc -l`==1);
-the line-428-unchanged invariant now relies on the authoritative
-single-hunk `git diff` guard (exactly one hunk at line 212, none at/near
-428), with an explicit note that a raw `grep -c '136 wierszy danych'`
-1→2 is expected and NOT a regression. planning-drift re-run RC 0 after
-the amendment. No content/scope change; the edit OLD/NEW strings,
-methodology, and Option-A decision are unchanged.
+**Non-blocking awareness (no action):** the audit's "+18 Ch4
+`[POP:]`/`[PRE-canonical_slot]` annotations" is a finding-level count; a
+naive `grep -o` on `04_data_and_methodology.md` returns ~20 substring
+hits (chapter prose describes the tag vocabulary inline). The plan
+relays the authoritative audit figure with the explicit "by category,
+NOT line-by-line" qualifier; the T02 verification battery does NOT grep
+POP counts, so no false gate. Flagged only so the T03 reviewer is not
+surprised by a naive grep.
 
 ## Gate status
 
-**T01 plan gate: PASS-WITH-NITS** (0 blockers; both nits resolved at T01
-by amending the plan's verification battery only). Adversarial cap: 1 of
-max 3 rounds used. reviewer-adversarial NOT triggered (escalation trigger
-not met). Cleared to proceed to T02.
-
-## Round 2 — reviewer-deep T03 final check (2026-05-18): APPROVE
-
-No blockers; no escalation. Independently re-derived the on-disk
-artifact: `phase06_interface_aoestats.csv` = 137 lines (1 header + 136
-data rows); **136 `[POP:ranked_ladder]`**; 30 `[PRE-canonical_slot]` —
-exactly the spec's prescribed truth; the audit/brief "0 tags /
-not tag-carried" framing confirmed STALE/FALSE post-F6.
-
-- Applied `04_data_and_methodology.md:212` is a **SHA256-byte-exact**
-  match to the plan's Option-A NEW string; on-disk-true (states a token
-  IS present in all 136 data rows; NO "0 tags / not tag-carried" claim);
-  names `[POP:ranked_ladder]` as the provisional artifact token
-  superseded in prose by disciplined `[POP:1v1_random_map]`; consistent
-  with CX-17/Tier-4 (does not assert `[POP:ranked_ladder]` correct).
-- Exactly ONE Ch4 hunk (§4.1.4 paragraph); sc2egset 35/35 +
-  aoe2companion 74/74 + dataset-conditional preserved; trailing
-  line-212 `[REVIEW]` + line-214 `[REVIEW]` flags byte-identical;
-  `[REVIEW]`==34 / `[UNVERIFIED]`==1 base↔HEAD; **line 428
-  byte-identical** (the raw `grep -c '136 wierszy danych'` 1→2 is the
-  expected substring overlap, not a regression — single-hunk guard
-  confirms).
-- WRITING_STATUS §4.1.4 append strictly additive (prior cell content a
-  verbatim prefix; table valid; no other row touched) and factually
-  accurate with NO overclaim (no Phase 02/06 closure; line-212
-  `[REVIEW]` flag stated open; pass2_evidence stated out of scope).
-- Scope fully contained ⊆ manifest; `references.bib` /
-  `REVIEW_QUEUE.md` / `pass2_evidence/**` / other chapters / specs /
-  artifacts diff empty; CHANGELOG/pyproject correctly deferred to T04.
-- Invariant trace: only I8 (population-scope honesty / dataset-conditional
-  comparability) applies — the change **strengthens** it (true on-disk
-  token replaces a false "0 tags" claim while preserving Tier-4
-  discipline). All others n-a.
-
-**Non-blocking follow-ups (deferred-by-plan, do NOT gate merge):**
-(1) stale 2026-04-19 WRITING_STATUS §4.1.4 prefix prose + (2) stale
-`pass2_evidence/**` "0 tags" audit text — both left as historical
-evidence by explicit plan policy (OQ-3 / R-1); future Cat-E/F
-reconciliation chore. (3) T04/T05 release hygiene pending.
-
-## Gate status (final)
-
-**T03 final gate: APPROVE / PASS** (0 blockers). Adversarial cap: 0
-contested rounds (reviewer-adversarial NOT triggered — trigger a–d not
-met). With M-1 (#221) + M-2 (#222) merged, M-3 closure via this PR brings
-Chapters 1–4 to `ready_to_send_with_disclaimer` for supervisor handoff
-(subject to retained review flags). Cleared to proceed to T04/T05.
+**T01 plan gate: PASS** (0 blockers; one non-blocking awareness note).
+Adversarial cap: 1 of max 3 rounds used. reviewer-adversarial NOT
+triggered (escalation trigger a–e not met). Cleared to proceed to T02.
