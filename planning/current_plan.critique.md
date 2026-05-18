@@ -76,3 +76,50 @@ methodology, and Option-A decision are unchanged.
 by amending the plan's verification battery only). Adversarial cap: 1 of
 max 3 rounds used. reviewer-adversarial NOT triggered (escalation trigger
 not met). Cleared to proceed to T02.
+
+## Round 2 — reviewer-deep T03 final check (2026-05-18): APPROVE
+
+No blockers; no escalation. Independently re-derived the on-disk
+artifact: `phase06_interface_aoestats.csv` = 137 lines (1 header + 136
+data rows); **136 `[POP:ranked_ladder]`**; 30 `[PRE-canonical_slot]` —
+exactly the spec's prescribed truth; the audit/brief "0 tags /
+not tag-carried" framing confirmed STALE/FALSE post-F6.
+
+- Applied `04_data_and_methodology.md:212` is a **SHA256-byte-exact**
+  match to the plan's Option-A NEW string; on-disk-true (states a token
+  IS present in all 136 data rows; NO "0 tags / not tag-carried" claim);
+  names `[POP:ranked_ladder]` as the provisional artifact token
+  superseded in prose by disciplined `[POP:1v1_random_map]`; consistent
+  with CX-17/Tier-4 (does not assert `[POP:ranked_ladder]` correct).
+- Exactly ONE Ch4 hunk (§4.1.4 paragraph); sc2egset 35/35 +
+  aoe2companion 74/74 + dataset-conditional preserved; trailing
+  line-212 `[REVIEW]` + line-214 `[REVIEW]` flags byte-identical;
+  `[REVIEW]`==34 / `[UNVERIFIED]`==1 base↔HEAD; **line 428
+  byte-identical** (the raw `grep -c '136 wierszy danych'` 1→2 is the
+  expected substring overlap, not a regression — single-hunk guard
+  confirms).
+- WRITING_STATUS §4.1.4 append strictly additive (prior cell content a
+  verbatim prefix; table valid; no other row touched) and factually
+  accurate with NO overclaim (no Phase 02/06 closure; line-212
+  `[REVIEW]` flag stated open; pass2_evidence stated out of scope).
+- Scope fully contained ⊆ manifest; `references.bib` /
+  `REVIEW_QUEUE.md` / `pass2_evidence/**` / other chapters / specs /
+  artifacts diff empty; CHANGELOG/pyproject correctly deferred to T04.
+- Invariant trace: only I8 (population-scope honesty / dataset-conditional
+  comparability) applies — the change **strengthens** it (true on-disk
+  token replaces a false "0 tags" claim while preserving Tier-4
+  discipline). All others n-a.
+
+**Non-blocking follow-ups (deferred-by-plan, do NOT gate merge):**
+(1) stale 2026-04-19 WRITING_STATUS §4.1.4 prefix prose + (2) stale
+`pass2_evidence/**` "0 tags" audit text — both left as historical
+evidence by explicit plan policy (OQ-3 / R-1); future Cat-E/F
+reconciliation chore. (3) T04/T05 release hygiene pending.
+
+## Gate status (final)
+
+**T03 final gate: APPROVE / PASS** (0 blockers). Adversarial cap: 0
+contested rounds (reviewer-adversarial NOT triggered — trigger a–d not
+met). With M-1 (#221) + M-2 (#222) merged, M-3 closure via this PR brings
+Chapters 1–4 to `ready_to_send_with_disclaimer` for supervisor handoff
+(subject to retained review flags). Cleared to proceed to T04/T05.
