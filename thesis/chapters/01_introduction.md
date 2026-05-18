@@ -82,7 +82,7 @@ Write last — brief description of each chapter.
 
 - [GarciaMendez2025] García-Méndez, S., & de Arriba-Pérez, F. (2025). Explainable e-sports win prediction through Machine Learning classification in streaming. Entertainment Computing, 55, 101027. https://doi.org/10.1016/j.entcom.2025.101027 [REVIEW: pełna lista autorów i gra docelowa wymagają weryfikacji z pełnego tekstu]
 
-- [Mangat2024] Mangat, H. S., Griffiths, M. D., Yu, S. M., Felvinczi, K., Ngetich, R. K., Demetrovics, Z., & Czakó, A. (2024). Understanding Esports-related Betting and Gambling: A Systematic Review of the Literature. Journal of Gambling Studies, 40(1), 145-165. https://doi.org/10.1007/s10899-023-10256-5 [REVIEW: cytowane wyłącznie w komentarzu wewnętrznym — jeśli włączane do tekstu, zweryfikować numer tomu/stron]
+- [Mangat2024] Mangat, H. S., Griffiths, M. D., Yu, S. M., Felvinczi, K., Ngetich, R. K., Demetrovics, Z., & Czakó, A. (2024). Understanding Esports-related Betting and Gambling: A Systematic Review of the Literature. Journal of Gambling Studies, 40(2), 893-914. https://doi.org/10.1007/s10899-023-10256-5 [REVIEW: cytowane wyłącznie w komentarzu wewnętrznym — jeśli włączane do tekstu, zweryfikować numer tomu/stron]
 
 - [CetinTas2023] Çetin Taş, İ. & Müngen, A. A. (2023). Regression Analysis of Age of Empires II DE Match Results with Machine Learning. 2023 8th International Conference on Computer Science and Engineering (UBMK), IEEE. DOI: 10.1109/UBMK59864.2023.10391048. https://ieeexplore.ieee.org/document/10391048/
 
