@@ -232,8 +232,8 @@ WRITING_STATUS append.
 **Verification (grep battery):**
 - `grep -c '137 wierszy łącznie: 1 nagłówek + 136 wierszy danych' thesis/chapters/04_data_and_methodology.md` == 1 (line 212).
 - `grep -c '(136 wierszy) niesie tag dla aoestats' thesis/chapters/04_data_and_methodology.md` == 0.
-- `grep -c '136 wierszy danych' thesis/chapters/04_data_and_methodology.md` unchanged vs base (line 428 still present).
-- `grep -c '\[REVIEW:' thesis/chapters/04_data_and_methodology.md` == 34 (= base); `grep -c '\[UNVERIFIED:' …` == 1 (= base).
+- Line 428 byte-unchanged — authoritative check is the single-hunk `git diff` at the next bullet (exactly one hunk at line 212, no hunk at/near line 428). NOTE: a raw `grep -c '136 wierszy danych'` legitimately goes base 1 → post-edit 2 because the NEW line-212 string also contains the substring "136 wierszy danych"; do NOT treat that as a regression — rely on the single-hunk `git diff` guard, not the raw count.
+- `[REVIEW]`/`[UNVERIFIED]` flags unchanged (none removed) via OCCURRENCE counts: `grep -o '\[REVIEW' thesis/chapters/04_data_and_methodology.md | wc -l` == 34 (= base); `grep -o '\[UNVERIFIED' thesis/chapters/04_data_and_methodology.md | wc -l` == 1 (= base). (`grep -c` returns the LINE count ≈27 because many flags share one long markdown paragraph line — use `-o | wc -l` for the occurrence count.)
 - sc2egset `(35/35 wierszy) niesie \`[POP:tournament]\` w kolumnie \`notes\`` present; aoe2companion `(74/74 wierszy)` present.
 - `git diff base..HEAD -- thesis/chapters/04_data_and_methodology.md` = exactly ONE hunk at line 212; no hunk at/near line 428.
 - `git diff --name-only adf93303..HEAD` ⊆ {planning/current_plan.md, planning/INDEX.md, planning/current_plan.critique.md, thesis/chapters/04_data_and_methodology.md, thesis/WRITING_STATUS.md}.
@@ -360,10 +360,14 @@ ROADMAPs; status YAMLs; code; notebooks; `docs/TAXONOMY.md`; `.claude/**`.
 1. `04_data_and_methodology.md:212` == Option A NEW string; rest of file
    byte-identical to base (exactly one hunk at line 212).
 2. Grep battery: `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych`
-   present (1, line 212); `(136 wierszy) niesie tag dla aoestats` == 0;
-   `136 wierszy danych` count unchanged (line 428 intact);
-   `[REVIEW:]`==34, `[UNVERIFIED:]`==1 (= base); sc2egset 35/35 +
-   aoe2companion 74/74 present.
+   present (line 212); `(136 wierszy) niesie tag dla aoestats` == 0;
+   line 428 byte-unchanged via the single-hunk `git diff` guard (exactly
+   one hunk at line 212, none at/near 428 — NOT a raw `grep -c '136
+   wierszy danych'`, which legitimately goes 1→2 since the NEW line-212
+   string contains that substring); flag occurrence counts
+   `grep -o '\[REVIEW' …|wc -l`==34 and `grep -o '\[UNVERIFIED' …|wc -l`==1
+   (= base; a `grep -c` line-count of ≈27 is expected, not a regression);
+   sc2egset 35/35 + aoe2companion 74/74 present.
 3. NEW string is on-disk-true: contains NO "0 tags / not tag-carried /
    NO [POP:] tag" claim; names `[POP:ranked_ladder]` as the provisional
    artifact token superseded in prose by `[POP:1v1_random_map]`; does
