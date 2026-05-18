@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-esportsbench-version-harmonization (2026-05-18) — Category F must-fix M-1: harmonise EsportsBench §2.5.5 `v8.0/2025-12-31` → `v9.0/2026-03-31/dostęp 2026-04-26` to match Ch3 §3.2.4/§3.5 (draft PR)
+- docs/thesis-esportsbench-version-harmonization (2026-05-18) — Category F must-fix M-1: harmonise EsportsBench §2.5.5 `v8.0/2025-12-31` → `v9.0/2026-03-31/dostęp 2026-04-26` to match Ch3 §3.2.4/§3.5 (draft PR #221)
 
 ## Archive
 
