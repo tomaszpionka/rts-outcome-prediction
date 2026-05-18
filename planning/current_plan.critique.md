@@ -63,3 +63,37 @@ no critique-resolution cycle required before T02.
 cap: 1 of max 3 rounds used. reviewer-adversarial NOT triggered (no
 unresolved methodology/overclaim BLOCKER; escalation trigger not met).
 Cleared to proceed to T02.
+
+## Round 2 — reviewer-deep T03 final check (2026-05-18): PASS
+
+No blockers. Independently verified on the applied diff (HEAD `17cbc7e0`
+vs base `c6878627`):
+
+- `02_theoretical_background.md:179` parenthetical is **byte-identical**
+  to `03_related_work.md:77` (`xxd`/`cmp`-clean, incl. UTF-8 `ę` `c4 99`
+  in "dostęp"); rest of the sentence byte-identical to base
+  (parenthetical-only substitution, numstat 1/1).
+- Grep battery: Ch2 `v8.0`=0, `2025-12-31`=0, new string=1; `80,13%`
+  HEAD=BASE=2 and `REVIEW: F4.5` HEAD=BASE=1 (line 39 untouched).
+- Ch3 (`03_related_work.md`) and `references.bib` diffs EMPTY; no
+  forbidden path in the diff; scope ⊆ allowed set.
+- `WRITING_STATUS.md` §2.5: provably append-only (3416-byte prior-history
+  prefix preserved byte-for-byte; one new dated entry before the closing
+  `|`; table valid); factually accurate; correctly hedged ("subject to
+  retained non-M-1 review flags") — no overclaim.
+- TQ-04 stale "§3.2.4 internal contradiction" sub-claim NOT chased
+  (Ch3 §3.2.4 unedited).
+- C-01 cross-chapter contradiction resolved: with M-1 applied Chapter 2
+  is consistent with Chapter 3 → Chapter 2 `ready_to_send_with_disclaimer`
+  per the audit's own §3 rule.
+
+**Non-blocker follow-up:** WRITING_STATUS §2.5 row accretion (~3.7 kB
+chained dated entries) is pre-existing debt not introduced by this PR;
+track in the R-1 planning-hygiene residual.
+
+## Gate status (final)
+
+**T03 final gate: PASS** (0 blockers). Adversarial cap: 1 of max 3 rounds
+used across plan+execution; reviewer-adversarial NOT triggered (escalation
+trigger a–d not met). Cleared to proceed to T04 (version bump) and T05
+(PR ready, no merge).
