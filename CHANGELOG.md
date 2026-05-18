@@ -19,6 +19,21 @@ merged to `master`.
 
 ### Removed
 
+## [3.57.0] — 2026-05-18 (PR #222: docs/thesis-ch1-footer-bib-consolidation)
+
+### Added
+
+- Promoted seven Chapter-1 `## References`-footer-only sources into the central `thesis/references.bib` with web-verified metadata (append-only; 100 → 107 `@` entries): `Shin1993` (*The Economic Journal* 103(420):1141–1153), `Forrest2005` (*Int. J. Forecasting* 21(3):551–564, DOI 10.1016/j.ijforecast.2005.03.003), `Levitt2004` (*The Economic Journal* 114(495):223–246, DOI 10.1111/j.1468-0297.2004.00207.x), `Mangat2024` (*Journal of Gambling Studies* 40(2):893–914, DOI 10.1007/s10899-023-10256-5), `Formosa2022` (*Proc. ACM HCI* 6(CHI PLAY) Art. 399, DOI 10.1145/3549490), `Novak2025` (*Frontiers in Sports and Active Living* 7:1636823, DOI 10.3389/fspor.2025.1636823), `Balduzzi2018` (NeurIPS 2018, arXiv:1806.02643).
+
+### Changed
+
+### Fixed
+
+- Resolved Chapters 1–4 citation-audit must-fix **M-2** (findings C-06 / D1-NOTE / §7.1 R-1): the Chapter-1 central-bibliography gap is closed; every `[Key]` cited in Chapter 1 now resolves in `references.bib` (0 unresolved, was 6).
+- Corrected the Chapter-1 `## References` footer Mangat2024 metadata in `thesis/chapters/01_introduction.md` (line 85 only): `Journal of Gambling Studies, 40(1), 145-165` → `40(2), 893-914` to match the verified canonical record (Springer/PubMed PMID 37740076, DOI 10.1007/s10899-023-10256-5) and the new bib entry. Chapter-1 prose body unchanged; the line-11 betting-market transferability `[REVIEW]` hedge and the line-85 metadata flag are retained (NOT closed by this metadata consolidation — no new theory claim). `Novak2025` first author corrected to `Pál` (web-verified, Frontiers); `Shin1993`/`Forrest2005` inherited reviewer-deep PR #220 audit §7.1 verified starting points. reviewer-deep PASS at plan (T01) and final (T03); reviewer-adversarial escalation trigger not met (not invoked).
+
+### Removed
+
 ## [3.56.0] — 2026-05-18 (PR #221: docs/thesis-esportsbench-version-harmonization)
 
 ### Added

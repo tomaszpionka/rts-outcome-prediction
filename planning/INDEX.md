@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-esportsbench-version-harmonization (2026-05-18) — Category F must-fix M-1: harmonise EsportsBench §2.5.5 `v8.0/2025-12-31` → `v9.0/2026-03-31/dostęp 2026-04-26` to match Ch3 §3.2.4/§3.5 (draft PR #221)
+- docs/thesis-ch1-footer-bib-consolidation (2026-05-18) — Category F must-fix M-2: consolidate 7 Chapter-1 footer-only sources into references.bib + fix Mangat2024 footer metadata; no prose-body change (draft PR #222)
 
 ## Archive
 
@@ -14,6 +14,7 @@
 | phase02/sc2egset-registry-artifact-provisional-v9 | 2026-05-10 | A | SC2EGSet Step 02_01_01 provisional registry artifact validated through V-9; first on-disk CSV+MD; Step closure NOT claimed | current_plan.md | #216 (merged into master) |
 | thesis/phase02-registry-methodology-section-4-5 | 2026-05-17 | F | Phase 02 registry methodology framing for Chapter 4 §4.5 (TQ-03); provisional §4.5 writing; Step/Phase closure NOT claimed | current_plan.md | #219 (merged 2026-05-17 at master 26210a5d) |
 | docs/thesis-ch1-ch4-citation-literature-audit | 2026-05-17 | F | Chapters 1–4 citation & literature support audit (audit-only; verdict send_after_must_fixes; must-fix M-1/M-2/M-3) | current_plan.md | #220 (merged 2026-05-17 at master c6878627) |
+| docs/thesis-esportsbench-version-harmonization | 2026-05-18 | F | Audit must-fix M-1: EsportsBench §2.5.5 v8.0/2025-12-31 → v9.0/2026-03-31/dostęp 2026-04-26 harmonisation to match Ch3 | current_plan.md | #221 (merged 2026-05-18 at master 93f02600) |
 
 ## Agent routing
 
