@@ -19,6 +19,18 @@ merged to `master`.
 
 ### Removed
 
+## [3.56.0] — 2026-05-18 (PR #221: docs/thesis-esportsbench-version-harmonization)
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Harmonised the EsportsBench version/cutoff parenthetical in Chapter 2 §2.5.5 (`thesis/chapters/02_theoretical_background.md:179`): `(wersja HuggingFace v8.0, cutoff 2025-12-31)` → `(wersja HuggingFace v9.0, cutoff 2026-03-31, dostęp 2026-04-26)`, character-identical to the already-correct Chapter 3 §3.2.4 (`03_related_work.md:77`) and §3.5. Resolves Chapters 1–4 citation-audit must-fix **M-1** / finding C-01 (cross-chapter EsportsBench self-contradiction on the SC2 Aligulac 411 030-match / ~80% Glicko comparator); Chapter 2 supervisor-readiness `not_ready` → `ready_to_send_with_disclaimer`. No new EsportsBench claim, no `thesis/references.bib` change, no Chapter 3 edit; one additive dated provenance line in `thesis/WRITING_STATUS.md` §2.5. reviewer-deep PASS at plan (T01) and final (T03); reviewer-adversarial escalation trigger not met (not invoked).
+
+### Removed
+
 ## [3.55.0] — 2026-05-17 (PR #220: docs/thesis-ch1-ch4-citation-literature-audit)
 
 ### Added
