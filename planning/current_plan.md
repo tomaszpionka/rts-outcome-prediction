@@ -1,8 +1,8 @@
 ---
-title: "Chapter-1 footer-only bibliography consolidation into references.bib (Chapters 1–4 audit must-fix M-2)"
+title: "aoestats interface-CSV row-count + [POP:]-scope caveat (Chapters 1–4 audit must-fix M-3 / TQ-05)"
 category: F
-branch: docs/thesis-ch1-footer-bib-consolidation
-base_ref: 93f02600df1e5401e5e42cc438fdcd504dc07487
+branch: docs/thesis-aoestats-rowcount-scope-caveat
+base_ref: adf933031bb8c9d335d07d1e23d867603c244371
 date: 2026-05-18
 planner_model: claude-opus-4-7[1m] (planner-science)
 dataset: null
@@ -11,382 +11,329 @@ pipeline_section: null
 invariants_touched: []
 source_artifacts:
   - thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md
-  - thesis/chapters/01_introduction.md
-  - thesis/references.bib
-  - thesis/pass2_evidence/literature_verification_log.md
-  - thesis/pass2_evidence/methodology_risk_register.md
+  - thesis/pass2_evidence/phase01_phase02_writing_readiness_audit.md
+  - thesis/pass2_evidence/cross_dataset_comparability_matrix.md
+  - thesis/chapters/04_data_and_methodology.md
+  - src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/05_temporal_panel_eda/phase06_interface_aoestats.csv
+  - src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md
+  - reports/specs/02_00_feature_input_contract.md
 critique_required: false
 research_log_ref: null
 ---
 
-# Plan: Chapter-1 footer-only bibliography consolidation (must-fix M-2)
+# Plan: aoestats row-count + [POP:]-scope caveat (must-fix M-3 / TQ-05)
 
-> **User-directed reviewer deviation (binding).** M-2 originates from the
-> PR #220 Chapters 1–4 citation audit. Per the user task brief, reviewer-deep
-> is the mandatory plan gate (T01) and final gate (T03); reviewer-adversarial
-> is conditional (escalation trigger only). `critique_required: false`
-> reflects "no mandatory pre-execution adversarial critique", substituted by
-> a mandatory reviewer-deep plan review. Mirrors PR #221 (M-1).
+> **User-directed reviewer deviation (binding).** Per the task brief,
+> reviewer-deep is the mandatory plan gate (T01) and final gate (T03);
+> reviewer-adversarial is conditional (escalation trigger only).
+> `critique_required: false` reflects "no mandatory pre-execution
+> adversarial critique", substituted by a mandatory reviewer-deep plan
+> review. Mirrors PR #221 (M-1) / #222 (M-2). The user selected Option A
+> verbatim at plan approval, so reviewer-adversarial is NOT mandatorily
+> pre-triggered (it remains conditional on a reviewer-deep blocker).
 
-> **User decisions (2026-05-18, binding):** (1) **Mangat2024 footer
-> correction AUTHORISED** — a minimal one-line metadata fix in
-> `thesis/chapters/01_introduction.md` footer line 85
-> (`40(1), 145-165` → `40(2), 893-914`); NO Chapter-1 prose-body change; the
-> transferability `[REVIEW]` hedge (line 11) and the line-85 metadata
-> `[REVIEW]` flag are NOT removed unless reviewer-deep explicitly confirms
-> resolution. (2) **Recording: WRITING_STATUS append only; no
-> REVIEW_QUEUE change.**
+> **CRITICAL FINDING (verified on disk 2026-05-18; drives the wording).**
+> The framing prescribed by the task brief AND the PR #220 audit
+> (M-3 / TQ-05 / C-10) — "aoestats `[POP:]` is *not tag-carried* /
+> *0 of 137 tags* / implicit-via-spec" — is **STALE and factually FALSE**
+> against the post-F6 artifact. Independently confirmed:
+> `phase06_interface_aoestats.csv` = **137 lines = 1 header + 136 data
+> rows**, and **all 136 data rows carry `[POP:ranked_ladder]`** (+30 also
+> carry `[PRE-canonical_slot]`). The audit/readiness text captured a
+> pre-F6 snapshot; a BACKLOG-F6 backfill (2026-04-19) added the tokens;
+> chapter line 428 and §4.4.6 were already reconciled to the post-F6
+> state, but §4.1.4 line 212 (and the audit's TQ-05 text itself) were
+> not. Per the anti-GIGO discipline and the user's instruction
+> ("flag rather than bake in an unverifiable claim"), the false
+> "0 tags / not tag-carried" claim is NOT entered into the thesis.
+> **User decision (2026-05-18): Option A** — on-disk-true wording that
+> names the provisional `[POP:ranked_ladder]` artifact token and states
+> it is operationally superseded in the prose by the disciplined
+> `[POP:1v1_random_map]` / Tier-4 framing. The stale `pass2_evidence/**`
+> text is left as historical audit evidence (NOT corrected here).
 
 ## Scope
 
-Bibliography/provenance consolidation. Promote the seven Chapter-1
-`## References`-footer-only entries into the central `thesis/references.bib`
-with web-verified metadata, and apply one authorised minimal one-line
-correction to the Mangat2024 footer entry so footer and bib agree. This
-resolves audit must-fix **M-2** (`ch1_ch4_citation_literature_support_audit.md`
-§7 M-2, §11 PR-2, §4 C-06, D1-NOTE, §7.1 R-1) so Chapter-1
-bibliography/provenance is ready for supervisor handoff. **Bibliography
-hygiene, NOT a new theory claim**: zero new prose claims; the transferability
-`[REVIEW]` hedge is preserved.
+One-locus Category F prose clarification resolving audit must-fix
+**M-3 / TQ-05**. In scope: (1) ONE Edit to
+`thesis/chapters/04_data_and_methodology.md` line 212 (§4.1.4
+"Twierdzenia dataset-conditional") — correct the aoestats row-count to
+explicit header/data form and reword the aoestats `[POP:]`-carriage
+clause to be true against the post-F6 artifact (Option A); (2) one dated
+one-line append to the §4.1.4 row of `thesis/WRITING_STATUS.md`;
+(3) version bump 3.57.0 → 3.58.0 + `CHANGELOG.md`; (4) `planning/INDEX.md`
+archive of merged PR #222 + active-plan line + `planning/current_plan.md`
+overwrite; (5) branch / draft-PR / commit-push lifecycle (no merge).
+After merge: M-1 ✅ #221, M-2 ✅ #222, M-3 = this PR → Chapters 1–4
+`ready_to_send_with_disclaimer`.
 
 ## Problem Statement
 
-Seven keys are cited in Chapter-1 prose and/or listed in the Chapter-1
-inline `## References` footer (`01_introduction.md:59`–…) but are absent
-from `thesis/references.bib`: `Shin1993`, `Forrest2005`, `Levitt2004`,
-`Mangat2024`, `Formosa2022`, `Novak2025`, `Balduzzi2018`. Confirmed absent
-at HEAD (`grep -c "{<key>," references.bib` = 0 for all seven;
-`grep -c '^@'` = 100). Not a phantom-citation BLOCKER (audit §4 D1) — a
-supervisor reading chapter+footer is unaffected — but the central bib is
-incomplete for BibTeX typesetting. Additionally, web verification shows the
-Chapter-1 footer's `Mangat2024` entry has wrong volume/issue/pages
-(`40(1), 145-165`; canonical Springer/PubMed = `40(2), 893-914`,
-DOI 10.1007/s10899-023-10256-5); the footer already self-flags this with a
-`[REVIEW: … zweryfikować numer tomu/stron]` note. Precedent: PR-TG4
-(2026-04-20) already promoted the analogous footer-only `GarciaMendez2025`
-into `references.bib`.
+`04_data_and_methodology.md:212` (§4.1.4) — cited by audit C-10, M-3,
+§11 PR-3, F4-11 and readiness TQ-05 — has two defects in the
+operationalisation sentence: (i) row-count ambiguity — bare
+"`phase06_interface_aoestats.csv` (136 wierszy)" is inconsistent with
+the "X/X wierszy" framing used for the other two corpora and does not
+disambiguate the 137-line file (1 header + 136 data rows); (ii) the
+"niesie tag dla aoestats" clause papers over the fact that the artifact
+carries the stale/provisional `[POP:ranked_ladder]` token (the Tier-4
+mis-label) in all 136 data rows, while the surrounding prose correctly
+uses the disciplined `[POP:1v1_random_map]` "bez kwalifikacji 'ranked
+ladder'". The audit's prescribed corrected framing ("not tag-carried /
+0 tags / implicit-via-spec") is stale/false post-F6 (see CRITICAL
+FINDING). The fix must be on-disk-true, must distinguish the on-disk
+artifact token from the thesis methodology label, must not contradict
+CX-17/Tier-4 discipline, must not remove/alter any `[REVIEW]` flag, and
+must not imply the previous "136" was conceptually wrong.
 
 ## Assumptions & unknowns
 
-- **A1 — all seven absent / no collision.** Verified at plan time (grep,
-  all 0). Falsifier: any key present at T02 → drop from add-set, report.
-- **A2 — footer carries full starting metadata.** Verified
-  (`01_introduction.md:73,75,77,79,81,85,97`). Footer = starting point;
-  web confirms/corrects.
-- **A3 — none in `literature_verification_log.md`.** Verified (grep, none;
-  T14 was Ch3-scoped). Shin1993/Forrest2005 inherit reviewer-deep PR #220
-  T03 verified metadata (audit §7.1); the rest are web-verified this PR.
-- **A4 — no betting-transfer/source-label risk contradicted.** Verified:
-  `methodology_risk_register.md` RISK-01/04/05 concern AoE2
-  source-label/population only; a bib-only consolidation + a numeric footer
-  fix add no prose claim and cannot strengthen transferability.
-- **Unknown (resolved by user):** Chapter-1 footer Mangat2024 one-line
-  numeric correction AUTHORISED; Chapter-1 prose body unchanged.
+Verified on disk 2026-05-18 (do not re-discover): master @ `adf93303`
+clean, v3.57.0; `phase06_interface_aoestats.csv` 137 lines = 1 header +
+136 data rows; **136 `[POP:ranked_ladder]`** + 30 `[PRE-canonical_slot]`;
+sc2egset interface 35 data rows × `[POP:tournament]`; aoe2companion
+interface 74 data rows × tag; R02 defined at
+`src/rts_predict/games/aoe2/datasets/aoestats/reports/artifacts/01_exploration/04_cleaning/01_04_01_data_cleaning.md:11`
+(`leaderboard='random_map'` cleaning rule); "spec §0" = established
+shorthand for `reports/specs/02_00_feature_input_contract.md` (aoestats
+input contract; no literal "§0" heading); line 428 already says
+"136 wierszy danych" (post-F6-correct, OUT of scope); line-212 trailing
+`[REVIEW]` + line-214 two `[REVIEW]` flags present; Chapter 4 has 34
+`[REVIEW:]` + 1 `[UNVERIFIED:]`; WRITING_STATUS §4.1.4 row records the
+stale pre-F6 "0 tags" lineage; OLD line-212 fragment is unique (line 428
+uses a different string). Unknowns resolved: OQ-1 → Option A (user);
+OQ-2 → WRITING_STATUS-only (user); OQ-3 → informational (stale
+pass2_evidence text left as historical, out of scope).
 
 ## Literature context
 
-Authoritative scope: audit §11 PR-2 binding constraints — web-verify
-metadata (≤3 formulations each); if unverifiable, add with a
-`[REVIEW: metadata Pass-2]` note rather than inventing; do NOT assert any
-entry "verified" from an abstract; do NOT renumber/restructure other
-chapters' citations; preserve existing bibkeys (no renames). Inherited
-verified starting points (audit §7.1, reviewer-deep PR #220 T03):
-Shin1993 = *The Economic Journal* 103(420):1141–1153 (1993), Hyun Song Shin
-(https://academic.oup.com/ej/article-abstract/103/420/1141); Forrest2005 =
-*International Journal of Forecasting* 21(3):551–564 (2005),
-Forrest/Goddard/Simmons, DOI 10.1016/j.ijforecast.2005.03.003. Planner-stage
-web verification (re-confirmed at T02): **Levitt2004** = Steven D. Levitt,
-"Why are gambling markets organised so differently from financial markets?",
-*The Economic Journal* 114(495):223–246 (2004),
-DOI 10.1111/j.1468-0297.2004.00207.x (matches footer); **Mangat2024** =
-*Journal of Gambling Studies* **40(2):893–914** (2024; online 2023),
-DOI 10.1007/s10899-023-10256-5 (footer's `40(1),145-165` is wrong — gambling
-psychology systematic review, NOT odds-pricing, confirms audit C-06);
-**Formosa2022** = *Proc. ACM Human-Computer Interaction* 6(CHI PLAY)
-Art. 399, 1–45, DOI 10.1145/3549490 (matches footer); **Novak2025**
-(*Frontiers in Sports and Active Living* 7:1636823,
-DOI 10.3389/fspor.2025.1636823) and **Balduzzi2018** (NeurIPS 2018,
-arXiv:1806.02643) confirmed at T02. No `[OPINION]` claim added.
+Internal pass-2 evidence chain (numeric-consistency + scope-honesty):
 
-## Definitive footer-only key table
+- `ch1_ch4_citation_literature_support_audit.md` — C-10 establishes the
+  137-line fact and routes "clarify 137 total / 136 data rows + reword
+  aoestats `[POP:]` scope; do NOT delete the line-~211 `[REVIEW]` flag
+  without the reconciled framing; do NOT re-derive file content; do NOT
+  extend to other CONSORT counts". M-3 (§7), §11 PR-3.
+- `phase01_phase02_writing_readiness_audit.md` — TQ-05 prescribes the
+  137/136 disambiguation; its "not tag-carried / 0 tags" sub-claim is
+  the pre-F6 stale snapshot (self-contradictory: also references the
+  post-F6 backfill on 30 of 136 data rows). This PR supersedes that
+  framing IN THE CHAPTER + WRITING_STATUS ONLY; the pass2_evidence file
+  is NOT corrected (left as historical audit evidence).
+- `cross_dataset_comparability_matrix.md` — CX-17 / Tier-4: aoestats is
+  Tier 4; must NOT be called "ranked ladder" without qualification;
+  `[POP:ranked_ladder]` is the known artifact mis-label that the prose
+  deliberately supersedes with `[POP:1v1_random_map]`. Option A is
+  consistent with this discipline (it does not re-assert
+  `[POP:ranked_ladder]` as correct — it names it as the provisional
+  artifact token superseded in prose).
 
-| key | cited in Ch1 prose? | references.bib? | verification routing |
-|---|---|---|---|
-| Shin1993 | YES (`:11`) | NO | reuse PR#220 T03 + re-confirm (OUP) |
-| Forrest2005 | YES (`:11`) | NO | reuse PR#220 T03 + re-confirm (DOI 10.1016/j.ijforecast.2005.03.003) |
-| Levitt2004 | YES (`:11`,`:43`) | NO | web-verified (DOI 10.1111/j.1468-0297.2004.00207.x; matches footer) |
-| Mangat2024 | YES (inside `:11` `[REVIEW]` hedge) | NO | web-verified — footer DISCREPANT: `40(1),145-165` → canonical `40(2),893-914` |
-| Formosa2022 | YES (`:5`) | NO | web-verified (DOI 10.1145/3549490; matches footer) |
-| Novak2025 | YES (`:5`) | NO | web-confirm at T02 (Frontiers DOI 10.3389/fspor.2025.1636823) |
-| Balduzzi2018 | NO — footer-only (`:97`) | NO | web-confirm at T02 (NeurIPS 2018; arXiv:1806.02643) — in scope (audit M-2/D1-NOTE name it) |
+## The exact edit (single line-212 locus)
 
-Final add-set = exactly these seven (none present; none dropped). No other
-footer-only key found (full footer enumerated; all others resolve in
-`references.bib`).
+**File:** `thesis/chapters/04_data_and_methodology.md`, line 212.
+`old_string` is unique (line 428 uses "136 wierszy danych", a different
+string → line 428 untouched).
 
-## Chapter-1 change ruling (explicit)
-
-- **Prose body: NO change.** Byte-unchanged.
-- **`## References` footer: ONE authorised minimal change** — line 85,
-  Mangat2024 only: replace `40(1), 145-165` with `40(2), 893-914`. Nothing
-  else on line 85 changes (DOI, author list, title, the
-  `[REVIEW: … zweryfikować numer tomu/stron]` flag all kept verbatim). No
-  other footer line touched.
-- **`[REVIEW]` flags: none removed.** The line-11 transferability hedge and
-  the line-85 metadata flag are preserved; reviewer-deep T03 may advise on
-  the line-85 flag but execution removes nothing.
-
-## Intended BibTeX entries (house style; appended as dated block)
-
-Appended at end of `references.bib` under
-`% === Additions for §1.1 Ch1 footer consolidation (2026-05-18, Pass-2 PR M-2) ===`.
-Every field re-confirmed at T02 against the recorded primary source before
-writing (no invention; no "verified from abstract"; bare DOI, no
-`https://doi.org/` wrapper; author Unicode kept; `--` page ranges).
-
-```bibtex
-@article{Shin1993,
-  author  = {Shin, Hyun Song},
-  title   = {Measuring the Incidence of Insider Trading in a Market for State-Contingent Claims},
-  journal = {The Economic Journal},
-  volume  = {103}, number = {420}, pages = {1141--1153}, year = {1993},
-  doi     = {10.2307/2234240}
-}
-@article{Forrest2005,
-  author  = {Forrest, David and Goddard, John and Simmons, Robert},
-  title   = {Odds-setters as forecasters: The case of {English} football},
-  journal = {International Journal of Forecasting},
-  volume  = {21}, number = {3}, pages = {551--564}, year = {2005},
-  doi     = {10.1016/j.ijforecast.2005.03.003}
-}
-@article{Levitt2004,
-  author  = {Levitt, Steven D.},
-  title   = {Why are gambling markets organised so differently from financial markets?},
-  journal = {The Economic Journal},
-  volume  = {114}, number = {495}, pages = {223--246}, year = {2004},
-  doi     = {10.1111/j.1468-0297.2004.00207.x}
-}
-@article{Mangat2024,
-  author  = {Mangat, Harshdeep Singh and Griffiths, Mark D. and Yu, Sarah M. and Felvinczi, Katalin and Ngetich, Ronald K. and Demetrovics, Zsolt and Czakó, Andrea},
-  title   = {Understanding Esports-related Betting and Gambling: A Systematic Review of the Literature},
-  journal = {Journal of Gambling Studies},
-  volume  = {40}, number = {2}, pages = {893--914}, year = {2024},
-  doi     = {10.1007/s10899-023-10256-5}
-}
-@article{Formosa2022,
-  author  = {Formosa, Jane and O'Donnell, Nicholas and Horton, Ella M. and Türkay, Selen and Mandryk, Regan L. and Hawks, Marcus and Johnson, Daniel},
-  title   = {Definitions of Esports: A Systematic Review and Thematic Analysis},
-  journal = {Proceedings of the {ACM} on Human-Computer Interaction},
-  volume  = {6}, number = {CHI PLAY}, pages = {1--45}, year = {2022},
-  doi     = {10.1145/3549490}, note = {Article 399}
-}
-@article{Novak2025,
-  author  = {Novák, Pál and Hohmann, Balázs and Sipos, Dávid and Szőke, Gergely},  % corrected Patrik→Pál at T02 web-verify (Frontiers); applied in references.bib
-  title   = {The legal and economic aspects of the ``Esports Illusion'': why competitive gaming fails to become an independent industry},
-  journal = {Frontiers in Sports and Active Living},
-  volume  = {7}, pages = {1636823}, year = {2025},
-  doi     = {10.3389/fspor.2025.1636823}
-}
-@inproceedings{Balduzzi2018,
-  author    = {Balduzzi, David and Tuyls, Karl and Pérolat, Julien and Graepel, Thore},
-  title     = {Re-evaluating Evaluation},
-  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2018},
-  note      = {NeurIPS 2018; preprint arXiv:1806.02643},
-  url       = {https://arxiv.org/abs/1806.02643}
-}
+### OLD (exact — Edit `old_string`):
+```
+Operacjonalizacja tagu `[POP:]` w artefaktach interfejsu temporalnego: `phase06_interface_sc2egset.csv` (35/35 wierszy) niesie `[POP:tournament]` w kolumnie `notes`, `01_05_phase06_interface_aoe2companion.csv` (74/74 wierszy) niesie tag dla aoe2companion, a `phase06_interface_aoestats.csv` (136 wierszy) niesie tag dla aoestats — całość zachowuje claim **dataset-conditional** we wszystkich trzech korpusach.
 ```
 
-Each `verify@exec`: re-confirm at T02. If a field resists 3 web
-formulations → keep footer value + a `% [REVIEW: metadata Pass-2 — <field>;
-queries: …]` comment line above the entry (parser-safe). Mangat2024 carries
-a `% Mangat2024: Ch1 footer (01_introduction.md:85) gave 40(1),145-165;
-Springer/PubMed canonical 40(2),893-914 verified 2026-05-18` comment above
-the entry.
+### NEW (exact — Edit `new_string`; Option A, user-approved verbatim):
+```
+Operacjonalizacja tagu `[POP:]` w artefaktach interfejsu temporalnego: `phase06_interface_sc2egset.csv` (35/35 wierszy) niesie `[POP:tournament]` w kolumnie `notes`, `01_05_phase06_interface_aoe2companion.csv` (74/74 wierszy) niesie tag w kolumnie `notes` dla aoe2companion, a `phase06_interface_aoestats.csv` (137 wierszy łącznie: 1 nagłówek + 136 wierszy danych) niesie tag w kolumnie `notes` we wszystkich 136 wierszach danych — przy czym w artefakcie aoestats jest to literalny, prowizoryczny token `[POP:ranked_ladder]` operacyjnie zastąpiony w niniejszej prozie zdyscyplinowanym `[POP:1v1_random_map]` (Tier-4 opacja kolejki; por. regułę czyszczenia R02 `leaderboard='random_map'` w `01_04_01_data_cleaning.md` oraz kontrakt wejściowy `02_00`), nie zaś tagiem identycznym z prozą; rozdźwięk artefakt–proza nie narusza claimu **dataset-conditional**, który jest zachowany we wszystkich trzech korpusach.
+```
 
-## @executor web-tools constraint (resolved)
+**Edit invariants:** `old_string` unique; the trailing line-212
+`[REVIEW]` flag and the line-214 `[REVIEW]` flags are OUTSIDE
+`old_string` (untouched); sc2egset `(35/35 wierszy) niesie
+[POP:tournament] w kolumnie notes` byte-identical OLD→NEW; aoe2companion
+`(74/74 wierszy)` count byte-identical (only "w kolumnie `notes`"
+parallelism added inside that clause); dataset-conditional claim
+preserved; no other line in the file changes. The NEW string contains
+NO false "0 tags / not tag-carried / NO [POP:] tag" claim; it states a
+token IS present in all 136 data rows and distinguishes the on-disk
+artifact token (`[POP:ranked_ladder]`) from the thesis methodology label
+(`[POP:1v1_random_map]` / Tier-4).
 
-`@executor` (Sonnet) lacks WebFetch/WebSearch. **T02 web verification is
-performed by the PARENT/Opus session**, producing a frozen byte-final
-verified-metadata block (the 7 entries + the exact footer old→new string).
-The parent hands that frozen block to `@executor` on **Sonnet** for the
-purely mechanical append + footer one-liner + WRITING_STATUS append. All
-scientific/metadata-correctness judgement (incl. Mangat2024 adjudication and
-any `metadata Pass-2` classification) is resolved before delegation
-(satisfies the data-analysis-lineage routing rule). Parent-only execution of
-T02 is an acceptable alternative.
+## writer-thesis vs executor ruling
+
+**@executor (Sonnet); writer-thesis NOT invoked.** Single-sentence
+numeric/scope correction with the exact replacement string fully
+resolved here (Option A, verbatim, zero executor discretion). The one
+methodology decision (OQ-1) is resolved by the user at plan approval.
+No literature search, no new citation, no `references.bib` change, no
+paragraph rewrite, non-propagating. This is the data-analysis-lineage
+"mechanically specified, plan resolves the decisions → Sonnet executor"
+case.
 
 ## Execution Steps
 
-### T00 — Branch + full plan + INDEX archive #221 + draft PR
-
-**Objective:** Bootstrap a planning-drift-complete Cat-F plan.
-**Instructions:** branch off `93f02600` (done); write this full plan to
-`planning/current_plan.md`; `planning/INDEX.md` — archive merged PR #221,
-set this branch active; commit via `.github/tmp/commit.txt` + `git commit -F`
-(`chore(pr): bootstrap draft PR for Chapter-1 footer bibliography consolidation [M-2]`);
-push `-u`; `gh pr create --draft --title "docs(thesis): consolidate Chapter 1 footer sources into references.bib" --body-file .github/tmp/pr.txt`; delete `.github/tmp/*.txt`.
+### T00 — Branch + full plan + INDEX archive #222 + draft PR
+**Objective:** bootstrap a planning-drift-complete Cat-F plan.
+**Instructions:** branch off `adf93303` (done); write this full plan to
+`planning/current_plan.md`; `planning/INDEX.md` — archive merged PR #222,
+set this branch active; commit via `.github/tmp/commit.txt` +
+`git commit -F` (`chore(pr): bootstrap draft PR for aoestats row-count/scope caveat [M-3]`);
+push `-u`; `gh pr create --draft --title "docs(thesis): clarify aoestats row-count and POP scope in Chapter 4" --body-file .github/tmp/pr.txt`; delete `.github/tmp/*.txt`.
 **Verification:** `gh pr view --json isDraft` → true; planning-drift hook
 passes; `git show --stat HEAD` = only `planning/current_plan.md` +
 `planning/INDEX.md`.
-**File scope:** `planning/current_plan.md`, `planning/INDEX.md`, `.github/tmp/*`.
-**Read scope:** —. **Push:** yes. **Executor:** parent (mechanical).
+**File scope:** `planning/current_plan.md`, `planning/INDEX.md`,
+`.github/tmp/*`. **Read scope:** —. **Push:** yes. **Executor:** parent.
 
 ### T01 — reviewer-deep plan review (HALT on blocker)
-
-**Objective:** Validate the plan before any edit.
+**Objective:** validate the plan (esp. that Option A is on-disk-true and
+does NOT re-introduce the false audit framing) before any edit.
 **Instructions:** Dispatch `@reviewer-deep` with `planning/current_plan.md`
-+ base_ref `93f02600`. Checks: (a) 7 absent / no collision; (b) BibTeX
-shapes match house style; (c) Mangat2024 footer+bib both → `40(2),893-914`,
-discrepancy comment sound; (d) Chapter-1 prose body unchanged, footer change
-limited to the line-85 Mangat2024 numeric tokens, `[REVIEW]` flags
-preserved, no betting-transfer claim (RISK-01/04/05 non-contradiction);
-(e) @executor-lacks-web-tools resolution sound; (f) WRITING_STATUS-only /
-REVIEW_QUEUE-none decisions sound; (g) version 3.56.0→3.57.0; (h)
-Balduzzi2018 in scope despite prose-uncited. BLOCKER → HALT, surface to
-user, amend only on user direction, re-review. If reviewer output committed
-→ `planning/current_plan.critique.md`, commit, push.
++ base_ref `adf93303`. Checks: (a) NEW string numeric consistency vs the
+on-disk artifact (137 = 1 header + 136 data rows; 136
+`[POP:ranked_ladder]`); (b) NEW string contains NO false "0 tags /
+not tag-carried / NO [POP:] tag" claim and does not assert
+`[POP:ranked_ladder]` is the correct discipline tag; (c) CX-17/Tier-4
+discipline + the line-212 `[REVIEW]` flag preserved; (d) line 428 and
+the `[PRE-canonical_slot]`/`canonical_slot` narrative untouched;
+(e) sc2egset 35/35 + aoe2companion 74/74 + dataset-conditional preserved;
+(f) `pass2_evidence/**` / specs / `references.bib` / other chapters not
+in scope; (g) WRITING_STATUS-only / REVIEW_QUEUE-none decision sound;
+(h) version 3.57.0→3.58.0; (i) OQ-1/OQ-3 reasoning sound. BLOCKER → HALT,
+surface to user, amend only on user direction, re-review. If reviewer
+output committed → `planning/current_plan.critique.md`, commit, push.
 **Verification:** reviewer-deep verdict; 0 unresolved BLOCKERs.
 **File scope:** `planning/current_plan.critique.md`, `.github/tmp/*`.
 **Read scope:** `planning/current_plan.md`. **Push:** yes if critique committed.
 
-### T02 — Web-verify + append 7 bib entries + Mangat2024 footer fix + WRITING_STATUS append
-
-**Objective:** Freeze verified metadata (parent/Opus web step), then
-mechanically apply the three edits.
+### T02 — Line-212 edit (Option A) + WRITING_STATUS append
+**Objective:** apply the single verbatim Option-A Edit + the §4.1.4
+WRITING_STATUS append.
 **Instructions:**
-1. **Web verification (PARENT/Opus — NOT Sonnet executor):** re-confirm
-   every field of all 7 entries vs recorded primary source, ≤3 formulations
-   each (Shin1993/Forrest2005 via audit §7.1 URLs; Levitt2004/Mangat2024/
-   Formosa2022 via plan-recorded DOIs; Novak2025 via Frontiers DOI;
-   Balduzzi2018 NeurIPS 2018 + arXiv:1806.02643). Mangat2024 MUST be
-   `40(2),893-914`. Unconfirmable field → footer value + `% [REVIEW:
-   metadata Pass-2 …]` comment; never invent; never "verified from
-   abstract". Freeze the byte-final 7-entry block.
-2. **Mechanical (@executor Sonnet, given the frozen block):** append the
-   dated block + 7 entries to end of `thesis/references.bib` (append-only;
-   no existing entry touched).
-3. **Mangat2024 footer one-liner** (`thesis/chapters/01_introduction.md`
-   line 85): replace exactly `Journal of Gambling Studies, 40(1), 145-165.`
-   with `Journal of Gambling Studies, 40(2), 893-914.` — change ONLY those
-   volume/issue/pages tokens; the DOI, author list, title, and the
-   `[REVIEW: … zweryfikować numer tomu/stron]` flag stay verbatim; no other
-   line/character in `01_introduction.md` changes (prose body byte-unchanged).
-4. Append ONE dated line (2026-05-18) to the §1.1 row of
-   `thesis/WRITING_STATUS.md` (append only): seven footer-only keys promoted
-   to references.bib (M-2/C-06/D1-NOTE resolved for supervisor handoff);
-   Mangat2024 footer metadata corrected `40(1),145-165` → `40(2),893-914` to
-   match verified canonical (Springer/PubMed, DOI 10.1007/s10899-023-10256-5)
-   and the new bib entry; Shin1993/Forrest2005 inherited reviewer-deep
-   PR #220 audit §7.1 verified starting points; Chapter-1 prose body
-   unchanged; broader betting-market transferability remains an open
-   review/caveat (line-11 `[REVIEW]` hedge NOT closed by this metadata
-   consolidation).
-5. Do NOT touch `REVIEW_QUEUE.md`, Chapter-1 prose body, any other chapter,
-   any existing bib entry.
-6. Commit via `.github/tmp/commit.txt` + `git commit -F`
-   (`docs(thesis): consolidate 7 Chapter-1 footer-only refs into references.bib + fix Mangat2024 footer metadata [M-2]`);
+1. Edit `04_data_and_methodology.md` line 212: replace the exact OLD
+   string with the exact NEW (Option A) string above. Single Edit; no
+   other line/character changes.
+2. Append ONE dated line (2026-05-18) to the §4.1.4 row of
+   `thesis/WRITING_STATUS.md` (append only; same style as PR #221/#222):
+   records M-3/TQ-05 resolved; row-count corrected to
+   `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych`; on-disk
+   artifact carries `[POP:ranked_ladder]` in all 136 data rows but the
+   prose supersedes that stale/provisional token with the disciplined
+   `[POP:1v1_random_map]` / Tier-4 queue-opacity framing (R02 + 02_00);
+   this supersedes the row's stale pre-F6 "0 tags" lineage; line-212
+   `[REVIEW]` flag remains open; Chapter 4 →
+   `ready_to_send_with_disclaimer` (subject to retained review flags);
+   line 428 / sibling clauses / `references.bib` / `REVIEW_QUEUE.md`
+   unchanged; pass2_evidence untouched.
+3. Do NOT touch line 428, any `[REVIEW]`/`[PRE-canonical_slot]`/
+   `canonical_slot` content, sc2egset/aoe2companion clauses,
+   `references.bib`, `REVIEW_QUEUE.md`, other chapters, `pass2_evidence/**`,
+   specs, dataset artifacts.
+4. Commit via `.github/tmp/commit.txt` + `git commit -F`
+   (`docs(thesis): clarify aoestats §4.1.4 row-count + [POP:] scope (137=1+136; ranked_ladder superseded by 1v1_random_map) [M-3]`);
    push.
 **Verification (grep battery):**
-- For each `k` in the seven: `grep -c "{$k," thesis/references.bib` == 1.
-- `grep -c '^@' thesis/references.bib` == 107.
-- Mangat2024 bib entry contains `number = {2}` and `893--914`, not `145`.
-- `01_introduction.md:85` now reads `… 40(2), 893-914.`; `grep -c "40(1), 145-165" thesis/chapters/01_introduction.md` == 0.
-- Chapter-1 prose body byte-unchanged: `git diff 93f02600..HEAD -- thesis/chapters/01_introduction.md` shows ONLY the line-85 Mangat2024 vol/issue/pages tokens changed (one hunk, ≤1 line).
-- `grep -c 'REVIEW: Shin1993 i Forrest2005' thesis/chapters/01_introduction.md` unchanged vs base (≥1); `grep -c 'zweryfikować numer tomu/stron' thesis/chapters/01_introduction.md` unchanged vs base (line-85 flag intact).
-- **Ch1 bibkey-coverage:** every `[Key]` cited in Ch1 prose resolves in `references.bib` (0 unresolved; was 6).
-- `git diff --name-only 93f02600..HEAD` ⊆ {planning/current_plan.md, planning/INDEX.md, planning/current_plan.critique.md, thesis/references.bib, thesis/chapters/01_introduction.md, thesis/WRITING_STATUS.md}.
-- `git diff 93f02600..HEAD -- thesis/chapters/REVIEW_QUEUE.md` empty; references.bib diff purely additive.
-**File scope:** `thesis/references.bib`, `thesis/chapters/01_introduction.md`
-(line 85 only), `thesis/WRITING_STATUS.md`, `.github/tmp/*`. **Read scope:**
-those files. **Push:** yes. **Executor:** parent/Opus step 1 (web + freeze);
-`@executor` Sonnet steps 2–6 (mechanical). Parent-only acceptable.
+- `grep -c '137 wierszy łącznie: 1 nagłówek + 136 wierszy danych' thesis/chapters/04_data_and_methodology.md` == 1 (line 212).
+- `grep -c '(136 wierszy) niesie tag dla aoestats' thesis/chapters/04_data_and_methodology.md` == 0.
+- Line 428 byte-unchanged — authoritative check is the single-hunk `git diff` at the next bullet (exactly one hunk at line 212, no hunk at/near line 428). NOTE: a raw `grep -c '136 wierszy danych'` legitimately goes base 1 → post-edit 2 because the NEW line-212 string also contains the substring "136 wierszy danych"; do NOT treat that as a regression — rely on the single-hunk `git diff` guard, not the raw count.
+- `[REVIEW]`/`[UNVERIFIED]` flags unchanged (none removed) via OCCURRENCE counts: `grep -o '\[REVIEW' thesis/chapters/04_data_and_methodology.md | wc -l` == 34 (= base); `grep -o '\[UNVERIFIED' thesis/chapters/04_data_and_methodology.md | wc -l` == 1 (= base). (`grep -c` returns the LINE count ≈27 because many flags share one long markdown paragraph line — use `-o | wc -l` for the occurrence count.)
+- sc2egset `(35/35 wierszy) niesie \`[POP:tournament]\` w kolumnie \`notes\`` present; aoe2companion `(74/74 wierszy)` present.
+- `git diff base..HEAD -- thesis/chapters/04_data_and_methodology.md` = exactly ONE hunk at line 212; no hunk at/near line 428.
+- `git diff --name-only adf93303..HEAD` ⊆ {planning/current_plan.md, planning/INDEX.md, planning/current_plan.critique.md, thesis/chapters/04_data_and_methodology.md, thesis/WRITING_STATUS.md}.
+- `git diff adf93303..HEAD -- thesis/references.bib thesis/chapters/REVIEW_QUEUE.md` empty; no `pass2_evidence/**` / specs / artifacts in diff.
+**File scope:** `thesis/chapters/04_data_and_methodology.md`,
+`thesis/WRITING_STATUS.md`, `.github/tmp/*`. **Read scope:** the OLD/NEW
+strings, `WRITING_STATUS.md` §4.1.4 row. **Push:** yes. **Executor:**
+@executor on **Sonnet** (verbatim Edit + verbatim append; the methodology
+decision OQ-1 resolved at plan approval).
 
 ### T03 — reviewer-deep final check
-
-**Objective:** Validate the applied diff.
+**Objective:** validate the applied diff.
 **Instructions:** Dispatch `@reviewer-deep` with `planning/current_plan.md`
-+ base_ref `93f02600`. Verify: (a) exactly 7 new entries, keys exact, no
-collision, `^@`==107; (b) each entry's metadata matches its recorded
-source; Mangat2024 bib AND footer both `40(2),893-914`; any `metadata
-Pass-2` comment justified (no invented values; no "verified from abstract");
-(c) house-style conformant; (d) references.bib purely additive; (e)
-Chapter-1 prose body byte-unchanged; footer change limited to the line-85
-Mangat2024 vol/issue/pages; `[REVIEW]` flags (line 11 transferability hedge;
-line 85 metadata flag) NOT removed; no betting-transfer claim
-(RISK-01/04/05); (f) Ch1 bibkey-coverage passes (0 unresolved); (g)
-WRITING_STATUS §1.1 append additive & accurate; REVIEW_QUEUE untouched and
-its §1.1 `Pending` row not moved to Completed; (h) grep battery passes; (i)
-scope-diff containment. Escalate to `@reviewer-adversarial` ONLY on an
-unresolved overclaim/methodology BLOCKER (trigger list in Reviewer routing);
-3-round symmetric cap. Mechanical in-scope fixes only; substantive residual
-→ record + surface to user. Commit + push if changed.
++ base_ref `adf93303`. Verify: NEW == Option A spec; on-disk-true (no
+false "0 tags"; does not assert `[POP:ranked_ladder]` correct); 137=1+136
+present; `(136 wierszy) niesie tag dla aoestats` gone; line 428
+byte-unchanged; all `[REVIEW]`/`[UNVERIFIED]` flags unchanged (34/1);
+sc2egset 35/35 + aoe2companion 74/74 + dataset-conditional intact; exactly
+one Ch4 hunk (line 212); `references.bib`/`REVIEW_QUEUE.md`/
+`pass2_evidence/**`/specs/other chapters untouched; WRITING_STATUS §4.1.4
+append additive & accurate; no Phase 02/06 closure claim. Escalate to
+`@reviewer-adversarial` ONLY on an unresolved overclaim/methodology
+BLOCKER (trigger list in Reviewer routing); 3-round symmetric cap.
+Mechanical in-scope fixes only; substantive residual → record + surface
+to user. Commit + push if changed.
 **Verification:** reviewer-deep APPROVE; 0 unresolved BLOCKERs.
-**File scope:** `thesis/references.bib`, `thesis/chapters/01_introduction.md`,
+**File scope:** `thesis/chapters/04_data_and_methodology.md`,
 `thesis/WRITING_STATUS.md`, `planning/current_plan.critique.md`,
 `.github/tmp/*`. **Read scope:** diff. **Push:** yes if changed.
 
-### T04 — Version bump 3.56.0 → 3.57.0 + CHANGELOG
-
-**Objective:** Release hygiene.
-**Instructions:** `pyproject.toml` `3.56.0` → `3.57.0`; CHANGELOG
-`[Unreleased]` → `## [3.57.0] — 2026-05-18 (PR #<n>: docs/thesis-ch1-footer-bib-consolidation)`
-with `### Added` (seven Ch1 footer-only refs promoted) + `### Fixed`
-(resolves audit must-fix M-2 / C-06 / D1-NOTE central-bib gap; Mangat2024
-footer+bib corrected `40(1),145-165` → `40(2),893-914` vs verified canonical;
-Chapter-1 prose body unchanged; transferability `[REVIEW]` hedge retained,
-not resolved; no new theory claim); fresh empty `[Unreleased]` with 4
-headers; `[3.56.0]` (PR #221) untouched. `<n>` from `gh pr view --json number`.
-Commit `chore(release): bump version to 3.57.0`; push.
-**Verification:** `pyproject.toml`=3.57.0; CHANGELOG `[Unreleased]` empty
-4 headers; one Added + one Fixed under `[3.57.0]`; `[3.56.0]` untouched.
+### T04 — Version bump 3.57.0 → 3.58.0 + CHANGELOG
+**Objective:** release hygiene.
+**Instructions:** `pyproject.toml` `3.57.0` → `3.58.0`; CHANGELOG
+`[Unreleased]` → `## [3.58.0] — 2026-05-18 (PR #<n>: docs/thesis-aoestats-rowcount-scope-caveat)`
+with `### Fixed` (resolves audit must-fix M-3 / C-10 / TQ-05; §4.1.4
+row-count corrected to 137 total = 1 header + 136 data rows; aoestats
+artifact carries provisional `[POP:ranked_ladder]` in 136 data rows,
+operationally superseded in prose by disciplined `[POP:1v1_random_map]` /
+Tier-4 via R02 + `02_00`; supersedes the stale pre-F6 "0 tags" framing —
+on-disk-true correction, no Phase 02/06 closure claim; line 428 /
+`[REVIEW]` flags / sibling clauses / `references.bib` / `REVIEW_QUEUE.md`
+unchanged; M-1 + M-2 + M-3 all closed → Chapters 1–4
+`ready_to_send_with_disclaimer`); fresh empty `[Unreleased]` with 4
+headers; `[3.57.0]` (PR #222) untouched. `<n>` from
+`gh pr view --json number`. Commit `chore(release): bump version to 3.58.0`;
+push.
+**Verification:** `pyproject.toml`=3.58.0; CHANGELOG `[Unreleased]` empty
+4 headers; one `### Fixed` under `[3.58.0]`; `[3.57.0]` untouched.
 **File scope:** `pyproject.toml`, `CHANGELOG.md`, `.github/tmp/*`.
-**Read scope:** —. **Push:** yes. **Executor:** @executor Sonnet (mechanical).
+**Read scope:** —. **Push:** yes. **Executor:** @executor Sonnet.
 
 ### T05 — PR body refresh + mark ready (NO merge)
-
-**Objective:** Finalize without merging.
+**Objective:** finalize without merging.
 **Instructions:** reconcile PR-number placeholder in `planning/INDEX.md`
-active line + CHANGELOG `[3.57.0]` header; refresh `.github/tmp/pr.txt` per
-`.github/pull_request_template.md` (Summary: M-2 — 7 footer-only refs
-consolidated; web-verified metadata; Mangat2024 footer+bib corrected; no
-prose-body change; transferability hedge retained; scope guards; Test plan:
-grep battery + `^@` 100→107 + Ch1 bibkey-coverage + prose-body unchanged +
-reviewer-deep PASS + v3.57.0); `gh pr edit --body-file`; `gh pr ready` only
-after T03 APPROVE; **No merge.** Delete `.github/tmp/*.txt`; final report.
+active line + CHANGELOG `[3.58.0]` header; refresh `.github/tmp/pr.txt`
+per `.github/pull_request_template.md` (Summary: M-3; OLD→NEW Option-A
+excerpt; the OQ-1 note — audit/brief "0 tags / not tag-carried"
+prescription was stale/false post-F6, on-disk-true Option A used
+instead; scope guards; Test plan: grep battery + line-428-unchanged +
+flags-unchanged + reviewer-deep PASS + v3.58.0); `gh pr edit --body-file`;
+`gh pr ready` only after T03 APPROVE; **No merge.** Delete
+`.github/tmp/*.txt`; produce final report.
 **Verification:** `gh pr view --json isDraft` → false; PR NOT merged.
 **File scope:** `planning/INDEX.md`, `CHANGELOG.md`, `.github/tmp/*`.
-**Read scope:** —. **Push:** yes. **Executor:** parent (mechanical).
+**Read scope:** —. **Push:** yes. **Executor:** parent.
 
 ## Reviewer routing
 
 - **T01 / T03:** `@reviewer-deep` — mandatory.
 - **`@reviewer-adversarial` escalation trigger (precise):** ONLY IF
   reviewer-deep raises an unresolved overclaim/methodology BLOCKER —
-  (i) a claim the consolidation resolves/weakens the C-06/F1-2
-  transferability hedge; (ii) a betting-market-transfer assertion
-  introduced into prose or a bib `note`; (iii) a metadata value asserted
-  "verified" without admissible source / invented; (iv) a Chapter-1
-  prose-body change, or a footer change beyond the authorised Mangat2024
-  vol/issue/pages tokens, made without user approval; (v) scope creep
-  beyond the File Manifest. Else NOT invoked.
-- **3-round symmetric cap** (execution-side too); unresolved after round 3
-  → recorded residual + surfaced to user, not silently expanded.
+  (a) the applied wording still misstates the on-disk artifact
+  (re-introduces "0 tags / not tag-carried", or asserts
+  `[POP:ranked_ladder]` is the correct discipline tag); (b) contradicts
+  CX-17/Tier-4 discipline or the line-212 `[REVIEW]` flag; (c) a Phase
+  02/06 closure claim is introduced; (d) the diff exceeds the
+  single-locus scope (line 428, other §§, forbidden files). User
+  selected Option A verbatim, so adversarial is NOT mandatorily
+  pre-triggered. Else NOT invoked.
+- **3-round symmetric cap** (execution-side too); unresolved after
+  round 3 → recorded residual + surfaced to user, not silently expanded.
 
 ## Repo-policy resolutions
 
-1. **Version bump REQUIRED, minor:** `docs/` ⇒ minor; 3.56.0 → 3.57.0 (T04).
-2. **WRITING_STATUS.md YES** — one additive dated line, §1.1 row (T02; user
-   decision). **REVIEW_QUEUE.md NO** — no open M-2 row; §1.1 Pending row
-   stays Pending (substantive Pass-2 transferability flag NOT resolved by
-   this bib-only PR) (user decision).
-3. **planning/INDEX.md (T00):** archive merged PR #221, set this branch
-   active.
-4. **Stale prior critique-file purge OUT of scope** (residual; planning-drift
-   hook constrains the plan, not stale critique files).
-5. Commit/PR conventions: `.github/tmp/commit.txt` + `git commit -F`;
-   `.github/tmp/pr.txt` + `--body-file`; delete after; relative paths. No
-   `.py` ⇒ no pytest gate.
+1. **Version bump REQUIRED, minor:** `docs/` ⇒ minor; 3.57.0 → 3.58.0 (T04).
+2. **WRITING_STATUS.md YES (user decision)** — one additive dated line on
+   the §4.1.4 row (supersedes that row's stale pre-F6 "0 tags" lineage).
+   **REVIEW_QUEUE.md NO (user decision)** — no exact open TQ-05/M-3
+   work-row; line-212 `[REVIEW]` flag deliberately retained.
+3. **planning/INDEX.md (T00):** archive merged PR #222, set this branch active.
+4. **pass2_evidence stale text OUT of scope (OQ-3, informational):** the
+   readiness-audit / citation-audit pre-F6 "0 tags" text + WRITING_STATUS
+   row are superseded in the CHAPTER + WRITING_STATUS row only;
+   `pass2_evidence/**` is forbidden this PR and left as historical audit
+   evidence. A future Cat-E/F chore may reconcile it; NOT required for
+   M-3 closure.
+5. **Stale prior critique-file purge OUT of scope** (residual).
+6. Commit/PR conventions: `.github/tmp/commit.txt` + `git commit -F`;
+   `.github/tmp/pr.txt` + `--body-file`; delete after; relative paths.
+   No `.py` in diff ⇒ no pytest gate.
 
 ## File Manifest
 
@@ -395,64 +342,75 @@ after T03 APPROVE; **No merge.** Delete `.github/tmp/*.txt`; final report.
 | `planning/current_plan.md` | Rewrite | T00 |
 | `planning/INDEX.md` | Update | T00, T05 |
 | `planning/current_plan.critique.md` | Create (conditional) | T01 / T03 |
-| `thesis/references.bib` | Update (append-only: dated block + 7 entries) | T02 |
-| `thesis/chapters/01_introduction.md` | Update (footer line 85 Mangat2024 vol/issue/pages ONLY) | T02 |
-| `thesis/WRITING_STATUS.md` | Update (one §1.1 dated append) | T02 |
+| `thesis/chapters/04_data_and_methodology.md` | Update (line 212 only) | T02 |
+| `thesis/WRITING_STATUS.md` | Update (one §4.1.4 dated append) | T02 |
 | `CHANGELOG.md` | Update | T04 |
 | `pyproject.toml` | Update | T04 |
 | `.github/tmp/commit.txt`, `.github/tmp/pr.txt` | Create then Delete (ephemeral) | T00/T02/T04/T05 |
 
-Explicitly NOT modified: Chapter-1 prose BODY; any other footer line; any
-existing `references.bib` entry; `thesis/chapters/REVIEW_QUEUE.md`;
-chapters 02–07; `thesis/pass2_evidence/**`; the audit doc; specs; status
-YAMLs; ROADMAPs; code; notebooks; `docs/TAXONOMY.md`; `.claude/**`.
+Explicitly NOT modified: line 428 + every `[REVIEW]`/`[UNVERIFIED]`/
+`[POP:]`/`[PRE-canonical_slot]` annotation + sc2egset/aoe2companion
+clauses + all other §§ of Ch4; `thesis/references.bib`;
+`thesis/chapters/REVIEW_QUEUE.md`; chapters 01/02/03/05/06/07;
+`thesis/pass2_evidence/**`; `reports/specs/**`; dataset artifacts;
+ROADMAPs; status YAMLs; code; notebooks; `docs/TAXONOMY.md`; `.claude/**`.
 
 ## Gate Condition
 
-1. Exactly 7 new `references.bib` entries; keys exact; no collision;
-   `grep -c '^@'` == 107; references.bib purely additive.
-2. Each entry's metadata web-verified vs recorded source; Mangat2024 bib AND
-   footer both `40(2), 893-914`; any unconfirmable field carries a justified
-   `% [REVIEW: metadata Pass-2 …]` comment (no invented values).
-3. Chapter-1 **prose body byte-unchanged**; footer diff limited to line-85
-   Mangat2024 vol/issue/pages tokens; `40(1), 145-165` count == 0.
-4. No `[REVIEW]` flag removed (line-11 transferability hedge + line-85
-   metadata flag intact); no betting-transfer claim introduced
-   (RISK-01/04/05 non-contradiction).
-5. Ch1 bibkey-coverage: every `[Key]` in Ch1 prose resolves in
-   `references.bib` (0 unresolved; was 6).
-6. Scope-diff containment: `git diff --name-only 93f02600..HEAD` ⊆ File
-   Manifest; Chapters 02–07 + REVIEW_QUEUE + audit doc untouched.
-7. WRITING_STATUS §1.1 append additive & accurate; REVIEW_QUEUE untouched,
-   §1.1 Pending row not moved to Completed.
-8. Version 3.57.0; CHANGELOG `[3.57.0]` Added+Fixed; fresh empty
-   `[Unreleased]`; `[3.56.0]` untouched.
-9. reviewer-deep APPROVE at T01 and T03; reviewer-adversarial only if its
-   trigger fired then resolved; 3-round cap respected.
-10. `planning/INDEX.md`: PR #221 archived, this branch active, PR-number
-    reconciled. PR ready (`isDraft` false), NOT merged; temp files deleted.
+1. `04_data_and_methodology.md:212` == Option A NEW string; rest of file
+   byte-identical to base (exactly one hunk at line 212).
+2. Grep battery: `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych`
+   present (line 212); `(136 wierszy) niesie tag dla aoestats` == 0;
+   line 428 byte-unchanged via the single-hunk `git diff` guard (exactly
+   one hunk at line 212, none at/near 428 — NOT a raw `grep -c '136
+   wierszy danych'`, which legitimately goes 1→2 since the NEW line-212
+   string contains that substring); flag occurrence counts
+   `grep -o '\[REVIEW' …|wc -l`==34 and `grep -o '\[UNVERIFIED' …|wc -l`==1
+   (= base; a `grep -c` line-count of ≈27 is expected, not a regression);
+   sc2egset 35/35 + aoe2companion 74/74 present.
+3. NEW string is on-disk-true: contains NO "0 tags / not tag-carried /
+   NO [POP:] tag" claim; names `[POP:ranked_ladder]` as the provisional
+   artifact token superseded in prose by `[POP:1v1_random_map]`; does
+   NOT assert `[POP:ranked_ladder]` is correct discipline.
+4. Scope containment: `git diff --name-only adf93303..HEAD` ⊆ File
+   Manifest; `references.bib`/`REVIEW_QUEUE.md`/`pass2_evidence/**`/
+   specs/other chapters/artifacts untouched.
+5. WRITING_STATUS §4.1.4 append additive & accurate; REVIEW_QUEUE
+   untouched.
+6. Version 3.58.0; CHANGELOG `[3.58.0]` `### Fixed`; fresh empty
+   `[Unreleased]`; `[3.57.0]` untouched.
+7. reviewer-deep APPROVE at T01 and T03; reviewer-adversarial only if
+   its trigger fired then resolved; 3-round cap respected.
+8. `planning/INDEX.md`: PR #222 archived, this branch active, PR-number
+   reconciled. PR ready (`isDraft` false), NOT merged; temp files deleted.
 
 ## Out of scope
 
-- Any Chapter-1 prose-body change; any footer change beyond the authorised
-  Mangat2024 vol/issue/pages tokens.
-- Resolving/weakening the C-06/F1-2 transferability `[REVIEW]` hedge, or
-  F1-1 / F1-3 Ch1 flags; removing the line-85 metadata flag.
-- M-1 (PR #221, merged) and M-3 (future PR-3 — TQ-05 aoestats row-count);
-  the manual-full-text batch (audit §11 PR-4).
-- Touching/restructuring Chapters 2–7 citations or any existing
-  `references.bib` entry.
-- Stale prior `planning/current_plan.critique*.md` purge (residual).
-- pytest/coverage (no `.py`); BibTeX LaTeX build validation.
+- Line 428 / `[PRE-canonical_slot]` / `canonical_slot` narrative.
+- Altering sc2egset 35/35 or aoe2companion 74/74 (beyond the
+  count-preserving "w kolumnie `notes`" parallelism); removing/rewording
+  any `[REVIEW]`/`[UNVERIFIED]` flag.
+- Asserting `[POP:ranked_ladder]` is the correct discipline tag; any
+  Phase 02/06 closure claim; broader cross-game methodology.
+- Correcting the stale pre-F6 text in `thesis/pass2_evidence/**` or the
+  WRITING_STATUS §4.1.4 row's historical entries (only an additive new
+  line is added) — OQ-3, future chore.
+- `references.bib`, `REVIEW_QUEUE.md`, any other chapter, specs,
+  ROADMAPs, status YAMLs, code, notebooks, `docs/TAXONOMY.md`,
+  `.claude/**`; re-deriving the 137-line fact; merging the PR.
 
 ## Open questions
 
-- **OQ-1 — RESOLVED (user 2026-05-18):** Mangat2024 footer one-line
-  numeric correction AUTHORISED (`40(1),145-165` → `40(2),893-914`);
-  Chapter-1 prose body unchanged; `[REVIEW]` flags not removed.
-- **OQ-2 — RESOLVED (user 2026-05-18):** WRITING_STATUS §1.1 dated append;
-  no REVIEW_QUEUE change.
-- **OQ-3 — RESOLVED:** branch `docs/thesis-ch1-footer-bib-consolidation`
-  (user brief governs over the audit §11 PR-2 name variant).
-- **R-1 (residual, no decision):** stale prior critique-file purge deferred
-  to a future planning-hygiene sweep.
+- **OQ-1 — RESOLVED (user 2026-05-18): Option A.** On-disk-true wording
+  naming the provisional `[POP:ranked_ladder]` token superseded in prose
+  by `[POP:1v1_random_map]` / Tier-4 (R02 + `02_00`). The audit/brief
+  "0 tags / not tag-carried / implicit-via-spec" prescription is NOT
+  used (stale/false post-F6).
+- **OQ-2 — RESOLVED (user 2026-05-18):** WRITING_STATUS §4.1.4 dated
+  append; no REVIEW_QUEUE change.
+- **OQ-3 — RESOLVED (informational):** stale pre-F6 `pass2_evidence/**`
+  + WRITING_STATUS-row text left as historical audit evidence; superseded
+  in chapter + WRITING_STATUS row only; future Cat-E/F chore may
+  reconcile pass2_evidence (out of scope here).
+- **R-1 (residual):** stale prior critique-file purge — future
+  planning-hygiene sweep.

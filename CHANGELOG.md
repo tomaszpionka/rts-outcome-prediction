@@ -19,6 +19,20 @@ merged to `master`.
 
 ### Removed
 
+## [3.58.0] — 2026-05-18 (PR #223: docs/thesis-aoestats-rowcount-scope-caveat)
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Resolved Chapters 1–4 citation-audit must-fix **M-3 / TQ-05** (finding C-10): clarified the aoestats interface-CSV row-count and `[POP:]`-scope framing in `thesis/chapters/04_data_and_methodology.md` §4.1.4 (line 212 only). Row-count corrected to `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych`.
+- On-disk-true correction of the audit's own stale prescription: the audit/brief framing ("aoestats `[POP:]` *not tag-carried* / *0 of 137 tags*") was verified STALE/FALSE post-F6 — `phase06_interface_aoestats.csv` carries `[POP:ranked_ladder]` in all 136 data rows (+30 `[PRE-canonical_slot]`). The corrected sentence states the artifact carries the provisional `[POP:ranked_ladder]` token, operationally superseded in the thesis prose by the disciplined `[POP:1v1_random_map]` / Tier-4 queue-opacity framing (grounded in cleaning rule R02 `leaderboard='random_map'` + input contract `02_00`); no false "0 tags" claim, no Phase 02/06 closure claim, no new theory claim. The stale pre-F6 text in `thesis/pass2_evidence/**` and the WRITING_STATUS §4.1.4 prefix is left as historical audit evidence (out of scope; superseded by an additive WRITING_STATUS line).
+- §4.4.6 line 428 (`136 wierszy danych`) byte-unchanged; sc2egset `35/35` + aoe2companion `74/74` clauses + dataset-conditional claim preserved; line-212 `[REVIEW]` flag retained (not closed); no `references.bib` / `REVIEW_QUEUE.md` change. reviewer-deep PASS at plan (T01: PASS-WITH-NITS, grep-battery nits fixed) and final (T03: APPROVE); reviewer-adversarial escalation trigger not met (not invoked). With M-1 (PR #221) and M-2 (PR #222) merged, M-3 closure brings Chapters 1–4 to `ready_to_send_with_disclaimer` for supervisor handoff (subject to retained review flags).
+
+### Removed
+
 ## [3.57.0] — 2026-05-18 (PR #222: docs/thesis-ch1-footer-bib-consolidation)
 
 ### Added
