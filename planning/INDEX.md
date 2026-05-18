@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-bibliography-canonicalization (2026-05-18) — Category F bib-only: canonicalize references.bib (Wu2017 dedup gated; Elo1978→@book; Buro2003→@inproceedings; Bialecki2023 verify; Dimitriadis2024 identity-first verify) + bibliography_cleanup_report.md; chapters + reviews_and_others appendixes read-only; alias/key drift catalogued for a separate approved PR (draft PR)
+- docs/thesis-bibliography-canonicalization (2026-05-18) — Category F bib-only: canonicalize references.bib (Wu2017 dedup gated; Elo1978→@book; Buro2003→@inproceedings; Bialecki2023 verify; Dimitriadis2024 identity-first verify) + bibliography_cleanup_report.md; chapters + reviews_and_others appendixes read-only; alias/key drift catalogued for a separate approved PR (draft PR #225)
 
 ## Archive
 
