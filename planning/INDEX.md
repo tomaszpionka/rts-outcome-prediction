@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-ch1-ch4-supervisor-handoff-package (2026-05-18) — Category F documentation-relay: capstone supervisor handoff package for Chapters 1–4 (consolidates merged audit chain #220→#221→#222→#223; what-to-send / not-send; retained-flag inventory; user-approved Polish cover note); no chapter prose / no references.bib edit (draft PR)
+- docs/thesis-ch1-ch4-supervisor-handoff-package (2026-05-18) — Category F documentation-relay: capstone supervisor handoff package for Chapters 1–4 (consolidates merged audit chain #220→#221→#222→#223; what-to-send / not-send; retained-flag inventory; user-approved Polish cover note); no chapter prose / no references.bib edit (draft PR #224)
 
 ## Archive
 
