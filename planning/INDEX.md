@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-ch1-footer-bib-consolidation (2026-05-18) — Category F must-fix M-2: consolidate 7 Chapter-1 footer-only sources into references.bib + fix Mangat2024 footer metadata; no prose-body change (draft PR)
+- docs/thesis-ch1-footer-bib-consolidation (2026-05-18) — Category F must-fix M-2: consolidate 7 Chapter-1 footer-only sources into references.bib + fix Mangat2024 footer metadata; no prose-body change (draft PR #222)
 
 ## Archive
 
