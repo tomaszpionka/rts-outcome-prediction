@@ -5,95 +5,71 @@ reviewer_model: claude-opus-4-7 (reviewer-deep — user-directed substitute plan
 category: F
 ---
 
-# Critique: EsportsBench §2.5.5 version harmonisation (plan-review provenance)
+# Critique: Chapter-1 footer-only bibliography consolidation (plan-review provenance)
 
 > **Reviewer substitution (user-directed, binding).** Per the task brief,
-> reviewer-deep — not reviewer-adversarial — is the mandatory plan gate (T01)
-> and final gate (T03) for this single-locus must-fix PR; reviewer-adversarial
-> is conditional (escalation trigger only). `critique_required: false` in the
-> plan frontmatter reflects "no mandatory pre-execution adversarial critique",
-> substituted by this mandatory reviewer-deep plan review.
+> reviewer-deep — not reviewer-adversarial — is the mandatory plan gate
+> (T01) and final gate (T03) for this M-2 PR; reviewer-adversarial is
+> conditional (escalation trigger only). `critique_required: false`
+> reflects "no mandatory pre-execution adversarial critique", substituted
+> by this mandatory reviewer-deep plan review. Mirrors PR #220 / #221.
 
 **Plan under review:** `planning/current_plan.md`
-**Branch:** `docs/thesis-esportsbench-version-harmonization` | **PR:** #221 (draft)
-**Base:** `c68786273fbdf3c2c8c3e6046ea559acc1e9b570` (master, PR #220 merged) | **Bootstrap:** `4d50e48a`
+**Branch:** `docs/thesis-ch1-footer-bib-consolidation` | **PR:** #222 (draft)
+**Base:** `93f02600df1e5401e5e42cc438fdcd504dc07487` (master, PR #221 merged) | **Bootstrap:** `db64f326`
 
 ## Invariants & temporal discipline
 
-Single-locus literature-currency prose fix: zero data/feature/model code,
-zero notebooks, zero artifacts. Scientific invariants #1–#9 are **n-a**
-(no pipeline change); `invariants_touched: []` is accurate. Temporal-discipline
-assessment: **n-a** (no feature/window/split/join touched).
+Bibliography-consolidation PR: zero data/feature/model/notebook/artifact
+touch. Scientific invariants #1–#9 **n-a** (`invariants_touched: []`
+accurate). `references.bib` is a typesetting input, not a model input.
+Temporal-discipline assessment: **n-a**.
 
-## Round 1 — reviewer-deep plan review (2026-05-18): PASS
+## Round 1 — reviewer-deep plan review (2026-05-18): PASS-WITH-NITS
 
-No blockers. Independently verified:
+No blockers. reviewer-deep **independently web-verified all 7 entries**
+against primary sources:
 
-- The plan's NEW parenthetical is **byte-identical** to `03_related_work.md:77`
-  `(wersja HuggingFace v9.0, cutoff 2026-03-31, dostęp 2026-04-26)` —
-  confirmed via `xxd` incl. the UTF-8 `ę` in "dostęp", both commas, both
-  hyphenated ISO dates.
-- Stale string `wersja HuggingFace v8.0, cutoff 2025-12-31` occurs **exactly
-  once** in Chapter 2 (line 179); line 39 carries no version parenthetical
-  and is correctly out-of-scope.
-- Chapter 3 §3.2.4 (`:77`) and §3.5 (`:189`) already v9.0/2026-03-31 at HEAD;
-  no live inconsistency; plan forbids touching Chapter 3.
-- Canonical value triply attested (`literature_verification_log.md` note 4
-  + Thorrez2024 row + audit C-01) → no new version invented, no WebFetch
-  needed; plan forbids web verification.
-- The readiness-audit TQ-04 "§3.2.4 internal contradiction" sub-claim —
-  the single real trap (TQ-04's literal "remove the §3.2.4 contradiction
-  first" wording would direct an executor to a forbidden file chasing a
-  non-existent defect) — is explicitly NOT actioned in three independent
-  places (Out of scope, Gate 9, T01 check d).
-- `Thorrez2024` exists at `references.bib:147`; no bib change possible.
-- planning-drift hook RC 0; Cat-F sections complete; version bump
-  `3.55.0`→`3.56.0` (minor, `docs/`) correct; WRITING_STATUS-append /
-  REVIEW_QUEUE-untouched decisions coherent.
-- File Manifest / per-task File scope / Gate Condition allowlist provide no
-  structural path to any forbidden-file edit.
+- **Mangat2024 = *J. Gambling Studies* vol 40, issue 2, pp 893–914,
+  DOI 10.1007/s10899-023-10256-5** (PubMed 37740076 + PMC11272673 +
+  Springer) — exactly matches the plan target; the footer's
+  `40(1),145-165` is wrong on both issue and pages. The would-be BLOCKER
+  condition (plan baking in a wrong value) does NOT fire — the plan bakes
+  in the correct value.
+- Shin1993 (EJ 103(420):1141–1153, DOI 10.2307/2234240), Forrest2005
+  (IJF 21(3):551–564, DOI 10.1016/j.ijforecast.2005.03.003), Levitt2004
+  (EJ 114(495):223–246, DOI 10.1111/j.1468-0297.2004.00207.x),
+  Formosa2022 (Proc. ACM HCI 6(CHI PLAY) Art. 399, 1–45,
+  DOI 10.1145/3549490), Novak2025 (Front. Sports Act. Living 7:1636823,
+  DOI 10.3389/fspor.2025.1636823), Balduzzi2018 (NeurIPS 2018,
+  arXiv:1806.02643) — all confirmed, all match the plan block + chapter
+  footer.
+- 7 keys absent / no collision (`^@`=100→107); BibTeX house style conforms
+  (bare DOI, `--` ranges, Unicode, `@inproceedings`+note/url precedent,
+  non-numeric `number={CHI PLAY}` precedent); scope structurally airtight
+  (File Manifest + per-task scope + Gate 6 + T02 grep battery prevent any
+  prose-body edit / footer change beyond line-85 Mangat2024 tokens /
+  existing-entry edit / `[REVIEW]` flag removal / betting-transfer claim /
+  forbidden-file edit); @executor-lacks-web resolution sound (parent/Opus
+  web → frozen block → Sonnet mechanical); WRITING_STATUS-only /
+  REVIEW_QUEUE-none coherent; 3.56.0→3.57.0 correct; planning-drift RC=0;
+  all Cat-F sections present.
 
-**Non-blocker process notes:** (1) stale PR #220 critique files are
-correctly scoped OUT (residual R-1); (2) this review IS the T01 deliverable —
-no critique-resolution cycle required before T02.
+**Non-blocker nits (T02-execution precision; no plan amendment):**
+1. Novak2025 author first names — read the Frontiers/PMC record precisely
+   at T02 verify@exec (possible "Patrik" vs "Pál" LLM-summary artifact;
+   plan draft: Novák Patrik / Hohmann Balázs / Sipos Dávid / Szőke
+   Gergely). Covered by mandated verify@exec.
+2. Stale WRITING_STATUS §1.1 line-number references — pre-existing drift,
+   correctly OUT of this append-only PR's scope (future hygiene sweep,
+   with residual R-1).
+3. Balduzzi2018 is `@inproceedings` (entry block correct) — executor
+   copies the `@inproceedings` block verbatim, not misled by surrounding
+   prose.
 
 ## Gate status
 
-**T01 plan gate: PASS** (0 blockers; non-blocker notes only). Adversarial
-cap: 1 of max 3 rounds used. reviewer-adversarial NOT triggered (no
-unresolved methodology/overclaim BLOCKER; escalation trigger not met).
-Cleared to proceed to T02.
-
-## Round 2 — reviewer-deep T03 final check (2026-05-18): PASS
-
-No blockers. Independently verified on the applied diff (HEAD `17cbc7e0`
-vs base `c6878627`):
-
-- `02_theoretical_background.md:179` parenthetical is **byte-identical**
-  to `03_related_work.md:77` (`xxd`/`cmp`-clean, incl. UTF-8 `ę` `c4 99`
-  in "dostęp"); rest of the sentence byte-identical to base
-  (parenthetical-only substitution, numstat 1/1).
-- Grep battery: Ch2 `v8.0`=0, `2025-12-31`=0, new string=1; `80,13%`
-  HEAD=BASE=2 and `REVIEW: F4.5` HEAD=BASE=1 (line 39 untouched).
-- Ch3 (`03_related_work.md`) and `references.bib` diffs EMPTY; no
-  forbidden path in the diff; scope ⊆ allowed set.
-- `WRITING_STATUS.md` §2.5: provably append-only (3416-byte prior-history
-  prefix preserved byte-for-byte; one new dated entry before the closing
-  `|`; table valid); factually accurate; correctly hedged ("subject to
-  retained non-M-1 review flags") — no overclaim.
-- TQ-04 stale "§3.2.4 internal contradiction" sub-claim NOT chased
-  (Ch3 §3.2.4 unedited).
-- C-01 cross-chapter contradiction resolved: with M-1 applied Chapter 2
-  is consistent with Chapter 3 → Chapter 2 `ready_to_send_with_disclaimer`
-  per the audit's own §3 rule.
-
-**Non-blocker follow-up:** WRITING_STATUS §2.5 row accretion (~3.7 kB
-chained dated entries) is pre-existing debt not introduced by this PR;
-track in the R-1 planning-hygiene residual.
-
-## Gate status (final)
-
-**T03 final gate: PASS** (0 blockers). Adversarial cap: 1 of max 3 rounds
-used across plan+execution; reviewer-adversarial NOT triggered (escalation
-trigger a–d not met). Cleared to proceed to T04 (version bump) and T05
-(PR ready, no merge).
+**T01 plan gate: PASS-WITH-NITS** (0 blockers; nits are T02-execution
+precision items already covered by the plan's verify@exec protocol).
+Adversarial cap: 1 of max 3 rounds used. reviewer-adversarial NOT triggered
+(escalation trigger not met). Cleared to proceed to T02.
