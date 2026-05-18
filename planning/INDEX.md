@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-aoestats-rowcount-scope-caveat (2026-05-18) — Category F must-fix M-3 / TQ-05: §4.1.4 aoestats row-count → `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych` + on-disk-true `[POP:]`-scope caveat (artifact `[POP:ranked_ladder]` superseded in prose by `[POP:1v1_random_map]`/Tier-4); no prose-body rewrite (draft PR)
+- docs/thesis-aoestats-rowcount-scope-caveat (2026-05-18) — Category F must-fix M-3 / TQ-05: §4.1.4 aoestats row-count → `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych` + on-disk-true `[POP:]`-scope caveat (artifact `[POP:ranked_ladder]` superseded in prose by `[POP:1v1_random_map]`/Tier-4); no prose-body rewrite (draft PR #223)
 
 ## Archive
 
