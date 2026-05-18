@@ -512,6 +512,48 @@ published triptych version; `Elo1978`→`@book` with two-word title;
 `Bialecki2023` and `Glickman2025` central bib = no edit (verified
 match). `Glickman1995` = manual decision, not auto-applied.
 
+## Applied corrections (T03 — lineage closure)
+
+The evidence-safe, ≥80-confidence corrections this report specifies were
+applied to `thesis/references.bib` at T03. The report's final state mirrors
+`references.bib`'s final state (lineage closure).
+
+**Applied to `references.bib`:**
+
+- **C1 — `Wu2017` deleted.** The grep safety gate
+  (`grep -rEno '\[Wu2017\]' thesis/`) re-confirmed **0** real citation
+  sites at execution time (the only string matches are this report's own
+  self-referential prose/table cells documenting the dedup decision, not
+  LaTeX citations). The entire `@article{Wu2017, …}` block was removed;
+  `Wu2017MSC` is the surviving canonical key and was not touched.
+- **C2 — `Elo1978` `@article` → `@book`.** Type corrected to `@book`,
+  `address = {New York}` added, title canonicalized to the two-word form
+  "The Rating of Chess Players, Past and Present" (reviewer-deep nit 4,
+  confidence ~90). Key unchanged.
+- **C3 — `Buro2003` `@article` → `@inproceedings`.** `journal` replaced
+  with `booktitle = {Proceedings of the 18th International Joint
+  Conference on Artificial Intelligence (IJCAI)}`; existing
+  `pages = {1534--1535}` and the existing `url` preserved verbatim. Key
+  unchanged.
+- **C4 — `Dimitriadis2024` metadata corrected to the published triptych
+  version.** Identity CLOSED (≥80; 4 concurring sources
+  Crossref/RePEc/ScienceDirect/arXiv): `number` → `{3}`,
+  `pages` → `{1101--1122}` (volume stays `40`, year stays `2024`, title
+  verbatim), `doi = {10.1016/j.ijforecast.2023.09.007}` added, 4th author
+  **Vogel, Peter** appended. Same triptych work — corrected in place, no
+  new key.
+
+**Deferred / no edit:**
+
+- **C5 — `Bialecki2023`:** no edit. The official record matches the
+  central bib exactly (reviewer-deep nit 3) — kept byte-unchanged.
+- **C6 — `Glickman1995`:** no edit. The `@unpublished` → `@article` type
+  change is a documented editorial (manual_decision) call, not
+  auto-applied — kept byte-unchanged.
+- **bib↔md alias drift** (`Baek2022`/`Porcpine2020`/`Herbrich2007`):
+  deferred to a separate approved PR. `Herbrich2007` is key/style drift —
+  2007 is bibliographically defensible (NOT a year-error claim).
+
 ## Sources (URLs / DOIs — fenced; never in prose)
 
 ```
