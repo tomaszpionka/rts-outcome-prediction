@@ -19,6 +19,19 @@ merged to `master`.
 
 ### Removed
 
+## [3.59.0] — 2026-05-18 (PR #224: docs/thesis-ch1-ch4-supervisor-handoff-package)
+
+### Added
+
+- Added `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`: the capstone supervisor handoff package for thesis Chapters 1–4, consolidating the merged citation-audit chain (PR #220 audit → #221 M-1 → #222 M-2 → #223 M-3, all on master). Fixed 8-section structure: executive decision (`ready_to_send_with_disclaimer`; supersedes the pre-#221 audit §10 "hold Chapter 2" framing — with M-1 merged all four chapters are sendable together), what to send (the four chapter files), what NOT to send (Chapters 5–7 are BLOCKED/skeleton — no Phase 03+ model results), the M-1/M-2/M-3 closure table, a by-category retained-flag inventory (76 Pass-2 flags + 18 Chapter-4 annotations; 41 ok-to-send-with-flag / 9 manual-full-text-required / 14 future-phase-dependent), a user-approved verbatim Polish supervisor cover note (makes no completed-experiment claim), optional-only traceability attachments, and post-handoff workstreams.
+- Documentation-relay only: no new methodology, no chapter prose edit, no `thesis/references.bib` edit, no `[REVIEW]` flag removed, no clean/stripped chapter copy, no PDF/DOCX export. reviewer-deep PASS at plan (T01) and final (T03); reviewer-adversarial escalation trigger not met (not invoked). The PR is held unmerged pending explicit user approval to send.
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## [3.58.0] — 2026-05-18 (PR #223: docs/thesis-aoestats-rowcount-scope-caveat)
 
 ### Added
