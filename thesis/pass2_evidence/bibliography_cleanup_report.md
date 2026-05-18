@@ -539,9 +539,9 @@ applied to `thesis/references.bib` at T03. The report's final state mirrors
   version.** Identity CLOSED (≥80; 4 concurring sources
   Crossref/RePEc/ScienceDirect/arXiv): `number` → `{3}`,
   `pages` → `{1101--1122}` (volume stays `40`, year stays `2024`, title
-  verbatim), `doi = {10.1016/j.ijforecast.2023.09.007}` added, 4th author
-  **Vogel, Peter** appended. Same triptych work — corrected in place, no
-  new key.
+  verbatim), the IJF DOI added (the exact DOI string is listed only in the
+  fenced Sources block below), 4th author **Vogel, Peter** appended. Same
+  triptych work — corrected in place, no new key.
 
 **Deferred / no edit:**
 

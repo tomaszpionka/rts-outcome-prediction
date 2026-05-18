@@ -88,3 +88,52 @@ NOT triggered. Cleared to proceed to T02 → T05. The `Dimitriadis2024`
 identity is closed ≥80 to the same triptych work → T03 applies the
 published-version correction (40(3):1101–1122 + DOI + Vogel) per the
 user's Q3 step (2); `Bialecki2023` = no edit (matches).
+
+## Round 2 — reviewer-deep T03 final gate (2026-05-18): APPROVE WITH CONDITIONS
+
+No blockers; no escalation (no §"Reviewer routing" trigger fired).
+Independently verified on the full applied diff (base `e095025a` →
+`2ecf5d49`):
+
+- **Scope clean:** diff = exactly {planning/current_plan.md,
+  planning/INDEX.md, planning/current_plan.critique.md,
+  bibliography_cleanup_report.md, references.bib}; ZERO
+  `thesis/chapters/**`, ZERO `thesis/reviews_and_others/**`, ZERO other
+  forbidden paths.
+- **references.bib integrity:** `@` count = 106 (107 − Wu2017);
+  brace-balanced 946/946; `Wu2017` removed / `Wu2017MSC` intact;
+  `@book{Elo1978,` two-word "Chess Players, Past and Present" + address,
+  key unchanged; `@inproceedings{Buro2003,` pages 1534--1535 + url
+  preserved, key unchanged.
+- **Wu2017 deletion orphans NO citation:** every `[Wu2017]` under
+  `thesis/` is documentary inside this PR's own audit report
+  (`bibliography_cleanup_report.md` L176/L203/L488); ZERO in
+  `thesis/chapters/**`, `thesis/reviews_and_others/**`,
+  `thesis/references.bib`.
+- **Dimitriadis2024 identity-safe:** key + title verbatim; 40(3):
+  1101--1122 + DOI + 4th author Vogel; only one Dimitriadis
+  declaration — no new key, no work substitution (corrected in place
+  to its published triptych version per user Q3 step 2).
+- **C5/C6 byte-unchanged:** `Bialecki2023` + `Glickman1995`
+  byte-identical base→HEAD (no manufactured fix).
+- 4 T01 nits folded; `Herbrich2007` framed as key/style drift NOT a
+  year error throughout; report↔bib lineage closure (Applied-corrections
+  section mirrors final bib state); planning-drift RC 0; version bump
+  correctly deferred to T04.
+
+**Non-gating condition (RESOLVED at T03 close):** reviewer-deep flagged
+one inline-code DOI token in the report's C4 "Applied corrections"
+prose bullet (then ~L542) — technically outside a fence vs the strict
+"every DOI fenced" wording. **Fixed:** the C4 bullet was rephrased to
+"the IJF DOI added (the exact DOI string is listed only in the fenced
+Sources block below)"; re-verified — every `https?://|doi:|10.xxxx`
+token in the report now falls inside the fenced Sources block
+(L559–572) or the L209–215 fence; zero URL/DOI in prose. Condition
+discharged by edit (not deferred).
+
+## Gate status (final)
+
+**T03 final gate: APPROVE / PASS** (0 blockers; the single non-gating
+URL-discipline condition resolved by a one-line in-scope report edit).
+reviewer-adversarial NOT triggered. Cleared to proceed to T04 (version
+bump) + T05 (PR ready, NO merge — awaits explicit user approval).
