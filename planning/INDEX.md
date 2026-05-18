@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-aoestats-rowcount-scope-caveat (2026-05-18) — Category F must-fix M-3 / TQ-05: §4.1.4 aoestats row-count → `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych` + on-disk-true `[POP:]`-scope caveat (artifact `[POP:ranked_ladder]` superseded in prose by `[POP:1v1_random_map]`/Tier-4); no prose-body rewrite (draft PR #223)
+- docs/thesis-ch1-ch4-supervisor-handoff-package (2026-05-18) — Category F documentation-relay: capstone supervisor handoff package for Chapters 1–4 (consolidates merged audit chain #220→#221→#222→#223; what-to-send / not-send; retained-flag inventory; user-approved Polish cover note); no chapter prose / no references.bib edit (draft PR)
 
 ## Archive
 
@@ -16,6 +16,7 @@
 | docs/thesis-ch1-ch4-citation-literature-audit | 2026-05-17 | F | Chapters 1–4 citation & literature support audit (audit-only; verdict send_after_must_fixes; must-fix M-1/M-2/M-3) | current_plan.md | #220 (merged 2026-05-17 at master c6878627) |
 | docs/thesis-esportsbench-version-harmonization | 2026-05-18 | F | Audit must-fix M-1: EsportsBench §2.5.5 v8.0/2025-12-31 → v9.0/2026-03-31/dostęp 2026-04-26 harmonisation to match Ch3 | current_plan.md | #221 (merged 2026-05-18 at master 93f02600) |
 | docs/thesis-ch1-footer-bib-consolidation | 2026-05-18 | F | Audit must-fix M-2: 7 Chapter-1 footer-only sources → references.bib (append-only) + Mangat2024 footer metadata fix | current_plan.md | #222 (merged 2026-05-18 at master adf93303) |
+| docs/thesis-aoestats-rowcount-scope-caveat | 2026-05-18 | F | Audit must-fix M-3 / TQ-05: §4.1.4 aoestats row-count 137=1+136 + on-disk-true [POP:]-scope caveat (ranked_ladder superseded in prose by 1v1_random_map/Tier-4) | current_plan.md | #223 (merged 2026-05-18 at master 855bdbb6) |
 
 ## Agent routing
 
