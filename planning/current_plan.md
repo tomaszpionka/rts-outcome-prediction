@@ -181,7 +181,7 @@ writing (no invention; no "verified from abstract"; bare DOI, no
   doi     = {10.1145/3549490}, note = {Article 399}
 }
 @article{Novak2025,
-  author  = {Novák, Patrik and Hohmann, Balázs and Sipos, Dávid and Szőke, Gergely},
+  author  = {Novák, Pál and Hohmann, Balázs and Sipos, Dávid and Szőke, Gergely},  % corrected Patrik→Pál at T02 web-verify (Frontiers); applied in references.bib
   title   = {The legal and economic aspects of the ``Esports Illusion'': why competitive gaming fails to become an independent industry},
   journal = {Frontiers in Sports and Active Living},
   volume  = {7}, pages = {1636823}, year = {2025},

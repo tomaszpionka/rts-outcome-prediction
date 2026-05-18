@@ -73,3 +73,47 @@ against primary sources:
 precision items already covered by the plan's verify@exec protocol).
 Adversarial cap: 1 of max 3 rounds used. reviewer-adversarial NOT triggered
 (escalation trigger not met). Cleared to proceed to T02.
+
+## Round 2 — reviewer-deep T03 final check (2026-05-18): PASS
+
+No blockers. Independently web-verified all 7 applied entries against
+primary sources (RePEc/OUP, ScienceDirect/RePEc, Wiley, PMC11272673 /
+PubMed 37740076, ACM/OUCI, Frontiers, arXiv):
+
+- **Novak2025** author field correctly reads `Novák, Pál …` (the
+  planner-draft "Patrik" artifact was corrected at T02; Frontiers
+  confirms Pál).
+- **Mangat2024** = vol 40, issue 2, pp 893–914, DOI
+  10.1007/s10899-023-10256-5 (footer + bib now agree; old 40(1),145-165
+  confirmed wrong).
+- Shin1993 / Forrest2005 / Levitt2004 / Formosa2022 / Balduzzi2018 all
+  match primary sources; Balduzzi2018 correctly `@inproceedings`.
+- references.bib purely additive (0 deletions; `^@` 100→107), no
+  duplicate key, BibTeX brace-balanced (951/951), house-style conformant.
+- Chapter-1 prose body byte-unchanged; the only `01_introduction.md`
+  change is the single line-85 hunk (`40(1),145-165` → `40(2),893-914`),
+  DOI/title/author/`[REVIEW]` flag byte-identical; line-11 transferability
+  hedge + line-85 metadata flag intact; no betting-transfer claim
+  (RISK-01/04/05 not contradicted).
+- Ch1 bibkey-coverage: 26 distinct prose keys, 0 unresolved (was 6).
+- WRITING_STATUS §1.1 append append-only + factually accurate, no
+  overclaim (explicitly does NOT close the transferability hedge);
+  REVIEW_QUEUE untouched; scope fully contained; CHANGELOG/pyproject
+  correctly deferred to T04.
+
+Verdict: **Chapter 1 is `ready_to_send_with_disclaimer`** for supervisor
+handoff (central-bibliography gap M-2 / C-06 / D1-NOTE closed;
+transferability hedge appropriately retained).
+
+**Non-blocker follow-up (mechanically resolved at T03):** the plan's
+intended-BibTeX draft block (`planning/current_plan.md:184`) still read
+`Novák, Patrik`; corrected to `Novák, Pál` at T03 as an in-scope
+mechanical plan-doc fix (the deliverable was already correct). Stale prior
+critique-file purge remains residual R-1 (future hygiene sweep).
+
+## Gate status (final)
+
+**T03 final gate: PASS** (0 blockers). Adversarial cap: 1 of max 3 rounds
+used across plan+execution; reviewer-adversarial NOT triggered (triggers
+i–v not met). Cleared to proceed to T04 (version bump) and T05 (PR ready,
+no merge).
