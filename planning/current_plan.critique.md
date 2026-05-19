@@ -1,139 +1,41 @@
----
-plan_ref: planning/current_plan.md
-created: 2026-05-18
-reviewer_model: claude-opus-4-7 (reviewer-deep — user-directed substitute plan gate)
-category: F
----
+# Plan critique — docs/thesis-bialecki2023-author-correction
 
-# Critique: bibliography canonicalization (plan-review provenance)
+reviewer: reviewer-adversarial (Category F mandatory pre-execution gate)
+base_ref: 3238addb8d01b6baa7d642384e0d4f28e249f481
 
-> **Reviewer substitution (user-directed, binding).** reviewer-deep is the
-> mandatory gate (T01 plan + T03 final); reviewer-adversarial is
-> conditional (escalation triggers in plan §"Reviewer routing").
-> `critique_required: false` substituted by this mandatory reviewer-deep
-> plan review (user Q5). Mirrors PR #221–#224.
+## Round 1 — reviewer-adversarial plan gate (2026-05-19): APPROVE-WITH-CONDITIONS
 
-**Plan under review:** `planning/current_plan.md`
-**Branch:** `docs/thesis-bibliography-canonicalization` | **PR:** #225 (draft)
-**Base:** `e095025a76660873c3bbff2c83377044ed095283` (master, PR #224 merged, v3.59.0) | **Bootstrap:** `1981e422`
+Round 1 — reviewer-adversarial plan gate. VERDICT: APPROVE-WITH-CONDITIONS. The corrective premise is independently confirmed: Crossref (structured given/family) and arXiv concordantly give authors 3–4 as Paweł Dobrowolski and Piotr Białecki, whereas `references.bib:6` cross-swaps their given names (`Dobrowolski, Piotr and Białecki, Paweł`); no bib convention or dataset erratum defends the current state, so the 1-line author swap is correct and the unchanged key keeps all citation sites valid. The plan's lineage discipline is sound in intent — correction-in-place (not deletion) of the five false #225 statements at report L332/L338/L508–513/L546–552, supersede-not-retro-edit for CHANGELOG `[3.60.0]`, and verbatim retention of the L564–565 Sources block (correct, since the DOI/PMC/arXiv corroboration was right and only the author parsing was wrong) — and following it produces an honest post-merge correction rather than history-tampering. Conditions: the recorded root cause must state #225 verified surname+count+order but never compared given-name tokens (Piotr/Paweł both collapse to "P." under initial-only matching), with that correction placed at L338 itself; the new `[3.61.0]` entry must explicitly cross-reference and supersede the falsified `[3.60.0]` sentence; and the eventual FINAL reviewer-adversarial gate must be appended under a separate heading in this file rather than overwrite this Round-1 record. No BLOCKER; PROCEED to execution once these conditions are reflected in the plan.
 
-## Invariants & temporal discipline
+### Binding execution conditions (from Round 1)
+1. Root-cause precision recorded at report L338 itself (not only CHANGELOG): #225 verified surname + count + order, never given-name tokens; Piotr/Paweł → "P.".
+2. All load-bearing false sites corrected in place, none deleted: report L64, the `### Bialecki2023` subsection (heading L332 + table row L338 + prose L341–345), L508–513 clause, C5 item L546–552.
+3. L564–565 fenced Sources kept verbatim (DOI/PMC/arXiv corroboration was correct; only author parsing was wrong).
+4. CHANGELOG `[3.61.0]` explicitly cross-references and supersedes the falsified `[3.60.0]` sentence by version; `[3.60.0]` not retro-edited.
+Nits: branch-first ordering (master guard hook) — mandatory; critique file Round 2 (FINAL gate) must be appended under a distinct heading, never overwrite Round 1.
 
-Bibliographic-metadata canonicalization: zero dataset/feature/model/
-notebook/artifact touch. Scientific invariants #1–#9 **n-a**
-(`invariants_touched: []` accurate). Temporal-discipline assessment:
-**n-a** (no `.shift()`/window/normalization; no prediction at any T).
+## Round 2 — reviewer-adversarial FINAL gate (2026-05-19): APPROVE
 
-## Round 1 — reviewer-deep plan gate (2026-05-18): PASS-WITH-NITS
-
-No blockers. Plan structurally sound for a highest-sensitivity bib-only
-Cat-F PR; scope triple-bound against any `thesis/chapters/**` or
-`thesis/reviews_and_others/**` edit; `Wu2017` deletion grep-gated and
-the SOLE key removal (`@` 107→106); `Dimitriadis2024`/`Bialecki2023`
-quadruple-gated verify-first (no sub-80 / no identity-open overwrite);
-`Herbrich2007` framed as key/style drift NOT a year-error (2007
-defensible — MSR "NeurIPS 20, January 2007"); planning-drift RC 0;
-PR #223 parenthetical-heading defect not repeated; prior #221–#224
-reviewer-deep gates all PASSED.
-
-**Independent decisive finding — `Dimitriadis2024` identity CLOSED at
-≥80 (the T02.3 deliverable, performed early at the gate):** DOI
-`10.1016/j.ijforecast.2023.09.007` is the **same "triptych" work** as
-the repo's `Dimitriadis2024` (identical title; arXiv:2301.10803 is its
-preprint), published *Int. J. Forecasting* **40(3):1101–1122 with
-Peter Vogel added as 4th author**. The repo bib's `40(1):189–210,
-3 authors, no DOI` is the early/incorrect metadata. Four concurring
-sources (Crossref + RePEc + ScienceDirect + arXiv). This **validates**
-(does not contradict) the plan's identity-first safety design and
-**closes** the user's Q3 collision: it stays the triptych record →
-per the user's Q3 step (2) it is corrected to the published version
-(40(3):1101–1122 + DOI + Vogel 4th author) at T03. No new key; no
-overwrite of a different work.
-
-**Independent finding — `Bialecki2023` author concern does NOT
-reproduce:** Crossref + PMC (PMC10491788) + arXiv (2207.03428) all
-return the identical 8-author ordered list already at
-`thesis/references.bib:5-13` → `status=ok`, `action=keep/verify`, NO
-bib edit. The plan handles this correctly (fix only if ≥80 *as a
-change*); no spurious "fix" is to be manufactured.
-
-reviewer-adversarial NOT triggered (no §"Reviewer routing" trigger
-fired). Adversarial cap: 1 of max 3 rounds used.
-
-## Binding conditions to fold into the T02 report (reviewer-deep nits 1–4)
-
-1. Per-key table records the **counted** `Wu2017MSC` citation total
-   (8 lines on disk: appendix 3 + Ch2 2 + Ch3 1 + Ch4 2), not the
-   plan's narrative "7×". (Safety gate keys on the exact *zero*
-   `[Wu2017]` count — unaffected.)
-2. The "Stale prior-audit statements superseded" section states the
-   **closed** `Dimitriadis2024` identity: DOI
-   `10.1016/j.ijforecast.2023.09.007` = the same triptych paper,
-   published 40(3):1101–1122 with Peter Vogel as 4th author
-   (arXiv:2301.10803 preprint); supersede the prior
-   `literature_verification_log.md:78` 40(1):189–210/no-DOI statement.
-   Phrase it as CLOSED, not an open "may be a different paper".
-3. The `Bialecki2023` report row records the official author list
-   matches the current bib exactly → `status=ok`, no bib edit.
-4. The `Elo1978` report row + schema-specifics call out the
-   "Chessplayers" (one word, current bib `references.bib:129`) vs
-   "Chess Players" (two words, plan/appendix) title-form decision with
-   its confidence — not a silent normalization.
-
-## Gate status
-
-**T01 plan gate: PASS-WITH-NITS** (0 blockers; 4 nits = binding T02
-report-content conditions, none gates execution). reviewer-adversarial
-NOT triggered. Cleared to proceed to T02 → T05. The `Dimitriadis2024`
-identity is closed ≥80 to the same triptych work → T03 applies the
-published-version correction (40(3):1101–1122 + DOI + Vogel) per the
-user's Q3 step (2); `Bialecki2023` = no edit (matches).
-
-## Round 2 — reviewer-deep T03 final gate (2026-05-18): APPROVE WITH CONDITIONS
-
-No blockers; no escalation (no §"Reviewer routing" trigger fired).
-Independently verified on the full applied diff (base `e095025a` →
-`2ecf5d49`):
-
-- **Scope clean:** diff = exactly {planning/current_plan.md,
-  planning/INDEX.md, planning/current_plan.critique.md,
-  bibliography_cleanup_report.md, references.bib}; ZERO
-  `thesis/chapters/**`, ZERO `thesis/reviews_and_others/**`, ZERO other
-  forbidden paths.
-- **references.bib integrity:** `@` count = 106 (107 − Wu2017);
-  brace-balanced 946/946; `Wu2017` removed / `Wu2017MSC` intact;
-  `@book{Elo1978,` two-word "Chess Players, Past and Present" + address,
-  key unchanged; `@inproceedings{Buro2003,` pages 1534--1535 + url
-  preserved, key unchanged.
-- **Wu2017 deletion orphans NO citation:** every `[Wu2017]` under
-  `thesis/` is documentary inside this PR's own audit report
-  (`bibliography_cleanup_report.md` L176/L203/L488); ZERO in
-  `thesis/chapters/**`, `thesis/reviews_and_others/**`,
-  `thesis/references.bib`.
-- **Dimitriadis2024 identity-safe:** key + title verbatim; 40(3):
-  1101--1122 + DOI + 4th author Vogel; only one Dimitriadis
-  declaration — no new key, no work substitution (corrected in place
-  to its published triptych version per user Q3 step 2).
-- **C5/C6 byte-unchanged:** `Bialecki2023` + `Glickman1995`
-  byte-identical base→HEAD (no manufactured fix).
-- 4 T01 nits folded; `Herbrich2007` framed as key/style drift NOT a
-  year error throughout; report↔bib lineage closure (Applied-corrections
-  section mirrors final bib state); planning-drift RC 0; version bump
-  correctly deferred to T04.
-
-**Non-gating condition (RESOLVED at T03 close):** reviewer-deep flagged
-one inline-code DOI token in the report's C4 "Applied corrections"
-prose bullet (then ~L542) — technically outside a fence vs the strict
-"every DOI fenced" wording. **Fixed:** the C4 bullet was rephrased to
-"the IJF DOI added (the exact DOI string is listed only in the fenced
-Sources block below)"; re-verified — every `https?://|doi:|10.xxxx`
-token in the report now falls inside the fenced Sources block
-(L559–572) or the L209–215 fence; zero URL/DOI in prose. Condition
-discharged by edit (not deferred).
-
-## Gate status (final)
-
-**T03 final gate: APPROVE / PASS** (0 blockers; the single non-gating
-URL-discipline condition resolved by a one-line in-scope report edit).
-reviewer-adversarial NOT triggered. Cleared to proceed to T04 (version
-bump) + T05 (PR ready, NO merge — awaits explicit user approval).
+VERDICT: APPROVE. The full diff base..HEAD is exactly the 7 intended files with zero
+bytes under thesis/chapters/**, thesis/reviews_and_others/**, src/**, tests/**,
+notebooks/**, or data/**; thesis/references.bib is exactly +1/-1 with only the
+author line changed (key/title/journal/volume/number/pages/year/doi and the other
+six names byte-identical, no key rename, no other entry touched). The applied bib
+line now reads `Dobrowolski, Paweł and Białecki, Piotr` at positions 3–4, matching
+the concordant Crossref (10.1038/s41597-023-02510-7) and arXiv (2207.03428) records
+that the Round-1 gate independently confirmed. All four Round-1 binding conditions
+are SATISFIED: root-cause precision (surname+initial collapse of Piotr/Paweł to "P.")
+is recorded at the `### Bialecki2023` per-field subsection itself, not only in the
+CHANGELOG; every load-bearing false site (master-table row, subsection heading +
+per-field row + prose, the audit-only-assertion follow-up clause, the C5 item) is
+corrected in place with none deleted and a new honest superseded-note added; the
+fenced Sources block is byte-unchanged; and CHANGELOG `[3.61.0]` explicitly
+supersedes the falsified `[3.60.0]` by version while `[3.60.0]` itself is
+byte-unchanged. The critique.md −139 deletions are the prior PR #225 reviewer-deep
+critique legitimately replaced for this new branch, not an overwrite of this PR's
+Round-1 reviewer-adversarial record, which is present and intact and leaves Round 2
+to be appended under a separate heading. An examiner diffing this branch against
+#225 would read an honest, traceable post-merge correction — prior wrong conclusion
+still visible, explicitly retracted, root cause named — not history-tampering. Only
+non-gating nit: the `(PR #NNN)` CHANGELOG placeholder, resolved post-open by the
+established number-recording follow-up. PROCEED to open the PR (NOT merge).

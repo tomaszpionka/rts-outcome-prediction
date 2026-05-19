@@ -19,6 +19,18 @@ merged to `master`.
 
 ### Removed
 
+## [3.61.0] — 2026-05-19 (PR #226: docs/thesis-bialecki2023-author-correction)
+
+### Added
+
+### Changed
+
+### Fixed
+
+- `Bialecki2023` authors 3–4 corrected post-merge: `Dobrowolski, Piotr` / `Białecki, Paweł` → `Dobrowolski, Paweł` / `Białecki, Piotr`, per concordant Crossref (`10.1038/s41597-023-02510-7`) and arXiv (`2207.03428`). **This supersedes the now-falsified `[3.60.0]` statement** "Bialecki2023 official author list already matches the bib" — the `[3.60.0]` Fixed entry was wrong because the #225 audit and the inheriting reviewer-adversarial pass verified only at surname+initial granularity (`Piotr` and `Paweł` both collapse to "P." under initial-only matching, so the given-name swap was invisible). Five load-bearing false statements in `thesis/pass2_evidence/bibliography_cleanup_report.md` corrected in place (lineage preserved; none deleted).
+
+### Removed
+
 ## [3.60.0] — 2026-05-18 (PR #225: docs/thesis-bibliography-canonicalization)
 
 ### Added

@@ -61,7 +61,7 @@ Columns are exactly: `key | source_file | entry_type | title | authors | year | 
 
 | key | source_file | entry_type | title | authors | year | venue | doi | url | status | relevance | confidence | note | action |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bialecki2023 | references.bib | article | SC2EGSet: StarCraft II Esport Replay and Game-state Dataset | Białecki A.; Jakubowska N.; Dobrowolski P.; Białecki P.; Krupiński L.; Szczap A.; Białecki R.; Gajewski J. | 2023 | Scientific Data 10 art.600 | yes | no | ok | core dataset | 95 | official 8-author list matches bib L5-13 exactly | keep |
+| Bialecki2023 | references.bib | article | SC2EGSet: StarCraft II Esport Replay and Game-state Dataset | Białecki A.; Jakubowska N.; Dobrowolski P.; Białecki P.; Krupiński L.; Szczap A.; Białecki R.; Gajewski J. | 2023 | Scientific Data 10 art.600 | yes | no | ok | core dataset | 95 | **POST-MERGE CORRECTION (this PR):** authors 3–4 given-name swap found post-merge — bib had `Dobrowolski, Piotr` / `Białecki, Paweł`; Crossref+arXiv give `Dobrowolski, Paweł` / `Białecki, Piotr`. Prior "matches exactly / keep" was a surname+initial-granularity artifact (#225 verified surname+count+order but never compared given-name tokens; Piotr & Paweł both collapse to "P." under initial-only matching). Bib edit applied this PR. | bib_edit_applied |
 | Vinyals2017 | references.bib | article | StarCraft II: A New Challenge for RL | Vinyals O.; Ewalds T.; Bartunov S.; +others | 2017 | arXiv:1708.04782 | no | no | ok | context | 90 | truncated author list (preprint) | keep |
 | Wu2017 | references.bib | article | MSC: A Dataset for Macro-Management in SC2 | Wu H.; Zhang J.; Huang K. | 2017 | arXiv preprint (id in Sources) | no | no | intra_bib_dup | dataset | 99 | byte-identical to Wu2017MSC; cited 0x | merge_into:Wu2017MSC |
 | BaekKim2022 | references.bib | article | 3D CNNs for predicting SC2 results | Baek I.; Kim S.B. | 2022 | PLOS ONE 17(3):e0264550 | yes | no | ok | core SC2 pred | 95 | canonical key for the appendix `Baek2022` alias | keep |
@@ -329,20 +329,31 @@ The `related_work_rating_systems.md` appendix copy (L451) has a
 **second-author typo** ("Jones, Alexander C."); catalogued in the drift
 list; the appendix is READ-ONLY this PR.
 
-### `Bialecki2023` (reviewer-deep nit 3) — confidence 95 — action keep — NO bib edit
+### `Bialecki2023` (reviewer-deep nit 3) — confidence 95 — action bib_edit_applied (POST-MERGE CORRECTION)
 
-| field | bib_value | verified_value | source | match? |
+| field | bib_value (pre-edit) | verified_value | source | match? |
 |---|---|---|---|---|
 | venue | Scientific Data 10:600 | Scientific Data 10 art.600 | Crossref | yes |
 | year | 2023 | 2023 | Crossref | yes |
-| authors (ordered, 8) | Białecki A.; Jakubowska N.; Dobrowolski P.; Białecki P.; Krupiński L.; Szczap A.; Białecki R.; Gajewski J. | identical 8-author ordered list | Crossref + PMC + arXiv | yes |
+| authors (ordered, 8) | Białecki A.; Jakubowska N.; **Dobrowolski, Piotr**; **Białecki, Paweł**; Krupiński L.; Szczap A.; Białecki R.; Gajewski J. (positions 3–4 given-name swapped in pre-edit bib) | Białecki A.; Jakubowska N.; **Dobrowolski, Paweł**; **Białecki, Piotr**; Krupiński L.; Szczap A.; Białecki R.; Gajewski J. | Crossref + arXiv | no (pre-edit); corrected this PR |
 | doi | (in `doi` field) | (matches) | Crossref | yes |
 
-The official record returns the **identical 8-author ordered list
-already at `thesis/references.bib:5-13`** (Crossref + PMC `PMC10491788`
-+ arXiv `2207.03428`). The user's "author mismatch" concern **does NOT
-reproduce**. `status=ok`, **action=keep — NO bib edit**; no fix is
-manufactured.
+**POST-MERGE CORRECTION (this PR).** The prior conclusion "identical
+8-author ordered list / action=keep — NO bib edit" was WRONG. The
+pre-edit bib had authors 3–4 as `Dobrowolski, Piotr` and `Białecki,
+Paweł`; Crossref and arXiv (see the fenced Sources block below)
+concordantly give author 3 = **Paweł Dobrowolski**,
+author 4 = **Piotr Białecki** — a given-name swap at positions 3–4.
+The bib edit (`Dobrowolski, Piotr` / `Białecki, Paweł` →
+`Dobrowolski, Paweł` / `Białecki, Piotr`) was applied this PR.
+
+**Root cause at this site:** PR #225 verified surname + author count +
+order (all correct: 8 authors, correctly ordered by surname). It
+never compared given-name tokens independently. `Piotr` and `Paweł`
+both collapse to the initial "P." under initial-only matching, so the
+given-name swap was invisible to the #225 audit and to the
+reviewer-adversarial pass that inherited that blind spot. Venue, year,
+and DOI rows remain correct and are unchanged.
 
 ### `Dimitriadis2024` (reviewer-deep nit 2 — CLOSED identity) — confidence 92 — action fix_metadata
 
@@ -454,6 +465,47 @@ files for the named/flagged keys (the `ch1_ch4_citation_literature_support_audit
 `Dimitriadis2024` mention is a bibkey-existence spot-check, not a
 metadata claim, so it is not superseded by metadata change).
 
+#### `Bialecki2023` — post-merge correction (supersedes the PR #225 "no edit" conclusion)
+
+**What is superseded.** PR #225 recorded that `Bialecki2023` "matched the
+official record exactly", assigned `action=keep` with "NO bib edit", and
+concluded that the author-mismatch concern "does not reproduce". That
+conclusion is retracted as incorrect: the entry did carry a defect, and the
+"matches exactly / keep" finding is now superseded by the post-merge
+correction documented here and in the `### Bialecki2023` per-field
+subsection above.
+
+**The defect.** The bib entry's authors 3 and 4 had their given names
+cross-swapped: the entry read `Dobrowolski, Piotr` and `Białecki, Paweł`,
+whereas the correct record is `Dobrowolski, Paweł` and `Białecki, Piotr`.
+The surnames, the eight-author count, and the author order were all
+correct; only the two given-name tokens were transposed between these two
+co-authors.
+
+**Root cause.** The #225 audit verified the surname, the author count, and
+the ordering, but never compared the given-name tokens position-by-position.
+Under initial-only matching both "Piotr" and "Paweł" collapse to "P.", so a
+same-initial transposition between two co-authors produced no observable
+discrepancy and was invisible to the audit. The reviewer-adversarial pass
+on #225 inherited the same blind spot, because it checked the same
+surname-and-initial granularity rather than the full given-name tokens, and
+so did not catch the swap either.
+
+**Resolution.** The one-line bib correction
+(`Dobrowolski, Piotr` / `Białecki, Paweł` →
+`Dobrowolski, Paweł` / `Białecki, Piotr`) was applied in this post-merge
+follow-up PR. It was verified against two concordant primary sources — the
+Crossref DOI record and the arXiv preprint — whose identifiers are listed
+in the fenced Sources block below.
+
+**Lineage integrity.** The original false statements elsewhere in this
+report were corrected in place rather than deleted, so the audit trail
+shows both the prior incorrect conclusion and its correction. The fenced
+Sources block was retained verbatim: the Crossref DOI and the PMC/arXiv
+corroboration were always correct — only the author parsing taken from
+those sources was wrong — so retaining the block preserves the verification
+chain. The error is documented, not hidden.
+
 ---
 
 ## Candidate appendix follow-up PR (separate, separately-approved — NOT done here)
@@ -509,8 +561,7 @@ specifies (`Wu2017` dedup gated; `Dimitriadis2024` fix_metadata to the
 published triptych version; `Elo1978`→`@book` with two-word title;
 `Buro2003`→`@inproceedings`) are applied separately at T03 under the
 ≥80-confidence / identity-safe / zero-chapter-blast-radius gate.
-`Bialecki2023` and `Glickman2025` central bib = no edit (verified
-match). `Glickman1995` = manual decision, not auto-applied.
+`Bialecki2023` central bib = **bib edit applied this PR** (authors 3–4 given-name swap corrected post-merge; prior "no edit / verified match" was a surname+initial-granularity artifact — see the `### Bialecki2023` per-field subsection). `Glickman2025` central bib = no edit (verified match). `Glickman1995` = manual decision, not auto-applied.
 
 ## Applied corrections (T03 — lineage closure)
 
@@ -545,8 +596,7 @@ applied to `thesis/references.bib` at T03. The report's final state mirrors
 
 **Deferred / no edit:**
 
-- **C5 — `Bialecki2023`:** no edit. The official record matches the
-  central bib exactly (reviewer-deep nit 3) — kept byte-unchanged.
+- **C5 — `Bialecki2023`:** **bib edit applied this PR (post-merge correction).** Authors 3–4 given-name swap corrected: `Dobrowolski, Piotr` / `Białecki, Paweł` → `Dobrowolski, Paweł` / `Białecki, Piotr`, per concordant Crossref and arXiv (see the fenced Sources block below). The prior C5 "no edit / matches exactly" conclusion (reviewer-deep nit 3) was wrong — it was a surname+initial-verification artifact: PR #225 verified surname+count+order but never compared given-name tokens; Piotr and Paweł both collapse to "P." under initial-only matching, so the swap was invisible to the #225 audit and to the reviewer-adversarial pass that inherited that blind spot.
 - **C6 — `Glickman1995`:** no edit. The `@unpublished` → `@article` type
   change is a documented editorial (manual_decision) call, not
   auto-applied — kept byte-unchanged.
