@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-bibliography-canonicalization (2026-05-18) — Category F bib-only: canonicalize references.bib (Wu2017 dedup gated; Elo1978→@book; Buro2003→@inproceedings; Bialecki2023 verify; Dimitriadis2024 identity-first verify) + bibliography_cleanup_report.md; chapters + reviews_and_others appendixes read-only; alias/key drift catalogued for a separate approved PR (draft PR #225)
+- docs/thesis-bialecki2023-author-correction (2026-05-19) — Category F bib-only: Bialecki2023 authors 3–4 post-merge correction overturning #225's surname+initial-blind "no edit" conclusion; concordant Crossref + arXiv; 5 load-bearing report statements corrected in place (lineage preserved); CHANGELOG [3.61.0] supersedes [3.60.0]
 
 ## Archive
 
@@ -18,6 +18,7 @@
 | docs/thesis-ch1-footer-bib-consolidation | 2026-05-18 | F | Audit must-fix M-2: 7 Chapter-1 footer-only sources → references.bib (append-only) + Mangat2024 footer metadata fix | current_plan.md | #222 (merged 2026-05-18 at master adf93303) |
 | docs/thesis-aoestats-rowcount-scope-caveat | 2026-05-18 | F | Audit must-fix M-3 / TQ-05: §4.1.4 aoestats row-count 137=1+136 + on-disk-true [POP:]-scope caveat (ranked_ladder superseded in prose by 1v1_random_map/Tier-4) | current_plan.md | #223 (merged 2026-05-18 at master 855bdbb6) |
 | docs/thesis-ch1-ch4-supervisor-handoff-package | 2026-05-18 | F | Capstone Chapters 1–4 supervisor handoff package (relay of merged audit chain #220→#221→#222→#223; user-approved Polish cover note) | current_plan.md | #224 (merged 2026-05-18 at master e095025a) |
+| docs/thesis-bibliography-canonicalization | 2026-05-18 | F | bib-only canonicalization — Wu2017 dedup, Elo1978→@book, Buro2003→@inproceedings, Dimitriadis2024 metadata + cleanup report | current_plan.md | #225 (merged 2026-05-19 at master 3238addb) |
 
 ## Agent routing
 
