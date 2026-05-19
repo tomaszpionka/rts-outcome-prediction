@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.62.0] — 2026-05-19 (PR #NNN: docs/thesis-appendix-key-canonicalization)
+## [3.62.0] — 2026-05-19 (PR #227: docs/thesis-appendix-key-canonicalization)
 
 ### Added
 
