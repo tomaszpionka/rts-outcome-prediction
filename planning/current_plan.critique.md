@@ -5,109 +5,135 @@ reviewer_model: claude-opus-4-7 (reviewer-deep — user-directed substitute plan
 category: F
 ---
 
-# Critique: Chapters 1–4 supervisor handoff package (plan-review provenance)
+# Critique: bibliography canonicalization (plan-review provenance)
 
 > **Reviewer substitution (user-directed, binding).** reviewer-deep is the
-> mandatory plan gate (T01) and final gate (T03); reviewer-adversarial is
-> conditional (escalation trigger only). `critique_required: false`
-> substituted by this mandatory reviewer-deep plan review. Mirrors
-> PR #221/#222/#223. Documentation-relay PR; no new methodology.
+> mandatory gate (T01 plan + T03 final); reviewer-adversarial is
+> conditional (escalation triggers in plan §"Reviewer routing").
+> `critique_required: false` substituted by this mandatory reviewer-deep
+> plan review (user Q5). Mirrors PR #221–#224.
 
 **Plan under review:** `planning/current_plan.md`
-**Branch:** `docs/thesis-ch1-ch4-supervisor-handoff-package` | **PR:** #224 (draft)
-**Base:** `855bdbb684862d50859d39e5742fac78b6cfad89` (master, PR #223 merged) | **Bootstrap:** `44c46ec3`
+**Branch:** `docs/thesis-bibliography-canonicalization` | **PR:** #225 (draft)
+**Base:** `e095025a76660873c3bbff2c83377044ed095283` (master, PR #224 merged, v3.59.0) | **Bootstrap:** `1981e422`
 
 ## Invariants & temporal discipline
 
-Documentation-relay PR: zero data/feature/model/notebook/artifact touch;
-the deliverable relays flag counts + PR identifiers, not data-derived
-values. Scientific invariants #1–#9 **n-a** (`invariants_touched: []`
-accurate). Temporal-discipline assessment: **n-a** (Phase-03+
-escalation rule does not apply — no scientific code).
+Bibliographic-metadata canonicalization: zero dataset/feature/model/
+notebook/artifact touch. Scientific invariants #1–#9 **n-a**
+(`invariants_touched: []` accurate). Temporal-discipline assessment:
+**n-a** (no `.shift()`/window/normalization; no prediction at any T).
 
-## Round 1 — reviewer-deep plan review (2026-05-18): PASS
+## Round 1 — reviewer-deep plan gate (2026-05-18): PASS-WITH-NITS
 
-No blockers. Independently verified:
+No blockers. Plan structurally sound for a highest-sensitivity bib-only
+Cat-F PR; scope triple-bound against any `thesis/chapters/**` or
+`thesis/reviews_and_others/**` edit; `Wu2017` deletion grep-gated and
+the SOLE key removal (`@` 107→106); `Dimitriadis2024`/`Bialecki2023`
+quadruple-gated verify-first (no sub-80 / no identity-open overwrite);
+`Herbrich2007` framed as key/style drift NOT a year-error (2007
+defensible — MSR "NeurIPS 20, January 2007"); planning-drift RC 0;
+PR #223 parenthetical-heading defect not repeated; prior #221–#224
+reviewer-deep gates all PASSED.
 
-- **§6 Polish note byte-identical to the user's supplied verbatim text**
-  (zero-line `diff`; identical MD5 `88ad09adef3daf8860d1b88fb36ef8e2`;
-  2239 bytes). No completed-experiment/results claim — the only model
-  sentence is the explicit negation "Żaden model nie został jeszcze
-  wytrenowany"; Ch5–7 not represented as ready.
-- 8-section fidelity to the audit: §1 uses `ready_to_send_with_disclaimer`
-  and correctly **supersedes** the pre-#221 audit §10 "send 1/3/4, hold
-  Chapter 2" framing (M-1 merged #221 → all four chapters sendable
-  together); §4 maps M-1→#221 / M-2→#222 / M-3→#223 with accurate
-  issue/fix/impact (independently confirmed via `gh pr view` + `git log`
-  + CHANGELOG `[3.56.0]`/`[3.57.0]`/`[3.58.0]`); §5 totals reconcile
-  (Ch1=8/Ch2=18/Ch3=14+1/Ch4=34+1=76 Pass-2 — grep-confirmed on the
-  chapter files; 41 ok_to_send_with_flag / 9 manual_full_text_required /
-  14 future_phase_dependent = audit §1 count line).
-- Ch5–7 confirmed BLOCKED/skeleton (Ch5 77L all BLOCKED; Ch6 §6.1–4
-  BLOCKED + §6.5 SKELETON; Ch7 §7.1/2 BLOCKED) — §1/§3/§8 correctly say
-  "do not send as substantive".
-- §2/§7 optional-only attachments (user OQ-2) — stricter than the audit
-  §10 recommendation, not contradictory.
-- Scope structurally bound (triple-layered: per-task File scope + File
-  Manifest "Explicitly NOT modified" + Gate `git diff ⊆`); no path to a
-  `thesis/chapters/**` / `references.bib` / `WRITING_STATUS.md` /
-  `REVIEW_QUEUE.md` / other-`pass2_evidence/**` edit.
-- planning-drift RC 0; `## Literature context` heading EXACT (no
-  parenthetical — the PR #223 first-bootstrap regression is not
-  repeated); version 3.58.0→3.59.0 (docs⇒minor) correct; INDEX archives
-  #223 + sets this branch active.
+**Independent decisive finding — `Dimitriadis2024` identity CLOSED at
+≥80 (the T02.3 deliverable, performed early at the gate):** DOI
+`10.1016/j.ijforecast.2023.09.007` is the **same "triptych" work** as
+the repo's `Dimitriadis2024` (identical title; arXiv:2301.10803 is its
+preprint), published *Int. J. Forecasting* **40(3):1101–1122 with
+Peter Vogel added as 4th author**. The repo bib's `40(1):189–210,
+3 authors, no DOI` is the early/incorrect metadata. Four concurring
+sources (Crossref + RePEc + ScienceDirect + arXiv). This **validates**
+(does not contradict) the plan's identity-first safety design and
+**closes** the user's Q3 collision: it stays the triptych record →
+per the user's Q3 step (2) it is corrected to the published version
+(40(3):1101–1122 + DOI + Vogel 4th author) at T03. No new key; no
+overwrite of a different work.
 
-**Non-blocking awareness (no action):** the audit's "+18 Ch4
-`[POP:]`/`[PRE-canonical_slot]` annotations" is a finding-level count; a
-naive `grep -o` on `04_data_and_methodology.md` returns ~20 substring
-hits (chapter prose describes the tag vocabulary inline). The plan
-relays the authoritative audit figure with the explicit "by category,
-NOT line-by-line" qualifier; the T02 verification battery does NOT grep
-POP counts, so no false gate. Flagged only so the T03 reviewer is not
-surprised by a naive grep.
+**Independent finding — `Bialecki2023` author concern does NOT
+reproduce:** Crossref + PMC (PMC10491788) + arXiv (2207.03428) all
+return the identical 8-author ordered list already at
+`thesis/references.bib:5-13` → `status=ok`, `action=keep/verify`, NO
+bib edit. The plan handles this correctly (fix only if ≥80 *as a
+change*); no spurious "fix" is to be manufactured.
+
+reviewer-adversarial NOT triggered (no §"Reviewer routing" trigger
+fired). Adversarial cap: 1 of max 3 rounds used.
+
+## Binding conditions to fold into the T02 report (reviewer-deep nits 1–4)
+
+1. Per-key table records the **counted** `Wu2017MSC` citation total
+   (8 lines on disk: appendix 3 + Ch2 2 + Ch3 1 + Ch4 2), not the
+   plan's narrative "7×". (Safety gate keys on the exact *zero*
+   `[Wu2017]` count — unaffected.)
+2. The "Stale prior-audit statements superseded" section states the
+   **closed** `Dimitriadis2024` identity: DOI
+   `10.1016/j.ijforecast.2023.09.007` = the same triptych paper,
+   published 40(3):1101–1122 with Peter Vogel as 4th author
+   (arXiv:2301.10803 preprint); supersede the prior
+   `literature_verification_log.md:78` 40(1):189–210/no-DOI statement.
+   Phrase it as CLOSED, not an open "may be a different paper".
+3. The `Bialecki2023` report row records the official author list
+   matches the current bib exactly → `status=ok`, no bib edit.
+4. The `Elo1978` report row + schema-specifics call out the
+   "Chessplayers" (one word, current bib `references.bib:129`) vs
+   "Chess Players" (two words, plan/appendix) title-form decision with
+   its confidence — not a silent normalization.
 
 ## Gate status
 
-**T01 plan gate: PASS** (0 blockers; one non-blocking awareness note).
-Adversarial cap: 1 of max 3 rounds used. reviewer-adversarial NOT
-triggered (escalation trigger a–e not met). Cleared to proceed to T02.
+**T01 plan gate: PASS-WITH-NITS** (0 blockers; 4 nits = binding T02
+report-content conditions, none gates execution). reviewer-adversarial
+NOT triggered. Cleared to proceed to T02 → T05. The `Dimitriadis2024`
+identity is closed ≥80 to the same triptych work → T03 applies the
+published-version correction (40(3):1101–1122 + DOI + Vogel) per the
+user's Q3 step (2); `Bialecki2023` = no edit (matches).
 
-## Round 2 — reviewer-deep T03 final check (2026-05-18): PASS
+## Round 2 — reviewer-deep T03 final gate (2026-05-18): APPROVE WITH CONDITIONS
 
-No blockers; no escalation. Verified on the committed deliverable
-(`thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`, HEAD
-`f6301d85`):
+No blockers; no escalation (no §"Reviewer routing" trigger fired).
+Independently verified on the full applied diff (base `e095025a` →
+`2ecf5d49`):
 
-- **§6 byte-fidelity diff EMPTY** (deliverable `## 6.` blockquote vs
-  plan `### §6` — zero output; T01 already MD5-verified plan §6 == the
-  user's supplied verbatim text ⇒ deliverable §6 == user text). All 5
-  verbatim markers present (`Szanowny Panie Profesorze`; `przy których
-  opinia Pana Profesora będzie dla mnie szczególnie cenna`; `Żaden model
-  nie został jeszcze wytrenowany`; `Z wyrazami szacunku`; `Tomasz
-  Pionka`).
-- Structure: H1 + preamble + EXACTLY 8 `## N.` sections in order, no 9th
-  / no editorial addition; §1–§8 bodies + §4 table + §5 inventory
-  faithful to the plan's `## Deliverable content` (no summarize/reorder/
-  drop).
-- §4 PR mapping independently confirmed via `gh pr view` + CHANGELOG:
-  M-1↔#221, M-2↔#222, M-3↔#223.
-- Honesty: overclaim grep 0 hits; §1 uses `ready_to_send_with_disclaimer`
-  and correctly supersedes the stale pre-#221 audit §10 "hold Chapter 2"
-  framing (evidence-backed — #221 merged; audit L78/L82 confirm M-1 was
-  the sole Ch2 gate); §1/§3/§8 mark Ch5–7 BLOCKED/skeleton, not ready;
-  §6's only model sentence is the negation.
-- §5 totals byte-match audit §5 (76 Pass-2 + 18 Ch4 annotations; 41/9/14);
-  §2/§7 optional-only attachments (no clean copy / no export).
-- Scope contained: diff ⊆ {planning/current_plan.md, planning/INDEX.md,
-  planning/current_plan.critique.md, the new handoff file}; zero
-  `thesis/chapters/**` / `references.bib` / `WRITING_STATUS.md` /
-  `REVIEW_QUEUE.md` / other `pass2_evidence/**`; `f6301d85` = 1 file,
-  +68/-0; no flag removed; no export. No mechanical nits.
+- **Scope clean:** diff = exactly {planning/current_plan.md,
+  planning/INDEX.md, planning/current_plan.critique.md,
+  bibliography_cleanup_report.md, references.bib}; ZERO
+  `thesis/chapters/**`, ZERO `thesis/reviews_and_others/**`, ZERO other
+  forbidden paths.
+- **references.bib integrity:** `@` count = 106 (107 − Wu2017);
+  brace-balanced 946/946; `Wu2017` removed / `Wu2017MSC` intact;
+  `@book{Elo1978,` two-word "Chess Players, Past and Present" + address,
+  key unchanged; `@inproceedings{Buro2003,` pages 1534--1535 + url
+  preserved, key unchanged.
+- **Wu2017 deletion orphans NO citation:** every `[Wu2017]` under
+  `thesis/` is documentary inside this PR's own audit report
+  (`bibliography_cleanup_report.md` L176/L203/L488); ZERO in
+  `thesis/chapters/**`, `thesis/reviews_and_others/**`,
+  `thesis/references.bib`.
+- **Dimitriadis2024 identity-safe:** key + title verbatim; 40(3):
+  1101--1122 + DOI + 4th author Vogel; only one Dimitriadis
+  declaration — no new key, no work substitution (corrected in place
+  to its published triptych version per user Q3 step 2).
+- **C5/C6 byte-unchanged:** `Bialecki2023` + `Glickman1995`
+  byte-identical base→HEAD (no manufactured fix).
+- 4 T01 nits folded; `Herbrich2007` framed as key/style drift NOT a
+  year error throughout; report↔bib lineage closure (Applied-corrections
+  section mirrors final bib state); planning-drift RC 0; version bump
+  correctly deferred to T04.
+
+**Non-gating condition (RESOLVED at T03 close):** reviewer-deep flagged
+one inline-code DOI token in the report's C4 "Applied corrections"
+prose bullet (then ~L542) — technically outside a fence vs the strict
+"every DOI fenced" wording. **Fixed:** the C4 bullet was rephrased to
+"the IJF DOI added (the exact DOI string is listed only in the fenced
+Sources block below)"; re-verified — every `https?://|doi:|10.xxxx`
+token in the report now falls inside the fenced Sources block
+(L559–572) or the L209–215 fence; zero URL/DOI in prose. Condition
+discharged by edit (not deferred).
 
 ## Gate status (final)
 
-**T03 final gate: PASS** (0 blockers). Adversarial cap: 0 contested
-rounds (reviewer-adversarial NOT triggered — trigger conditions not met).
-The handoff package is **ready for the user's send decision**; per the
-plan + T05 the PR is **NOT merged** (merge awaits explicit user
-approval). Cleared to proceed to T04/T05.
+**T03 final gate: APPROVE / PASS** (0 blockers; the single non-gating
+URL-discipline condition resolved by a one-line in-scope report edit).
+reviewer-adversarial NOT triggered. Cleared to proceed to T04 (version
+bump) + T05 (PR ready, NO merge — awaits explicit user approval).

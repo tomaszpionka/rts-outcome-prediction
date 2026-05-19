@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-ch1-ch4-supervisor-handoff-package (2026-05-18) — Category F documentation-relay: capstone supervisor handoff package for Chapters 1–4 (consolidates merged audit chain #220→#221→#222→#223; what-to-send / not-send; retained-flag inventory; user-approved Polish cover note); no chapter prose / no references.bib edit (draft PR #224)
+- docs/thesis-bibliography-canonicalization (2026-05-18) — Category F bib-only: canonicalize references.bib (Wu2017 dedup gated; Elo1978→@book; Buro2003→@inproceedings; Bialecki2023 verify; Dimitriadis2024 identity-first verify) + bibliography_cleanup_report.md; chapters + reviews_and_others appendixes read-only; alias/key drift catalogued for a separate approved PR (draft PR #225)
 
 ## Archive
 
@@ -17,6 +17,7 @@
 | docs/thesis-esportsbench-version-harmonization | 2026-05-18 | F | Audit must-fix M-1: EsportsBench §2.5.5 v8.0/2025-12-31 → v9.0/2026-03-31/dostęp 2026-04-26 harmonisation to match Ch3 | current_plan.md | #221 (merged 2026-05-18 at master 93f02600) |
 | docs/thesis-ch1-footer-bib-consolidation | 2026-05-18 | F | Audit must-fix M-2: 7 Chapter-1 footer-only sources → references.bib (append-only) + Mangat2024 footer metadata fix | current_plan.md | #222 (merged 2026-05-18 at master adf93303) |
 | docs/thesis-aoestats-rowcount-scope-caveat | 2026-05-18 | F | Audit must-fix M-3 / TQ-05: §4.1.4 aoestats row-count 137=1+136 + on-disk-true [POP:]-scope caveat (ranked_ladder superseded in prose by 1v1_random_map/Tier-4) | current_plan.md | #223 (merged 2026-05-18 at master 855bdbb6) |
+| docs/thesis-ch1-ch4-supervisor-handoff-package | 2026-05-18 | F | Capstone Chapters 1–4 supervisor handoff package (relay of merged audit chain #220→#221→#222→#223; user-approved Polish cover note) | current_plan.md | #224 (merged 2026-05-18 at master e095025a) |
 
 ## Agent routing
 

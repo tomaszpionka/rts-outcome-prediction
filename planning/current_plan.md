@@ -1,381 +1,523 @@
 ---
-title: "Chapters 1–4 supervisor handoff package (capstone of merged audit chain #220→#221→#222→#223)"
+title: "Canonicalize references.bib + bibliography cleanup report"
 category: F
-branch: docs/thesis-ch1-ch4-supervisor-handoff-package
-base_ref: 855bdbb684862d50859d39e5742fac78b6cfad89
+branch: docs/thesis-bibliography-canonicalization
+base_ref: e095025a76660873c3bbff2c83377044ed095283
 date: 2026-05-18
-planner_model: claude-opus-4-7[1m] (planner-science)
+planner_model: claude-opus-4-7[1m] (planner-science) + user-directed amendments 2026-05-18
 dataset: null
 phase: null
 pipeline_section: null
 invariants_touched: []
 source_artifacts:
-  - thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md
-  - thesis/WRITING_STATUS.md
-  - thesis/chapters/REVIEW_QUEUE.md
+  - thesis/references.bib
   - thesis/chapters/01_introduction.md
-  - thesis/chapters/02_theoretical_background.md
-  - thesis/chapters/03_related_work.md
-  - thesis/chapters/04_data_and_methodology.md
-  - thesis/chapters/05_experiments_and_results.md
-  - thesis/chapters/06_discussion.md
-  - thesis/chapters/07_conclusions.md
-  - CHANGELOG.md
-  - .claude/author-style-brief-pl.md
+  - thesis/reviews_and_others/related_work_historical_rts_prediction.md
+  - thesis/reviews_and_others/related_work_rating_systems.md
+  - thesis/pass2_evidence/literature_verification_log.md
+  - thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md
 critique_required: false
 research_log_ref: null
 ---
 
-# Plan: Chapters 1–4 supervisor handoff package
+# Plan: Bibliography canonicalization — references.bib single-source + cleanup report
 
-> **User-directed reviewer deviation (binding).** Category-F
-> documentation-relay PR; no new methodology, no chapter prose edit;
-> consolidates the merged audit chain (#220 audit → #221 M-1 → #222 M-2
-> → #223 M-3, all on master). reviewer-deep is the mandatory gate (T01
-> plan + T03 final); reviewer-adversarial is conditional (escalation
-> trigger only). `critique_required: false` reflects "no mandatory
+> **User-directed reviewer deviation (binding, mirrors PR #221–#224).**
+> Category-F bibliography-hygiene PR on the highest-sensitivity thesis
+> file. reviewer-deep is the mandatory gate (T01 plan + T03 final);
+> reviewer-adversarial is conditional (escalation triggers in §"Reviewer
+> routing"). `critique_required: false` reflects "no mandatory
 > pre-execution adversarial critique", substituted by a mandatory
-> reviewer-deep plan review. Mirrors PR #221/#222/#223.
+> reviewer-deep plan review (user Q5 = reviewer-deep + adversarial
+> conditional).
 
-> **User decisions (2026-05-18, binding):** (1) the §6 Polish supervisor
-> note is the user's **verbatim amended text** reproduced in
-> §"Deliverable content" §6 — transcribe exactly, no edits. (2)
-> Attachments policy: default handoff = the four chapter Markdown files
-> only; `thesis/references.bib` + the PR #220 audit doc named as
-> OPTIONAL traceability attachments only; no clean copies, no flag
-> stripping, no PDF/DOCX export this PR.
+> **User decisions (2026-05-18, binding) — resolved Open Questions:**
+> - **Q1 = C (bib-only).** Corrections only in `thesis/references.bib`
+>   + the new report. `thesis/chapters/**` AND the
+>   `thesis/reviews_and_others/**` markdown appendixes are **read-only**
+>   this PR. The full `oldkey → canonical` alias-remap list is
+>   documented in the report as material for a SEPARATE, separately
+>   approved follow-up PR. ZERO chapter/appendix edits.
+> - **Mandatory-fix list amended to ADD `Bialecki2023`** — user states
+>   its author metadata does not match the official *Scientific Data*
+>   record; T02 web-verifies the author list; T03 fixes
+>   `references.bib` ONLY if confirmed at ≥80, else `action=verify`
+>   (no bib edit).
+> - **Q3 = `Dimitriadis2024` verify-first / identity-first (NOT the
+>   planner's earlier fields/full).** There is a record-identity
+>   collision: in this repo `Dimitriadis2024` denotes *"Evaluating
+>   probabilistic classifiers: The triptych"* (IJF 40(1):189–210),
+>   used consistently by `references.bib`, Chapter 3, the
+>   `rating_systems` appendix, and the prior verification log — NOT a
+>   paper about "calibration-loss dominance in comparative backtests".
+>   The Crossref DOI `10.1016/j.ijforecast.2023.09.007` →
+>   IJF 40(3):1101–1122 the planner found **may be a different
+>   Dimitriadis paper**. Procedure (binding): (1) resolve whether
+>   `Dimitriadis2024` stays the "triptych" record; (2) if yes, correct
+>   it to the published version of *that* (triptych) paper; (3) if the
+>   calibration-loss-dominance paper should also enter the bibliography,
+>   add it as a **NEW key**, never overwrite `Dimitriadis2024`;
+>   (4) **until the identity collision is closed at ≥80, set
+>   `action=verify` and make NO `references.bib` edit for this key.**
+> - **Q4 = report + separate PR (appendixes read-only this PR).** The
+>   report explicitly lists concrete appendix follow-up fixes for a
+>   separate approved PR. **`Herbrich2007` is NOT framed as a definite
+>   factual date correction** — it is canonical-key / normalization
+>   drift (appendix `Herbrich2007` vs central bib `Herbrich2006`); the
+>   year 2007 is bibliographically defensible (official Microsoft
+>   Research page lists the paper as "Advances in Neural Information
+>   Processing Systems 20 | January 2007"). The follow-up PR may
+>   normalize the appendix key/style, not assert a year error.
+> - **Q5 = reviewer-deep gate + adversarial conditional** (above).
 
 ## Scope
 
-Create ONE new file, `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`,
-plus planning/CHANGELOG/pyproject bookkeeping. It is a durable relay over
-the merged audit chain: what to send the supervisor, what NOT to send,
-how to describe the retained `[REVIEW]` flags honestly, and a
-ready-to-paste Polish cover note (user-approved verbatim). NO new
-methodology, NO chapter prose edit, NO `references.bib` edit, NO
-`[REVIEW]` flag removed, NO stripped/clean chapter copy, NO export. NOT
-writer-thesis. T02 is verbatim transcription of §"Deliverable content".
+Make `thesis/references.bib` the single canonical bibliographic source,
+within a strictly **bib-only** PR. Produce one new audit artifact
+`thesis/pass2_evidence/bibliography_cleanup_report.md` (full per-key
+table, live Crossref/publisher verification, the four user-named-pair
+true-state analysis, the alias-remap list, the manual-decision list,
+the bib↔markdown drift list, the schema-change specifics, a section
+marking stale prior-audit statements as superseded, and a candidate
+appendix-follow-up-PR list). Apply ONLY ≥80-confidence,
+identity-safe corrections to `references.bib`. ZERO edits to
+`thesis/chapters/**` and ZERO edits to `thesis/reviews_and_others/**`
+(read-only working materials, user scope #8 + Q1=C + Q4). No key
+rename except deleting the byte-identical uncited `Wu2017` duplicate
+(verified zero citation sites; re-gated by grep at execution). No
+merge until explicit user approval.
 
 ## Problem Statement
 
-The send / do-not-send decision is scattered across the audit doc
-(§3/§5/§7/§8/§9/§10/§11), `WRITING_STATUS.md` (PR #221/#222/#223
-appends), and CHANGELOG. No single artifact (a) states the decision,
-(b) lists exact files, (c) explains retained flags to the supervisor,
-(d) carries a post-#223 Polish note (the audit §10 draft is **pre-#221**
-and wrongly says "hold Chapter 2 for M-1"), (e) guards against
-representing the Chapters 5–7 skeletons as completed results. The handoff
-package controls the risk that the user, under time pressure, sends
-Ch5–7, strips the flags, or reuses the stale §10 note.
+`references.bib` (107 `@` entries, 1078 lines, master `e095025a`,
+v3.59.0) carries metadata errors, type mismatches, and one true
+intra-bib duplicate; the markdown appendixes carry a parallel,
+divergent bibliography that has drifted from the canonical bib. The
+user's brief named four "duplicate pairs", seven Crossref-verify keys,
+six manual-decision keys, and three schema changes — but on-disk
+verification (planner-science, this plan's evidence) shows several of
+those keys do not exist in `references.bib` (they are appendix-only
+aliases) and one named correction (`Dimitriadis2024`) carries a
+record-identity collision. The PR must canonicalize the bib
+**without** propagating any unverified or mis-identified record into
+the thesis's single source of truth, and **without** touching chapter
+prose or the working-material appendixes (consistent with the entire
+#220–#224 no-chapter-edit discipline).
 
 ## Assumptions & unknowns
 
-Verified at plan time: master `855bdbb6` clean, v3.58.0; M-1 #221 / M-2
-#222 / M-3 #223 all merged (WRITING_STATUS appends confirm; CHANGELOG
-`[3.56.0]`/`[3.57.0]`/`[3.58.0]`); audit §3 = all four chapters
-`ready_to_send_with_disclaimer`; flag ground-truth Ch1=8 / Ch2=18 /
-Ch3=14+1 / Ch4=34+1 (=76) + 18 Ch4 `[POP:]`/`[PRE-canonical_slot]`
-annotations; aggregate 41 ok_to_send_with_flag / 9
-manual_full_text_required / 14 future_phase_dependent; Ch5
-(05_experiments_and_results.md, 77 lines) / Ch6 (39) / Ch7 (29) are
-BLOCKED/skeleton (no model results). `thesis/WRITING_STATUS.md` and
-`thesis/chapters/REVIEW_QUEUE.md` are NOT in this PR's allowed files —
-read-only here. Unknowns resolved by user: OQ-1 (Polish note = user's
-verbatim amended text); OQ-2 (optional-only attachments). No `.py` in
-diff ⇒ no pytest gate.
+Verified at plan time (planner-science + parent probe):
+- Master `e095025a` clean; `references.bib` = 107 `@` / 1078 lines;
+  v3.59.0.
+- **One real intra-bib duplicate:** `Wu2017` ≡ `Wu2017MSC`
+  byte-identical; `Wu2017` cited **0×** under `thesis/`,
+  `Wu2017MSC` cited 7×. Falsifier: if execution grep finds any
+  `[Wu2017]` site, the deletion is blocked (gate).
+- **Three "pairs" are NOT bib merges:** `Baek2022`, `Porcpine2020`,
+  `Herbrich2007` are absent from `references.bib`; appendix-only
+  aliases of canonical bib keys (`BaekKim2022`, `Porcpine2020EloAoE`,
+  `Herbrich2006`); zero `thesis/chapters/` sites.
+- **`SC-Phi2`, `BT2025Survey` are not bibkeys.** `SC-Phi2` = user
+  label for `Khan2024SCPhi2` (present; Crossref-confirmed).
+  `BT2025Survey` = appendix-only grey-literature → manual decision.
+- **Unknown — `Dimitriadis2024` record identity:** the bib/Chapter-3
+  usage = "triptych" (IJF 40(1):189–210); whether the Crossref DOI
+  `10.1016/j.ijforecast.2023.09.007` (40(3):1101–1122, +Vogel) is the
+  SAME work or a DIFFERENT Dimitriadis paper is UNRESOLVED → T02
+  resolves identity-first; until closed at ≥80, NO bib edit
+  (`action=verify`).
+- **Unknown — `Bialecki2023` author list:** user asserts it does not
+  match the official *Scientific Data* record (DOI
+  `10.1038/s41597-023-02510-7`); planner's Crossref pass confirmed
+  venue/year only. T02 web-verifies the author list; fix only if ≥80.
+- **Unknown — `Glickman1995` primary source:** *American Chess
+  Journal* not DOI-indexed; T02 attempts ≤3 web formulations; if no
+  ≥80 source, leave `@unpublished` + `verify` (NO fabrication).
+- **Unknown — `Glickman2025` appendix second-author typo:** user
+  flags a typo in the `rating_systems` appendix's `Glickman2025`
+  entry; the central bib `Glickman2025` is Crossref-confirmed correct;
+  the appendix typo is catalogued (appendix read-only this PR).
 
 ## Literature context
 
-Not primary-source research; no new literature claim, citation, or
-methodology. The package SUMMARISES (does not re-derive) the audit's
-classification of the 9 `manual_full_text_required` items (EsportsBench
-Table 2 80,13% + Aligulac-row; Demsar2006 §-location; CetinTas2023 86% +
-NB-vs-DT; Khan2024SCPhi2 accuracy; Xie2020 R²-vs-accuracy; Minka2018TR
-Halo-5 68%/52%; §4.4.5 ICC CI-method `[UNVERIFIED]`; +3 candidate-author
-`[NEEDS CITATION]` items) and the 14 `future_phase_dependent` items, from
-audit §5/§8/§9. The §6 Polish note follows `.claude/author-style-brief-pl.md`
-(courteous first-person email register per its formal-email carve-out;
-ISO `YYYY-MM-DD`; no anglicyzmy branżowe) and is the user's verbatim
-amended text. The audit §10 bezosobowy draft is NOT reused verbatim
-(pre-#221 + wrong register for an email).
+Not primary-source research; bibliographic-metadata canonicalization.
+Quality rules (user-stated, binding): prefer Crossref → publisher page
+→ PubMed/PMC → official site; **if confidence < 80, do NOT auto-overwrite
+the record — `action=verify`**; in the report's prose, NO raw URLs
+outside fenced code blocks. Crossref/publisher verification performed
+at plan time (planner-science) — reused, not re-derived, except the
+two newly-flagged items (`Bialecki2023` author list; `Dimitriadis2024`
+identity) which T02 web-verifies fresh:
 
-## Deliverable content (verbatim source for T02 — transcribe, do not author)
+```
+https://api.crossref.org/works/10.3390/ai5040115                          -> Khan2024SCPhi2: AI 5(4):2338-2352, 2024 (matches bib; "SC-Phi2" = user label, NOT a bibkey)
+https://api.crossref.org/works/10.1007/s42979-022-01660-6                 -> Bahrololloomi2023: SN Comp Sci 4(3) art.238, 2023 (bib correct)
+https://api.crossref.org/works/10.1146/annurev-statistics-040722-061813   -> Glickman2025: Annu Rev Stat 12:259-282, 2025 (central bib correct; appendix copy has a 2nd-author typo — catalogued)
+https://api.crossref.org/works/10.1038/s41597-023-02510-7                 -> Bialecki2023: Scientific Data 10 art.600, 2023 (venue/year OK; AUTHOR list NOT yet confirmed -> T02 verifies vs official record)
+https://api.crossref.org/works/10.1016/j.ijforecast.2023.09.007           -> Dimitriadis2024 IDENTITY UNRESOLVED: this DOI's record vs the repo's "triptych" usage (IJF 40(1):189-210) -> T02 identity-first
+```
 
-File `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`:
-H1 `# Chapters 1–4 supervisor handoff package`, a 3–5 line provenance
-preamble (consolidates merged audit chain #220 audit / #221 M-1 / #222
-M-2 / #223 M-3, all on master `855bdbb6`, version pre-bump 3.58.0,
-2026-05-18; no new methodology, no chapter prose edit; authoritative
-source = `thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md`),
-then EXACTLY these 8 sections in order:
+`Mangat2024` (J. Gambling Studies 40(2):893–914, DOI
+`10.1007/s10899-023-10256-5`) and `Novak2025` (Frontiers Sports Act.
+Living 7:1636823, DOI `10.3389/fspor.2025.1636823`, first author Pál)
+were corrected & web-verified in PR #222 — reuse that evidence
+(`literature_verification_log.md` / the citation audit); re-confirm
+present-and-correct on master, expect NO change. `[OPINION]`: the
+highest-value safety property here is identity-before-overwrite — a
+mis-identified canonical-bib record is worse than a known-incomplete
+one; hence the verify-first defaults.
 
-### §1 — Executive decision
-- Chapters 1–4 may be sent **as a working draft**; use the exact phrase
-  `ready_to_send_with_disclaimer`.
-- All three must-fixes CLOSED on master: M-1 (#221), M-2 (#222), M-3
-  (#223). The audit §10 "send 1/3/4 now, hold Chapter 2 for M-1" framing
-  is **superseded** — with M-1 merged, Chapters 1, 2, 3, 4 are all
-  sendable together.
-- The "disclaimer": retained `[REVIEW:]`/`[NEEDS CITATION:]`/`[UNVERIFIED:]`
-  flags are deliberate Pass-2 / transparent draft markers, not unfinished
-  core methodology; several Ch4 flags are register questions for the
-  supervisor.
-- Chapters 5–7 NOT sent as substantive content: no Phase 03+ model
-  results; Ch5 all BLOCKED, Ch6 §6.1–§6.4 BLOCKED + §6.5 skeleton, Ch7
-  §7.1/§7.2 BLOCKED + §7.3 idea list. Sending them creates a false
-  expectation of completed experiments.
+## Report table design
 
-### §2 — What to send
-Default handoff = exactly these four files (flags retained, see §5):
-`thesis/chapters/01_introduction.md`,
-`thesis/chapters/02_theoretical_background.md`,
-`thesis/chapters/03_related_work.md`,
-`thesis/chapters/04_data_and_methodology.md`.
-**Optional traceability attachments — only if the supervisor asks (or the
-user wants evidence/bibliography support):** `thesis/references.bib`
-(consolidated after #222) and
-`thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md`
-(readiness reasoning + flag triage). Default handoff is the four chapter
-files alone.
+`thesis/pass2_evidence/bibliography_cleanup_report.md` carries one
+master table, columns EXACTLY:
 
-### §3 — What not to send yet
-`thesis/chapters/05_experiments_and_results.md` (all subsections BLOCKED —
-Phase 03/04/05 / AoE2 phases / both-games-complete);
-`thesis/chapters/06_discussion.md` (§6.1–§6.4 BLOCKED — Chapter 5; §6.5
-skeleton stub); `thesis/chapters/07_conclusions.md` (§7.1/§7.2 BLOCKED;
-§7.3 idea-comment). Rationale: blocked on Phase 03+ / AoE2 phases; no
-model trained; sending misrepresents status and creates a false
-expectation of completed results.
+```
+| key | source_file | entry_type | title | authors | year | venue | doi | url | status | relevance | confidence | note | action |
+```
 
-### §4 — Must-fix closure summary (verbatim table)
+- `confidence` ∈ 0–100. `action` ∈ `{keep, fix_metadata,
+  merge_into:<key>, schema_change:<type>, verify, manual_decision,
+  flag_bib_vs_md_drift}`. `status` ∈ `{ok, metadata_mismatch,
+  type_mismatch, intra_bib_dup, bib_md_alias_drift, appendix_only,
+  label_not_bibkey, identity_collision}`.
+- One row per `(key, source_file)`; 107 `references.bib` rows + the
+  markdown-extracted rows for every named/alias/flagged key. Executor
+  records the exact total in the report header (counted from the
+  extraction — NOT invented).
 
-| Must-fix | Issue | Fix | PR | Readiness impact |
-|---|---|---|---|---|
-| **M-1** | `02_theoretical_background.md` §2.5.5 cited EsportsBench `v8.0 / cutoff 2025-12-31` — stale; §3.2.4 + §3.5 already `v9.0 / 2026-03-31 / dostęp 2026-04-26`, so Ch2 self-contradicted Ch3 on a quantitative comparator (SC2 Aligulac 411 030-match / ~80% Glicko). | Single-locus prose harmonisation §2.5.5 → `v9.0, cutoff 2026-03-31, dostęp 2026-04-26`. No flag added/removed; no `references.bib` change. | **#221** | Ch2 `not_ready` → `ready_to_send_with_disclaimer`; removed the only cross-chapter self-contradiction (sole `fix_before_supervisor` flag). |
-| **M-2** | Ch1 §1.1 + footer: Shin1993/Forrest2005/Levitt2004/Mangat2024/Formosa2022/Novak2025/Balduzzi2018 cited but absent from `references.bib` (consolidation gap, NOT phantom); Mangat2024 footer `40(1),145-165`. | Append-only migration of 7 footer entries → `references.bib` (100→107), web-verified; Mangat2024 → `40(2),893-914` (PMID 37740076); Novak2025 first author → Pál. Prose body unchanged; no flag removed. | **#222** | Closes the central-bib consolidation gap; bib complete for typesetting. Line-11 transferability `[REVIEW]` hedge intentionally NOT closed. |
-| **M-3** | `04_data_and_methodology.md` §4.1.4 cited aoestats CSV as "136 wierszy"; file 137 lines; artifact carries `[POP:ranked_ladder]` in all 136 data rows but prose discipline is `[POP:1v1_random_map]`/Tier-4 (R02 + input contract 02_00). | Reword to `137 wierszy łącznie: 1 nagłówek + 136 wierszy danych` + on-disk-true caveat (artifact `[POP:ranked_ladder]` operationally superseded in prose by `[POP:1v1_random_map]`/Tier-4); the audit's own stale "0 tags" prescription corrected. Line-212 `[REVIEW]` retained; no `references.bib`/REVIEW_QUEUE change; no prose-body rewrite. | **#223** | M-3/TQ-05 resolved. With M-1+M-2, Chapters 1–4 `ready_to_send_with_disclaimer`; closes the only Ch4 numeric discrepancy; source-label discipline preserved. |
+The report additionally contains, transcribed/derived from this plan:
+the four-pair true-state table; the alias-remap list; the
+manual-decision list; the bib↔markdown drift list; the schema-change
+specifics; per-field Crossref diffs with confidence; a **"Stale
+prior-audit statements superseded"** section; a **"Candidate
+appendix follow-up PR"** section; a `data-analysis-lineage` Lineage
+header (assumption / measurement / sanity check / falsifier /
+downstream decision).
 
-### §5 — Retained review flags (by category, NOT line-by-line)
-Totals: Ch1 = 8 `[REVIEW:]`; Ch2 = 18 `[REVIEW:]`; Ch3 = 14 `[REVIEW:]`
-+ 1 `[NEEDS CITATION:]`; Ch4 = 34 `[REVIEW:]` + 1 `[UNVERIFIED:]`; total
-Pass-2 = 76; + 18 Ch4 `[POP:]`/`[PRE-canonical_slot]` annotations (scope
-discipline, not flags). Aggregate: 41 ok_to_send_with_flag / 9
-manual_full_text_required / 14 future_phase_dependent (the 3 must-fixes
-are now closed).
-- **Literature/source-verification (`ok_to_send_with_flag`, ~41):** the
-  flag text is itself the honest hedge (Ch1 §1.1 Shin1993/Forrest2005
-  transferability; Mangat2024 gambling-psych); grey-lit acceptability
-  (Ch2 §2.2.4/§2.5.4, Ch3 §3.4.4); DLC chronology (Ch2 §2.3.2); Zenodo
-  metadata (Ch4 §4.1.1.0). Safe with the flag visible.
-- **`manual_full_text_required` (9):** human PDF reads — EsportsBench
-  Table 2 80,13% + Aligulac-row; Demsar2006 §-location; CetinTas2023 86%
-  + NB-vs-DT; Khan2024SCPhi2 accuracy; Xie2020 R²-vs-accuracy;
-  Minka2018TR Halo-5 68%/52%; §4.4.5 ICC CI-method `[UNVERIFIED]`
-  (honest — `icc.json` does not name the CI method); + F-036
-  `[NEEDS CITATION]` library lookup. Precision items on already-cited
-  sources.
-- **`future_phase_dependent` (14):** RQ finalisation (Ch1 §1.3/§1.4);
-  method-set finalisation (Ch2 §2.1/§2.4 — candidates not decisions);
-  within/cross-game protocol (§4.4.4); artifact-internal distributions
-  (§4.1.x); feature-engineering deferrals (§4.4.6; tracker GATE-14A6
-  `narrowed`, 3 families correctly NOT promoted); §4.5 provisional
-  registry (`partial_coverage_v9_baseline`, Step NOT closed). Evidence
-  of boundary honesty.
-- **Intentionally-retained methodology caveats / annotations:** 18 Ch4
-  `[POP:]`/`[PRE-canonical_slot]` = correct source-label/population
-  discipline (tournament vs 1v1 Random Map undisclosed-queue vs mixed
-  ranked/quickplay), NOT fragments to fill. Ch4 Polish-idiom register
-  flags retained because the supervisor is the right person to answer
-  them.
-State clearly: stripping the flags before the supervisor is NOT
-recommended — they document verified-vs-to-be-confirmed; several Ch4
-flags are direct register questions; they are transparent draft markers,
-not unfinished core methodology.
+### Four user-named "pairs" — verified true state
 
-### §6 — Recommended Polish note to supervisor (USER-APPROVED VERBATIM — transcribe exactly)
+| user pair | true on-disk state | operation | canonical | alias | remap (report-only) |
+|---|---|---|---|---|---|
+| `Wu2017`+`Wu2017MSC` | both in bib, byte-identical; `Wu2017` cited 0×, `Wu2017MSC` 7× | **intra-bib dedup** (delete `Wu2017`, gated by zero-citation grep) | `Wu2017MSC` | `Wu2017` (deleted) | `Wu2017 → Wu2017MSC` |
+| `BaekKim2022`+`Baek2022` | `Baek2022` NOT in bib (appendix-only, `related_work_historical_rts_prediction.md`); same work; chapters cite `[BaekKim2022]` | bib↔md alias drift (report-only) | `BaekKim2022` | `Baek2022` (appendix) | `Baek2022 → BaekKim2022` |
+| `Porcpine2020EloAoE`+`Porcpine2020` | `Porcpine2020` NOT in bib (appendix-only, `related_work_rating_systems.md`); same work | bib↔md alias drift (report-only) | `Porcpine2020EloAoE` | `Porcpine2020` (appendix) | `Porcpine2020 → Porcpine2020EloAoE` |
+| `Herbrich2006`+`Herbrich2007` | `Herbrich2007` NOT in bib (appendix-only, year 2007); same TrueSkill NeurIPS-2006 paper; **2007 is defensible — MSR page: "NeurIPS 20, January 2007"** | bib↔md **key/style** drift (report-only; NOT a year-error claim) | `Herbrich2006` (bib) | `Herbrich2007` (appendix) | `Herbrich2007 → Herbrich2006` (key normalization for follow-up PR; NO assertion that 2007 is wrong) |
 
-> Temat: Praca magisterska — robocza wersja rozdziałów 1–4 do recenzji
->
-> Szanowny Panie Profesorze,
->
-> przesyłam do recenzji roboczą wersję czterech pierwszych rozdziałów pracy magisterskiej. Rozdziały te obejmują kolejno: wprowadzenie i sformułowanie problemu badawczego (rozdział 1), tło teoretyczne — gry strategiczne czasu rzeczywistego, metody klasyfikacji uczenia maszynowego i systemy oceny siły gracza (rozdział 2), przegląd prac pokrewnych — predykcję w sportach tradycyjnych, w StarCraft II, w innych grach esportowych oraz w Age of Empires II, wraz z identyfikacją luki badawczej (rozdział 3), a także opis danych i metodyki — pozyskanie i czyszczenie korpusów, rozpoznawanie tożsamości gracza, dyscyplinę temporalną, plan inżynierii cech oraz protokół ewaluacji (rozdział 4).
->
-> Rozdziały eksperymentalne stanowią kolejny etap pracy. Żaden model nie został jeszcze wytrenowany, dlatego rozdziały wynikowe pozostają na razie szkieletami i ich przekazanie mogłoby sugerować ukończone wyniki, których jeszcze nie ma. Praca na obecnym etapie nie formułuje żadnych twierdzeń o wynikach modelowania ani o porównaniu skuteczności metod.
->
-> W tekście pozostawiłem widoczne znaczniki [REVIEW: …], [NEEDS CITATION: …] oraz [UNVERIFIED: …]. Są to celowe znaczniki dalszej weryfikacji, a nie ukryte założenia: wskazują miejsca, w których dokładną wartość liczbową trzeba potwierdzić ręcznym odczytem pełnego tekstu źródła niedostępnego narzędziom automatycznym, rozstrzygnięcie zależy od etapu eksperymentalnego jeszcze nieukończonego albo potrzebna jest decyzja redakcyjna co do polskiej terminologii. Te ostatnie, szczególnie w rozdziale 4, traktuję jako pytania, przy których opinia Pana Profesora będzie dla mnie szczególnie cenna. Wszystkie krytyczne poprawki wskazane w wewnętrznym audycie przedwysyłkowym zostały już naniesione i domknięte.
->
-> Będę wdzięczny za uwagi przede wszystkim co do struktury pracy, doboru poziomu szczegółowości, zrozumiałości opisu metodyki oraz zakresu przyjętego tła teoretycznego i przeglądu literatury. Pozostaję do dyspozycji w sprawie dogodnego terminu omówienia uwag.
->
-> Z wyrazami szacunku,
-> Tomasz Pionka
+### Alias remap list (report deliverable; report-only this PR)
 
-### §7 — Suggested attachment/export options
-- Default: send the four chapter Markdown files directly (lowest
-  friction; preserves the visible `[REVIEW]` flags).
-- Optional traceability — only if the supervisor asks: include
-  `thesis/references.bib` (bibliography traceability after #222) and/or
-  `thesis/pass2_evidence/ch1_ch4_citation_literature_support_audit.md`
-  (readiness reasoning + flag triage).
-- PDF/DOCX export and any flag-stripped clean copy are deliberately a
-  separate later step (out of scope here; annotated version recommended
-  — Ch4 flags are register questions). This PR exports nothing and
-  creates no clean copy.
+```
+Wu2017       -> Wu2017MSC          (intra-bib true dup; Wu2017 deleted; 0 citation sites)
+Baek2022     -> BaekKim2022        (bib<->md drift; appendix-only alias; follow-up PR)
+Porcpine2020 -> Porcpine2020EloAoE (bib<->md drift; appendix-only alias; follow-up PR)
+Herbrich2007 -> Herbrich2006       (bib<->md key/style drift; year 2007 defensible; follow-up PR — key normalization, not a date correction)
+SC-Phi2      -> Khan2024SCPhi2     (user label, not a bibkey; documentation note only; no bib entry to remap)
+```
 
-### §8 — Remaining after supervisor handoff
-Phase 03 Splitting & Baselines (SC2) → unblocks Ch5 §5.1.1; optional
-retained-flag cleanup (the `manual_full_text_required` batch + F-036
-lookup — audit §11 PR-4, post-handoff); Phase 04/05 Model Training &
-Evaluation (SC2) → unblocks Ch5 §5.1.2–§5.1.4 + Ch6; AoE2 Phase 02 onward
-(later) → unblocks Ch5 §5.2/§5.3; Chapters 5–7 drafted only after the
-corresponding model results exist; §1.5 thesis outline finalised last.
+### Manual-decision list (`action=manual_decision`, NO auto-change)
+
+`BT2025Survey` (appendix-only grey-lit, future-dated arXiv id, no DOI,
+uncited in chapters); `Chen2020` (in bib; missing pages/DOI, ambiguous
+LNCS volume); `Lee2021Combat` (in bib, complete metadata; relevance
+scoping is a human call); `Lin2019NP` (in bib; truncated `and others`
+author list); `Vinyals2019` (in bib; truncated `and others` — Nature
+long author list, editorial); `Aligulac` (in bib `@misc` year 2026;
+grey-lit live site, editorial date convention); `Glickman1995`
+(possibly manual if no ≥80 primary source at T02).
+
+### bib↔markdown drift list (report deliverable)
+
+1. `Baek2022` (appendix) ↔ `BaekKim2022` (bib) — same work, divergent key.
+2. `Porcpine2020` (appendix) ↔ `Porcpine2020EloAoE` (bib) — same work.
+3. `Herbrich2007` (appendix, 2007) ↔ `Herbrich2006` (bib, 2006) —
+   same NeurIPS-2006 paper; **key/style + year-style drift, NOT a
+   factual error** (2007 defensible per MSR "NeurIPS 20, January 2007").
+4. `SC-Phi2` (user label) ↔ `Khan2024SCPhi2` (bib) — label vs bibkey;
+   chapters/log use the bibkey correctly.
+5. `BT2025Survey` — appendix-only, never in bib/chapters.
+6. `Glickman2025` — central bib correct (Crossref); the
+   `rating_systems` appendix copy has a **second-author typo**
+   (catalogued; appendix read-only this PR).
+7. The two appendixes carry standalone divergent BibTeX blocks
+   (working materials, scope #8) — catalogued, not reconciled.
+
+### Schema-change specifics (key-stable; zero citation blast radius)
+
+- **`Elo1978`**: `@article` (publisher Arco, no journal) → `@book`,
+  `publisher = {Arco Publishing}`, `address = {New York}`, canonical
+  two-word title "The Rating of Chess Players, Past and Present".
+  Confidence 95; key unchanged.
+- **`Buro2003`**: `@article` (journal=IJCAI) → `@inproceedings`,
+  `booktitle = {Proceedings of the 18th International Joint Conference
+  on Artificial Intelligence (IJCAI)}`, existing `pages = {1534--1535}`
+  + `url` preserved. Confidence 92 (WebSearch-confirmed IJCAI-03);
+  key unchanged.
+- **`Glickman1995`**: `@unpublished` (American Chess Journal v.3,
+  1995, pp.59–102). T02 ≤3 web formulations for a ≥80 primary source;
+  if found → `@article` enrich; if NOT → leave `@unpublished` +
+  `action=verify` (NO fabrication). Current-entry confidence 60.
+
+**Key-stability:** none of `Elo1978`/`Buro2003`/`Glickman1995` is
+renamed; the only deleted key is `Wu2017` (0 citation sites,
+re-gated). All `thesis/chapters/` citation sites stay valid.
 
 ## Execution Steps
 
-All repo-changing tasks commit AND push. Branch off `855bdbb6`. Draft PR
-at T00; kept draft until reviewer-deep passes at T03; **NO merge until
-explicit user approval**. `.github/tmp/commit.txt` + `git commit -F`;
-`.github/tmp/pr.txt` + `--body-file`; delete after; relative paths; no
-`.py` ⇒ no pytest gate.
+All repo-changing tasks commit AND push. Branch off `e095025a`.
+Draft PR at T00; kept draft until reviewer-deep PASS at T03; **NO
+merge until explicit user approval**. `.github/tmp/commit.txt` +
+`git commit -F`; `.github/tmp/pr.txt` + `--body-file`; delete after;
+relative paths; no `.py` in diff ⇒ no pytest gate.
 
-### T00 — Branch + full plan + INDEX archive #223 + draft PR
-**Objective:** bootstrap a planning-drift-complete Cat-F plan.
-**Instructions:** branch off `855bdbb6` (done); write this full plan to
-`planning/current_plan.md` (EXACT planning-drift section headings — no
-parenthetical on `## Literature context`); `planning/INDEX.md` — archive
-merged PR #223, set this branch active; commit via
-`.github/tmp/commit.txt` + `git commit -F`
-(`chore(pr): bootstrap draft PR for Chapters 1–4 supervisor handoff package`);
-push `-u`; `gh pr create --draft --title "docs(thesis): prepare Chapters 1–4 supervisor handoff package" --body-file .github/tmp/pr.txt`; delete `.github/tmp/*.txt`.
-**Verification:** `gh pr view --json isDraft` → true; planning-drift hook
-passes; `git show --stat HEAD` = only `planning/current_plan.md` +
-`planning/INDEX.md`.
+### T00 — Branch + full plan + INDEX archive #224 + draft PR
+**Objective:** PR-first scaffold; planning-drift-complete plan.
+**Instructions:** branch off `e095025a` (done); write this plan to
+`planning/current_plan.md` (EXACT planning-drift headings; `##
+Literature context` has NO parenthetical — the PR #223 defect);
+`planning/INDEX.md` — archive merged PR #224, set this branch active;
+commit via `.github/tmp/commit.txt` + `git commit -F`
+(`chore(pr): bootstrap draft PR for bibliography canonicalization`);
+push `-u`; `gh pr create --draft --title "docs(thesis): canonicalize references.bib + bibliography cleanup report" --body-file .github/tmp/pr.txt`; delete `.github/tmp/*.txt`.
+**Verification:** `gh pr view --json isDraft` → true; planning-drift
+hook passes; `git show --stat HEAD` = only `planning/current_plan.md`
++ `planning/INDEX.md`.
 **File scope:** `planning/current_plan.md`, `planning/INDEX.md`,
 `.github/tmp/*`. **Read scope:** —. **Push:** yes. **Executor:** parent.
 
-### T01 — reviewer-deep plan review (HALT on blocker)
-**Objective:** validate the plan before writing the deliverable.
-**Instructions:** Dispatch `@reviewer-deep` with `planning/current_plan.md`
-+ base_ref `855bdbb6`. Checks: 8 sections faithful to audit; §4 maps
-M-1→#221 / M-2→#222 / M-3→#223 with correct impacts; §6 == the user's
-verbatim amended Polish note AND contains no completed-experiment claim
-AND does not represent Ch5–7 as ready; §1 supersedes the pre-#221 audit
-§10 "hold Chapter 2" framing and uses `ready_to_send_with_disclaimer`;
-§5 totals reconcile (76 + 18); §2/§7 optional-only attachments; scope
-containment (no `thesis/chapters/**`, no `references.bib`, no
-`WRITING_STATUS.md`, no `REVIEW_QUEUE.md` in the plan's File Manifest).
-BLOCKER → HALT, surface to user, amend only on user direction,
-re-review. If reviewer output committed → `planning/current_plan.critique.md`,
-commit, push.
+### T01 — reviewer-deep plan gate (HALT on blocker)
+**Objective:** validate the amended plan before any extraction/edit.
+**Instructions:** Dispatch `@reviewer-deep` with
+`planning/current_plan.md` + base_ref `e095025a`. Checks:
+(a) Q1=C bib-only scope structurally bound — File Manifest/per-task
+File scope/Gate cannot produce a `thesis/chapters/**` or
+`thesis/reviews_and_others/**` edit; (b) `Dimitriadis2024` is
+identity-first — the plan does NOT bake the planner's earlier Crossref
+40(3) values into a bib edit; default is `action=verify`, no bib edit
+until the identity collision is closed at ≥80 in T02; (c)
+`Bialecki2023` is verify-then-fix-only-if-≥80 (no blind overwrite);
+(d) `Wu2017` deletion is gated on an execution `grep -rno "\[Wu2017\]"
+thesis/` == 0; (e) `Elo1978`/`Buro2003` schema changes preserve keys
+(zero blast radius); (f) `Glickman1995` no-fabrication verify;
+(g) `Herbrich2007` is framed as key/style drift, NOT a year-error
+correction (2007 defensible, MSR "NeurIPS 20, January 2007");
+(h) report content complete incl. stale-prior-audit-superseded section
++ Glickman2025 appendix typo + appendix-follow-up-PR list;
+(i) planning-drift exact headings; (j) URL-discipline rule present.
+HALT on methodology/source-scope/overclaim BLOCKER → surface to user,
+amend only on user direction, re-review. If reviewer output committed
+→ `planning/current_plan.critique.md`, commit, push.
 **Verification:** reviewer-deep verdict; 0 unresolved BLOCKERs.
 **File scope:** `planning/current_plan.critique.md`, `.github/tmp/*`.
-**Read scope:** `planning/current_plan.md`. **Push:** yes if critique committed.
+**Read scope:** `planning/current_plan.md`. **Push:** yes if committed.
 
-### T02 — Write the handoff package deliverable
-**Objective:** create the deliverable as a verbatim transcription of
-§"Deliverable content".
-**Instructions:** create
-`thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md` with H1 +
-preamble + the 8 sections from §"Deliverable content" (the §4 table
-verbatim; the §6 Polish note verbatim — every word/diacritic exactly as
-in §"Deliverable content" §6, which is the user-approved text). No new
-prose, no 9th section, no chapter/bib/WRITING_STATUS/REVIEW_QUEUE edit,
-no `[REVIEW]` flag removed, no stripped/clean copy, no export. Commit via
-`.github/tmp/commit.txt` + `git commit -F`
-(`docs(thesis): add Chapters 1–4 supervisor handoff package`); push.
-**Verification (battery):**
-- File exists; `grep -c '^## ' thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md` == 8; the 8 titles in order (1 Executive decision … 8 Remaining after supervisor handoff).
-- `grep -c 'Szanowny Panie Profesorze' …` ≥ 1 and `grep -c 'Z wyrazami szacunku' …` ≥ 1 and `grep -c 'przy których opinia Pana Profesora będzie dla mnie szczególnie cenna' …` ≥ 1 (user-verbatim markers present).
-- `grep -c 'ready_to_send_with_disclaimer' …` ≥ 1; §4 contains `#221`, `#222`, `#223`.
-- No completed-experiment claim: `grep -niE 'wytrenowano model|uzyskano wyniki|model osiąga|results show|trained model achiev' …` == 0 (the note's only model sentence is the negation "Żaden model nie został jeszcze wytrenowany").
-- `git diff --name-only 855bdbb6..HEAD` ⊆ {planning/current_plan.md, planning/INDEX.md, planning/current_plan.critique.md, thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md}; ZERO `thesis/chapters/`, ZERO `thesis/references.bib`, ZERO `thesis/WRITING_STATUS.md`, ZERO `thesis/chapters/REVIEW_QUEUE.md`.
-**File scope:** `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`,
-`.github/tmp/*`. **Read scope:** §"Deliverable content" of this plan.
-**Push:** yes. **Executor:** @executor on **Sonnet** (verbatim
-transcription + mechanical structure check; all content resolved in this
-plan; user-approved Polish note; data-analysis-lineage
-"mechanically-specified, decisions resolved" → Sonnet).
+### T02 — Generate bibliography_cleanup_report.md (audit-only; web-verify the two new items)
+**Objective:** the full audit artifact + fresh web verification of the
+two newly-flagged items; **NO `references.bib` edit** (audit-only;
+non-batching rule — canonical bib not mutated in the same step as the
+audit).
+**Instructions:**
+1. Extract every `@`-entry from `references.bib` (107) + every
+   markdown reference-list line / embedded BibTeX block from the 5
+   scoped files for every named/alias/flagged key.
+2. Build the 14-column master table; record the actual row count in
+   the report header (counted, not invented).
+3. **Web-verify (parent/Opus — read-only) the two new items:**
+   - `Bialecki2023`: fetch the official *Scientific Data* record (DOI
+     `10.1038/s41597-023-02510-7`) + Crossref; produce the full
+     verified author list; per-field diff vs the current bib `author`;
+     confidence. (≥80 → T03 fixes; <80 → `action=verify`, no edit.)
+   - `Dimitriadis2024` **identity-first**: determine whether the
+     repo's `Dimitriadis2024` ("triptych", IJF 40(1):189–210) and the
+     Crossref DOI `10.1016/j.ijforecast.2023.09.007`
+     (40(3):1101–1122, +Vogel) are the SAME work or two distinct
+     Dimitriadis papers. Record the resolution + evidence + a per-field
+     diff. If SAME and the published "triptych" metadata is confirmed
+     at ≥80 → record the exact corrective values for T03. If DISTINCT
+     → `Dimitriadis2024` stays the triptych record; the
+     calibration-loss-dominance paper is a separate-key candidate
+     (manual decision, NOT auto-added); `action=verify` for the bib
+     key. If unresolved at ≥80 → `action=verify`, NO bib edit.
+   - `Glickman1995`: ≤3 web formulations for a ≥80 primary source;
+     record found/not-found (no fabrication).
+   - `Glickman2025`: confirm the central bib is correct (Crossref) and
+     catalogue the `rating_systems` appendix second-author typo
+     (appendix read-only — catalogue only).
+4. Transcribe: the four-pair true-state table, the alias-remap list,
+   the manual-decision list, the bib↔markdown drift list, the
+   schema-change specifics, per-field Crossref diffs+confidence.
+5. Add a **"Stale prior-audit statements superseded"** section: e.g.
+   the prior `literature_verification_log.md` / citation audit
+   carried `Dimitriadis2024` = IJF 40(1):189–210 with no DOI — mark
+   it `under-verification / superseded-pending-identity-resolution`
+   (do NOT assert the new values are correct until identity closed);
+   any other stale statement found.
+6. Add a **"Candidate appendix follow-up PR"** section listing the
+   concrete (separate-PR) appendix normalizations: `Baek2022 →
+   BaekKim2022`, `Porcpine2020 → Porcpine2020EloAoE`, `Herbrich2007`
+   → align to canonical key/style (NOT a year correction — 2007
+   defensible), `Glickman2025` appendix second-author typo, optional
+   dedup of the embedded BibTeX blocks.
+7. URL discipline: every URL/DOI ONLY inside fenced code blocks;
+   verify `grep -nE 'https?://|doi:' the_report` — every hit inside a
+   fence.
+8. Lineage header (assumption / measurement / sanity check /
+   falsifier / downstream decision).
+9. Commit (`docs(thesis): add bibliography_cleanup_report.md
+   (audit-only)`); push. **Audit-only — assert in the report that
+   `references.bib` was NOT edited in this step.**
+**Verification:** report exists; 14 named columns; header row count =
+extraction; URL-discipline grep clean (all fenced); contains the
+four-pair table, remap list, manual-decision (≥6), drift list (≥6),
+schema specifics (3), per-field Crossref diffs, the
+stale-prior-audit-superseded section, the appendix-follow-up section;
+`git diff 855... ` ⊄ — `git diff --name-only e095025a..HEAD` shows NO
+`references.bib`, NO `thesis/chapters/**`, NO `thesis/reviews_and_others/**`.
+**File scope:** `thesis/pass2_evidence/bibliography_cleanup_report.md`,
+`.github/tmp/*`. **Read scope:** the 6 source files + WebFetch/WebSearch
+for the 2 new items. **Push:** yes. **Executor:** **parent/Opus** for
+the web-verification + identity adjudication (subtle source-semantics
+judgement per data-analysis-lineage); report transcription is
+mechanical.
 
-### T03 — reviewer-deep final check
-**Objective:** validate the committed deliverable.
-**Instructions:** Dispatch `@reviewer-deep` with `planning/current_plan.md`
-+ base_ref `855bdbb6`. Verify: 8 sections present + faithful to audit;
-§4 PR mapping correct; §6 is the user's verbatim amended Polish note (no
-drift), no completed-experiment claim, Ch5–7 not represented ready;
-§1 uses `ready_to_send_with_disclaimer` and supersedes the pre-#221
-framing; §5 totals reconcile; §2/§7 optional-only attachments; scope
-⊆ allowed set (zero `thesis/chapters/**`, zero `references.bib`, zero
-`WRITING_STATUS.md`, zero `REVIEW_QUEUE.md`); no flag removed, no
-stripped copy. Escalate to `@reviewer-adversarial` ONLY on an unresolved
-overclaim/methodology BLOCKER (trigger list in Reviewer routing);
-3-round symmetric cap. Mechanical in-scope fixes only; substantive
-residual → record + surface to user. Commit + push if changed.
-**Verification:** reviewer-deep APPROVE; 0 unresolved BLOCKERs.
-**File scope:** `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md`,
-`planning/current_plan.critique.md`, `.github/tmp/*`. **Read scope:**
-diff. **Push:** yes if changed.
+### T03 — Apply evidence-safe references.bib corrections + reviewer-deep final
+**Objective:** apply ONLY ≥80-confidence, identity-safe corrections;
+then reviewer-deep final gate on the full diff.
+**Instructions:**
+1. **Wu2017 dedup:** `grep -rno "\[Wu2017\]" thesis/` MUST be 0
+   (re-verify NOW — gate). If 0: delete the entire `@article{Wu2017,
+   …}` block (do not touch `Wu2017MSC`). If >0: HALT, report (do not
+   delete).
+2. **Elo1978 → @book**, **Buro2003 → @inproceedings**: replace per
+   §"Schema-change specifics" (keys unchanged).
+3. **Bialecki2023:** if T02 confirmed the official author list at
+   ≥80, correct the `author` field to the verified list; else leave
+   unchanged + ensure the report row is `action=verify` (NO edit).
+4. **Dimitriadis2024:** apply a bib edit **ONLY** if T02 closed the
+   identity collision at ≥80 AND resolved it to "triptych" with a
+   confirmed published correction for *that* paper. Default (identity
+   unresolved or distinct) = **NO `references.bib` edit**;
+   `action=verify` stands in the report; the calibration-loss paper,
+   if relevant, is recorded as a NEW-key manual-decision candidate
+   (not added here).
+5. **Glickman1995:** enrich to `@article` ONLY if T02 found a ≥80
+   primary source; else leave `@unpublished` + `verify`.
+6. Update the report "Applied" section (lineage closure): exactly
+   which rows were applied vs deferred-to-manual vs verify-unresolved
+   — report final state must mirror bib final state.
+7. Re-run key probe + `grep -c '^@'`: expected `@` = **106** (107 − 1
+   `Wu2017`) IF Wu2017 deleted (else 107); every other named key
+   count unchanged; `Wu2017` 0 / `Wu2017MSC` 1. BibTeX
+   well-formedness: `source .venv/bin/activate && poetry run python -c`
+   brace/parse check (read-only validation; no committed test).
+8. Commit (`docs(thesis): apply evidence-safe references.bib
+   corrections [bib-only]`); push.
+9. Dispatch **@reviewer-deep** final with `planning/current_plan.md`
+   + base_ref `e095025a` + full branch diff. Verifies: only manifest
+   files changed; ZERO `thesis/chapters/**` / `thesis/reviews_and_others/**`
+   edits; `references.bib` well-formed, expected `@` count, no
+   orphaned citation (`[Wu2017]` resolves to 0 sites and Wu2017MSC
+   intact); `Dimitriadis2024` NOT silently overwritten if identity
+   open; `Bialecki2023` only changed if ≥80-confirmed; report
+   "Applied" section matches bib final state; URL discipline; no
+   overclaim. Escalate to `@reviewer-adversarial` ONLY on an
+   unresolved overclaim/methodology BLOCKER (triggers in §"Reviewer
+   routing"); 3-round symmetric cap. Apply only mechanical in-scope
+   fixes; substantive residual → record + surface to user. Commit +
+   push if changed.
+**Verification:** `grep -c '^@' thesis/references.bib` = 106 (or 107
+if Wu2017 retained by gate); `grep -c '{Wu2017,'` = 0 & `{Wu2017MSC,'`
+= 1 (if deleted); `grep -rno "\[Wu2017\]" thesis/` = 0;
+`@book{Elo1978,` = 1; `@inproceedings{Buro2003,` = 1;
+`Dimitriadis2024` unchanged unless identity-closed; `git diff
+--name-only e095025a..HEAD` ⊆ manifest, zero chapters/appendix;
+reviewer-deep final PASS, 0 unresolved BLOCKERs.
+**File scope:** `thesis/references.bib`,
+`thesis/pass2_evidence/bibliography_cleanup_report.md` (Applied
+section), `planning/current_plan.critique.md`, `.github/tmp/*`.
+**Read scope:** report, plan, full diff. **Push:** yes. **Executor:**
+**@executor on Opus** for the bib edits (canonical-bib edit +
+identity/≥80 judgement = data-analysis-lineage "subtle source
+semantics" branch); reviewer-deep is the gate.
 
-### T04 — Version bump 3.58.0 → 3.59.0 + CHANGELOG
-**Objective:** release hygiene.
-**Instructions:** `pyproject.toml` `3.58.0` → `3.59.0`; CHANGELOG
-`[Unreleased]` → `## [3.59.0] — 2026-05-18 (PR #<n>: docs/thesis-ch1-ch4-supervisor-handoff-package)`
-with `### Added` (Chapters 1–4 supervisor handoff package consolidating
-the merged audit chain #220→#221→#222→#223; relay/assembly only — no
-chapter prose / no `references.bib` edit; default handoff = four chapter
-files, optional-only traceability attachments; user-approved Polish
-cover note; M-1/M-2/M-3 all closed → Chapters 1–4
-`ready_to_send_with_disclaimer`); fresh empty `[Unreleased]` with 4
-headers; `[3.58.0]` (PR #223) untouched. `<n>` from
-`gh pr view --json number`. Commit `chore(release): bump version to 3.59.0`;
-push.
-**Verification:** `pyproject.toml`=3.59.0; CHANGELOG `[Unreleased]` empty
-4 headers; one `### Added` under `[3.59.0]`; `[3.58.0]` untouched.
+### T04 — Version bump 3.59.0 → 3.60.0 + CHANGELOG
+**Objective:** repo-policy bookkeeping (`docs/` ⇒ minor).
+**Instructions:** `pyproject.toml` `3.59.0` → `3.60.0`; CHANGELOG
+`[Unreleased]` → `## [3.60.0] — 2026-05-18 (PR #<n>:
+docs/thesis-bibliography-canonicalization)` with `### Added` (the
+report) + `### Fixed`/`### Changed` describing the ACTUAL applied
+corrections (Wu2017 dedup if grep-clean; Elo1978/Buro2003 schema;
+Bialecki2023 author only if ≥80-confirmed; Dimitriadis2024
+identity-first → verify-only if collision open, no bib edit) + a note
+that bib↔markdown alias drift (Baek2022/Porcpine2020/Herbrich2007 —
+key/style, 2007 defensible) is catalogued for a separate approved PR;
+no chapter/appendix edit; fresh empty `[Unreleased]` 4 headers;
+`[3.59.0]` untouched. `<n>` from `gh pr view --json number`. Commit
+`chore(release): bump version to 3.60.0`; push.
+**Verification:** `pyproject.toml`=3.60.0; CHANGELOG `[Unreleased]`
+empty 4 headers; `[3.60.0]` entry; `[3.59.0]` untouched.
 **File scope:** `pyproject.toml`, `CHANGELOG.md`, `.github/tmp/*`.
 **Read scope:** —. **Push:** yes. **Executor:** @executor Sonnet.
 
 ### T05 — PR body refresh + mark ready (NO merge until user approval)
-**Objective:** finalize the PR for review WITHOUT merging.
-**Instructions:** reconcile PR-number placeholder in `planning/INDEX.md`
-active line + CHANGELOG `[3.59.0]` header; refresh `.github/tmp/pr.txt`
-per `.github/pull_request_template.md` (Summary: handoff package; what
-to send / not send; M-1/M-2/M-3 closed; Polish note user-approved;
-optional-only attachments; Test plan: 8-section + Polish-marker grep
-battery + scope-containment + reviewer-deep PASS + v3.59.0);
-`gh pr edit --body-file`; `gh pr ready` only after T03 APPROVE.
-**Do NOT `gh pr merge` — merge awaits explicit user approval.** Delete
-`.github/tmp/*.txt`; produce final report.
-**Verification:** `gh pr view --json isDraft` → false; `state` OPEN, NOT
-merged. **File scope:** `planning/INDEX.md`, `CHANGELOG.md`,
+**Objective:** finalize for review without merging; conditional
+stale-critique purge.
+**Instructions:** reconcile PR-number placeholder in
+`planning/INDEX.md` active line + CHANGELOG `[3.60.0]` header.
+**Conditional stale-critique purge:** delete
+`planning/current_plan.critique_resolution.md` (a long-merged-plan
+residual) ONLY with reviewer-deep concurrence at T03 — if concurred,
+add to the File Manifest and delete here; else leave. Refresh
+`.github/tmp/pr.txt` per `.github/pull_request_template.md` (Summary:
+Q1=C bib-only; what was actually corrected vs verify-deferred — esp.
+`Dimitriadis2024` identity-first verify-only and `Bialecki2023`
+conditional; report added; alias-drift catalogued for separate PR;
+chapters/appendixes read-only; Test plan: report 14-col + URL
+discipline + `@` count + zero-chapter/appendix diff + reviewer-deep
+PASS T01+T03 + v3.60.0). `gh pr edit --body-file`; `gh pr ready` only
+after T03 reviewer-deep PASS. **Do NOT `gh pr merge` — merge awaits
+explicit user approval.** Delete `.github/tmp/*.txt`; produce final
+report.
+**Verification:** `gh pr view --json isDraft` → false; `state` OPEN,
+NOT merged. **File scope:** `planning/INDEX.md`, `CHANGELOG.md`,
+`planning/current_plan.critique_resolution.md` (conditional delete),
 `.github/tmp/*`. **Read scope:** —. **Push:** yes. **Executor:** parent.
 
 ## Reviewer routing
 
-- **T01 / T03:** `@reviewer-deep` — mandatory.
-- **`@reviewer-adversarial` escalation trigger (precise):** ONLY IF
-  reviewer-deep raises an unresolved overclaim/methodology BLOCKER —
-  (a) §1 or §6 claims completed experiments/results; (b) Ch5–7
-  represented as ready/substantive; (c) the §4 table misattributes a PR
-  (M-1/M-2/M-3 ↔ #221/#222/#223); (d) a scope breach (any
-  `thesis/chapters/**` or `thesis/references.bib` edit in the diff);
-  (e) §6 deviates from the user's verbatim approved text. Else NOT
-  invoked (documentation-relay PR, no new methodology).
+- **T01 (plan) + T03 (final): reviewer-deep — mandatory.** Mirrors
+  PR #222 (references.bib, reviewer-deep gated) + the #220–#224 chain.
+  `critique_required: false` with the user-directed-deviation note.
+- **reviewer-adversarial escalation trigger (any one → adversarial for
+  that gate):** (1) reviewer-deep raises a methodology/overclaim
+  BLOCKER unresolved in ≤3 rounds; (2) a `references.bib` edit is
+  proposed for `Dimitriadis2024` while the identity collision is NOT
+  closed at ≥80 (identity-overwrite = overclaim); (3) a `Bialecki2023`
+  author overwrite is proposed below ≥80 confidence; (4) any
+  `thesis/chapters/**` or `thesis/reviews_and_others/**` edit appears
+  in the diff (scope breach — Q1=C forbids it); (5) the report frames
+  `Herbrich2007` as a definite factual year error rather than
+  key/style drift. Otherwise NOT invoked.
 - **3-round symmetric cap** (execution-side too); unresolved after
-  round 3 → recorded residual + surfaced to user, not silently expanded.
+  round 3 → halt + surface to user; do not loop.
 
 ## Repo-policy resolutions
 
-1. **Version bump REQUIRED, minor:** `docs/` ⇒ minor; 3.58.0 → 3.59.0 (T04).
-2. **No `WRITING_STATUS.md` change** — NOT in allowed files; the
-   #221/#222/#223 appends already record readiness. **No
-   `REVIEW_QUEUE.md` change** — `thesis/chapters/**` forbidden; flag
-   inventory summarised from the audit, not edited.
-3. **planning/INDEX.md (T00):** archive merged PR #223, set this branch
-   active.
-4. **Stale prior critique-file purge OUT of scope** (residual); no
-   pre-existing `planning/*.critique.md` deleted/rewritten;
-   `planning/current_plan.critique.md` touched only if a reviewer output
-   is committed.
+1. **Version bump:** `docs/` ⇒ minor; 3.59.0 → 3.60.0 (T04).
+2. **Markdown appendixes + chapters read-only (Q1=C, Q4, scope #8):**
+   `thesis/reviews_and_others/**` and `thesis/chapters/**` are NEVER
+   edited this PR; drift catalogued + follow-up-PR candidates listed
+   in the report only.
+3. **planning/INDEX.md (T00):** archive merged PR #224, set this
+   branch active.
+4. **Stale-critique residual:** `planning/current_plan.critique.md`
+   is overwritten in T01 by this PR's reviewer-deep output.
+   `planning/current_plan.critique_resolution.md` (long-merged-plan
+   residual) → T05 conditional delete ONLY with reviewer-deep
+   concurrence.
 5. Commit/PR conventions: `.github/tmp/commit.txt` + `git commit -F`;
-   `.github/tmp/pr.txt` + `--body-file`; delete after; relative paths.
+   `.github/tmp/pr.txt` + `--body-file`; delete after; relative paths;
+   no `.py` ⇒ no pytest gate; the T03 bibtex brace check is a
+   read-only `poetry run python -c` validation (no committed test).
 
 ## File Manifest
 
@@ -383,69 +525,89 @@ merged. **File scope:** `planning/INDEX.md`, `CHANGELOG.md`,
 |------|--------|------|
 | `planning/current_plan.md` | Rewrite | T00 |
 | `planning/INDEX.md` | Update | T00, T05 |
-| `planning/current_plan.critique.md` | Create (conditional) | T01 / T03 |
-| `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md` | Create | T02 |
+| `planning/current_plan.critique.md` | Create/overwrite (reviewer-deep provenance) | T01, T03 |
+| `thesis/pass2_evidence/bibliography_cleanup_report.md` | Create + Applied-section update | T02, T03 |
+| `thesis/references.bib` | Update (Wu2017 delete gated; Elo1978→@book; Buro2003→@inproceedings; Bialecki2023 author IF ≥80; Dimitriadis2024 ONLY IF identity-closed ≥80; Glickman1995 enrich IF ≥80) | T03 |
 | `CHANGELOG.md` | Update | T04 |
 | `pyproject.toml` | Update | T04 |
-| `.github/tmp/commit.txt`, `.github/tmp/pr.txt` | Create then Delete (ephemeral) | T00/T02/T04/T05 |
+| `planning/current_plan.critique_resolution.md` | Delete (CONDITIONAL on reviewer-deep concurrence) | T05 |
+| `.github/tmp/commit.txt`, `.github/tmp/pr.txt` | Create then Delete (ephemeral) | T00/T02/T03/T04/T05 |
 
-Explicitly NOT modified: any `thesis/chapters/**` (all 7 chapter files +
-`REVIEW_QUEUE.md`); `thesis/references.bib`; `thesis/WRITING_STATUS.md`;
-any other `thesis/pass2_evidence/**` file; dataset artifacts; notebooks;
-specs; ROADMAPs; status YAMLs; research logs; code; raw data;
+Explicitly NOT modified: `thesis/chapters/**` (all chapter prose +
+`REVIEW_QUEUE.md`); `thesis/reviews_and_others/**` (working-material
+appendixes); `thesis/WRITING_STATUS.md`; other `thesis/pass2_evidence/**`;
+datasets; notebooks; specs; ROADMAPs; status YAMLs; code; raw data;
 `docs/TAXONOMY.md`; `.claude/**`.
 
 ## Gate Condition
 
-1. `thesis/pass2_evidence/ch1_ch4_supervisor_handoff_package.md` exists;
-   H1 + exactly the 8 specified sections in order.
-2. §6 == the user's verbatim amended Polish note (markers present:
-   `Szanowny Panie Profesorze`, `przy których opinia Pana Profesora
-   będzie dla mnie szczególnie cenna`, `Z wyrazami szacunku`,
-   `Tomasz Pionka`); no completed-experiment claim; Ch5–7 not
-   represented as ready.
-3. §4 maps M-1→#221, M-2→#222, M-3→#223 with the specified impacts; §1
-   uses `ready_to_send_with_disclaimer` and supersedes the pre-#221
-   "hold Chapter 2" framing.
-4. §5 totals reconcile (Ch1=8 / Ch2=18 / Ch3=14+1 / Ch4=34+1 = 76; + 18
-   Ch4 annotations), by category not line-by-line; §2/§7 = optional-only
-   attachments policy.
-5. Scope containment: `git diff --name-only 855bdbb6..HEAD` ⊆ File
-   Manifest; ZERO `thesis/chapters/**`, ZERO `thesis/references.bib`,
-   ZERO `thesis/WRITING_STATUS.md`, ZERO `thesis/chapters/REVIEW_QUEUE.md`,
-   ZERO other `pass2_evidence/**`; no flag removed; no stripped copy; no
-   export.
-6. Version 3.59.0; CHANGELOG `[3.59.0]` `### Added`; fresh empty
-   `[Unreleased]`; `[3.58.0]` untouched.
-7. reviewer-deep APPROVE at T01 and T03; reviewer-adversarial only if its
-   trigger fired then resolved; 3-round cap respected.
-8. `planning/INDEX.md`: PR #223 archived, this branch active, PR-number
-   reconciled. PR ready (`isDraft` false), **NOT merged** (merge awaits
-   explicit user approval); temp files deleted.
+1. `bibliography_cleanup_report.md` exists with the 14 named columns,
+   header row count from extraction, four-pair table, alias-remap
+   list, manual-decision list (≥6), bib↔md drift list (≥6), schema
+   specifics (3), per-field Crossref diffs, stale-prior-audit-superseded
+   section, appendix-follow-up-PR section, Lineage header; URL
+   discipline (every link fenced).
+2. `references.bib`: `Wu2017` deleted IFF `grep -rno "\[Wu2017\]"
+   thesis/` == 0 (else retained, reported); `@book{Elo1978,`=1;
+   `@inproceedings{Buro2003,`=1; `Dimitriadis2024` byte-unchanged
+   unless T02 closed identity at ≥80; `Bialecki2023` author changed
+   ONLY if ≥80-confirmed; `Glickman1995` enriched ONLY if ≥80;
+   well-formed (brace-balanced; parses); `@` count = 106 (or 107 if
+   Wu2017 gate-retained).
+3. ZERO `thesis/chapters/**` and ZERO `thesis/reviews_and_others/**`
+   in `git diff --name-only e095025a..HEAD`; diff ⊆ File Manifest.
+4. Report "Applied" section mirrors the bib's final state exactly
+   (lineage closure); every `verify`/`manual_decision` row carries a
+   reason; no record asserted "verified" below confidence 80.
+5. `Herbrich2007` framed as key/style drift; the report does NOT
+   assert 2007 is a factual error (2007 defensible — MSR
+   "NeurIPS 20, January 2007").
+6. Version 3.60.0; CHANGELOG `[3.60.0]` accurate to the corrections
+   actually applied; `[3.59.0]` untouched.
+7. reviewer-deep PASS at T01 and T03; reviewer-adversarial only if a
+   §"Reviewer routing" trigger fired then resolved (3-round cap).
+8. `planning/INDEX.md`: PR #224 archived, this branch active,
+   PR-number reconciled. PR ready (`isDraft` false), **NOT merged**
+   (merge awaits explicit user approval); temp files deleted.
 
 ## Out of scope
 
-- Any `thesis/chapters/**` edit (all 7 chapter files + `REVIEW_QUEUE.md`);
-  any `thesis/references.bib` edit; any `thesis/WRITING_STATUS.md` edit;
-  any other `thesis/pass2_evidence/**` edit.
-- Removing/adding any `[REVIEW]`/`[UNVERIFIED]`/`[NEEDS CITATION]` flag;
-  any stripped/clean chapter copy; any PDF/DOCX export.
-- Any new methodology/citation/literature claim or audit re-derivation;
-  the `manual_full_text_required` PDF reads + F-036 lookup (audit §11
-  PR-4).
-- Phase 03 / AoE2 Phase 02 / dataset artifacts / notebooks / specs /
-  ROADMAPs / status YAMLs / code / raw data / `docs/TAXONOMY.md` /
-  `.claude/**`.
-- Merging the PR (awaits explicit user approval); deleting/rewriting any
-  pre-existing `planning/*.critique.md`.
+- Any `thesis/chapters/**` edit; any `thesis/reviews_and_others/**`
+  edit (Q1=C, Q4, scope #8 — appendixes are working materials).
+- Any chapter-citation `[oldkey]→[canonical]` rewrite (Q1≠B; deferred
+  to a separate approved follow-up PR documented in the report).
+- Adding the calibration-loss-dominance paper as a new bibkey (manual
+  decision; recorded as a candidate, not added).
+- Overwriting `Dimitriadis2024` while its record-identity collision is
+  open; overwriting `Bialecki2023` author below ≥80; fabricating
+  `Glickman1995` metadata.
+- Asserting `Herbrich2007`→2006 as a factual year correction.
+- Re-opening PR #222 (Ch1-footer econ keys already in bib); Phase 03 /
+  AoE2 Phase 02 / dataset artifacts / notebooks / specs / ROADMAPs /
+  status YAMLs / code / `docs/TAXONOMY.md` / `.claude/**`.
+- Merging the PR (awaits explicit user approval).
 
 ## Open questions
 
-- **OQ-1 — RESOLVED (user 2026-05-18):** the §6 Polish note is the
-  user's verbatim amended text (reproduced in §"Deliverable content" §6);
-  transcribe exactly, no edits.
-- **OQ-2 — RESOLVED (user 2026-05-18):** §2/§7 = optional-only
-  attachments (default = four chapter files; `references.bib` + audit
-  doc optional-only; no clean copy / no flag stripping / no export).
-- **R-1 (residual, no decision):** stale prior critique-file purge
-  deferred to a future planning-hygiene sweep.
+- **Q1 — RESOLVED (user 2026-05-18): C, bib-only.** Chapters +
+  appendixes read-only; alias remap documented for a separate PR.
+- **Q2 — RESOLVED:** branch `docs/thesis-bibliography-canonicalization`
+  (plan approval = branch authorization).
+- **Q3 — RESOLVED (user 2026-05-18): `Dimitriadis2024`
+  verify-first / identity-first.** No bib edit until the
+  triptych-vs-calibration-loss identity collision is closed at ≥80;
+  the other paper, if relevant, is a NEW-key candidate, never an
+  overwrite.
+- **Amendment — RESOLVED (user 2026-05-18):** `Bialecki2023` added to
+  the fix-or-verify list (author vs official *Scientific Data*; fix
+  only if ≥80, else verify).
+- **Q4 — RESOLVED (user 2026-05-18): report + separate PR.**
+  Appendixes read-only this PR; `Herbrich2007` is key/style drift
+  (2007 defensible), NOT a year-error correction; concrete appendix
+  follow-up fixes listed in the report for a separate approved PR.
+- **Q5 — RESOLVED (user 2026-05-18): reviewer-deep gate + adversarial
+  conditional** (T01 + T03 sufficient unless scope expands beyond the
+  canonical bib).
+- **R-1 (residual, no decision):** the conditional
+  `planning/current_plan.critique_resolution.md` purge is
+  reviewer-deep-concurrence-gated at T03/T05.

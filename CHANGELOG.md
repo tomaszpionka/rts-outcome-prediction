@@ -19,6 +19,22 @@ merged to `master`.
 
 ### Removed
 
+## [3.60.0] — 2026-05-18 (PR #225: docs/thesis-bibliography-canonicalization)
+
+### Added
+
+- Added `thesis/pass2_evidence/bibliography_cleanup_report.md`: a full per-key audit of `thesis/references.bib` + the 5 scoped sources — 14-column master table (119 rows), live Crossref/publisher/official verification with per-field diffs + confidence, four user-named-pair true-state analysis, alias-remap list, manual-decision list, bib↔markdown drift list, schema-change specifics, a "stale prior-audit statements superseded" section, a candidate appendix-follow-up-PR list, and a data-analysis-lineage header. Audit-only; no chapter or appendix edit.
+
+### Changed
+
+- `thesis/references.bib` canonicalized (bib-only; keys preserved except the one deleted duplicate): `Elo1978` `@article`→`@book` (Arco Publishing, New York; canonical two-word title "The Rating of Chess Players, Past and Present"); `Buro2003` `@article`→`@inproceedings` (booktitle IJCAI-18th; existing pages 1534--1535 + url preserved); `Dimitriadis2024` corrected to the published "triptych" version after the record-identity collision was closed at ≥80 (same work; DOI added; *Int. J. Forecasting* 40(3):1101–1122; 4th author Vogel appended; key + title unchanged, no new key, no work substitution).
+
+### Fixed
+
+- Retired the byte-identical, uncited duplicate `@article{Wu2017,…}` (canonical `Wu2017MSC` retained; deletion gated on a re-confirmed zero `[Wu2017]` citation grep — every `[Wu2017]` mention is documentary inside the new audit report only; `@` entry count 107→106). `Bialecki2023` and `Glickman1995` were verified and intentionally left byte-unchanged (Bialecki2023 official author list already matches the bib; Glickman1995 `@unpublished`→`@article` is an editorial manual-decision documented in the report, not auto-applied). bib↔markdown alias/key drift (`Baek2022`/`Porcpine2020`/`Herbrich2007` — key/style only; `Herbrich2007` year 2007 is bibliographically defensible, NOT a year error) and the `Glickman2025` appendix second-author typo are catalogued for a separate, separately-approved follow-up PR; `thesis/chapters/**` and `thesis/reviews_and_others/**` are read-only this PR. reviewer-deep PASS at plan (T01: PASS-WITH-NITS) and final (T03: APPROVE); reviewer-adversarial escalation trigger not met (not invoked).
+
+### Removed
+
 ## [3.59.0] — 2026-05-18 (PR #224: docs/thesis-ch1-ch4-supervisor-handoff-package)
 
 ### Added
