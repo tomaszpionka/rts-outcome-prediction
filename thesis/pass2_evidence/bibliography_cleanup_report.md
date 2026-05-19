@@ -341,8 +341,8 @@ list; the appendix is READ-ONLY this PR.
 **POST-MERGE CORRECTION (this PR).** The prior conclusion "identical
 8-author ordered list / action=keep — NO bib edit" was WRONG. The
 pre-edit bib had authors 3–4 as `Dobrowolski, Piotr` and `Białecki,
-Paweł`; Crossref (`10.1038/s41597-023-02510-7`) and arXiv
-(`2207.03428`) concordantly give author 3 = **Paweł Dobrowolski**,
+Paweł`; Crossref and arXiv (see the fenced Sources block below)
+concordantly give author 3 = **Paweł Dobrowolski**,
 author 4 = **Piotr Białecki** — a given-name swap at positions 3–4.
 The bib edit (`Dobrowolski, Piotr` / `Białecki, Paweł` →
 `Dobrowolski, Paweł` / `Białecki, Piotr`) was applied this PR.
@@ -596,7 +596,7 @@ applied to `thesis/references.bib` at T03. The report's final state mirrors
 
 **Deferred / no edit:**
 
-- **C5 — `Bialecki2023`:** **bib edit applied this PR (post-merge correction).** Authors 3–4 given-name swap corrected: `Dobrowolski, Piotr` / `Białecki, Paweł` → `Dobrowolski, Paweł` / `Białecki, Piotr`, per concordant Crossref (`10.1038/s41597-023-02510-7`) and arXiv (`2207.03428`). The prior C5 "no edit / matches exactly" conclusion (reviewer-deep nit 3) was wrong — it was a surname+initial-verification artifact: PR #225 verified surname+count+order but never compared given-name tokens; Piotr and Paweł both collapse to "P." under initial-only matching, so the swap was invisible to the #225 audit and to the reviewer-adversarial pass that inherited that blind spot.
+- **C5 — `Bialecki2023`:** **bib edit applied this PR (post-merge correction).** Authors 3–4 given-name swap corrected: `Dobrowolski, Piotr` / `Białecki, Paweł` → `Dobrowolski, Paweł` / `Białecki, Piotr`, per concordant Crossref and arXiv (see the fenced Sources block below). The prior C5 "no edit / matches exactly" conclusion (reviewer-deep nit 3) was wrong — it was a surname+initial-verification artifact: PR #225 verified surname+count+order but never compared given-name tokens; Piotr and Paweł both collapse to "P." under initial-only matching, so the swap was invisible to the #225 audit and to the reviewer-adversarial pass that inherited that blind spot.
 - **C6 — `Glickman1995`:** no edit. The `@unpublished` → `@article` type
   change is a documented editorial (manual_decision) call, not
   auto-applied — kept byte-unchanged.
