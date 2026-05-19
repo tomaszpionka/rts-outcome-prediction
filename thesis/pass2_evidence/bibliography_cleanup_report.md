@@ -465,7 +465,46 @@ files for the named/flagged keys (the `ch1_ch4_citation_literature_support_audit
 `Dimitriadis2024` mention is a bibkey-existence spot-check, not a
 metadata claim, so it is not superseded by metadata change).
 
-<!-- WRITER-THESIS: INSERT Bialecki2023 post-merge corrective/superseded note HERE -->
+#### `Bialecki2023` — post-merge correction (supersedes the PR #225 "no edit" conclusion)
+
+**What is superseded.** PR #225 recorded that `Bialecki2023` "matched the
+official record exactly", assigned `action=keep` with "NO bib edit", and
+concluded that the author-mismatch concern "does not reproduce". That
+conclusion is retracted as incorrect: the entry did carry a defect, and the
+"matches exactly / keep" finding is now superseded by the post-merge
+correction documented here and in the `### Bialecki2023` per-field
+subsection above.
+
+**The defect.** The bib entry's authors 3 and 4 had their given names
+cross-swapped: the entry read `Dobrowolski, Piotr` and `Białecki, Paweł`,
+whereas the correct record is `Dobrowolski, Paweł` and `Białecki, Piotr`.
+The surnames, the eight-author count, and the author order were all
+correct; only the two given-name tokens were transposed between these two
+co-authors.
+
+**Root cause.** The #225 audit verified the surname, the author count, and
+the ordering, but never compared the given-name tokens position-by-position.
+Under initial-only matching both "Piotr" and "Paweł" collapse to "P.", so a
+same-initial transposition between two co-authors produced no observable
+discrepancy and was invisible to the audit. The reviewer-adversarial pass
+on #225 inherited the same blind spot, because it checked the same
+surname-and-initial granularity rather than the full given-name tokens, and
+so did not catch the swap either.
+
+**Resolution.** The one-line bib correction
+(`Dobrowolski, Piotr` / `Białecki, Paweł` →
+`Dobrowolski, Paweł` / `Białecki, Piotr`) was applied in this post-merge
+follow-up PR. It was verified against two concordant primary sources — the
+Crossref DOI record and the arXiv preprint — whose identifiers are listed
+in the fenced Sources block below.
+
+**Lineage integrity.** The original false statements elsewhere in this
+report were corrected in place rather than deleted, so the audit trail
+shows both the prior incorrect conclusion and its correction. The fenced
+Sources block was retained verbatim: the Crossref DOI and the PMC/arXiv
+corroboration were always correct — only the author parsing taken from
+those sources was wrong — so retaining the block preserves the verification
+chain. The error is documented, not hidden.
 
 ---
 
