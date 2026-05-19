@@ -55,7 +55,7 @@ The volatility update requires iterative root-finding (Illinois algorithm), maki
 
 ### TrueSkill (Herbrich, Minka & Graepel, 2006)
 
-TrueSkill was developed at Microsoft Research for Xbox Live matchmaking and represents a qualitative leap in modeling capacity ([Herbrich2007]). Each player has a Gaussian skill belief N(μ, σ²), but inference is performed via Expectation Propagation (EP) on a factor graph rather than closed-form approximations. This architecture natively supports teams, multiplayer games, partial play, and explicit draw modelling.
+TrueSkill was developed at Microsoft Research for Xbox Live matchmaking and represents a qualitative leap in modeling capacity ([Herbrich2006]). Each player has a Gaussian skill belief N(μ, σ²), but inference is performed via Expectation Propagation (EP) on a factor graph rather than closed-form approximations. This architecture natively supports teams, multiplayer games, partial play, and explicit draw modelling.
 
 The 1v1 win probability formula uses the probit link:
 
@@ -75,7 +75,7 @@ TrueSkill 2 ([Minka2018TR]) extends the model with player experience curves, squ
 | Team/multiplayer | No | No | No | Yes (native) |
 | Draw model | Score = 0.5 | Score = 0.5 | Score = 0.5 | Explicit draw margin ε |
 | Patented | No | No | No | Yes (Microsoft) |
-| Canonical venue | [Elo1978] | [Glickman1999] | [Glickman2001] | [Herbrich2007] |
+| Canonical venue | [Elo1978] | [Glickman1999] | [Glickman2001] | [Herbrich2006] |
 
 A comprehensive modern survey of all these systems is provided by [Glickman2025], which covers BTL and Thurstone-Mosteller foundations, dynamic extensions, and practical implementations including applications to NBA data. This survey should be cited as a single authoritative reference spanning the entire canonical family.
 
@@ -107,7 +107,7 @@ A rigorous theoretical treatment of intransitivity's impact on Elo convergence i
 
 ### Other notable extensions
 
-Elo-MMR ([Ebtekar2021]) targets massive multiplayer contests (e.g., Codeforces) with provable robustness guarantees and aligned incentives. [Cattelan2012] provides the definitive review of BT model extensions including hierarchical, dynamic, and covariate-assisted variants. A 2025 survey ([BT2025Survey]) covers covariate-assisted BT, Bayesian nonparametric Plackett-Luce, and the connection to RLHF reward modelling.
+Elo-MMR ([Ebtekar2021]) targets massive multiplayer contests (e.g., Codeforces) with provable robustness guarantees and aligned incentives. [Cattelan2012] provides the definitive review of BT model extensions including hierarchical, dynamic, and covariate-assisted variants. A 2026 survey ([BT2025Survey]) covers covariate-assisted BT, Bayesian nonparametric Plackett-Luce, and the connection to RLHF reward modelling.
 
 ## §4 — When ratings fail as predictors: transitivity, cold starts, calibration drift
 
@@ -129,7 +129,7 @@ Rating inflation and deflation are persistent concerns. In FIDE chess, K=10 for 
 
 [Glickman2024TR]'s early analysis of USCF data found that the Elo logistic curve required a correction factor of 0.713 to match observed outcomes across the full rating pool. For top players the factor was ~0.95 (near-perfect calibration), while for middle-rated players it was ~0.59 (substantial miscalibration). Sonas's analysis for ChessBase found an 83% scaling factor necessary to compress effective rating differences. The primary explanation is that imprecise ratings (high RD for players with uncertain ratings) attenuate the effective skill difference — exactly the phenomenon Glicko was designed to address.
 
-The porcpine1967 analysis of 913,201 AoE2 DE matches ([Porcpine2020]) established r = 0.96 linear correlation between Elo difference and observed win probability, with a slope of approximately 1.1 percentage points per 10 rating points. This strong linearity — essentially confirming that the Elo logistic curve is well-calibrated within the matchmaker's operating range — means Elo difference is a powerful baseline feature for AoE2 prediction. However, confidence intervals widen at large rating differences because the matchmaker concentrates games near similar ratings, leaving calibration at the tails poorly tested.
+The porcpine1967 analysis of 913,201 AoE2 DE matches ([Porcpine2020EloAoE]) established r = 0.96 linear correlation between Elo difference and observed win probability, with a slope of approximately 1.1 percentage points per 10 rating points. This strong linearity — essentially confirming that the Elo logistic curve is well-calibrated within the matchmaker's operating range — means Elo difference is a powerful baseline feature for AoE2 prediction. However, confidence intervals widen at large rating differences because the matchmaker concentrates games near similar ratings, leaving calibration at the tails poorly tested.
 
 ## §5 — Elo as ML baseline: a remarkably hard ceiling to surpass
 
@@ -171,7 +171,7 @@ Aligulac ([Aligulac]) provides the most analytically transparent SC2 rating syst
 
 AoE2 Definitive Edition uses a standard Elo system with the logistic function and K = 32 for all players. Players start at approximately 1000 Elo after 10 placement matches, with separate ratings per mode (1v1 Random Map, Team Random Map, Empire Wars). The system is simpler than SC2's — no uncertainty tracking, no per-civilization adjustment.
 
-The [Porcpine2020] analysis (913,201 matches, May 2020) established the headline calibration result: r = 0.96 linear correlation between Elo difference and win probability, with a slope of approximately 1.1 percentage points per 10 rating points. Players with the superior rating won 54% of matches overall (reflecting the matchmaker's tendency to pair similarly-rated players). This strong linearity means Elo difference is a powerful baseline feature for AoE2 prediction.
+The [Porcpine2020EloAoE] analysis (913,201 matches, May 2020) established the headline calibration result: r = 0.96 linear correlation between Elo difference and win probability, with a slope of approximately 1.1 percentage points per 10 rating points. Players with the superior rating won 54% of matches overall (reflecting the matchmaker's tendency to pair similarly-rated players). This strong linearity means Elo difference is a powerful baseline feature for AoE2 prediction.
 
 Community data sources include aoe2.net (API for match, rating, and player data — the primary source), aoestats.io (civilization win rates by Elo bracket, map, and patch), aoe-elo.com (tournament-only ratings, analogous to Aligulac), and aoe2insights.com (player profiles). Before the Definitive Edition (2019), the competitive community used Voobly's Elo system for 14+ years, though it had known issues with rating inflation from "noob bashing" and a problematic 1600 starting Elo.
 
@@ -183,7 +183,7 @@ Mike Xie's community analysis found that XGBoost/Random Forest using Elo differe
 
 For **SC2**, the recommended baseline is Aligulac's per-matchup Glicko ratings if using professional data, or Battle.net MMR if using ladder data. Aligulac's three matchup-specific ratings (vP, vT, vZ) already condition on race asymmetry, providing a strong baseline that accounts for the primary source of intransitivity in SC2. The relevant expected-score formula uses the logistic CDF with the matchup-specific rating difference. For ladder data where Aligulac ratings are unavailable, the raw MMR difference should serve as the Elo-equivalent baseline, with the caveat that Battle.net's exact formula is not publicly disclosed.
 
-For **AoE2**, a standard Elo baseline (logistic function with the ladder's K=32 ratings) provides the minimal baseline, supported by [Porcpine2020]'s r=0.96 calibration validation. However, this baseline is arguably unfair because it ignores civilization identity — information that is known pre-match and that Lin et al. (2024) showed to be strongly predictive due to intransitivity. The thesis should therefore report two baselines: plain Elo difference (the minimal baseline), and a conditional Elo or counter-adjusted baseline such as Lin et al.'s NCT or a per-civilization Elo variant. The gap between these two baselines quantifies how much predictive signal comes from civilization matchup structure alone, independent of ML.
+For **AoE2**, a standard Elo baseline (logistic function with the ladder's K=32 ratings) provides the minimal baseline, supported by [Porcpine2020EloAoE]'s r=0.96 calibration validation. However, this baseline is arguably unfair because it ignores civilization identity — information that is known pre-match and that Lin et al. (2024) showed to be strongly predictive due to intransitivity. The thesis should therefore report two baselines: plain Elo difference (the minimal baseline), and a conditional Elo or counter-adjusted baseline such as Lin et al.'s NCT or a per-civilization Elo variant. The gap between these two baselines quantifies how much predictive signal comes from civilization matchup structure alone, independent of ML.
 
 ### A unified baseline is possible but requires care
 
@@ -197,7 +197,7 @@ The thesis's core contribution can be framed as follows: rating systems provide 
 
 The [Dimitriadis2024] evaluation triptych — comprising calibration, discrimination (ROC/AUC), and a proper scoring rule (Brier or log loss) — applies directly to rating-system predictions. For each system, the logistic (or probit) expected-score formula produces a probability forecast for every match, which can be evaluated on all three dimensions. The thesis should report reliability diagrams for each baseline to visually assess calibration, complemented by the Brier score decomposition into reliability, resolution, and uncertainty. This evaluation framework makes the rating-system baseline and the ML model directly comparable as probabilistic forecasters — not merely as binary classifiers.
 
-A specific prediction for AoE2: the plain Elo baseline will show good calibration on average (consistent with [Porcpine2020]'s findings) but poor conditional calibration when stratified by civilization matchup — particularly for matchups with strong counter-relationships identified by Lin et al. The ML model should show improved conditional calibration in these matchup-stratified subgroups, providing evidence that the uplift comes from modelling intransitivity rather than merely from having more parameters.
+A specific prediction for AoE2: the plain Elo baseline will show good calibration on average (consistent with [Porcpine2020EloAoE]'s findings) but poor conditional calibration when stratified by civilization matchup — particularly for matchups with strong counter-relationships identified by Lin et al. The ML model should show improved conditional calibration in these matchup-stratified subgroups, providing evidence that the uplift comes from modelling intransitivity rather than merely from having more parameters.
 
 ### The intransitivity question: is a standard Elo baseline even fair?
 
@@ -224,7 +224,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
 - [Balduzzi2018] Balduzzi, D., Tuyls, K., Pérolat, J., & Graepel, T. (2018). Re-evaluating Evaluation. *Advances in Neural Information Processing Systems 31 (NeurIPS 2018)*. arXiv:1806.02643. <http://papers.neurips.cc/paper/7588-re-evaluating-evaluation.pdf> [peer-reviewed conference]
 - [Bertrand2023] Bertrand, Q., Czarnecki, W.M., & Gidel, G. (2023). On the Limitations of the Elo, Real-World Games are Transitive, not Additive. *Proc. AISTATS 2023*, PMLR 206: 2905–2921. arXiv:2206.12301. <https://proceedings.mlr.press/v206/bertrand23a.html> [peer-reviewed conference]
 - [BradleyTerry1952] Bradley, R.A. & Terry, M.E. (1952). Rank Analysis of Incomplete Block Designs: I. The Method of Paired Comparisons. *Biometrika* 39(3/4): 324–345. DOI: 10.1093/biomet/39.3-4.324. [peer-reviewed journal]
-- [BT2025Survey] Li, Y. et al. (2025). Recent advances in the Bradley-Terry Model: theory, algorithms, and applications. *arXiv:2601.14727*. <https://arxiv.org/abs/2601.14727> [arXiv preprint]
+- [BT2025Survey] Fang, S., Han, R., Luo, Y., & Xu, Y. (2026). Recent advances in the Bradley-Terry Model: theory, algorithms, and applications. *arXiv:2601.14727*. <https://arxiv.org/abs/2601.14727> [arXiv preprint]
 - [Bunker2024] Bunker, R., Yeung, C., Susnjak, T., Espie, C., & Fujii, K. (2024). A comparative evaluation of Elo ratings- and machine learning-based methods for tennis match result prediction. *Proceedings of the Institution of Mechanical Engineers, Part P: Journal of Sports Engineering and Technology*. DOI: 10.1177/17543371231212235. [peer-reviewed journal]
 - [Cattelan2012] Cattelan, M. (2012). Models for Paired Comparison Data: A Review with Emphasis on Dependent Data. *Statistical Science* 27(3): 412–433. DOI: 10.1214/12-STS396. [peer-reviewed journal]
 - [Chen2016BladeChest] Chen, S. & Joachims, T. (2016). Modeling Intransitivity in Matchup and Comparison Data. *Proc. WSDM 2016*, pp. 227–236. <https://www.cs.cornell.edu/people/tj/publications/chen_joachims_16b.pdf> [peer-reviewed conference]
@@ -243,7 +243,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
 - [Glickman2025] Glickman, M.E. & Jones, A.C. (2025). Models and Rating Systems for Head-to-Head Competition. *Annual Review of Statistics and Its Application* 12: 259–282. DOI: 10.1146/annurev-statistics-040722-061813. [peer-reviewed journal]
 - [Gneiting2007] Gneiting, T. & Raftery, A.E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association* 102(477): 359–378. DOI: 10.1198/016214506000001437. [peer-reviewed journal]
 - [Hamilton2025] Hamilton, N., Kalenkova, A., & Roughan, M. (2025). The impact of intransitivity on the Elo rating system. *PLOS ONE* 20(12): e0338261. DOI: 10.1371/journal.pone.0338261. [peer-reviewed journal]
-- [Herbrich2007] Herbrich, R., Minka, T., & Graepel, T. (2007). TrueSkill™: A Bayesian Skill Rating System. *Proc. NeurIPS 2006*, pp. 569–576. <https://www.microsoft.com/en-us/research/publication/trueskilltm-a-bayesian-skill-rating-system/> [peer-reviewed conference]
+- [Herbrich2006] Herbrich, R., Minka, T., & Graepel, T. (2007). TrueSkill™: A Bayesian Skill Rating System. *Proc. NeurIPS 2006*, pp. 569–576. <https://www.microsoft.com/en-us/research/publication/trueskilltm-a-bayesian-skill-rating-system/> [peer-reviewed conference]
 - [Hunter2004] Hunter, D.R. (2004). MM algorithms for generalized Bradley-Terry models. *Annals of Statistics* 32(1): 384–406. DOI: 10.1214/aos/1079120141. [peer-reviewed journal]
 - [Hvattum2010] Hvattum, L.M. & Arntzen, H. (2010). Using ELO ratings for match result prediction in association football. *International Journal of Forecasting* 26(3): 460–470. DOI: 10.1016/j.ijforecast.2009.10.002. [peer-reviewed journal]
 - [Joshy2024] Joshy, V. (2024). OpenSkill: A faster asymmetric multi-team, multiplayer rating system. *Journal of Open Source Software* 9(93): 5901. arXiv:2401.05451. <https://arxiv.org/abs/2401.05451> [peer-reviewed journal]
@@ -253,7 +253,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
 - [Luce1959] Luce, R.D. (1959). *Individual Choice Behavior: A Theoretical Analysis.* Wiley, New York; Dover reprint 2005. ISBN 978-0-486-44136-8. [book]
 - [Minka2018TR] Minka, T., Cleven, R., & Zaykov, Y. (2018). TrueSkill 2: An improved Bayesian skill rating system. Microsoft Technical Report MSR-TR-2018-8. <https://www.microsoft.com/en-us/research/publication/trueskill-2-improved-bayesian-skill-rating-system/> [technical report]
 - [Plackett1975] Plackett, R.L. (1975). The Analysis of Permutations. *Journal of the Royal Statistical Society: Series C (Applied Statistics)* 24(2): 193–202. DOI: 10.2307/2346567. [peer-reviewed journal]
-- [Porcpine2020] porcpine1967 (2020). Impact of Rating Difference on Win Percentage in Age of Empires II Definitive Edition. Community analysis. <https://porcpine1967.github.io/aoe2_comparisons/elo/> [grey literature]
+- [Porcpine2020EloAoE] porcpine1967 (2020). Impact of Rating Difference on Win Percentage in Age of Empires II Definitive Edition. Community analysis. <https://porcpine1967.github.io/aoe2_comparisons/elo/> [grey literature]
 - [Sipko2015] Sipko, M. (2015). *Machine Learning for the Prediction of Professional Tennis Matches.* MEng thesis, Imperial College London. <https://www.doc.ic.ac.uk/teaching/distinguished-projects/2015/m.sipko.pdf> [master's thesis]
 - [Tang2025] Tang, S., Wang, Y., & Jin, C. (2025). Is Elo Rating Reliable? A Study Under Model Misspecification. *arXiv:2502.10985*. <https://arxiv.org/abs/2502.10985> [arXiv preprint]
 - [Thurstone1927] Thurstone, L.L. (1927). A law of comparative judgment. *Psychological Review* 34(4): 273–286. [peer-reviewed journal]
@@ -311,10 +311,10 @@ No Polish-language academic sources on rating systems were identified beyond enc
 }
 
 @article{BT2025Survey,
-  author = {Li, Yingqi and others},
+  author = {Fang, Shuxing and Han, Ruijian and Luo, Yuanhang and Xu, Yiming},
   title = {Recent advances in the {Bradley--Terry} Model: theory, algorithms, and applications},
   journal = {arXiv preprint arXiv:2601.14727},
-  year = {2025}
+  year = {2026}
 }
 
 @article{Bunker2024,
@@ -448,7 +448,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
 }
 
 @article{Glickman2025,
-  author = {Glickman, Mark E. and Jones, Alexander C.},
+  author = {Glickman, Mark E. and Jones, Albyn C.},
   title = {Models and Rating Systems for Head-to-Head Competition},
   journal = {Annual Review of Statistics and Its Application},
   year = {2025},
@@ -479,7 +479,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
   doi = {10.1371/journal.pone.0338261}
 }
 
-@inproceedings{Herbrich2007,
+@inproceedings{Herbrich2006,
   author = {Herbrich, Ralf and Minka, Tom and Graepel, Thore},
   title = {{TrueSkill}: A Bayesian Skill Rating System},
   booktitle = {Proc. NeurIPS 2006},
@@ -574,7 +574,7 @@ No Polish-language academic sources on rating systems were identified beyond enc
   doi = {10.2307/2346567}
 }
 
-@misc{Porcpine2020,
+@misc{Porcpine2020EloAoE,
   author = {{porcpine1967}},
   title = {Impact of Rating Difference on Win Percentage in {Age of Empires II Definitive Edition}},
   howpublished = {\url{https://porcpine1967.github.io/aoe2_comparisons/elo/}},

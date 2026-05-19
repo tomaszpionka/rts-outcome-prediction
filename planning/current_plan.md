@@ -1,18 +1,18 @@
 ---
-title: "Bialecki2023 author positions 3–4 post-merge correction"
+title: "Appendix-only bibliography key canonicalization"
 category: F
-branch: docs/thesis-bialecki2023-author-correction
-base_ref: 3238addb8d01b6baa7d642384e0d4f28e249f481
+branch: docs/thesis-appendix-key-canonicalization
+base_ref: 637fdb9349d59598f211530ac5a2466d2a83bc69
 date: 2026-05-19
-version_bump: "3.60.0 → 3.61.0"
-planner_model: user-directed (executor-ready plan)
+version_bump: "3.61.0 → 3.62.0"
+planner_model: user-directed (executor-ready plan; reviewer-adversarial gate APPROVE-WITH-CONDITIONS)
 dataset: null
 phase: null
 pipeline_section: null
 invariants_touched: []
 source_artifacts:
-  - thesis/references.bib
-  - thesis/pass2_evidence/bibliography_cleanup_report.md
+  - thesis/reviews_and_others/related_work_historical_rts_prediction.md
+  - thesis/reviews_and_others/related_work_rating_systems.md
   - CHANGELOG.md
   - pyproject.toml
   - planning/INDEX.md
@@ -25,201 +25,177 @@ research_log_ref: null
 
 ## Scope
 
-Bib-only post-merge correction. This plan corrects the `Bialecki2023` author
-positions 3–4 given-name swap discovered after PR #225 merged. The correction
-is applied to `thesis/references.bib` (one-line change) and all five
-load-bearing false statements in
-`thesis/pass2_evidence/bibliography_cleanup_report.md` are corrected in place
-(lineage preserved; none deleted). CHANGELOG, pyproject.toml, and planning
-artifacts are updated. No chapter or appendix edit. No .py changes.
+Appendix-only bibliography key canonicalization. This plan applies five named-key
+actions to the two appendix review files
+(`thesis/reviews_and_others/related_work_historical_rts_prediction.md` and
+`thesis/reviews_and_others/related_work_rating_systems.md`) and updates
+CHANGELOG, pyproject.toml, and planning artifacts.
+
+`thesis/references.bib` and `thesis/chapters/**` are BYTE-UNCHANGED this PR.
+No new key is added to `references.bib`. The `BT2025Survey` key is NOT renamed
+and NOT imported into `references.bib`.
+
+The five named-key actions and their exact semantics (binding conditions
+B1/C1/C2/C3 from the reviewer-adversarial gate):
+
+1. **Baek2022 → BaekKim2022** (B1 + C3): key-token-only swap in the embedded
+   `@article{…}` block — no field reorder, no whitespace re-alignment. The
+   embedded block differs from references.bib in field order and whitespace; the
+   Baek2022 block is NOT byte-equal to canonical. Swap the key token only.
+   All inline `[Baek2022]` and references-list `- [Baek2022]` leading token
+   updated to `BaekKim2022`.
+
+2. **Porcpine2020 → Porcpine2020EloAoE** (C3): key-token-only swap in the
+   embedded `@misc{…}` block. References.bib is the single source of truth and
+   is untouched; no note/url/howpublished additions are made to the appendix
+   block (reading (b): key-swap only). All inline and references-list leading
+   token updated to `Porcpine2020EloAoE`.
+
+3. **Herbrich2007 → Herbrich2006** (key/style only; C2): key-token-only swap in
+   the embedded `@inproceedings{…}` block. `year = {2007}` is KEPT DELIBERATELY
+   and is NOT asserted to be erroneous. All inline `[Herbrich2007]` and
+   references-list `- [Herbrich2007]` leading token updated to `[Herbrich2006]`.
+   Herbrich key normalized to the canonical alias Herbrich2006 for cross-document
+   key consistency; the embedded year = {2007} is retained deliberately and is
+   NOT asserted to be erroneous (NeurIPS 2006 proceedings; 2007 publication is a
+   venue-year/publication-year distinction, consistent with the canonical entry).
+
+4. **Glickman2025 appendix 2nd-author typo** (one token, one line): in the
+   embedded `@article{Glickman2025,…}` block, the `author` line:
+   `Jones, Alexander C.` → `Jones, Albyn C.` (2nd author given name only).
+   Nothing else in that block changed. The references-list line uses `A.C.` and
+   is left unchanged.
+
+5. **BT2025Survey — repair at all three loci** (C1; key UNCHANGED; NOT imported
+   into references.bib):
+   - Embedded block: `author` → `Fang, Shuxing and Han, Ruijian and Luo,
+     Yuanhang and Xu, Yiming`; `year` → `{2026}`; key/title/journal byte-unchanged.
+   - Inline prose: `A 2025 survey ([BT2025Survey])` → `A 2026 survey
+     ([BT2025Survey])` (year only; key unchanged; rest of sentence unchanged).
+   - References-list line: author `Li, Y. et al.` → `Fang, S., Han, R., Luo,
+     Y., & Xu, Y.`; year `(2025)` → `(2026)`; title/arXiv id/URL unchanged.
+   Half-repair is unsound (C1): all three loci must be repaired together.
 
 ---
 
 ## Problem Statement
 
-PR #225 (`docs/thesis-bibliography-canonicalization`) audited `Bialecki2023` at
-surname + author-count + order granularity. Crossref confirmed 8 authors in the
-correct surname order; the audit concluded "matches exactly / keep / NO bib edit".
-That conclusion was wrong.
-
-The pre-edit `thesis/references.bib` line 6 read:
-
-```
-author  = {Białecki, Andrzej and Jakubowska, Natalia and Dobrowolski, Piotr and Białecki, Paweł and Krupiński, Leszek and Szczap, Andrzej and Białecki, Robert and Gajewski, Jan},
-```
-
-Crossref (`10.1038/s41597-023-02510-7`) and arXiv (`2207.03428`) concordantly give:
-
-| Position | Pre-edit bib (WRONG) | Crossref + arXiv (CORRECT) |
-|----------|----------------------|---------------------------|
-| 3 | Dobrowolski, **Piotr** | Dobrowolski, **Paweł** |
-| 4 | Białecki, **Paweł** | Białecki, **Piotr** |
-
-**Root cause:** `Piotr` and `Paweł` both collapse to the initial "P." under
-initial-only matching. PR #225 verified surname + count + order — all correct —
-but never compared given-name tokens independently. The swap was therefore
-invisible to the #225 audit and to the reviewer-adversarial pass that inherited
-that blind spot.
-
-**Corrected author line:**
-
-```
-author  = {Białecki, Andrzej and Jakubowska, Natalia and Dobrowolski, Paweł and Białecki, Piotr and Krupiński, Leszek and Szczap, Andrzej and Białecki, Robert and Gajewski, Jan},
-```
-
-The `@article{Bialecki2023}` key, all other fields, and all citation sites are
-unchanged. Zero citation blast radius.
+The two appendix review files (`related_work_historical_rts_prediction.md` and
+`related_work_rating_systems.md`) use stale bib keys (`Baek2022`,
+`Porcpine2020`, `Herbrich2007`) that diverge from the canonical aliases in
+`thesis/references.bib` (`BaekKim2022`, `Porcpine2020EloAoE`, `Herbrich2006`),
+a second-author given-name typo in the embedded `Glickman2025` block
+(`Alexander C.` vs canonical `Albyn C.`), and incorrect author/year metadata in
+the embedded `BT2025Survey` block (arXiv:2601.14727 is by Fang, Shuxing et al.
+(2026), not Li, Yingqi et al. (2025)).
 
 ---
 
 ## Assumptions & Unknowns
 
-1. Crossref `10.1038/s41597-023-02510-7` is the authoritative primary source for
-   `Bialecki2023` author metadata; arXiv `2207.03428` is concordant corroboration.
-2. No bib convention or dataset erratum defends the current state.
-3. Key `Bialecki2023` must not change — all citation sites remain valid.
-4. `thesis/chapters/**` and `thesis/reviews_and_others/**` are READ-ONLY this PR
-   (the author names appear only in the bib entry, not in prose).
-5. The `bibliography_cleanup_report.md` false statements must be corrected in
-   place (not deleted) to preserve the error-lineage record this PR exists to
-   document.
-6. Unknown: whether any other entry in `references.bib` may have a similar
-   initial-only match blind spot — this is out of scope for this PR; a separate
-   full given-name token pass is a candidate follow-up.
+1. `thesis/references.bib` is the single source of truth for canonical key names
+   and entry metadata. It is UNTOUCHED this PR.
+2. `thesis/chapters/**` are READ-ONLY this PR (zero diff on chapters).
+3. Embedded BibTeX blocks in the appendix files are secondary copies; the
+   canonicalization goal is to keep keys consistent across documents, NOT to
+   make the appendix blocks byte-equal to canonical entries. Field order and
+   whitespace inside embedded blocks are NOT modified beyond the named changes.
+4. Herbrich2007 → Herbrich2006 is a key/style-only normalization. The embedded
+   `year = {2007}` reflects the venue-year/publication-year distinction of NeurIPS
+   2006 proceedings; it is retained deliberately and is NOT an error claim.
+5. BT2025Survey is a real paper (arXiv:2601.14727, confirmed); key is retained;
+   author and year metadata are repaired in the appendix embedded block and
+   references list.
+6. Unknown: whether any other embedded block in the two files diverges from
+   references.bib in ways not listed here — covered by the read-only sweep
+   (sweep-and-report, not edit).
 
 ## Literature Context
 
-This plan does not introduce new literature. It corrects the metadata of an
-existing bibliographic entry (`Bialecki2023`) using primary sources already in
-the audit record: Crossref DOI `10.1038/s41597-023-02510-7` and arXiv
-`2207.03428`, both confirmed concordant by the prior reviewer-adversarial gate.
-No new references are added. No chapter prose is edited.
+This plan does not introduce new literature. It corrects key aliases and metadata
+of existing bibliographic entries using primary sources already in the audit record
+and in `thesis/references.bib`. No new references are added. No chapter prose is
+edited. The five named keys (`BaekKim2022`, `Porcpine2020EloAoE`, `Herbrich2006`,
+`Glickman2025`, `BT2025Survey`) are already present in `thesis/references.bib`;
+this plan synchronizes the appendix-file aliases and metadata to match.
+
+---
 
 ## Open Questions
 
-- None blocking execution. The corrective premise is confirmed by two concordant
-  primary sources (Crossref + arXiv); no dataset erratum or alternative bib
-  convention is known to defend the pre-edit state.
-- The PR number placeholder (`#NNN`) in CHANGELOG `[3.61.0]` will be filled at
-  PR creation time; this is intentional.
+None blocking execution. All methodology questions resolved by the
+reviewer-adversarial gate (B1/C1/C2/C3).
 
 ---
 
 ## Execution Steps
 
-### T01 — Branch first (master guard hook blocks writes on master)
+### T00 — Branch first
 
-1. Verify `git rev-parse HEAD` == `3238addb8d01b6baa7d642384e0d4f28e249f481` and
-   `git branch --show-current` == `master`.
-2. `git checkout -b docs/thesis-bialecki2023-author-correction`.
-3. Confirm `git branch --show-current` == `docs/thesis-bialecki2023-author-correction`.
+`git checkout -b docs/thesis-appendix-key-canonicalization` from master @
+637fdb9349d59598f211530ac5a2466d2a83bc69.
 
-### T02 — thesis/references.bib (+1/−1)
+### T01 — related_work_historical_rts_prediction.md
 
-In `thesis/references.bib` line 6, replace the exact substring:
+Re-grep for `Baek2022` first. Then:
+- All inline `[Baek2022]` → `[BaekKim2022]`.
+- References-list leading token `- [Baek2022]` → `- [BaekKim2022]`; rest
+  of line byte-unchanged.
+- Embedded `@article{Baek2022,` → `@article{BaekKim2022,` — KEY TOKEN ONLY;
+  all other fields byte-unchanged (B1 + C3: block is NOT byte-equal to canonical;
+  key-only swap, no field reorder, no whitespace re-alignment).
 
-```
-Dobrowolski, Piotr and Białecki, Paweł
-```
+### T02 — related_work_rating_systems.md
 
-with:
+Re-grep before editing. Then apply the four actions:
 
-```
-Dobrowolski, Paweł and Białecki, Piotr
-```
+**Porcpine2020 → Porcpine2020EloAoE** (C3):
+- All inline `[Porcpine2020]` → `[Porcpine2020EloAoE]`.
+- References-list leading token → `[Porcpine2020EloAoE]`; rest byte-unchanged.
+- Embedded `@misc{Porcpine2020,` → `@misc{Porcpine2020EloAoE,` — KEY TOKEN ONLY;
+  all other fields byte-unchanged (no note/url/howpublished additions).
 
-Change NOTHING else. `git diff thesis/references.bib` must be exactly one line,
-+1/−1. Key, title, journal, volume, number, pages, year, doi, author count,
-author order, and the other 6 author names must be byte-identical.
+**Herbrich2007 → Herbrich2006** (C2):
+- All inline `[Herbrich2007]` → `[Herbrich2006]` (including comparison-table cell).
+- References-list leading token → `[Herbrich2006]`; entry body verbatim
+  (including "(2007)" and "Proc. NeurIPS 2006").
+- Embedded `@inproceedings{Herbrich2007,` → `@inproceedings{Herbrich2006,` —
+  KEY TOKEN ONLY; KEEP `year = {2007}`; all other fields byte-unchanged.
+- No prose added claiming 2007 is an error.
 
-### T03 — thesis/pass2_evidence/bibliography_cleanup_report.md (correct-in-place)
+**Glickman2025 appendix 2nd-author typo**:
+- In embedded `@article{Glickman2025,…}` block, `author` line:
+  `Jones, Alexander C.` → `Jones, Albyn C.` (one token). Nothing else changed.
+- References-list `A.C.` — left unchanged.
 
-Five load-bearing false sites, all corrected in place. Do NOT delete any
-row/heading/line. Do NOT touch L564–565 (fenced Sources block).
+**BT2025Survey — repair at all three loci** (C1):
+- Embedded block: `author = {Li, Yingqi and others},` →
+  `author = {Fang, Shuxing and Han, Ruijian and Luo, Yuanhang and Xu, Yiming},`;
+  `year = {2025}` → `year = {2026}`; key/title/journal byte-unchanged.
+- Inline prose: `A 2025 survey ([BT2025Survey])` → `A 2026 survey ([BT2025Survey])`.
+- References-list: `Li, Y. et al. (2025)` → `Fang, S., Han, R., Luo, Y., & Xu, Y. (2026)`;
+  title/arXiv id/URL unchanged; URL stays inside `<…>`.
 
-**L64 master-table row:** Change the `confidence`/`note`/`action` cells to
-reflect: authors 3–4 given-name swap found post-merge; bib edit applied this PR;
-prior "matches exactly / keep" was a surname+initial-granularity artifact.
+**Read-only sweep**: scan all OTHER embedded BibTeX blocks in BOTH files vs
+`thesis/references.bib`; list any divergence in the PR body as deferred
+follow-up candidates. DO NOT edit non-named blocks.
 
-**The `### Bialecki2023` per-field subsection (≈L332–L345):**
-- Heading: `### Bialecki2023 (reviewer-deep nit 3) — confidence 95 — action keep — NO bib edit`
-  → change to `action bib_edit_applied (POST-MERGE CORRECTION)`.
-- `authors (ordered, 8)` table row (≈L338): show pre-edit bib had positions 3–4
-  as `Dobrowolski, Piotr` / `Białecki, Paweł` while Crossref+arXiv give
-  `Dobrowolski, Paweł` / `Białecki, Piotr`; `match? → no (pre-edit); corrected
-  this PR`.
-- Prose (≈L341–345): rewrite to state the bib edit was applied and explain the
-  **root cause at this site**: #225 verified surname + count + order but never
-  compared given-name tokens; `Piotr`/`Paweł` both collapse to "P." under
-  initial-only matching, so the swap and the reviewer-adversarial pass that
-  trusted it were blind to it. Keep the venue/year/doi rows (correctly "yes").
+### T03 — Planning / release tail
 
-**L508–513 "Audit-only assertion" block:** Correct ONLY the `Bialecki2023`
-clause to state an edit WAS applied this PR (authors 3–4). Leave
-`Glickman2025`/`Glickman1995`/`Wu2017`/`Dimitriadis2024`/`Elo1978`/`Buro2003`
-statements byte-unchanged.
+- Write `planning/current_plan.md` (this file).
+- Write `planning/current_plan.critique.md` with Round-1 reviewer-adversarial
+  critique verbatim.
+- Update `planning/INDEX.md`: archive the prior active line; set new active line.
+- Update `CHANGELOG.md`: insert `[3.62.0]` above `[3.61.0]`; `[3.61.0]`
+  byte-unchanged; leave `[Unreleased]` with empty headers.
+- Update `pyproject.toml`: `version = "3.61.0"` → `"3.62.0"`.
 
-**C5 item (≈L546–552):** Rewrite from "Deferred / no edit" to an
-applied-correction statement (authors 3–4 given-name swap fixed), explicitly
-noting the prior C5 "no edit / matches exactly" was a surname+initial-
-verification artifact. Do NOT touch C1/C2/C3/C4/C6.
+### Commit / push / PR
 
-**Writer-thesis marker:** In the existing "Stale prior-audit statements
-superseded" section (search for that heading; it discusses Dimitriadis2024),
-insert on its own line at the END of that section:
-
-```
-<!-- WRITER-THESIS: INSERT Bialecki2023 post-merge corrective/superseded note HERE -->
-```
-
-Do not write the prose note. No DOI/URL in prose anywhere (DOIs stay only in
-the L564–565 fenced block). L564–565 kept VERBATIM.
-
-### T04 — CHANGELOG.md ([3.61.0] supersedes, does NOT retro-edit [3.60.0])
-
-Add a new `## [3.61.0] — 2026-05-19 (PR #NNN: docs/thesis-bialecki2023-author-correction)`
-section immediately above `## [3.60.0]`. Leave `[Unreleased]` empty with the
-4 headers (Added/Changed/Fixed/Removed). Under **Fixed**:
-- State the `Bialecki2023` authors 3–4 correction (`Dobrowolski, Piotr` /
-  `Białecki, Paweł` → `Dobrowolski, Paweł` / `Białecki, Piotr`) per concordant
-  Crossref `10.1038/s41597-023-02510-7` + arXiv `2207.03428`.
-- Explicitly state this supersedes the now-falsified `[3.60.0]` statement
-  "Bialecki2023 official author list already matches the bib" — name the version
-  (`[3.60.0]`) — which was wrong because the #225 audit and the inheriting
-  reviewer-adversarial pass verified only at surname+initial granularity (Piotr &
-  Paweł both → "P.").
-- State that five load-bearing false statements in the cleanup report were
-  corrected in place (lineage preserved; none deleted).
-- Use literal `#NNN` placeholder for the PR number.
-
-DO NOT modify the historical `[3.60.0]` block — it stays byte-unchanged and is
-superseded, not rewritten.
-
-### T05 — pyproject.toml
-
-Change `version = "3.60.0"` to `version = "3.61.0"`. Nothing else.
-
-### T06 — planning/INDEX.md
-
-1. Add a new Archive-table row (replicate existing column format):
-   `| docs/thesis-bibliography-canonicalization | 2026-05-18 | F | bib-only canonicalization — Wu2017 dedup, Elo1978→@book, Buro2003→@inproceedings, Dimitriadis2024 metadata + cleanup report | current_plan.md | #225 (merged 2026-05-19 at master 3238addb) |`
-2. Replace the `## Active plan` content with:
-   `- docs/thesis-bialecki2023-author-correction (2026-05-19) — Category F bib-only: Bialecki2023 authors 3–4 post-merge correction overturning #225's surname+initial-blind "no edit" conclusion; concordant Crossref + arXiv; 5 load-bearing report statements corrected in place (lineage preserved); CHANGELOG [3.61.0] supersedes [3.60.0]`
-
-Leave the Agent-routing table and all other archive rows unchanged.
-
-### T07 — Write planning artifacts
-
-Write `planning/current_plan.md` (this file) with the full Category F plan.
-Write `planning/current_plan.critique.md` with the Round-1 reviewer-adversarial
-critique verbatim. Round 2 (FINAL gate) will be APPENDED later under a distinct
-heading — do not add a Round-2 placeholder.
-
-### Commit
-
-Write commit message to `.github/tmp/commit.txt`, then
-`git commit -F .github/tmp/commit.txt`. Stage only the 7 intended files.
-Do NOT push. Do NOT create a PR.
+Stage only the 7 manifest files. Commit via `.github/tmp/commit.txt`. Push.
+Open non-draft PR. After PR number known: replace `#NNN` → `#<N>` in CHANGELOG
+`[3.62.0]` header only; commit + push. Delete `.github/tmp/pr.txt` and
+`.github/tmp/commit.txt`.
 
 ---
 
@@ -227,10 +203,10 @@ Do NOT push. Do NOT create a PR.
 
 | File | Change |
 |------|--------|
-| `thesis/references.bib` | +1/−1: authors 3–4 given-name swap corrected |
-| `thesis/pass2_evidence/bibliography_cleanup_report.md` | 5 false sites corrected in place + writer-thesis marker inserted |
-| `CHANGELOG.md` | `[3.61.0]` section added; `[3.60.0]` unchanged |
-| `pyproject.toml` | version `3.60.0` → `3.61.0` |
+| `thesis/reviews_and_others/related_work_historical_rts_prediction.md` | Baek2022→BaekKim2022: 2 inline + 1 ref-list + 1 embedded key token |
+| `thesis/reviews_and_others/related_work_rating_systems.md` | Porcpine/Herbrich/Glickman/BT2025Survey: inline + ref-list + embedded |
+| `CHANGELOG.md` | `[3.62.0]` section added; `[3.61.0]` unchanged |
+| `pyproject.toml` | version `3.61.0` → `3.62.0` |
 | `planning/INDEX.md` | Archive row added; Active plan replaced |
 | `planning/current_plan.md` | This file (plan artifact) |
 | `planning/current_plan.critique.md` | Round-1 reviewer-adversarial critique |
@@ -239,37 +215,35 @@ Do NOT push. Do NOT create a PR.
 
 ## Gate Condition
 
-**Reviewer-adversarial FINAL gate is mandatory** — this PR overturns a prior
-adversarial-confirmed conclusion. A separate Round-2 pass appends to
-`planning/current_plan.critique.md` under a distinct heading.
+Reviewer-adversarial Round-1 gate: APPROVE-WITH-CONDITIONS (B1/C1/C2/C3 bound).
+Round-2 FINAL gate will be APPENDED to `planning/current_plan.critique.md`
+under a distinct heading after PR creation.
 
-No `.py` files changed → no pytest/ruff/mypy gate required.
-
-PR left NOT merged pending the FINAL gate and explicit user approval.
+No `.py` files changed — no pytest/ruff/mypy gate required.
+PR left NOT merged pending FINAL gate and explicit user approval.
 
 ---
 
 ## Out of Scope / Forbidden Paths
 
-- `thesis/chapters/**` — READ-ONLY
-- `thesis/reviews_and_others/**` — READ-ONLY
+- `thesis/references.bib` — READ-ONLY (zero diff)
+- `thesis/chapters/**` — READ-ONLY (zero diff)
+- Any other `thesis/` file except the two named `thesis/reviews_and_others/` files
 - `src/**`, `tests/**`, `notebooks/**`, `data/**` — zero diff
-- No key rename in `thesis/references.bib`
-- No citation-site edits anywhere
-- No edits to other `references.bib` entries
-- No retro-edit of CHANGELOG `[3.60.0]`
+- No new key added to `references.bib`
+- `BT2025Survey` key NOT renamed and NOT imported into `references.bib`
 
 ---
 
 ## Deliverables
 
-1. `thesis/references.bib` with corrected `Bialecki2023` author line (+1/−1).
-2. `thesis/pass2_evidence/bibliography_cleanup_report.md` with 5 false sites
-   corrected in place and the writer-thesis marker inserted.
-3. `CHANGELOG.md` with `[3.61.0]` superseding `[3.60.0]` (historical entry
-   preserved byte-unchanged).
-4. `pyproject.toml` at version `3.61.0`.
+1. `thesis/reviews_and_others/related_work_historical_rts_prediction.md` with
+   Baek2022→BaekKim2022 applied at all loci (key-token-only in embedded block).
+2. `thesis/reviews_and_others/related_work_rating_systems.md` with all four
+   named actions applied.
+3. `CHANGELOG.md` with `[3.62.0]` added (historical entries byte-unchanged).
+4. `pyproject.toml` at version `3.62.0`.
 5. `planning/INDEX.md` with archive row + updated active plan line.
 6. `planning/current_plan.md` (this file).
 7. `planning/current_plan.critique.md` (Round-1 critique).
-8. One atomic commit on branch `docs/thesis-bialecki2023-author-correction`.
+8. One atomic commit on branch `docs/thesis-appendix-key-canonicalization`.

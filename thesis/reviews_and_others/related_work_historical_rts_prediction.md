@@ -111,7 +111,7 @@ With the grand-challenge narrative resolved by AlphaStar, the 2020–2023 period
 
 [Bialecki2022] analyzed 6,509 games from five Master/GrandMaster-level players using logistic regression with 9 performance indicators. They identified economic aspects as the strongest victory determinants, replicating the finding from SC:BW research. This is the first publication from Białecki's group that preceded their landmark dataset release.
 
-[Baek2022] proposed a 3D-ResNet architecture treating SC2 replay data as spatiotemporal video-like sequences. It outperformed ML baselines (logistic regression, random forest, XGBoost, LightGBM) and 2D-CNN approaches, and used Grad-CAM to identify key turning-point situations — the first paper to visualize *why* a match outcome was predicted, not just *what* the prediction was. Represents the state-of-the-art in deep learning for SC2 outcome prediction through 2023.
+[BaekKim2022] proposed a 3D-ResNet architecture treating SC2 replay data as spatiotemporal video-like sequences. It outperformed ML baselines (logistic regression, random forest, XGBoost, LightGBM) and 2D-CNN approaches, and used Grad-CAM to identify key turning-point situations — the first paper to visualize *why* a match outcome was predicted, not just *what* the prediction was. Represents the state-of-the-art in deep learning for SC2 outcome prediction through 2023.
 
 [Baek2023] proposed contrastive self-supervised learning to predict invisible enemy information under fog of war — directly relevant to outcome prediction, since knowledge of enemy state is a critical but hidden input.
 
@@ -145,7 +145,7 @@ For AoE2, data infrastructure remained at Phase 1 throughout this entire period:
 
 ### The methodological arc from rules to deep learning
 
-The methods used for RTS outcome prediction evolved through clearly demarcated eras. Rule-based and scripted approaches dominated commercial game AI and early academic bots (pre-2008). Case-based reasoning was the first machine learning paradigm applied to RTS ([Hsieh2008]; [Weber2009CBR]). Bayesian networks and HMMs followed in 2011 ([Synnaeve2011Opening]; [Dereszynski2011]), introducing principled uncertainty handling. Classical ML — logistic regression, SVMs, random forests, gradient boosting — produced the first direct outcome prediction results ([Erickson2014]; [Ravari2016]). The deep learning era began around 2016–2017, with CNNs and RNNs applied to both agent construction and prediction ([Wu2017MSC]; [Lin2019NP]). By 2022, spatiotemporal deep learning ([Baek2022]) represented the state of the art.
+The methods used for RTS outcome prediction evolved through clearly demarcated eras. Rule-based and scripted approaches dominated commercial game AI and early academic bots (pre-2008). Case-based reasoning was the first machine learning paradigm applied to RTS ([Hsieh2008]; [Weber2009CBR]). Bayesian networks and HMMs followed in 2011 ([Synnaeve2011Opening]; [Dereszynski2011]), introducing principled uncertainty handling. Classical ML — logistic regression, SVMs, random forests, gradient boosting — produced the first direct outcome prediction results ([Erickson2014]; [Ravari2016]). The deep learning era began around 2016–2017, with CNNs and RNNs applied to both agent construction and prediction ([Wu2017MSC]; [Lin2019NP]). By 2022, spatiotemporal deep learning ([BaekKim2022]) represented the state of the art.
 
 A striking finding across this entire arc: **economic features consistently emerge as the strongest predictors of match outcome**, regardless of era, method, or specific game (SC:BW or SC2). This was first established by [Erickson2014], confirmed by [Ravari2016], and replicated by [Bialecki2022]. Whether the same holds for AoE2 — where civilizations have structurally different economies — is an open question that the thesis can directly address.
 
@@ -175,7 +175,7 @@ Fourth, **the comparative dimension is entirely novel.** No paper in the pre-202
 
 - [AlvarezCaballero2017] Álvarez-Caballero, A., Merelo, J.J., & García, P. (2017). Early Prediction of the Winner in StarCraft Matches. *Proc. International Joint Conference on Computational Intelligence (IJCCI 2017)*, pp. 401–406. [peer-reviewed conference]
 - [Avontuur2013] Avontuur, T., Spronck, P., & van Zaanen, M. (2013). Player Skill Modeling in StarCraft II. *Proc. AIIDE 2013*. [peer-reviewed conference]
-- [Baek2022] Baek, I. & Kim, S.B. (2022). 3-Dimensional convolutional neural networks for predicting StarCraft II results and extracting key game situations. *PLOS ONE* 17(3): e0264550. DOI: 10.1371/journal.pone.0264550. <https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0264550> [peer-reviewed journal]
+- [BaekKim2022] Baek, I. & Kim, S.B. (2022). 3-Dimensional convolutional neural networks for predicting StarCraft II results and extracting key game situations. *PLOS ONE* 17(3): e0264550. DOI: 10.1371/journal.pone.0264550. <https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0264550> [peer-reviewed journal]
 - [Baek2023] Baek, I. et al. (2023). Self-supervised Learning for Predicting Invisible Enemy Information in StarCraft II. In *IntelliSys 2022*, LNNS vol. 542, Springer. [peer-reviewed conference]
 - [Bakkes2007] Bakkes, S., Spronck, P., & van den Herik, J. (2007). Phase-dependent Evaluation in RTS Games. *BNAIC 2007*, pp. 3–10. <https://spronck.net/pubs/BakkesBNAIC2007.pdf> [peer-reviewed conference]
 - [Bialecki2022] Białecki, A., Gajewski, J., Białecki, P., Phatak, A., & Memmert, D. (2022). Determinants of Victory in Esports — StarCraft II. *Multimedia Tools and Applications* 82(7): 11099–11115. DOI: 10.1007/s11042-022-13373-2. <https://link.springer.com/article/10.1007/s11042-022-13373-2> [peer-reviewed journal]
@@ -246,7 +246,7 @@ Fourth, **the comparative dimension is entirely novel.** No paper in the pre-202
   year = {2013}
 }
 
-@article{Baek2022,
+@article{BaekKim2022,
   author = {Baek, Insung and Kim, Seoung Bum},
   title = {3-Dimensional convolutional neural networks for predicting {StarCraft II} results and extracting key game situations},
   journal = {PLOS ONE},
