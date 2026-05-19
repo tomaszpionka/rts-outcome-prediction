@@ -19,6 +19,24 @@ merged to `master`.
 
 ### Removed
 
+## [3.62.0] — 2026-05-19 (PR #227: docs/thesis-appendix-key-canonicalization)
+
+### Added
+
+### Changed
+
+- Appendix-only bib-key canonicalization in two `thesis/reviews_and_others/` files (`thesis/references.bib` and `thesis/chapters/**` are byte-unchanged):
+  - `Baek2022` → `BaekKim2022`: key-token-only swap in embedded `@article{…}` block and all inline/ref-list loci (B1 + C3: block differs from references.bib in field order and whitespace; only the key token changed, no field reorder or whitespace re-alignment).
+  - `Porcpine2020` → `Porcpine2020EloAoE`: key-token-only swap in embedded `@misc{…}` block and all inline/ref-list loci (C3: reading (b), key-swap only; no note/url/howpublished additions).
+  - `Herbrich2007` → `Herbrich2006`: key-token-only swap in embedded `@inproceedings{…}` block and all inline/ref-list loci (key/style only; `year = {2007}` deliberately retained and NOT asserted to be erroneous — NeurIPS 2006 proceedings; 2007 publication is a venue-year/publication-year distinction, consistent with the canonical entry). Herbrich key normalized to the canonical alias Herbrich2006 for cross-document key consistency; the embedded year = {2007} is retained deliberately and is NOT asserted to be erroneous (NeurIPS 2006 proceedings; 2007 publication is a venue-year/publication-year distinction, consistent with the canonical entry).
+
+### Fixed
+
+- `Glickman2025` appendix embedded block 2nd-author given-name typo: `Jones, Alexander C.` → `Jones, Albyn C.` (one token; key/title/journal/year byte-unchanged; references-list `A.C.` abbreviation left unchanged).
+- `BT2025Survey` appendix repaired at all three loci (C1; key UNCHANGED; NOT imported into references.bib): embedded block `author` corrected to `Fang, Shuxing and Han, Ruijian and Luo, Yuanhang and Xu, Yiming` and `year` corrected to `{2026}` (vs arXiv:2601.14727); inline prose year `2025` → `2026`; references-list author `Li, Y. et al. (2025)` → `Fang, S., Han, R., Luo, Y., & Xu, Y. (2026)`; title/arXiv id/URL unchanged.
+
+### Removed
+
 ## [3.61.0] — 2026-05-19 (PR #226: docs/thesis-bialecki2023-author-correction)
 
 ### Added

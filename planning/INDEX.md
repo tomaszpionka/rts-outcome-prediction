@@ -1,12 +1,13 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-bialecki2023-author-correction (2026-05-19) — Category F bib-only: Bialecki2023 authors 3–4 post-merge correction overturning #225's surname+initial-blind "no edit" conclusion; concordant Crossref + arXiv; 5 load-bearing report statements corrected in place (lineage preserved); CHANGELOG [3.61.0] supersedes [3.60.0] (PR #226)
+- docs/thesis-appendix-key-canonicalization (2026-05-19) — Category F appendix-only bib-key canonicalization: Baek2022→BaekKim2022, Porcpine2020→Porcpine2020EloAoE, Herbrich2007→Herbrich2006 (key/style only; 2007 retained, NOT a year error), Glickman2025 appendix 2nd-author typo fix, BT2025Survey appendix author+year repair vs arXiv:2601.14727 (not imported); references.bib + chapters untouched
 
 ## Archive
 
 | Branch | Date | Category | Description | Plan file | Merged PR |
 |--------|------|----------|-------------|-----------|-----------|
+| docs/thesis-bialecki2023-author-correction | 2026-05-19 | F | Bialecki2023 authors 3–4 post-merge correction (overturned #225 surname+initial-blind no-edit) | current_plan.md | #226 (merged 2026-05-19 at master 637fdb93) |
 | phase02/sc2egset-feature-registry-scaffold | 2026-05-07 | A | SC2EGSet Step 02_01_01 notebook scaffold + one validation module | current_plan.md | #212 (merged 2026-05-08 at master 18d30a81) |
 | phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start | 2026-05-08 | A | SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation | current_plan.md | #213 (merged 2026-05-09 at master 7b26b40f) |
 | phase02/sc2egset-feature-registry-v8-source-grain-well-formedness | 2026-05-09 | A | SC2EGSet Step 02_01_01 V-8 source-grain structural well-formedness validation | current_plan.md | #214 (merged 2026-05-10 at master 664c869a) |
