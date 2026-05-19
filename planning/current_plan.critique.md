@@ -13,3 +13,29 @@ Round 1 — reviewer-adversarial plan gate. VERDICT: APPROVE-WITH-CONDITIONS. Th
 3. L564–565 fenced Sources kept verbatim (DOI/PMC/arXiv corroboration was correct; only author parsing was wrong).
 4. CHANGELOG `[3.61.0]` explicitly cross-references and supersedes the falsified `[3.60.0]` sentence by version; `[3.60.0]` not retro-edited.
 Nits: branch-first ordering (master guard hook) — mandatory; critique file Round 2 (FINAL gate) must be appended under a distinct heading, never overwrite Round 1.
+
+## Round 2 — reviewer-adversarial FINAL gate (2026-05-19): APPROVE
+
+VERDICT: APPROVE. The full diff base..HEAD is exactly the 7 intended files with zero
+bytes under thesis/chapters/**, thesis/reviews_and_others/**, src/**, tests/**,
+notebooks/**, or data/**; thesis/references.bib is exactly +1/-1 with only the
+author line changed (key/title/journal/volume/number/pages/year/doi and the other
+six names byte-identical, no key rename, no other entry touched). The applied bib
+line now reads `Dobrowolski, Paweł and Białecki, Piotr` at positions 3–4, matching
+the concordant Crossref (10.1038/s41597-023-02510-7) and arXiv (2207.03428) records
+that the Round-1 gate independently confirmed. All four Round-1 binding conditions
+are SATISFIED: root-cause precision (surname+initial collapse of Piotr/Paweł to "P.")
+is recorded at the `### Bialecki2023` per-field subsection itself, not only in the
+CHANGELOG; every load-bearing false site (master-table row, subsection heading +
+per-field row + prose, the audit-only-assertion follow-up clause, the C5 item) is
+corrected in place with none deleted and a new honest superseded-note added; the
+fenced Sources block is byte-unchanged; and CHANGELOG `[3.61.0]` explicitly
+supersedes the falsified `[3.60.0]` by version while `[3.60.0]` itself is
+byte-unchanged. The critique.md −139 deletions are the prior PR #225 reviewer-deep
+critique legitimately replaced for this new branch, not an overwrite of this PR's
+Round-1 reviewer-adversarial record, which is present and intact and leaves Round 2
+to be appended under a separate heading. An examiner diffing this branch against
+#225 would read an honest, traceable post-merge correction — prior wrong conclusion
+still visible, explicitly retracted, root cause named — not history-tampering. Only
+non-gating nit: the `(PR #NNN)` CHANGELOG placeholder, resolved post-open by the
+established number-recording follow-up. PROCEED to open the PR (NOT merge).
