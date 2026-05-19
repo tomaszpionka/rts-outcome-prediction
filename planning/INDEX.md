@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-bialecki2023-author-correction (2026-05-19) — Category F bib-only: Bialecki2023 authors 3–4 post-merge correction overturning #225's surname+initial-blind "no edit" conclusion; concordant Crossref + arXiv; 5 load-bearing report statements corrected in place (lineage preserved); CHANGELOG [3.61.0] supersedes [3.60.0]
+- docs/thesis-bialecki2023-author-correction (2026-05-19) — Category F bib-only: Bialecki2023 authors 3–4 post-merge correction overturning #225's surname+initial-blind "no edit" conclusion; concordant Crossref + arXiv; 5 load-bearing report statements corrected in place (lineage preserved); CHANGELOG [3.61.0] supersedes [3.60.0] (PR #226)
 
 ## Archive
 

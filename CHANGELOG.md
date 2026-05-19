@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.61.0] — 2026-05-19 (PR #NNN: docs/thesis-bialecki2023-author-correction)
+## [3.61.0] — 2026-05-19 (PR #226: docs/thesis-bialecki2023-author-correction)
 
 ### Added
 
