@@ -343,7 +343,21 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
 
 - Sequence of single-line bash commands:
   1. `git status` — confirm only the allowed files are modified.
-  2. `git diff --name-only master..HEAD` — confirm the 9 diff-touching files in the §6 manifest exactly (items 1–9; item 10 transient pair MUST NOT appear).
+  2. `git diff --name-only master..HEAD | sort` MUST return exactly these 11 **final tracked diff files** (2 planning files already in PR #230 + 9 execution files from §6 items 1–9), in sorted order:
+     ```
+     CHANGELOG.md
+     planning/INDEX.md
+     planning/current_plan.critique.md
+     planning/current_plan.md
+     pyproject.toml
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.md
+     src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+     ```
+     Separately confirm the 9 **execution files** subset (§6 items 1–9) is present: `git diff --name-only master..HEAD | grep -vE '^planning/current_plan(\.critique)?\.md$' | sort | wc -l` MUST return `9`. Separately confirm the **transient** files do NOT exist on disk: `test ! -f .github/tmp/commit.txt && test ! -f .github/tmp/pr.txt` MUST exit 0 (both files absent). The transient pair (§6 item 10) MUST NOT appear in the 11-file `git diff` output.
   3. `python -m json.tool src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json > /dev/null` — JSON valid.
   4. `python -c "import yaml; yaml.safe_load(open('src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml'))"` — STEP_STATUS parses.
   5. `python -c "import yaml; yaml.safe_load(open('src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml'))"` — PIPELINE_SECTION_STATUS parses.
@@ -352,7 +366,7 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
   8. `source .venv/bin/activate && poetry run ruff check src/ tests/` — lint clean.
   9. `source .venv/bin/activate && poetry run mypy src/rts_predict/` — type check clean.
 
-- Stop condition: all 9 commands succeed.
+- Stop condition: all 9 commands succeed (note: "9 commands" is the count of validation steps 1–9 above, NOT a file-count; step 2's three sub-checks must all PASS — the 11-file `git diff` returns the exact set, the 9 execution-file subset is present, and the transient files are absent on disk).
 - If ANY command fails: HALT; investigate root cause before re-attempting; do NOT push, do NOT update PR #230 body, do NOT mark PR #230 ready.
 
 ### T09 Commit + push + update existing draft PR #230
@@ -396,7 +410,7 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
 ### T11 Post-execution reviewer-adversarial final gate, then `gh pr ready 230`
 
 - PR #230 remains DRAFT throughout T01..T10. T11 is run only after T08 validation passes, T09 has updated PR #230's body via `gh pr edit 230 --body-file`, and T10 has resolved any PR-number placeholders.
-- **Step 1:** invoke `@reviewer-adversarial` post-execution final gate (per §9). Reviewer reads this plan + the `master..HEAD` diff on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Required scope per §9 (file-manifest match, JSON schema, MD section count, §5 disclaimer presence, OQ1 notes, YAML cascade).
+- **Step 1:** invoke `@reviewer-adversarial` post-execution final gate (per §9). Reviewer reads this plan + the `master..HEAD` diff on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Required scope per §9: the `master..HEAD` diff contains exactly 11 **final tracked diff files** (2 planning files already in PR #230 + 9 execution files per §6 items 1–9; transient §6 item 10 absent), JSON schema, MD section count, §5 disclaimer presence, OQ1 notes, YAML cascade.
 - **Step 2:** if and only if the final gate returns APPROVE, run `gh pr ready 230` to mark PR #230 ready for review.
 - **Step 3:** STOP. Do NOT merge PR #230. Merge remains the user's decision.
 - Allowed files: none (final-gate review is read-only; `gh pr ready 230` mutates only the PR ready-state, not any tracked file).
@@ -404,11 +418,11 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
 
 ## File Manifest
 
-The full file manifest is enumerated in **§6 Allowed files (10-entry manifest: 9 diff-touching + 1 transient)** below. Summary: 9 diff-touching files (`reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}` (NEW); `STEP_STATUS.yaml`; `PIPELINE_SECTION_STATUS.yaml`; `PHASE_STATUS.yaml`; per-dataset `research_log.md`; `pyproject.toml`; `CHANGELOG.md`; `planning/INDEX.md`; `planning/current_plan.md` + `planning/current_plan.critique.md` as a single planning-pair entry) + 1 transient working file (`.github/tmp/{commit.txt,pr.txt}` deleted post-create). See §6 for verbatim paths and per-file action (Update / Create) and §7 for the forbidden-paths list.
+The full file manifest is enumerated in **§6 Allowed files (10-entry manifest: 9 execution files + 1 transient pair)** below. Summary: **9 execution files** added by T02a–T07 (`reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}` (NEW); `STEP_STATUS.yaml`; `PIPELINE_SECTION_STATUS.yaml`; `PHASE_STATUS.yaml`; per-dataset `research_log.md`; `pyproject.toml`; `CHANGELOG.md`; `planning/INDEX.md`) + the planning pair already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`, committed in `dbbd3bf8`) → **final tracked PR diff = 11 files** (2 planning + 9 execution). Plus 1 **transient** working pair (`.github/tmp/{commit.txt,pr.txt}` — created and deleted within T09; MUST NOT appear in the final diff). See §6 for verbatim paths and per-file action (Update / Create) and §7 for the forbidden-paths list.
 
 ## Gate Condition
 
-The closure gate condition is enumerated across §11 (Open questions / blockers) and across the T08 validation step. Summary: the future execution PR passes its closure gate if and only if (a) all 9 diff-touching files in §6 are present in the diff with the prescribed content, (b) zero forbidden-list paths from §7 are touched, (c) the new `leakage_audit_sc2egset.json` validates against CROSS-02-01-v1.0.1 §3 schema with `verdict = "PASS"` and `features_audited = []`, (d) the new `.md` sibling contains all 8 prescribed sections including the v3-added "Audit queries: none — vacuously satisfied" section, (e) STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS derivations are honest under the YAML-header derivation rules (Q4 walkthrough), (f) the per-dataset `research_log.md` entry uses the NEW single-word `closure_status: closed` token plus the NEW orthogonal long-form sibling field `leakage_audit_state: zero_materialization_pass` with explicit non-reuse of PR #216's `partial` and PR #229's `still_open` tokens, (g) `PR #230` is referenced literally everywhere (no `PR #<n>` / `PR #<TBD>` placeholder survives — verified by T10), and (h) the `@reviewer-adversarial` post-execution final-gate review per T11 returns APPROVE, after which `gh pr ready 230` is run; PR #230 is NOT merged. See §9 for reviewer routing, T11 for the final-gate-then-ready sequence, and §11 for the open-questions / blockers gate.
+The closure gate condition is enumerated across §11 (Open questions / blockers) and across the T08 validation step. Summary: the future execution PR passes its closure gate if and only if (a) the final tracked PR diff (`git diff --name-only master..HEAD`) contains exactly the 11 expected files = 2 planning files already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`) + 9 execution files (§6 items 1–9) with the prescribed content, and the transient pair §6 item 10 (`.github/tmp/commit.txt` + `.github/tmp/pr.txt`) does NOT exist on disk at final-gate time, (b) zero forbidden-list paths from §7 are touched, (c) the new `leakage_audit_sc2egset.json` validates against CROSS-02-01-v1.0.1 §3 schema with `verdict = "PASS"` and `features_audited = []`, (d) the new `.md` sibling contains all 8 prescribed sections including the v3-added "Audit queries: none — vacuously satisfied" section, (e) STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS derivations are honest under the YAML-header derivation rules (Q4 walkthrough), (f) the per-dataset `research_log.md` entry uses the NEW single-word `closure_status: closed` token plus the NEW orthogonal long-form sibling field `leakage_audit_state: zero_materialization_pass` with explicit non-reuse of PR #216's `partial` and PR #229's `still_open` tokens, (g) `PR #230` is referenced literally everywhere (no `PR #<n>` / `PR #<TBD>` placeholder survives — verified by T10), and (h) the `@reviewer-adversarial` post-execution final-gate review per T11 returns APPROVE, after which `gh pr ready 230` is run; PR #230 is NOT merged. See §9 for reviewer routing, T11 for the final-gate-then-ready sequence, and §11 for the open-questions / blockers gate.
 
 ## Open Questions
 
@@ -533,9 +547,9 @@ NO. INVARIANTS.md (located at `src/rts_predict/games/sc2/datasets/sc2egset/repor
 
 NO. The PR #216 registry CSV/MD at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.{csv,md}` are unchanged. They are in the forbidden list (§7). The new T02a artifact pair is at a DIFFERENT path (`reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}`) per the §3 spec-named-path requirement.
 
-### Q8: What is the exact file manifest? (UPDATED in v3 per BLOCKING condition C2 — was 11 entries in v2, now 10 entries: 9 diff-touching + 1 transient pair entry; root `reports/research_log.md` dropped)
+### Q8: What is the exact file manifest? (UPDATED in v3 per BLOCKING condition C2 — was 11 entries in v2, now 10 entries: 9 execution files + 1 transient pair entry; root `reports/research_log.md` dropped. NOTE: PR #230 already contains 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`) committed before plan execution; the FINAL TRACKED PR DIFF after execution is therefore 11 files = 2 planning + 9 execution. The 10-entry §6 manifest enumerates ONLY the 9 execution files + 1 transient pair, NOT the 2 planning files.)
 
-10 entries (9 diff-touching files + 1 transient working-file entry):
+10 entries (9 **execution files** + 1 **transient** working-file entry; the **final tracked PR diff** after execution is **11 files** = 2 planning files already in PR #230 + the 9 execution files enumerated below):
 1. **NEW** `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json`
 2. **NEW** `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.md`
 3. **MODIFIED** `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml`
@@ -547,9 +561,9 @@ NO. The PR #216 registry CSV/MD at `src/rts_predict/games/sc2/datasets/sc2egset/
 9. **MODIFIED** `planning/INDEX.md` (PR #229 archived, new Active line for this PR)
 10. **CREATED-AND-DELETED-IN-T09** `.github/tmp/commit.txt` and `.github/tmp/pr.txt` (transient working files; per memory, deleted after commit / PR creation; do NOT appear in the final commit diff)
 
-**v3 note:** the v2 plan listed root `reports/research_log.md` as item 7; this is REMOVED in v3 per BLOCKING condition C2 (per-dataset closure is not a cross-dataset decision per `.claude/ml-protocol.md` lines 51-54). The diff-touching count is therefore **9 files** (items 1-9 above); item 10 is the transient pair (commit.txt + pr.txt) created and deleted within T09 and does NOT appear in the final commit diff.
+**v3 note:** the v2 plan listed root `reports/research_log.md` as item 7; this is REMOVED in v3 per BLOCKING condition C2 (per-dataset closure is not a cross-dataset decision per `.claude/ml-protocol.md` lines 51-54). The **execution-file count** is therefore **9 files** (items 1-9 above); item 10 is the **transient** pair (`.github/tmp/commit.txt` + `.github/tmp/pr.txt`) created and deleted within T09 and MUST NOT appear in the final commit diff. The **final tracked PR diff** count is **11 files** = 2 planning files already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`, committed in `dbbd3bf8`) + the 9 execution files (items 1-9).
 
-Item 10 (the transient pair) does not count as a modified file in the PR diff (created and deleted within T09). Items 1–9 are the 9 diff-touching file-manifest entries; item 10 is the transient tooling. The literal count of new+modified files in the final commit diff is **9** (1 new pair = 2 files + 7 modified = 9). The §6 Allowed files list enumerates all 10 entries.
+Item 10 (the transient pair) does not appear in any commit diff (created and deleted within T09; MUST NOT exist on disk at final-gate time). Items 1–9 are the 9 **execution files** added by T02a–T07 (1 new pair = 2 files + 7 modified = 9). The §6 Allowed files list enumerates all 10 entries (the 9 execution files + the 1 transient pair entry); it does NOT enumerate the 2 planning files already in PR #230. The **final tracked PR diff** count returned by `git diff --name-only master..HEAD` after execution is **11 files** = 2 planning files already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`) + 9 execution files (items 1–9).
 
 ### Q9: What's in the forbidden list? (UPDATED per reviewer feedback fix 3)
 
@@ -603,7 +617,7 @@ The closure of Step 02_01_01 by this PR carries the following boundary disclaime
 6. **PIPELINE_SECTION_STATUS `02_01 = complete` may reopen as `in_progress` if a future PR adds a successor step to STEP_STATUS.** Per Assumption A4 and §4 above, this is intended YAML-derivation behaviour, not silent revisionism. The closure-then-reopen sequence is designed-in.
 7. **The `normalization_fit_scope` field value `"training_fold_only"` is the spec-permitted PASS value (v3 RESOLVED pre-execution per BLOCKING condition C1 of the v2 reviewer-adversarial gate).** No new string is introduced. The value is vacuously satisfied on empty `features_audited` at the catalog-only layer (no normalizer was fit; the pass condition is vacuously met). This treatment is symmetric to the field values used for `target_encoding_fold_awareness` (`N/A_no_target_encoding` — spec-permitted) and `cutoff_time_filter_structural_check` / `reference_window_assertion` (`pass` vacuously). OQ1 is RESOLVED pre-execution (alternative beta); no `reviewer-adversarial` overrule is invited.
 
-## §6 Allowed files (10-entry manifest: 9 diff-touching + 1 transient)
+## §6 Allowed files (10-entry manifest: 9 execution files + 1 transient pair; the final tracked PR diff after execution is 11 files = 2 planning files already in PR #230 + 9 execution files)
 
 Allowed for modification or creation in this PR (per the file manifest in Q8):
 
@@ -618,7 +632,7 @@ Allowed for modification or creation in this PR (per the file manifest in Q8):
 9. **MODIFIED** `planning/INDEX.md`
 10. **TRANSIENT** `.github/tmp/commit.txt` and `.github/tmp/pr.txt` (created and deleted within T09; do NOT appear in the final commit diff per memory)
 
-**v3 note:** the v2 plan listed root `reports/research_log.md` as item 7; this is REMOVED in v3 per BLOCKING condition C2. The diff-touching file count is 9 (items 1-9); item 10 is the transient pair.
+**v3 note:** the v2 plan listed root `reports/research_log.md` as item 7; this is REMOVED in v3 per BLOCKING condition C2. The **execution-file count** is 9 (items 1-9); item 10 is the **transient** pair. The **final tracked PR diff** count is **11 files** = 2 planning files already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`, committed in `dbbd3bf8`) + 9 execution files (items 1-9).
 
 Edits at any other path are FORBIDDEN.
 
@@ -673,7 +687,7 @@ No tag is created in this PR; tags are created at master merge per the user's st
 **Execution:** `@executor` on Sonnet (mechanical multi-file editing per the file manifest in §6; no scientific reasoning required; all decisions resolved by this plan).
 
 **Post-execution final gate (MANDATORY for Cat A; executed as T11):**
-- Primary: `@reviewer-adversarial` reads this plan + the post-execution diff (`master..HEAD`). Required scope: assert the §6 file manifest matches the diff exactly; assert the §3 schema is satisfied by the new JSON; assert all 8 MD sections are present (including the v3-added "Audit queries: none — vacuously satisfied" sec 8 per Nit 4); assert the §5 disclaimers appear in per-dataset research_log + CHANGELOG + MD; assert OQ1 is documented in the JSON `notes`; assert the YAML cascade chain is correct; assert the per-dataset research_log entry uses `closure_status: closed` + `leakage_audit_state: zero_materialization_pass`; assert literal `PR #230` appears everywhere (no placeholder survives); assert NO root `reports/research_log.md` edit appears in the diff.
+- Primary: `@reviewer-adversarial` reads this plan + the post-execution diff (`master..HEAD`). Required scope: assert the `master..HEAD` diff contains exactly 11 tracked files = 2 planning files already in PR #230 (`planning/current_plan.md` + `planning/current_plan.critique.md`) + 9 execution files (§6 items 1–9), and the transient pair (§6 item 10) does NOT appear in the diff and does NOT exist on disk; assert the §3 schema is satisfied by the new JSON; assert all 8 MD sections are present (including the v3-added "Audit queries: none — vacuously satisfied" sec 8 per Nit 4); assert the §5 disclaimers appear in per-dataset research_log + CHANGELOG + MD; assert OQ1 is documented in the JSON `notes`; assert the YAML cascade chain is correct; assert the per-dataset research_log entry uses `closure_status: closed` + `leakage_audit_state: zero_materialization_pass`; assert literal `PR #230` appears everywhere (no placeholder survives); assert NO root `reports/research_log.md` edit appears in the diff.
 - Fallback (per `.claude/rules/data-analysis-lineage.md` "Use reviewer-deep for structural correctness, spec compliance, and invariant tracing"): if `@reviewer-adversarial` recommends offloading the structural-correctness pass, `@reviewer-deep` may run as the final-gate alternative. This is a fallback, not a default. Default is `@reviewer-adversarial`.
 - **Ordering (Route A; the plan adopts Route A).** PR #230 remains DRAFT throughout T01..T10. T11 runs the post-execution final gate while PR #230 is DRAFT. Only on APPROVE does T11 run `gh pr ready 230`. The plan does NOT instruct any executor to merge PR #230; merge remains the user's decision.
 

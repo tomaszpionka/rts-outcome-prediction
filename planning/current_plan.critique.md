@@ -70,3 +70,19 @@ None of N1-N4 constitutes a methodology flaw or schema violation. The executor m
 Per the 3-round cap (`feedback_adversarial_cap_execution.md`), this is the second and final adversarial round; APPROVE-WITH-NITS closes the planning gate cleanly without forcing user adjudication.
 
 PR #230 is the existing draft for this plan; the materialized plan is published to it via the planning-pair commit on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Execution (T01..T11) requires a separate, explicit user approval turn after the materialized plan is inspectable on PR #230.
+
+## Manifest-count correction addendum — PR #230
+
+*Appended 2026-05-21 in a separate plan-correction-only round (NOT a new adversarial round; the 3-round adversarial cap remains at 2 of 3 used).*
+
+The bounded-check #5 evidence at L42 above correctly attests that the internal §6 / Q8 / T08 cross-references in the v3 plan are mutually consistent at the **§6-enumeration layer** (9 execution files + 1 transient pair = 10 entries). However, the v3 plan as materialized did NOT disambiguate that enumeration count from the **final tracked PR diff count** that `git diff --name-only master..HEAD` will actually return after execution. Because PR #230 already contains 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`, committed in `dbbd3bf8` before plan execution begins), the final tracked PR diff after execution is **11 files** = 2 planning + 9 execution, NOT 9.
+
+Three concepts must be disambiguated in the live plan prose:
+
+- **execution_files = 9** — the 9 NEW/MODIFIED files added by T02a–T07 (§6 items 1–9).
+- **final_tracked_diff_files = 11** — the 2 planning files already in PR #230 + the 9 execution files; what `git diff --name-only master..HEAD` actually returns post-execution.
+- **transient_files** — `.github/tmp/commit.txt` and `.github/tmp/pr.txt` (§6 item 10); created and deleted in T09; MUST NOT appear in the final diff or on disk at final-gate time.
+
+T08 step 2 previously ran `git diff --name-only master..HEAD` and asserted "9 diff-touching files", which would empirically return 11 and fail the plan's own pre-merge gate. This plan-correction-only round folds the 11-file expected list into T08 step 2 (plus a 9-file execution-subset check plus a transient-absence check), and aligns the §6 header, Q8, §File Manifest summary, §Gate Condition, T11 step 1, and §9 final-gate scope to the same three-concept distinction.
+
+No methodology decision is changed. No new adversarial round is required. The v3 plan remains APPROVE-WITH-NITS at the methodology layer; the 11-vs-9 disambiguation is purely a count/wording correction.
