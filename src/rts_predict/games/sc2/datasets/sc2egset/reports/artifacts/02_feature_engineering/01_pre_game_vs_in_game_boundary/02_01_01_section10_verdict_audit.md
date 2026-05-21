@@ -7,7 +7,7 @@ This artifact persists evidence but does NOT close Step `02_01_01`. Closure requ
 ## §2 Provenance
 
 - `audit_executed_at_utc_date`: `2026-05-21`
-- `git_sha`: `119686d028c70853fe589185db0185adb0d8b2f2`
+- `git_sha`: `2ee492d3d6ff9bf7b583c218d9a63b8a49546fe8`
 - `validator_module`: `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`
 - `validator_module_sha256`: `7d164e42af3e6d434e642e089d5a8fd153cebcb548d2f5f84a8264f247a30268`
 - `registry_csv_sha256`: `320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f`

@@ -260,13 +260,9 @@ audit_executed_at_utc_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
 
 
-def _sha256(p):
-    return hashlib.sha256(p.read_bytes()).hexdigest()
-
-
-validator_module_sha256 = _sha256(VALIDATOR_PATH_ABS)
-registry_csv_sha256 = _sha256(REGISTRY_CSV_PATH)
-tracker_csv_sha256 = _sha256(TRACKER_CSV_PATH)
+validator_module_sha256 = hashlib.sha256(VALIDATOR_PATH_ABS.read_bytes()).hexdigest()
+registry_csv_sha256 = hashlib.sha256(REGISTRY_CSV_PATH.read_bytes()).hexdigest()
+tracker_csv_sha256 = hashlib.sha256(TRACKER_CSV_PATH.read_bytes()).hexdigest()
 
 VALIDATOR_MODULE = "src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py"
 SPEC_REVISION_CROSS_02_03 = "CROSS-02-03-v1.0.1"
@@ -320,11 +316,6 @@ for ffid, trig in result_persist.independent_trigger_hits:
 # Synonym map for equality_token derivation
 SYNONYMS = {DATASET_SIDE_BLOCKED_SYNONYM: "blocked_until_validation"}
 
-
-def _normalize_status(s):
-    return SYNONYMS.get(s, s)
-
-
 rows_out = []
 for _, reg_row in registry_df.iterrows():
     ffid = reg_row["feature_family_id"]
@@ -333,7 +324,7 @@ for _, reg_row in registry_df.iterrows():
     v = derive_section10_verdict(row_series, _protocol_rules)
     derived = v.derived_status
     recorded_raw = reg_row["status"]
-    recorded_norm = _normalize_status(recorded_raw)
+    recorded_norm = SYNONYMS.get(recorded_raw, recorded_raw)
     if recorded_norm == derived:
         eq_token = "equal_via_synonym" if recorded_raw != recorded_norm else "equal"
     elif ffid in stricter_set:
