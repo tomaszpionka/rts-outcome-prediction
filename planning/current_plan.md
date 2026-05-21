@@ -4,7 +4,7 @@ category: A
 branch: feat/sc2egset-02-01-01-section10-verdict-audit
 base_ref: db8aeafc2b413d40a933a81f11605ee209117387
 date: 2026-05-21
-version_bump: "n/a (no release in this PR)"
+version_bump: "3.62.0 → 3.63.0"
 planner_model: user-directed (reviewer-adversarial gate APPROVE Round-2)
 dataset: sc2egset
 phase: "02"
@@ -103,6 +103,10 @@ This plan does NOT cover:
 
 PM-1 alone does NOT close Step `02_01_01`. It is increment 1 of N required
 to close `02_01_01`. The step remains open after this PR merges.
+
+### Release-tail governance
+
+Per the repo CHANGELOG convention and `.claude/rules/git-workflow.md` (minor bump for feat/refactor/docs), this PR's release-tail files (`pyproject.toml` 3.62.0→3.63.0, `CHANGELOG.md` `[3.63.0]` entry, `planning/INDEX.md` archive + active-line update) are included as governance conformance and do not alter the scientific scope or gate claims.
 
 # §2 Repo evidence
 

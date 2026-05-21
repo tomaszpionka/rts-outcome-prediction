@@ -1,12 +1,13 @@
 # Planning Index
 
 ## Active plan
-- docs/thesis-appendix-key-canonicalization (2026-05-19) — Category F appendix-only bib-key canonicalization: Baek2022→BaekKim2022, Porcpine2020→Porcpine2020EloAoE, Herbrich2007→Herbrich2006 (key/style only; 2007 retained, NOT a year error), Glickman2025 appendix 2nd-author typo fix, BT2025Survey appendix author+year repair vs arXiv:2601.14727 (not imported); references.bib + chapters untouched
+- feat/sc2egset-02-01-01-section10-verdict-audit (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict audit: validator + jupytext notebook scaffold; all 26 registry rows audited; materialized_column_count=0; no status/ROADMAP/research_log/artifact mutation; Step 02_01_01 NOT closed (PR #228, open)
 
 ## Archive
 
 | Branch | Date | Category | Description | Plan file | Merged PR |
 |--------|------|----------|-------------|-----------|-----------|
+| docs/thesis-appendix-key-canonicalization | 2026-05-19 | F | Appendix-only bib-key canonicalization: Baek2022→BaekKim2022, Porcpine2020→Porcpine2020EloAoE, Herbrich2007→Herbrich2006 key/style normalization with 2007 retained, Glickman2025 appendix typo fix, BT2025Survey appendix repair; references.bib + chapters untouched | current_plan.md | #227 (merged 2026-05-19 at master db8aeafc) |
 | docs/thesis-bialecki2023-author-correction | 2026-05-19 | F | Bialecki2023 authors 3–4 post-merge correction (overturned #225 surname+initial-blind no-edit) | current_plan.md | #226 (merged 2026-05-19 at master 637fdb93) |
 | phase02/sc2egset-feature-registry-scaffold | 2026-05-07 | A | SC2EGSet Step 02_01_01 notebook scaffold + one validation module | current_plan.md | #212 (merged 2026-05-08 at master 18d30a81) |
 | phase02/sc2egset-feature-registry-v1-strict-and-v7-cold-start | 2026-05-08 | A | SC2EGSet Step 02_01_01 V-1 strict + V-7 cold-start vocabulary/sentinel validation | current_plan.md | #213 (merged 2026-05-09 at master 7b26b40f) |
