@@ -19,6 +19,27 @@ merged to `master`.
 
 ### Removed
 
+## [3.64.0] — 2026-05-21 (PR #229: feat/sc2egset-02-01-01-section10-audit-persistence)
+
+### Added
+
+- New artifact `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv` — 23-column persistence of the PM-1 §10 verdict audit (26 rows, deterministic, SHA-256 provenance, `audit_executed_at_utc_date` not runtime timestamp, `audit_pr=PR #229` literal).
+- New artifact `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.md` — companion summary with verbatim ROADMAP `continue_predicate` three-clause analysis, falsifier roll-call (F-1, F-1a, F-1b, F-2..F-7, PERSIST — all "did not fire"), non-closure disclaimer at §1.
+- New `research_log.md` entry in `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (Phase 02 / Step 02_01_01; `closure_status: still_open`; `evidence_persistence_state: section10_verdict_audit_persisted_step_open`).
+
+### Changed
+
+- Notebook `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.{py,ipynb}` — one artifact-write cell added + one banner markdown edit.
+- `planning/INDEX.md` — PR #228 archived (merged 2026-05-21 at master `5c7ef380`); new Active plan line for `feat/sc2egset-02-01-01-section10-audit-persistence` (PR #229).
+- `planning/current_plan.md` + `planning/current_plan.critique.md` — already committed in PR #229 (commits `fb4bef79` + `119686d0`).
+
+### Notes
+
+- **This PR persists evidence but does NOT close Step `02_01_01`.**
+- No materialized-column audit is applicable at the catalog-only registry layer (materialized_column_count=0); this becomes non-vacuous once Step 02_01_02 materializes the first feature column per 02_01_leakage_audit_protocol.md §4 lines 117–121.
+- Validator (`validate_registry_section10_verdicts.py`), validator tests, registry CSV/MD, status YAMLs (`STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`), `ROADMAP.md`, `INVARIANTS.md`, locked specs, and root `reports/research_log.md` are UNCHANGED.
+- Phase 02 remains `not_started` per `PHASE_STATUS.yaml`. Step `02_01_02` is NOT authorized. Phase 03 is NOT started.
+
 ## [3.63.0] — 2026-05-21 (PR #228: feat/sc2egset-02-01-01-section10-verdict-audit)
 
 ### Added
