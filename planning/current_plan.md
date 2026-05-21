@@ -1,676 +1,887 @@
 ---
-title: "SC2EGSet Phase-02 Step 02_01_01 — PM-1 §10 verdict audit (closure increment 1/N)"
+title: "SC2EGSet Phase-02 Step 02_01_01 — PM-1 §10 verdict-audit evidence persistence (does NOT close 02_01_01)"
 category: A
-branch: feat/sc2egset-02-01-01-section10-verdict-audit
-base_ref: db8aeafc2b413d40a933a81f11605ee209117387
+branch: feat/sc2egset-02-01-01-section10-audit-persistence
+base_ref: 5c7ef380d181276bc2f7d4c14b4427e336af781e
 date: 2026-05-21
-version_bump: "3.62.0 → 3.63.0"
-planner_model: user-directed (reviewer-adversarial gate APPROVE Round-2)
+version_bump: "3.63.0 → 3.64.0"
+planner_model: user-directed (planner-science revision after reviewer-adversarial APPROVE-WITH-CONDITIONS, reviewer-adversarial bounded check APPROVE-WITH-NITS)
 dataset: sc2egset
 phase: "02"
 pipeline_section: "02_01"
-invariants_touched: [I3, I5, I6, I7, I8, I9, I10]
+invariants_touched: [I3, I6, I7, I9, I10]
 source_artifacts:
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv
-  - reports/specs/02_03_temporal_feature_audit_protocol.md
-  - reports/specs/02_01_leakage_audit_protocol.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/specs/02_03_temporal_feature_audit_protocol.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/specs/02_01_leakage_audit_protocol.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py
+  - sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py
 critique_required: true
 critique_file: planning/current_plan.critique.md
-research_log_ref: null
+research_log_ref: src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
 ---
+
+# Plan: SC2EGSet Step 02_01_01 — PM-1 §10 verdict-audit evidence persistence
 
 ## Scope
 
-This plan covers the SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict audit
-(closure increment 1/N). See §1 Boundary Decision below for full scope statement.
-PM-1 does NOT close Step `02_01_01`; it is one increment of several.
+This plan covers persistence of the PR #228 PM-1 §10 verdict-audit result as
+on-disk evidence (a 23-column CSV and a companion MD), plus a single per-dataset
+`research_log.md` entry, plus the planning/release-tail conformance updates.
+**This PR persists evidence but does NOT close Step `02_01_01`.** The validator,
+the validator tests, the registry CSV/MD, the status YAMLs, the ROADMAP, the
+INVARIANTS, the locked specs, and the root `reports/research_log.md` are all
+FROZEN. No feature column is materialized.
+
+Step closure is deliberately deferred to a separate later PR with explicit
+`STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` flips
+and a fresh reviewer-adversarial methodology gate.
 
 ## Problem Statement
 
-The SC2EGSet Phase-02 registry CSV records a `status` field for each of 26
-feature-family rows. These statuses must match the verdicts derivable from
-CROSS-02-03-v1.0.1 §10 protocol rules. Without a formal bidirectional audit,
-the registry may be optimistic (stale allowed rows) or overly conservative
-(falsely blocked rows), either of which would compromise the Phase-02 scope.
-See §6 Hypothesis and §7 Falsifiers for the measurement approach.
+PR #228 (merged at master `5c7ef380`) introduced
+`validate_registry_section10_verdicts(...)` and its tests, and executed the
+PM-1 §10 verdict audit inside the jupytext-paired notebook at
+`sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`.
+The audit passed in memory (`passed=True`, `rows_audited=26`,
+`halting_falsifier=None`, 0/0/0 drift counts, `materialized_column_count=0`),
+but the result was NOT persisted to disk. Per
+`.claude/rules/data-analysis-lineage.md` "Artifact discipline", an in-memory
+validator pass is not citable evidence until it is recorded on disk through
+canonical lineage; the artifact must derive from the same upstream notebook
+that produced the in-memory result, and the on-disk encoding must be byte-
+equivalent to a re-run of the validator against the same frozen inputs.
 
-## Assumptions & Unknowns
+This PR closes the lineage loop for the PM-1 increment by persisting the
+audit as a CSV+MD artifact pair and appending a single per-dataset
+`research_log.md` entry. It does NOT advance Step `02_01_01` toward closure
+in the status-derivation chain.
 
-See §5 Assumptions for the full list (A-1 through A-6). Key items:
-- The registry uses `blocked_until_additional_validation` as a synonym for
-  spec-side `blocked_until_validation` (A-3).
-- `materialized_column_count = 0` always for this design-time audit (A-6).
-- No unknowns remain; all were resolved before the adversarial gate.
+## Assumptions & unknowns
 
-## Literature Context
+- **Assumption (A-1):** The PR #228 validator code (`validate_registry_section10_verdicts.py`)
+  and its tests are FROZEN by this PR. Any drift halts via `PERSIST` falsifier.
+- **Assumption (A-2):** The registry CSV (26 rows, 14 columns, includes `block`)
+  and the tracker eligibility CSV are FROZEN by this PR. Hashes captured in the
+  persisted artifact will detect post-merge drift.
+- **Assumption (A-3):** `materialized_column_count = 0` holds at the
+  catalog-only registry layer; clause-2 of the ROADMAP `continue_predicate`
+  is vacuously satisfied for this audit only (see §5 of the artifact MD).
+- **Assumption (A-4):** The deterministic timestamp convention
+  (`audit_executed_at_utc_date` = UTC `YYYY-MM-DD`; `git_sha` separate) is
+  sufficient for reproducibility per Invariant I6.
+- **Unknown:** None remain. All scientific decisions are inherited from the
+  PR #228 reviewer-adversarial Round-1/Round-2 baseline.
 
-Not applicable. This is a design-time structural audit of an internal
-feature-family registry against a locked specification. No external literature
-references are required.
+## Literature context
+
+Not applicable. This is a design-time evidence-persistence increment over a
+locked internal specification (CROSS-02-03-v1.0.1 §10) and a frozen registry
+artifact. No external literature is required to justify persistence; the
+methodology was already approved in PR #228.
 
 ## Execution Steps
 
-1. T00: Create feature branch from master @ `db8aeafc2b413d40a933a81f11605ee209117387`.
-2. T01: Read and verify on-disk anchors (registry CSV, spec files, tracker CSV).
-3. T02: Write `planning/current_plan.md` (this file).
-4. T03: Write `planning/current_plan.critique.md`.
-5. T04: Write `validate_registry_section10_verdicts.py` (the validator module).
-6. T05: Write `test_validate_registry_section10_verdicts.py` (14+ test cases).
-7. T06: Write and jupytext-sync `02_01_01_registry_section10_verdict_audit.{py,ipynb}`.
-8. T07: Run pytest (all 14 required tests pass; T-26ROW passes on real registry);
-   ruff + mypy clean; jupytext sync confirmed.
-9. T08: Commit, push, open PR.
+### T01 — Parent: materialize approved plan and critique to GitHub (THIS PR)
 
-## File Manifest
+**Objective:** Make the approved chat plan and the conditions-satisfied
+critique inspectable in GitHub before any artifact-writing executor runs.
 
-New files:
-- `planning/current_plan.md` (this file)
+**Instructions:**
+1. From master HEAD `5c7ef380`, create branch
+   `feat/sc2egset-02-01-01-section10-audit-persistence`.
+2. Write this file (`planning/current_plan.md`).
+3. Write `planning/current_plan.critique.md` with the latest
+   APPROVE-WITH-NITS verdict, all 10 condition results, 5 nits, and the
+   materialization-prerequisite-resolved addendum.
+4. Commit only the two planning files
+   (`chore(plan): materialize PM-1 evidence-persistence plan for review`).
+5. Push and open a **draft** PR; do NOT request review or merge.
+
+**Verification:**
+- `git diff --name-only master..HEAD` lists exactly two files:
+  `planning/current_plan.md`, `planning/current_plan.critique.md`.
+- `gh pr view <N> --json isDraft` returns `{"isDraft": true}`.
+
+**File scope:**
+- `planning/current_plan.md`
 - `planning/current_plan.critique.md`
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`
-- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py`
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.ipynb`
 
-Modified files: none (planning files are new or updated; no other files).
-
-## Gate Condition
-
-See §16 Gate Condition for the full list. Summary: all 14 required tests pass
-including T-26ROW with `passed=True, rows_audited=26, materialized_column_count=0`;
-ruff/mypy/jupytext clean; zero diff on all forbidden paths.
-
-## Open Questions
-
-See §20 Open Questions / Blockers. OQ-1 and OQ-2 are both RESOLVED.
-No blockers remain.
+**Read scope:**
+- All §Repo evidence anchors below (READ ONLY).
 
 ---
 
-# §1 Boundary decision
-
-This plan covers the **remaining `02_01_01` closure increment** — specifically PM-1
-(§10 verdict audit): a design-time CROSS-02-03-v1.0.1 §10 verdict audit of all
-26 feature-family rows in the on-disk registry CSV.
-
-This plan does NOT cover:
-- `02_01_02` or any later Pipeline Section step.
-- Phase 03 or any subsequent phase.
-- ROADMAP amendment.
-- STEP_STATUS or PHASE_STATUS flip.
-- A docs-only lineage note.
-- A status-chain closure PR.
-
-PM-1 alone does NOT close Step `02_01_01`. It is increment 1 of N required
-to close `02_01_01`. The step remains open after this PR merges.
-
-### Release-tail governance
-
-Per the repo CHANGELOG convention and `.claude/rules/git-workflow.md` (minor bump for feat/refactor/docs), this PR's release-tail files (`pyproject.toml` 3.62.0→3.63.0, `CHANGELOG.md` `[3.63.0]` entry, `planning/INDEX.md` archive + active-line update) are included as governance conformance and do not alter the scientific scope or gate claims.
-
-# §2 Repo evidence
-
-- Registry CSV: `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv`
-  — 26 data rows + 1 header; 14 columns: `feature_family_id`, `dataset_tag`,
-  `prediction_setting`, `source_table_or_event_family`, `source_grain`,
-  `model_input_grain`, `target_grain`, `temporal_anchor`, `allowed_cutoff_rule`,
-  `candidate_leakage_modes`, `cold_start_handling`, `status`,
-  `per_player_construction`, `block`.
-- Temporal audit protocol: `reports/specs/02_03_temporal_feature_audit_protocol.md`
-  (CROSS-02-03-v1.0.1, LOCKED 2026-05-06) — §10.1 four-verdict taxonomy;
-  §10.2 blocking-trigger checklist; §10.3 tracker special case.
-- Leakage audit protocol: `reports/specs/02_01_leakage_audit_protocol.md`
-  (CROSS-02-01-v1.0.1, LOCKED 2026-04-26) — "Materialization" defined at
-  lines 117-121 as persisting a feature column to DuckDB/Parquet.
-- Tracker eligibility CSV: `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv`
-  — `feature_family` → `status_in_game_snapshot` for D13 cross-check.
-- Skeleton validator: `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_skeleton.py`
-  — style/layout reference.
-- Existing test: `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_skeleton.py`
-  — mirror layout reference.
-
-# §3 Atomic step proposed
-
-Write a new validator module `validate_registry_section10_verdicts.py` that,
-given the registry CSV path and tracker eligibility CSV path, derives the §10
-verdict for each of the 26 rows independently from the protocol rules + row
-evidence, then compares each derived verdict to the registry's recorded `status`
-column, emitting bidirectional drift detection and independent §10.2 trigger
-evaluation.
-
-Deliverables in one PR:
-1. `planning/current_plan.md` (this file — durable approved plan).
-2. `planning/current_plan.critique.md` (adversarial gate record).
-3. `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`.
-4. `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py`.
-5. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py` (jupytext percent format).
-6. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.ipynb` (jupytext-paired).
-
-# §4 Why this is not batching
-
-This unit performs exactly one empirical operation: design-time §10 verdict
-derivation and comparison against the on-disk registry. It does NOT:
-- materialize any feature column;
-- write any artifact CSV/Parquet to `reports/artifacts/`;
-- update STEP_STATUS, PHASE_STATUS, ROADMAP, or research_log;
-- implement any feature-generation notebook;
-- run any Phase 03 logic.
-
-The notebook scaffold contains a single validation call and assertion; it does
-not generate downstream artifacts. The `.claude/rules/data-analysis-lineage.md`
-non-batching rule applies to empirical notebooks that produce artifacts; this
-increment produces zero artifacts, so the batching prohibition is satisfied.
-
-# §5 Assumptions
-
-A-1. The 26-row registry CSV is correct on disk (verified in T01 read).
-A-2. CROSS-02-03-v1.0.1 §10.1 verdicts are: `allowed`, `allowed_with_caveat`,
-     `blocked_until_validation`, `sanity_gate_not_model_input`.
-A-3. The registry's `status` column uses the dataset-side token
-     `blocked_until_additional_validation` as a synonym for spec-side
-     `blocked_until_validation` (per registry inspection — the registry uses
-     the longer form for all currently-blocked rows).
-A-4. `derive_section10_verdict` operates exclusively on `prediction_setting`,
-     `allowed_cutoff_rule`, `candidate_leakage_modes`, `feature_family_id`,
-     `source_table_or_event_family`, and the tracker eligibility CSV — never
-     on `row["status"]`.
-A-5. The tracker eligibility CSV column `status_in_game_snapshot` for
-     `slot_identity_consistency` is `eligible_for_phase02_now` (registry
-     reclassifies to `sanity_gate_not_model_input` independently).
-A-6. `materialized_column_count = 0` always because this is a design-time
-     audit — no feature columns have been persisted to DuckDB/Parquet at
-     this step.
-
-# §6 Hypothesis
-
-Every one of the 26 feature-family rows in the on-disk registry carries a
-`status` value that exactly matches (modulo the `blocked_until_additional_validation`
-/ `blocked_until_validation` synonym) the verdict derivable from
-CROSS-02-03-v1.0.1 §10 rules applied to the row's evidence fields. No row
-triggers an unmitigated §10.2 blocking condition that its recorded `status`
-does not already reflect.
-
-# §7 Falsifiers
-
-F-1 (overall — bidirectional EQUALITY): The derived §10 verdict for any row
-MUST equal the registry's recorded `status` (modulo the synonym in A-3). Any
-discrepancy in either direction halts execution.
-
-F-1a (stricter drift — HALT): The derived verdict is strictly more restrictive
-than the recorded status (e.g., derived=`blocked_until_validation`,
-recorded=`allowed`). This indicates the registry is optimistic / stale. HALT
-immediately.
-
-F-1b (looser drift — HALT): The derived verdict is strictly less restrictive
-than the recorded status (e.g., derived=`allowed`, recorded=
-`blocked_until_validation`). This indicates the registry is overly conservative
-or the derivation logic is missing a caveat path. HALT immediately.
-
-F-2 (independent §10.2 trigger checklist — HALT): An independent evaluation
-of the §10.2 blocking-trigger checklist (evaluated WITHOUT reading `row["status"]`)
-fires a trigger on a row whose recorded status is `allowed` or
-`allowed_with_caveat`. HALT: this row should be blocked.
-
-F-3 (POST-GAME token leakage — HALT): Any row's `allowed_cutoff_rule` contains
-a post-outcome reference token (`won`, `final_state`, `match_result`,
-`post_game`). HALT: this is temporal leakage.
-
-F-4 (invalid cutoff operator — HALT): A `history_enriched_pre_game` row's
-`allowed_cutoff_rule` contains `<=` or `=` or `>=` instead of strict `<`.
-HALT: violates CROSS-02-00-v3.0.1 §3.3.
-
-F-5 (D13 tracker contradiction — HALT): An `in_game_snapshot` row's
-`status` is `allowed` or `allowed_with_caveat` but the tracker eligibility CSV
-records `status_in_game_snapshot = blocked_until_additional_validation` for
-that family. HALT: tracker CSV overrides registry.
-
-F-6 (slot-identity gate misuse — HALT): The `slot_identity_consistency` row
-is NOT classified `sanity_gate_not_model_input`. HALT: this family is
-reserved as an engineering sanity gate, not a model input.
-
-F-7 (controlled-vocab drift — HALT): Any row's `status` value is not in the
-union of spec-side verdicts (`allowed`, `allowed_with_caveat`,
-`blocked_until_validation`, `sanity_gate_not_model_input`) and the
-dataset-side synonym (`blocked_until_additional_validation`).
-
-Implementation invariant for F-1 / F-2 independence:
-"validator derives the expected verdict from protocol rules + row evidence
-FIRST; registry `status` is compared only AFTER independent derivation; any
-drift in either direction halts; this prevents stale-registry laundering."
-
-# §8 Sanity checks
-
-S-1 (existence): The registry CSV exists on disk at the expected path before
-any audit begins. If absent, `load_registry_rows` raises a clear exception.
-
-S-2 (26 rows): The registry CSV contains exactly 26 data rows (excluding
-header). If row count != 26, `load_registry_rows` raises.
-
-S-3 (unique IDs): All `feature_family_id` values are unique. If any
-duplicate exists, `load_registry_rows` raises.
-
-S-4 (derive-before-compare): Every row's independent verdict is derived
-before any comparison against `row["status"]` is performed. The implementation
-ensures this by collecting all derived verdicts into a dict in a first pass,
-then comparing in a second pass.
-
-S-5 (materialized_column_count == 0): `RegistryVerdictAuditResult.materialized_column_count`
-is always set to 0. This is a design-time audit; no feature columns exist.
-The validator hard-codes this value and the notebook asserts it explicitly.
-
-S-6 (no write side effects): No cell in the notebook and no function in the
-validator writes to `reports/artifacts/`, `reports/STEP_STATUS.yaml`,
-`reports/PHASE_STATUS.yaml`, `reports/ROADMAP.md`, `reports/research_log.md`,
-or any Phase-03 path. The notebook must end with a closure markdown cell
-explicitly stating this.
-
-# §9 Implementation design
-
-## §9.1 File structure
-
-```
-src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py
-tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py
-sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/
-    02_01_01_registry_section10_verdict_audit.py   (jupytext source)
-    02_01_01_registry_section10_verdict_audit.ipynb (paired)
-```
-
-## §9.2 Public API signatures
-
-```python
-@dataclass(frozen=True)
-class Section10Rules:
-    """Frozen view of the §10 protocol rules used in derivation."""
-    verdicts: frozenset[str]
-    blocking_triggers: tuple[str, ...]
-    history_cutoff: str          # expected strict-'<' token for history rows
-    ingame_cutoff: str           # expected '<=' token for in-game rows
-    slot_identity_feature_id: str
-    sc2_tracker_blocked_token: str
-    tracker_eligibility_csv_path: Path
-
-
-@dataclass(frozen=True)
-class Section10Verdict:
-    """Per-row derived verdict and evidence trail."""
-    feature_family_id: str
-    derived_status: str           # one of SECTION10_VERDICTS
-    triggers_fired: tuple[str, ...]
-    rule_path: str                # human-readable derivation path
-
-
-@dataclass(frozen=True)
-class RegistryVerdictAuditResult:
-    """Aggregate result of the full §10 verdict audit."""
-    passed: bool
-    rows_audited: int
-    halting_falsifier: str | None  # first matched falsifier label or None
-    stricter_drifts: tuple[tuple[str, str, str], ...]  # (ffid, derived, recorded)
-    looser_drifts: tuple[tuple[str, str, str], ...]    # (ffid, derived, recorded)
-    independent_trigger_hits: tuple[tuple[str, str], ...]  # (ffid, trigger_name)
-    materialized_column_count: int  # always 0
-
-
-def load_registry_rows(registry_csv_path: Path) -> list[pd.Series]:
-    """Load the 26-row registry CSV, enforcing S-1 / S-2 / S-3.
-
-    Args:
-        registry_csv_path: Path to 02_01_01_feature_family_registry.csv.
-
-    Returns:
-        List of pd.Series, one per data row (excluding header).
-
-    Raises:
-        FileNotFoundError: if CSV does not exist (S-1).
-        ValueError: if row count != 26 (S-2) or duplicate feature_family_id (S-3).
-    """
-
-
-def derive_section10_verdict(
-    row: pd.Series,
-    protocol_rules: Section10Rules,
-) -> Section10Verdict:
-    """Derive the §10 verdict for a single registry row from protocol rules + row evidence.
-
-    The function does NOT read `row['status']` — the registry's recorded status is
-    excluded from the derivation input set. To make accidental reads structurally
-    impossible, the function projects the row to a view that explicitly drops the
-    'status' column before any rule evaluation:
-        row_evidence = row.drop(labels=[s for s in ('status',) if s in row.index])
-    All rule evaluation operates exclusively on row_evidence.
-
-    Args:
-        row: pd.Series with registry columns. Must contain 'prediction_setting',
-            'allowed_cutoff_rule', 'candidate_leakage_modes', 'feature_family_id',
-            'source_table_or_event_family'. Must NOT be read for 'status'.
-        protocol_rules: Frozen §10 rule set, including tracker CSV path.
-
-    Returns:
-        Section10Verdict with the derived status and evidence trail.
-    """
-
-
-def compare_registry_verdicts(
-    rows: list[pd.Series],
-    protocol_rules: Section10Rules,
-) -> RegistryVerdictAuditResult:
-    """Compare independently derived §10 verdicts against registry recorded status.
-
-    Step order (S-4 enforced):
-    1. Derive all row verdicts independently (first pass, no status reads).
-    2. Compare each derived verdict to row['status'] (second pass).
-    3. Classify stricter drifts (F-1a) and looser drifts (F-1b).
-    4. Run independent §10.2 trigger checklist on every row (F-2).
-    5. Set halting_falsifier in priority: F-1a > F-1b > F-2 > F-3 > F-4 > F-5 > F-6 > F-7.
-    6. Set materialized_column_count = 0 (S-5).
-    7. Set passed = (no halting_falsifier AND drifts empty AND triggers empty AND rows == 26).
-
-    Args:
-        rows: List of pd.Series from load_registry_rows.
-        protocol_rules: Frozen §10 rule set.
-
-    Returns:
-        RegistryVerdictAuditResult with full audit summary.
-    """
-
-
-def validate_registry_section10_verdicts(
-    registry_csv_path: Path,
-    tracker_csv_path: Path,
-) -> RegistryVerdictAuditResult:
-    """Entry point: load registry rows and run the full §10 verdict audit.
-
-    Args:
-        registry_csv_path: Path to 02_01_01_feature_family_registry.csv.
-        tracker_csv_path: Path to tracker_events_feature_eligibility.csv.
-
-    Returns:
-        RegistryVerdictAuditResult. Caller is responsible for asserting .passed.
-    """
-```
-
-## §9.3 Verdict derivation dispatch
-
-Verdict derivation is dispatched by `prediction_setting`:
-
-- `pre_game` rows: if no §10.2 trigger fires → `allowed`; else `blocked_until_validation`.
-- `history_enriched_pre_game` rows: assert `allowed_cutoff_rule == HISTORY_STRICT_CUTOFF`
-  (strict `<`). If a row's `candidate_leakage_modes` admits an unmitigated leakage
-  mode without a sibling mitigator → `blocked_until_validation`; else `allowed`
-  (or `allowed_with_caveat` per declared caveat token).
-- `in_game_snapshot` rows: if `feature_family_id == SLOT_IDENTITY_FEATURE_ID` →
-  `sanity_gate_not_model_input`; if D13 (tracker eligibility CSV says
-  `blocked_until_additional_validation`) → `blocked_until_validation`; if row
-  declares `lps_caveat_on_5min` or similar caveat token → `allowed_with_caveat`;
-  else if tracker CSV says `eligible_with_caveat` → `allowed_with_caveat`; else `allowed`.
-- `blocked_or_deferred` rows: `blocked_until_validation`.
-
-## §9.4 Verdict strictness ordering
-
-For F-1a / F-1b drift detection:
-`allowed` < `allowed_with_caveat` < `sanity_gate_not_model_input` < `blocked_until_validation`
-
-"Stricter" drift = derived rank > registry rank.
-"Looser" drift = derived rank < registry rank.
-
-## §9.5 Top-level constants (no magic numbers)
-
-```python
-EXPECTED_ROW_COUNT = 26
-SECTION10_VERDICTS = frozenset({
-    "allowed", "allowed_with_caveat",
-    "blocked_until_validation", "sanity_gate_not_model_input"
-})
-DATASET_SIDE_BLOCKED_SYNONYM = "blocked_until_additional_validation"
-HISTORY_STRICT_CUTOFF = "history_time < target_time"
-INGAME_CUTOFF = "event.loop <= cutoff_loop"
-SLOT_IDENTITY_FEATURE_ID = "sc2egset.in_game_snapshot.slot_identity_consistency"
-```
-
-# §10 SQL / temporal predicates
-
-No SQL is executed by this module. The temporal predicate reference is
-declarative only (read from the registry CSV):
-- History rows MUST declare: `history_time < target_time` (strict `<`).
-- In-game rows MUST declare: `event.loop <= cutoff_loop`.
-
-Both are validated by rule comparison against constants, not by SQL execution.
-
-# §11 Validation module design
-
-The validator enforces:
-- S-1/S-2/S-3 inline in `load_registry_rows`.
-- S-4 (derive-before-compare) as structural first-pass/second-pass separation
-  in `compare_registry_verdicts`.
-- S-5 (materialized_column_count = 0) hard-coded in `compare_registry_verdicts`.
-- F-1a/F-1b (bidirectional drift) via verdict rank comparison.
-- F-2 (independent trigger checklist) evaluated without reading `status`.
-- F-3 (post-game token leakage) scanned in `allowed_cutoff_rule`.
-- F-4 (invalid cutoff operator) asserted for history rows.
-- F-5 (D13 tracker contradiction) cross-checked against tracker eligibility CSV.
-- F-6 (slot-identity gate misuse) checked against SLOT_IDENTITY_FEATURE_ID.
-- F-7 (controlled-vocab drift) checked against SECTION10_VERDICTS union synonym.
-
-Halting priority: F-1a > F-1b > F-2 > F-3 > F-4 > F-5 > F-6 > F-7.
-
-# §12 Notebook scaffold design
-
-File: `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`
-(jupytext percent format; paired `.ipynb` materialized by `jupytext --sync`).
-
-Cells (≤50 lines each; no inline `def`/`class`/`lambda`; all logic imported from `src/`):
-
-1. **Front-matter markdown**: declare `step: "02_01_01"` (closure increment),
-   assumption / measurement claim / sanity check / falsifier / expected report /
-   lineage source / downstream decision (7-tuple per data-analysis-lineage.md),
-   and explicit "INCREMENT 1 of N — scaffold + PM-1 only; design-time §10 verdict
-   audit; NOT materialization; does NOT close Step `02_01_01`; does NOT flip
-   STEP_STATUS/PHASE_STATUS; NO artifact written" banner.
-
-2. **Hypothesis markdown**: verbatim from §6.
-
-3. **Falsifier markdown**: F-1/F-1a/F-1b/F-2..F-7 verbatim.
-
-4. **Imports cell**: `validate_registry_section10_verdicts`, `RegistryVerdictAuditResult`,
-   `Section10Rules`; `notebook_utils.get_reports_dir`; `logging`.
-
-5. **Path resolution cell**: derive registry CSV path, tracker CSV path.
-
-6. **Sanity-check cell**: call `load_registry_rows`; assert S-1/S-2/S-3 inline;
-   print row count and head (use `print` for data exploration per repo convention).
-
-7. **Validation cell**: call `validate_registry_section10_verdicts(...)`; surface
-   the `RegistryVerdictAuditResult`.
-
-8. **Drift report cell**: pretty-print stricter/looser drifts; halt narrative
-   if non-empty.
-
-9. **§10.2 trigger report cell**: pretty-print `independent_trigger_hits`; halt
-   narrative if non-empty.
-
-10. **Vacuous clause-2 cell**: print `materialized_column_count = 0` + the
-    explanatory message (clause-2 materialized column set is EMPTY, vacuously
-    satisfied).
-
-11. **Gate-assertion cell**: explicit Python assertions:
-    `assert result.passed is True`
-    `assert result.rows_audited == 26`
-    `assert result.materialized_column_count == 0`
-
-12. **Closure markdown**: S-6 statement — no status, artifact, ROADMAP,
-    research_log, or Phase-03 output is written by this notebook; explicit
-    "this is a design-time §10 verdict audit, not materialization; does NOT
-    close Step `02_01_01`" reminder.
-
-NO artifact-writing cell. No `to_csv` / `to_parquet` / `open("w")`. No DuckDB write.
-
-# §13 Tests
-
-14 required test cases:
-
-- **T-INDEP**: Construct two `pd.Series` rows identical except for `status`.
-  Assert `derive_section10_verdict(rowA).derived_status == derive_section10_verdict(rowB).derived_status`.
-  Also assert the function works correctly when `status` key is entirely absent
-  from the row (structural independence check via `row.drop` guard).
-
-- **T-F1A**: Construct a synthetic registry where one row has a derived verdict
-  stricter than its recorded `status`. Assert `result.passed is False` and
-  `result.halting_falsifier == "F-1a"` and `len(result.stricter_drifts) >= 1`.
-
-- **T-F1B**: Construct a synthetic registry where one row has a derived verdict
-  looser than its recorded `status`. Assert `result.passed is False` and
-  `result.halting_falsifier == "F-1b"` and `len(result.looser_drifts) >= 1`.
-
-- **T-F2**: Construct a row where a §10.2 blocking trigger fires but recorded
-  `status` is `allowed`. Assert the independent trigger hit is reported and
-  `passed is False`.
-
-- **T-F3**: Construct a row where `allowed_cutoff_rule` contains a post-game
-  token. Assert `halting_falsifier` indicates F-3.
-
-- **T-F4**: Construct a `history_enriched_pre_game` row where `allowed_cutoff_rule`
-  contains `<=`. Assert `halting_falsifier` indicates F-4.
-
-- **T-F5**: Construct an `in_game_snapshot` row where the tracker CSV records
-  `blocked_until_additional_validation` but the registry `status` is `allowed`.
-  Assert `halting_falsifier` indicates F-5.
-
-- **T-F6**: Construct a registry where `slot_identity_consistency` is NOT
-  classified `sanity_gate_not_model_input`. Assert `halting_falsifier`
-  indicates F-6.
-
-- **T-F7**: Construct a row with an unrecognized `status` value. Assert
-  `halting_falsifier` indicates F-7.
-
-- **T-VAC**: Assert `result.materialized_column_count == 0` always (vacuous
-  clause-2 check), using both a synthetic registry and the real registry.
-
-- **T-26ROW**: Run `validate_registry_section10_verdicts` against the real
-  on-disk registry. Assert `result.passed is True`, `result.rows_audited == 26`,
-  `result.materialized_column_count == 0`, `result.halting_falsifier is None`,
-  `len(result.stricter_drifts) == 0`, `len(result.looser_drifts) == 0`,
-  `len(result.independent_trigger_hits) == 0`.
-
-- **T-ROWCNT**: Provide a CSV with != 26 rows. Assert `load_registry_rows`
-  raises `ValueError` with a message referencing the count.
-
-- **T-EMPTY**: Provide an empty CSV (header only). Assert `load_registry_rows`
-  raises `ValueError`.
-
-- **T-SYN**: Assert that `blocked_until_additional_validation` (dataset-side)
-  and `blocked_until_validation` (spec-side) are treated as equal synonyms
-  in the comparison logic (no false F-1a/F-1b drift triggered).
-
-# §14 Leakage risks
-
-No leakage risk: this module reads registry metadata (declarations), not
-feature values. It performs no temporal computations and produces no feature
-columns. The only data read is the registry CSV and tracker eligibility CSV,
-both of which are design-time artifacts.
-
-# §15 Cold-start behavior
-
-Cold-start is N/A for this module, for four reasons:
-1. This is a design-time audit of declarations, not a feature-generation step.
-2. No feature values are computed, so there is no population to have cold-start
-   gaps in.
-3. The registry rows themselves declare the cold-start gate tokens (G-CS-1..G-CS-6);
-   those tokens are read but not evaluated for cold-start behavior.
-4. Cold-start evaluation belongs to the feature-generation notebooks (Phase 02
-   later increments), not to the §10 verdict audit.
-
-# §16 Gate condition
-
-This PR (PM-1) passes its own gate if and only if:
-- All 14 tests pass (including T-26ROW with `passed=True, rows_audited=26,
-  materialized_column_count=0`).
-- Ruff check passes with zero warnings on all three new files.
-- Mypy passes on the validator module.
-- Jupytext sync confirms `.py` and `.ipynb` are in agreement.
-- `git diff --name-only base..HEAD` shows ONLY the 6 allowed files
-  (plus `planning/current_plan.md` and `planning/current_plan.critique.md`).
-- `git diff --name-only base..HEAD -- <forbidden>` is empty for all forbidden paths.
-
-PM-1 passing this gate does NOT close Step `02_01_01` (N > 1 increments remain).
-
-# §17 Allowed future files
-
-Only these 6 files may be written in this PR:
-1. `planning/current_plan.md`
-2. `planning/current_plan.critique.md`
-3. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`
-4. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.ipynb`
-5. `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`
-6. `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py`
-
-A `conftest.py` update is permitted ONLY if the existing `tests/rts_predict/games/sc2/datasets/sc2egset/conftest.py` requires a new fixture for the new tests; if no new fixture is needed, no conftest change is made.
-
-# §18 Forbidden files / actions
-
-Zero diff allowed on:
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
+### T02 — Executor (later turn): add notebook artifact-write cell + banner update
+
+**Objective:** Add exactly ONE artifact-write cell to the existing PR #228
+notebook and update ONE banner markdown cell to reflect that the §10 verdict
+audit is now persisted on disk while Step `02_01_01` remains open.
+
+**Instructions:**
+1. Open the jupytext source at
+   `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`.
+2. Add ONE new cell at the end (after the existing gate-assertions cell,
+   before the closure-statement cell). The cell must use plain top-level
+   statements only (no `def` / `class` / `lambda`). Order of operations
+   inside the cell:
+   a. Derive deterministic values: `audit_executed_at_utc_date` via
+      `datetime.now(UTC).strftime("%Y-%m-%d")`; `git_sha` via
+      `subprocess.run(["git", "rev-parse", "HEAD"], …)`; three SHA-256
+      digests over raw file bytes (`validate_registry_section10_verdicts.py`,
+      `02_01_01_feature_family_registry.csv`, `tracker_events_feature_eligibility.csv`).
+   b. Build the 26-row DataFrame in the stable 23-column order (see §Artifact
+      CSV schema).
+   c. Write CSV via
+      `df.to_csv(path, index=False, encoding="utf-8", lineterminator="\n")`.
+   d. Run the PERSIST byte-equivalence check (see §Persistence byte-equivalence
+      check). HALT on failure.
+   e. Render MD per §Artifact MD structure and write via
+      `Path(path).write_text(content, encoding="utf-8")`.
+   f. `print(...)` a closure summary listing both artifact paths and
+      `PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr, git_sha}`.
+3. Update the front-matter banner markdown cell: replace the existing line
+   `NO artifact written` with two lines:
+   `artifact persisted in evidence-persistence PR — 02_01_01_section10_verdict_audit.{csv,md}`
+   and
+   `Step 02_01_01 STILL OPEN; status YAMLs intentionally NOT flipped`.
+4. Run `jupytext --sync 02_01_01_registry_section10_verdict_audit.py` to
+   refresh the paired `.ipynb`.
+
+**Verification:**
+- Notebook diff is EXACTLY 1 added cell + 1 banner markdown edit.
+  `git diff --stat sandbox/.../02_01_01_registry_section10_verdict_audit.py`
+  must show only the cells touched.
+- Both artifact files exist at the declared paths and contain 26 data rows
+  (CSV) and the 8 required MD sections.
+- PERSIST byte-equivalence check passes.
+
+**File scope:**
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.ipynb`
+
+**Read scope:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py` (READ ONLY, FROZEN)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv` (READ ONLY, FROZEN)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv` (READ ONLY, FROZEN)
+
+---
+
+### T03 — Executor (later turn): write the two artifact files
+
+**Objective:** Persist the 23-column CSV and 8-section MD to the declared
+artifact paths through the notebook (NOT through any side-channel script).
+
+**Instructions:**
+- The artifact files are produced by re-executing the notebook from T02.
+  No separate script is added.
+- The CSV must satisfy all determinism rules (§Artifact CSV schema).
+- The MD must include §1 non-closure disclaimer at the top, §2 provenance,
+  §3 aggregate result, §4 falsifier roll-call (F-1, F-1a, F-1b, F-2, F-3,
+  F-4, F-5, F-6, F-7, PERSIST — each "did not fire"), §5 ROADMAP
+  `continue_predicate` verbatim + three-clause table, §6 methodology lineage,
+  §7 per-row compact table, §8 cited code/SQL block.
+
+**Verification:**
+- `wc -l <csv>` reports 27 lines (header + 26 data rows).
+- `grep -c '^| ' <md>` shows the per-row table has 26+ data rows.
+- `grep "audit_pr.*PR #<TBD>" <csv>` matches (placeholder NOT amended).
+- `grep -c "did not fire" <md>` ≥ 10 (one per falsifier roll-call row).
+
+**File scope:**
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.md`
+
+**Read scope:**
+- All T02 outputs (the updated notebook).
+
+---
+
+### T04 — Executor (later turn): append per-dataset research_log.md entry
+
+**Objective:** Append a single per-dataset `research_log.md` entry that
+records the persistence increment and uses the two distinct non-closure
+tokens.
+
+**Instructions:**
+1. Open
+   `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`.
+2. Insert ONE new entry above the existing 2026-05-16 PR #216 entry
+   (reverse-chronological). The entry must include:
+   - Header: ISO date `YYYY-MM-DD`, `[Phase 02 / Step 02_01_01]`,
+     title `"Persist PM-1 §10 verdict-audit evidence (Step 02_01_01 still open)"`.
+   - Category: A.
+   - Dataset: sc2egset.
+   - Branch + PR number placeholder (filled post-`gh pr create`).
+   - `closure_status: still_open`
+   - `evidence_persistence_state: section10_verdict_audit_persisted_step_open`
+   - What: PR #228 validated PM-1 in memory; this PR persists the evidence
+     to disk.
+   - Why: data-analysis-lineage rule — in-memory passes are not citable
+     evidence.
+   - How: notebook path, validator path, two input CSV paths, three SHA-256
+     hashes, deterministic UTC date, `git_sha`.
+   - Findings: 0 drifts, 0 hits, halting_falsifier=None, PERSIST did not fire.
+   - What this means: clause-3 satisfied on disk; clause-2 vacuous (see
+     verbatim wording in §Research log update plan below); clause-1 from
+     PR #216; Step `02_01_01` remains OPEN; the §10 audit increment did NOT
+     advance overall closure; status YAMLs deliberately frozen.
+   - Decisions taken: persist at catalog-only layer; deterministic
+     `audit_executed_at_utc_date` (not runtime timestamp); freeze status YAMLs,
+     ROADMAP, INVARIANTS, registry, validator, validator tests; explicitly
+     do NOT reuse PR #216's `closure_status: partial` token (rationale:
+     PR #216's `partial` denoted "validators V-1..V-9 are partial coverage
+     toward closure"; this entry denotes "no closure progress claim at all"
+     and the two epistemic states must not collide).
+   - Decisions deferred: status-chain triad mutation; ROADMAP amendment;
+     `02_01_02` start; Phase 03 work; reviewer-deep closure-decision audit.
+   - Thesis mapping: Chapter 4 §4.5 — citable as secondary lineage row only.
+   - Open questions / follow-ups: schedule formal closure PR (separate
+     planner-science → reviewer-adversarial → executor cycle); decide
+     whether `02_01_02` planning may begin before/after closure PR
+     (deferred to a later read-only planning session).
+   - Acknowledged trade-offs: evidence persistence inflates the artifact
+     directory with a CSV mirroring the validator's in-memory output;
+     justified by lineage discipline.
+
+**Verification:**
+- `git diff src/.../sc2egset/reports/research_log.md | grep -E "(^\+)" | wc -l` shows the new entry was added.
+- `grep -c "closure_status: still_open" src/.../sc2egset/reports/research_log.md` ≥ 1.
+- `grep -c "evidence_persistence_state: section10_verdict_audit_persisted_step_open" src/.../sc2egset/reports/research_log.md` ≥ 1.
+- Root `reports/research_log.md` diff is empty (`git diff reports/research_log.md` returns nothing).
+
+**File scope:**
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/**`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md`
-- `reports/research_log.md`
-- `reports/specs/**`
-- `thesis/**`
-- `data/**`
-- `notebooks/**`
+
+**Read scope:**
+- All T02 and T03 outputs.
+
+---
+
+### T05 — Executor (later turn): release-tail (CHANGELOG + pyproject + planning/INDEX.md)
+
+**Objective:** Apply the conventional `feat/` minor-version bump and update
+the planning index.
+
+**Instructions:**
+1. `pyproject.toml`: `version = "3.63.0"` → `version = "3.64.0"`.
+2. `CHANGELOG.md`: move the (currently empty) `[Unreleased]` block contents
+   into a new versioned section
+   `## [3.64.0] — YYYY-MM-DD (PR #<N>: feat/sc2egset-02-01-01-section10-audit-persistence)`
+   immediately above `## [3.63.0]`. Re-emit empty `[Unreleased]` with the
+   four standard sub-headers `### Added`, `### Changed`, `### Fixed`, `### Removed`.
+   Inside `[3.64.0]`:
+   - `### Added`: new artifact CSV; new artifact MD; new per-dataset
+     `research_log.md` entry.
+   - `### Changed`: notebook pair (`.py` + `.ipynb`) — one artifact-write
+     cell + one banner edit; `planning/INDEX.md` archive #228 + set new
+     Active.
+   - `### Notes`: include the **verbatim non-closure disclaimer** ("This PR
+     persists evidence but does NOT close Step `02_01_01`."); include the
+     **verbatim clause-2 wording** ("No materialized-column audit is
+     applicable at the catalog-only registry layer (materialized_column_count=0);
+     this becomes non-vacuous once Step 02_01_02 materializes the first
+     feature column per 02_01_leakage_audit_protocol.md §4 lines 117–121.");
+     include the frozen-files list (validator, tests, registry CSV/MD,
+     status YAMLs, ROADMAP, INVARIANTS, root research_log).
+3. `planning/INDEX.md`: archive PR #228 with
+   `#228 (merged 2026-05-21 at master 5c7ef380)` and set Active to
+   `feat/sc2egset-02-01-01-section10-audit-persistence (YYYY-MM-DD) — Category A: SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict-audit evidence persistence; persist CSV+MD + per-dataset research_log entry; status YAMLs / ROADMAP / INVARIANTS / registry / validator / tests / root research_log frozen; Step 02_01_01 NOT closed`.
+4. Commit boundary: single `feat(sc2egset): …` commit (preferred) OR
+   `feat(...)` + `chore(release): bump version to 3.64.0` (per PR #228
+   precedent at `996ed0af`). No `--amend`. No force-push.
+
+**Verification:**
+- `grep '"3.64.0"' pyproject.toml` matches.
+- `grep "^## \[3.64.0\]" CHANGELOG.md` matches.
+- `grep "^- feat/sc2egset-02-01-01-section10-audit-persistence" planning/INDEX.md` matches.
+- `grep "^| feat/sc2egset-02-01-01-section10-verdict-audit" planning/INDEX.md` matches in the Archive table with PR #228.
+
+**File scope:**
 - `pyproject.toml`
 - `CHANGELOG.md`
-- Any other file not in §17.
+- `planning/INDEX.md`
 
-Additional boundary disclaimers:
-- PM-1 does NOT close Step `02_01_01`.
-- PM-1 does NOT flip STEP_STATUS or PHASE_STATUS.
-- PM-1 does NOT write any artifact to `reports/artifacts/`.
-- PM-1 does NOT update `research_log.md` (mandatory Cat-A update explicitly deferred by user for this PR).
+**Read scope:**
+- All T02–T04 outputs.
 
-# §19 Reviewer routing for later turns
+---
 
-After this PR merges:
-- Reviewer-deep: check structural correctness, spec compliance, invariant tracing
-  for the validator and tests.
-- Reviewer-adversarial: required for any subsequent increment that changes
-  methodology or adds new §10 derivation logic.
-- No reviewer invocation is needed from within this PR's execution turn.
+### T06 — Executor (later turn): open PR + run final validation
 
-# §20 Open questions / blockers
+**Objective:** Open the PR, run the test suite, and produce the validation
+report for the final reviewer-deep gate.
 
-OQ-1: RESOLVED. The registry CSV is confirmed 26 rows / 14 columns / unique IDs
-(verified in T01 read in the execution session).
+**Instructions:**
+1. Write the PR body to `.github/tmp/pr.txt` per
+   `.claude/rules/git-workflow.md`.
+2. `gh pr create --title "feat(sc2egset): persist PM-1 section-10 audit evidence without closing 02_01_01" --body-file .github/tmp/pr.txt`.
+3. Delete `.github/tmp/pr.txt` post-creation.
+4. After PR open, substitute the actual PR number into the CHANGELOG and
+   research_log placeholders ONLY (NOT into the artifact CSV/MD —
+   `audit_pr` remains `PR #<TBD>` in the artifact per the lifecycle clause
+   below).
+5. Run `source .venv/bin/activate && poetry run pytest tests/ -v --cov --cov-report=term-missing | tee coverage.txt` and verify pass + coverage ≥ 95%; delete `coverage.txt` after verifying.
 
-OQ-2: RESOLVED. PM-1 does not require a ROADMAP amendment. Justification
-(all nine required statements):
+**Verification:**
+- `gh pr view <N> --json title,isDraft,headRefName` shows the correct title,
+  `isDraft: false` (ready for review), and the persistence branch name.
+- The PR body lists the PERSIST PASS line, the pytest/coverage result, and
+  the 10-file diff manifest from `git diff --name-only master..HEAD`.
 
-1. `continue_predicate` clause-2 ("CROSS-02-01-v1.0.1 post-materialization
-   audit ... for any feature column the registry triggers materialization of")
-   is conditional on materialization occurring.
+**File scope:**
+- `.github/tmp/pr.txt` (transient, deleted post-creation)
+- `CHANGELOG.md` (PR number substitution only)
+- `src/.../sc2egset/reports/research_log.md` (PR number substitution only)
 
-2. "Materialization" is defined at `02_01_leakage_audit_protocol.md:117-121`
-   as persisting a feature column to DuckDB (as a VIEW or materialized table)
-   or to Parquet file format consumed by the training pipeline.
+**Read scope:**
+- All T02–T05 outputs.
 
-3. The registry CSV persists zero feature columns (`ROADMAP.md:1924`);
-   therefore the clause-2 column set is EMPTY.
+## File Manifest
 
-4. An EMPTY column set vacuously satisfies the clause-2 post-materialization
-   audit condition.
+This Manifest covers the FULL approved increment (T01..T06). T01 (THIS PR)
+modifies ONLY the two planning files. T02..T06 are executed in a later
+turn on the same branch.
 
-5. Clause-3 (`02_03_temporal_feature_audit_protocol.md` §10) is a design-time
-   gate decoupled from materialization (§1.1 lines 34-39; §10.1 lines 444-447).
+| File | Action | Phase |
+|------|--------|-------|
+| `planning/current_plan.md` | Rewrite | T01 (this PR) |
+| `planning/current_plan.critique.md` | Rewrite | T01 (this PR) |
+| `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py` | Update | T02 (later) |
+| `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.ipynb` | Update | T02 (later) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv` | Create | T03 (later) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.md` | Create | T03 (later) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` | Update | T04 (later) |
+| `planning/INDEX.md` | Update | T05 (later) |
+| `CHANGELOG.md` | Update | T05 (later) |
+| `pyproject.toml` | Update | T05 (later) |
 
-6. PM-1 is a clause-3 increment, not a clause-2 "pre-materialization" increment.
+Total expected diff: **10 files**.
 
-7. PM-1 does NOT amend the ROADMAP (forbidden in §18).
+## Gate Condition
 
-8. PM-1 does NOT close Step `02_01_01`.
+For T01 (THIS DRAFT PR) only:
+- `git diff --name-only master..HEAD` lists exactly two files
+  (`planning/current_plan.md`, `planning/current_plan.critique.md`).
+- The draft PR is open and is NOT requested for review or merge.
 
-9. PM-1 does NOT update STEP_STATUS, PHASE_STATUS, or research_log.
+For the FULL increment (T01..T06, evaluated by reviewer-deep at PR ready-state):
+- `git diff --name-only master..HEAD` lists exactly the 10 files above.
+- `git diff --name-only master..HEAD -- <forbidden>` is empty for every
+  path in the forbidden list.
+- The notebook diff contains exactly 1 added cell + 1 banner markdown edit.
+- The persisted CSV has exactly 26 data rows; the feature-family ID set is
+  identical to the frozen registry's 26-ID set.
+- The PERSIST byte-equivalence check passes ("PERSIST PASS: persisted CSV
+  byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr,
+  git_sha}").
+- `pytest tests/ -v --cov` passes with coverage ≥ 95%.
+- The artifact MD has §1 non-closure disclaimer at the top and the
+  falsifier roll-call lists F-1, F-1a, F-1b, F-2, F-3, F-4, F-5, F-6, F-7,
+  PERSIST each marked "did not fire".
+- No prose anywhere in the PR claims Step `02_01_01` is closed, Phase 02
+  is active or complete, or `02_01_02` is authorized to start.
 
-No blockers remain after this planner revision; execution still requires explicit user approval in a later turn.
+## Out of scope
+
+- Step `02_01_01` closure (status-chain triad flip + ROADMAP entry +
+  reviewer-adversarial closure audit) — deferred to a separate later PR.
+- Any `02_01_02` work (registry-row materialization audit, post-materialization
+  audit gate re-run, feature-column production).
+- Phase 03 work (splitting, baselines, features, models).
+- Bibliography / appendix / thesis-chapter work.
+- Validator and validator-test modification (frozen by PR #228; PERSIST
+  falsifier guards against drift).
+- Root `reports/research_log.md` modification (per-dataset only, per
+  `.claude/ml-protocol.md`).
+- AoE2 codepath modification.
+- Any DuckDB / Parquet / materialized feature output.
+
+## Open questions
+
+- None remain for T01 (this draft PR).
+- Operational: at what point does the closure PR get scheduled?
+  Resolved by: separate later planner-science → reviewer-adversarial cycle,
+  after at least one user-approved sleep on this draft PR's content.
+
+---
+
+# §1 Boundary and non-closure disclaimer (load-bearing)
+
+**This PR persists evidence but does NOT close Step `02_01_01`.**
+
+The PR does NOT claim:
+- Step `02_01_01` is closed.
+- **Phase 02 activation.**
+- **Step `02_01_02` authorization.**
+- **Phase 03 start.**
+- Feature matrix existence.
+- Model readiness.
+
+Closure of Step `02_01_01` requires an independent later increment that:
+1. Flips `STEP_STATUS.yaml: 02_01_01 → complete`.
+2. Satisfies the ROADMAP `continue_predicate` three-clause gate in writing.
+3. Lands a separate closure PR with a fresh reviewer-adversarial methodology
+   approval.
+
+The §10 audit increment evidenced by this PR is necessary but not sufficient
+for closure.
+
+The PR explicitly does NOT update: `STEP_STATUS.yaml`,
+`PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`, `ROADMAP.md`,
+`INVARIANTS.md`, the registry CSV, the registry MD, the validator module,
+the validator tests, the root `reports/research_log.md`, the locked specs,
+AoE2 paths, `tests/**`, `thesis/**`, `data/**`, `notebooks/**`,
+`.github/workflows/**`, `Makefile`, or `scripts/**`.
+
+# §2 Repo evidence (anchors)
+
+- Validator (FROZEN): `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`
+  (merged in PR #228 → master `5c7ef380`).
+- Validator tests (FROZEN): `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py`.
+- Audit notebook scaffold: `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.{py,ipynb}`.
+- Registry CSV (FROZEN, 26 rows, 14 columns including `block`):
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv`.
+- Registry MD (FROZEN):
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md`.
+- Tracker eligibility CSV (FROZEN):
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv`.
+- ROADMAP `continue_predicate` (verbatim, lines 2060–2066): "A future PR may
+  begin Step 02_01_02 (or the next 02_01 step in the ROADMAP) only after
+  this Step 02_01_01 has reached its CSV + MD artifact-check at a future PR,
+  the CROSS-02-01-v1.0.1 post-materialization audit gate has been re-run
+  for any feature column the registry triggers materialization of, and a
+  per-family CROSS-02-03-v1.0.1 §10 verdict is recorded for every registry
+  row."
+- Status YAMLs (FROZEN; Phase 02 = `not_started`).
+- Locked specs (FROZEN, cited):
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/specs/02_03_temporal_feature_audit_protocol.md` (CROSS-02-03-v1.0.1 §10);
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/specs/02_01_leakage_audit_protocol.md` (§4 lines 117–121, Materialization definition).
+- Prior PR #216 partial-token precedent (NOT reused):
+  `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
+  first entry uses `closure_status: partial` — this PR deliberately uses
+  distinct tokens (see §Research log update plan).
+- Release-tail state: `pyproject.toml` `version = "3.63.0"`; `CHANGELOG.md`
+  `[Unreleased]` empty; `planning/INDEX.md` Active still points to PR #228
+  (to be archived in T05).
+
+# §3 Why this is not batching
+
+Per `.claude/rules/data-analysis-lineage.md` "Non-batching rule":
+- Validator was reviewed, written, tested, and merged in PR #228
+  (steps 1–6 of the empirical sequence).
+- The §10 audit was executed in the merged notebook with all assertions
+  passing (step 7 in-memory).
+- THIS PR completes step 7 (artifact write) and step 8 (per-dataset
+  `research_log.md` entry) of the same sequence for the same PM-1 increment.
+- Step 9 (reviewer-deep) is the final gate after PR open (per §Reviewer
+  routing).
+- No `02_01_02`, no Phase 03, no thesis, no closure work is initiated.
+
+This is the smallest atomic persistence unit that preserves canonical
+notebook → artifact lineage.
+
+# §4 Forbidden files and actions (load-bearing)
+
+Zero diff allowed on:
+
+```
+reports/research_log.md  # root CROSS log
+src/rts_predict/games/aoe2/**
+src/rts_predict/games/sc2/datasets/sc2egset/data/**
+tests/**
+src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py
+src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml
+src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml
+src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml
+src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/specs/**
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md
+thesis/**
+data/**
+notebooks/**
+.github/workflows/**
+Makefile
+scripts/**
+```
+
+Forbidden actions:
+- Mutating the validator or its tests.
+- Flipping any status YAML (`STEP_STATUS`, `PIPELINE_SECTION_STATUS`, `PHASE_STATUS`).
+- Amending `ROADMAP.md`, `INVARIANTS.md`, or any locked spec under `reports/specs/`.
+- Writing the root `reports/research_log.md`.
+- Emitting DuckDB / Parquet / materialized feature outputs.
+- Adding any new test.
+- Writing more than one notebook cell + one banner markdown edit.
+- Claiming closure / Phase 02 activation / `02_01_02` authorization
+  **anywhere in prose** (artifact MD, research_log, CHANGELOG, PR body, commit
+  messages).
+- Using `git commit --amend`, `git push --force`, `--no-verify`, or
+  `--no-gpg-sign`.
+
+# §5 Artifact CSV schema (load-bearing)
+
+File path:
+`src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv`
+
+**23 columns**, **26 data rows**, in this stable order:
+
+1. `feature_family_id`
+2. `dataset_tag`
+3. `prediction_setting`
+4. `registry_recorded_status`
+5. `derived_section10_verdict`
+6. `equality_token`
+7. `stricter_drift_flag`
+8. `looser_drift_flag`
+9. `independent_trigger_hits` (pipe-separated)
+10. `triggers_fired` (pipe-separated)
+11. `rule_path`
+12. `materialized_column_count` (always `0`)
+13. `halting_falsifier` (empty string if `None`)
+14. `audit_executed_at_utc_date` (`YYYY-MM-DD`)
+15. `validator_module` (repo-relative path)
+16. `validator_module_sha256`
+17. `source_pr` (literal `PR #228`)
+18. `audit_pr` (placeholder `PR #<TBD>` at write time; see §Audit-PR lifecycle below)
+19. `registry_csv_sha256`
+20. `tracker_csv_sha256`
+21. `spec_revision_cross_02_03` (literal `CROSS-02-03-v1.0.1`)
+22. `git_sha` (40-character)
+23. `block` (mirrors the registry CSV `block` column for joinability)
+
+Determinism rules:
+- 26 data rows.
+- Row order is identical to the frozen registry row order.
+- UTF-8 encoding.
+- `lineterminator="\n"`.
+- `index=False`.
+- Reload uses `pd.read_csv(..., dtype=str, keep_default_na=False)`.
+- Empty strings for absent values — never `null`, never `nan`.
+- SHA-256 hashes computed over raw on-disk file bytes (no normalization).
+- `audit_executed_at_utc_date` computed via `datetime.now(UTC).strftime("%Y-%m-%d")` — date only, never `HH:MM:SS`.
+- `git_sha` is a separate column from `audit_executed_at_utc_date`.
+
+# §6 Audit-PR lifecycle (load-bearing — addresses nit 3)
+
+- At write time, the artifact CSV column `audit_pr` is the literal placeholder
+  string `PR #<TBD>`.
+- The artifact CSV/MD is committed with the `PR #<TBD>` placeholder and is
+  **NOT amended post-PR-open**.
+- The final PR number is recorded ONLY in:
+  - `CHANGELOG.md` `[3.64.0]` section header;
+  - the per-dataset `research_log.md` entry header.
+- Rationale: the PERSIST byte-equivalence check excludes `audit_pr` from
+  byte-equality so the placeholder is safe; amending after `gh pr create`
+  would create a self-amending artifact whose hashes change post-PR-open,
+  which the PERSIST falsifier cannot represent.
+
+# §7 Artifact MD structure (load-bearing)
+
+File path:
+`src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.md`
+
+Sections (in order):
+
+- **§1 Non-closure disclaimer (TOP).** Verbatim: "This artifact persists
+  evidence but does NOT close Step `02_01_01`. Closure requires a separate
+  later increment that flips `STEP_STATUS.yaml`, satisfies the ROADMAP
+  `continue_predicate` three-clause gate in writing, and lands a separate
+  closure PR. Phase 02 is `not_started` per `PHASE_STATUS.yaml` and is not
+  advanced by this PR."
+- **§2 Provenance.** `audit_executed_at_utc_date` (YYYY-MM-DD), `git_sha`,
+  `validator_module` + `validator_module_sha256`, `registry_csv_sha256`,
+  `tracker_csv_sha256`, `spec_revision_cross_02_03` (=`CROSS-02-03-v1.0.1`),
+  `source_pr = PR #228`, `audit_pr = PR #<TBD>` (placeholder per §6).
+  One bullet per field, repo-relative paths.
+- **§3 Aggregate result.** `passed=True`, `rows_audited=26`,
+  `halting_falsifier=None`, `len(stricter_drifts)=0`, `len(looser_drifts)=0`,
+  `len(independent_trigger_hits)=0`, `materialized_column_count=0`.
+- **§4 Falsifier roll-call table.** One row per falsifier, each marked
+  "did not fire":
+  - F-1 (overall bidirectional EQUALITY).
+  - F-1a (stricter drift).
+  - F-1b (looser drift).
+  - F-2 (independent §10.2 trigger on allowed/caveat row).
+  - F-3 (post-game token in `allowed_cutoff_rule`).
+  - F-4 (invalid cutoff operator on history row).
+  - F-5 (D13 tracker contradiction).
+  - F-6 (slot-identity gate misuse).
+  - F-7 (controlled-vocab drift).
+  - PERSIST (persistence byte-equivalence).
+- **§5 ROADMAP `continue_predicate` verbatim + three-clause analysis.**
+  Print the ROADMAP `continue_predicate` block verbatim (from `ROADMAP.md`
+  lines 2060–2066). Then a three-row table:
+  - **Clause 1** ("Step 02_01_01 has reached its CSV + MD artifact-check at
+    a future PR") — SATISFIED for the registry CSV/MD by PR #216
+    (provisional artifact); the new PM-1 evidence artifact is incremental
+    and does NOT itself satisfy clause 1.
+  - **Clause 2** ("CROSS-02-01-v1.0.1 post-materialization audit gate has
+    been re-run for any feature column the registry triggers
+    materialization of") — VACUOUSLY SATISFIED at the catalog-only registry
+    layer. **Verbatim wording (REQUIRED, do NOT paraphrase):**
+
+    > No materialized-column audit is applicable at the catalog-only registry layer (materialized_column_count=0); this becomes non-vacuous once Step 02_01_02 materializes the first feature column per 02_01_leakage_audit_protocol.md §4 lines 117–121.
+
+  - **Clause 3** ("per-family CROSS-02-03-v1.0.1 §10 verdict is recorded
+    for every registry row") — SATISFIED in memory by PR #228 + PERSISTED
+    ON DISK by THIS PR for all 26 rows.
+  - **Closure status remains OPEN** — clause-1 is satisfied; clause-3 is
+    satisfied as of this PR; the three-clause gate is now positioned to be
+    closed only by a later explicit closure PR with status-YAML flips.
+- **§6 Methodology lineage.**
+  - Spec source: `02_03_temporal_feature_audit_protocol.md` §10
+    (CROSS-02-03-v1.0.1, LOCKED 2026-05-06);
+    `02_01_leakage_audit_protocol.md` §4 lines 117–121 (Materialization).
+  - Validator: `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py` (frozen by PR #228).
+  - Notebook: `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.py`
+    (artifact-write cell added in this PR).
+  - Tests: `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py` (frozen by PR #228; the PERSIST byte-equivalence check substitutes for re-run inside this PR).
+- **§7 Per-row compact table.** 26 rows with columns
+  `feature_family_id`, `prediction_setting`, `registry_recorded_status`,
+  `derived_section10_verdict`, `equality_token`, `block`. (Full 23-column
+  data lives in the CSV; this MD is the human-readable summary.)
+- **§8 Cited code/SQL block.** Include the verbatim signature of
+  `validate_registry_section10_verdicts(registry_csv_path: Path, tracker_csv_path: Path) -> RegistryVerdictAuditResult`
+  and the exact notebook call site (5–10 lines). Reference the validator
+  file path + line range (Invariant I6).
+
+The MD must NOT include: closure claims, Phase 02 activation claims,
+`02_01_02` next-step claims, ROADMAP edit proposals, status-YAML proposals.
+
+# §8 Notebook update plan (load-bearing)
+
+Constraints:
+- Add **EXACTLY ONE** new cell (artifact-write cell).
+- Update **EXACTLY ONE** banner markdown cell (front-matter "NO artifact
+  written" → two-line replacement, see T02).
+- All other cells unchanged. Jupytext-paired `.ipynb` mirror synced.
+- All logic in plain top-level statements: **no inline `def`, `class`, or
+  `lambda`**. (The frozen validator already lives in `src/`; no new helper
+  module is added.)
+- The artifact-write cell uses `pandas.DataFrame.to_csv` for the CSV and
+  `Path.write_text` for the MD, both with explicit UTF-8 encoding and
+  `lineterminator="\n"` for byte determinism.
+- The cell writes BOTH artifacts atomically: derive deterministic values →
+  build DataFrame → write CSV → reload + rerun validator (PERSIST check) →
+  write MD → print closure summary.
+
+No DuckDB connection is opened. No Parquet file is written. No path outside
+`reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`
+is touched.
+
+Banner change (front-matter cell):
+- DELETE the line containing `NO artifact written`.
+- ADD two replacement lines:
+  - `artifact persisted in evidence-persistence PR — 02_01_01_section10_verdict_audit.{csv,md}`
+  - `Step 02_01_01 STILL OPEN; status YAMLs intentionally NOT flipped`
+
+# §9 Research log update plan (load-bearing)
+
+Target: **per-dataset only**, at
+`src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`.
+
+Root `reports/research_log.md` is FORBIDDEN (per
+`.claude/ml-protocol.md:51-54`).
+
+Required fields in the new reverse-chronological entry (inserted above the
+2026-05-16 PR #216 entry):
+
+- ISO date (`YYYY-MM-DD`); Phase 02 / Step 02_01_01 tag; title "Persist PM-1
+  §10 verdict-audit evidence (Step 02_01_01 still open)".
+- Category: A.
+- Dataset: sc2egset.
+- Branch: `feat/sc2egset-02-01-01-section10-audit-persistence`.
+- PR: substituted post-`gh pr create`.
+- **`closure_status: still_open`** (deliberately distinct from PR #216's
+  `partial`).
+- **`evidence_persistence_state: section10_verdict_audit_persisted_step_open`**.
+- What: PR #228 validated PM-1 in memory inside the notebook; this PR
+  persists the evidence to disk as a 26-row CSV + companion MD + this
+  research_log entry.
+- Why: `.claude/rules/data-analysis-lineage.md` Artifact discipline — an
+  in-memory pass is not citable evidence until recorded on disk through
+  canonical lineage.
+- How: notebook path; validator path; two input CSV paths
+  (registry + tracker); three SHA-256 hashes captured in the artifact;
+  deterministic UTC date + `git_sha`.
+- Findings: all 26 rows EQUAL modulo synonym; 0 stricter drifts;
+  0 looser drifts; 0 independent §10.2 trigger hits; halting_falsifier=None;
+  materialized_column_count=0; PERSIST byte-equivalence falsifier did not
+  fire.
+- What this means: clause-3 of the ROADMAP `continue_predicate` (per-family
+  §10 verdict recorded for every registry row) is satisfied on disk;
+  clause-1 was satisfied by PR #216;
+  **clause-2 wording (REQUIRED VERBATIM, do NOT paraphrase):**
+
+  > No materialized-column audit is applicable at the catalog-only registry layer (materialized_column_count=0); this becomes non-vacuous once Step 02_01_02 materializes the first feature column per 02_01_leakage_audit_protocol.md §4 lines 117–121.
+
+  Step `02_01_01` remains OPEN; the §10 audit increment did NOT advance
+  overall step closure; closure requires a separate later PR with explicit
+  status-YAML flips and reviewer-adversarial approval.
+- **Decisions taken (REQUIRED — explicit non-reuse of PR #216 `partial` token):**
+  Persist evidence at the catalog-only layer; use deterministic
+  `audit_executed_at_utc_date` (not runtime timestamp); deliberately freeze
+  status YAMLs, ROADMAP, INVARIANTS, registry CSV/MD, validator, validator
+  tests; **explicitly do NOT reuse PR #216's `closure_status: partial` token.**
+  Rationale: PR #216's `partial` denoted "validators V-1..V-9 are partial
+  coverage toward closure"; this entry denotes "no closure progress claim
+  at all" and the two epistemic states must not collide.
+- Decisions deferred: status YAMLs / ROADMAP triad mutation; `02_01_02`
+  start; Phase 03 work; reviewer-deep closure-decision audit.
+- Thesis mapping: Chapter 4 §4.5 — citable as secondary lineage row only;
+  does NOT enable a Phase 02 leakage-clearance claim on its own.
+- Open questions / follow-ups: schedule formal Step 02_01_01 closure PR
+  (separate planner-science → reviewer-adversarial → executor cycle).
+- Acknowledged trade-offs: evidence persistence inflates the artifact
+  directory with a CSV that exactly mirrors the validator's in-memory
+  output; justified by lineage discipline.
+
+# §10 Persistence byte-equivalence falsifier (PERSIST) (load-bearing)
+
+Inside the notebook artifact-write cell, after the CSV is first written:
+
+1. Reload the just-written CSV with
+   `pd.read_csv(..., dtype=str, keep_default_na=False)`.
+2. Rerun `validate_registry_section10_verdicts(registry_csv_path, tracker_csv_path)`
+   on the same frozen registry + tracker inputs to obtain a fresh
+   `RegistryVerdictAuditResult`.
+3. Re-encode the fresh result into the same 23-column DataFrame using the
+   same code path that produced the CSV (in-cell, deterministic).
+4. Compare row-by-row, column-by-column, byte-equivalent modulo ONLY:
+   - `audit_executed_at_utc_date` (date can differ across UTC-day boundaries;
+     must be identical within a single execution),
+   - `audit_pr` (placeholder until PR open),
+   - `git_sha` (allowed to differ pre/post PR open if the audited commit
+     differs).
+5. If any other column differs, **HALT — PERSIST falsifier fired**;
+   do NOT commit the artifact; raise `AssertionError` with a row-level diff
+   print.
+
+Success print:
+`PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr, git_sha}`.
+
+Reload assertions:
+- `len(reloaded) == 26`.
+- Column set equal to the written columns set.
+- Rerun yields `passed=True`, `rows_audited=26`, `halting_falsifier=None`,
+  identical `stricter_drifts` / `looser_drifts` / `independent_trigger_hits`
+  content.
+
+# §11 Falsifiers (consolidated, all halt-on-detection)
+
+Inherited from PR #228 + PERSIST new in this PR:
+
+- **F-1** (overall bidirectional EQUALITY) — HALT.
+- **F-1a** (stricter drift) — HALT.
+- **F-1b** (looser drift) — HALT.
+- **F-2** (independent §10.2 trigger on allowed/caveat row) — HALT.
+- **F-3** (post-game token in `allowed_cutoff_rule`) — HALT.
+- **F-4** (invalid cutoff operator on history row) — HALT.
+- **F-5** (D13 tracker contradiction) — HALT.
+- **F-6** (slot-identity gate misuse) — HALT.
+- **F-7** (controlled-vocab drift) — HALT.
+- **PERSIST** (persistence byte-equivalence) — HALT (new in this PR).
+
+Structural halt-on-detection conditions (executor MUST verify before commit):
+
+- Validator file diff non-empty.
+- Validator tests file diff non-empty.
+- Any frozen status YAML / ROADMAP / INVARIANTS / registry CSV / registry
+  MD / specs diff non-empty.
+- Root `reports/research_log.md` diff non-empty.
+- Any AoE2 path diff non-empty.
+- Any `tests/**` diff non-empty.
+- Any Phase-03 path diff non-empty.
+- Any DuckDB / Parquet / materialized feature output produced.
+- Notebook diff exceeds 1 added cell + 1 banner markdown edit.
+- Artifact MD lacks verbatim `validate_registry_section10_verdicts`
+  aggregate-result summary.
+- Persisted CSV row count ≠ 26.
+- Feature-family ID set in persisted CSV differs from frozen registry's
+  26-ID set.
+- Any prose anywhere in the PR claims Step `02_01_01` is closed, Phase 02
+  is active or complete, or `02_01_02` is authorized.
+
+# §12 Version and release plan (load-bearing)
+
+- `pyproject.toml`: `version = "3.63.0"` → `version = "3.64.0"`.
+- `CHANGELOG.md`: move `[Unreleased]` into a new `## [3.64.0] — YYYY-MM-DD
+  (PR #<N>: feat/sc2egset-02-01-01-section10-audit-persistence)` block;
+  re-emit `[Unreleased]` empty with the four standard sub-headers (`### Added`,
+  `### Changed`, `### Fixed`, `### Removed`).
+- `planning/INDEX.md`: archive PR #228 in the Archive table with
+  `#228 (merged 2026-05-21 at master 5c7ef380)`; set Active to the new
+  persistence branch.
+
+Justification: `feat/` prefix per `.claude/rules/git-workflow.md` ⇒ minor
+version bump; Category A evidence-persistence work is more than a chore.
+
+# §13 Reviewer routing and materialization-prerequisite (load-bearing — addresses nit 2)
+
+Explicit, ordered sequence (DO NOT reorder; DO NOT collapse):
+
+- **Step A — Planning-only draft PR (THIS PR):** Parent materializes the
+  approved chat plan to `planning/current_plan.md` and the approved
+  conditions-satisfied critique to `planning/current_plan.critique.md`,
+  commits, and opens a **draft** PR on branch
+  `feat/sc2egset-02-01-01-section10-audit-persistence`. No execution. No
+  artifact files. No notebook diff. No research_log diff. No release tail.
+- **Step B — User / ChatGPT reviews the draft planning PR via GitHub
+  connector.** This is the materialization prerequisite: the executor
+  cannot proceed until the plan is on the branch and the draft PR is
+  inspectable.
+- **Step C — Approved-execution turn:** After explicit user approval,
+  `@executor` (Sonnet, mechanically specified) continues on the SAME
+  branch and implements T02..T06 in order. The executor MUST verify the
+  PERSIST byte-equivalence check passes before committing the CSV, and
+  MUST verify the 10-file diff manifest before opening the PR for ready
+  state.
+- **Step D — Final gate after PR is ready-for-review:** `@reviewer-deep` —
+  mechanical/structural review of the diff against this materialized plan.
+  Reviewer-adversarial is NOT required again unless reviewer-deep raises a
+  methodology BLOCKER (the methodology was already double-gated for
+  PR #228; the remaining risk for this PR is mechanical / structural —
+  schema completeness, MD wording, token discipline, forbidden-path zero
+  diff, byte-equivalence).
+
+# §14 Risks
+
+- **R-1** Closure scope creep. Mitigation: non-closure language repeated in
+  4 loci (artifact MD §1, research_log entry, CHANGELOG `### Notes`, PR
+  body); reviewer-deep will reject any prose drift.
+- **R-2** Hash determinism drift across machines. Mitigation: SHA-256 over
+  raw on-disk bytes (no normalization); PERSIST falsifier validates
+  in-cell.
+- **R-3** Token collision with PR #216's `closure_status: partial`.
+  Mitigation: distinct tokens (`still_open` + `section10_verdict_audit_persisted_step_open`)
+  plus explicit prose in the research_log entry naming PR #216.
+- **R-4** Notebook diff inflates beyond 1 cell + banner. Mitigation:
+  structural halt; executor `git diff --stat sandbox/...` pre-commit.
+- **R-5** Release-tail slip (the gap that produced PR #228's
+  `chore(release)` follow-up commit `996ed0af`). Mitigation: explicit
+  10-file manifest in §File Manifest; reviewer-deep verifies all three
+  release-tail files in T05.
+- **R-6** Validator-vs-registry semantic drift post-merge. Mitigation:
+  `validator_module_sha256`, `registry_csv_sha256`, `tracker_csv_sha256`,
+  `spec_revision_cross_02_03` columns let any future audit detect
+  staleness without rerunning the validator.
+- **R-7** Framing re-litigation in next adversarial review. Mitigation:
+  the framing anchors to PR #228's already-approved
+  `planning/current_plan.critique.md` Round-1 / Round-2 baseline.
+
+# §15 Open questions / blockers
+
+No blockers remain for the draft planning PR (this PR, T01). Execution
+(T02..T06) requires explicit user approval in a later turn.
+
+Operational follow-ups for a later planning cycle:
+- Schedule the formal Step 02_01_01 closure PR (separate planner-science →
+  reviewer-adversarial → executor cycle).
+- Decide whether `02_01_02` planning may begin before or after the formal
+  closure PR (deferred to a later read-only planning session).
