@@ -65,8 +65,8 @@ None of N1-N4 constitutes a methodology flaw or schema violation. The executor m
 
 ## Safe next instruction
 
-**APPROVE-WITH-NITS.** Parent may materialize `/tmp/planner_plan_v3.md` to `planning/current_plan.md` and create the draft PR on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. The 4 non-blocking nits (N1-N4) above are optional wording cleanups; the executor may either fold them at materialization time or carry them as a tiny follow-up cleanup. None requires a v4 plan revision or another adversarial round.
+**APPROVE-WITH-NITS.** Parent may materialize `/tmp/planner_plan_v3.md` to `planning/current_plan.md` on the existing draft PR #230 (head `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`). PR #230 is already OPEN and DRAFT; do NOT call `gh pr create`. Body updates use `gh pr edit 230 --body-file`. The 4 non-blocking nits (N1-N4) above are optional wording cleanups; the executor may either fold them at materialization time or carry them as a tiny follow-up cleanup. None requires a v4 plan revision or another adversarial round.
 
 Per the 3-round cap (`feedback_adversarial_cap_execution.md`), this is the second and final adversarial round; APPROVE-WITH-NITS closes the planning gate cleanly without forcing user adjudication.
 
-The draft PR may be opened immediately. Execution (T01..T09) requires a separate, explicit user approval turn after the draft PR is inspectable.
+PR #230 is the existing draft for this plan; the materialized plan is published to it via the planning-pair commit on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Execution (T01..T11) requires a separate, explicit user approval turn after the materialized plan is inspectable on PR #230.

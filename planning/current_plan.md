@@ -17,7 +17,7 @@ outcome_verdict: A'(i)-APPROVE
 gate_action: close Step 02_01_01 with zero-materialization CROSS-02-01 leakage-audit artifact pair
 critique_required_before_execution: true
 critique_reviewer: reviewer-adversarial
-post_execution_reviewer: reviewer-adversarial (Cat A); reviewer-deep as final-gate fallback per §9
+post_execution_reviewer: reviewer-adversarial (Cat A) as T11; reviewer-deep as final-gate fallback per §9; ordering = Route A (final gate while DRAFT → `gh pr ready 230` on APPROVE → NO merge)
 ---
 
 <!-- v3 EDIT LEDGER (vs v2):
@@ -136,7 +136,7 @@ STEP_STATUS.yaml currently has 38 entries, all Phase 01; PIPELINE_SECTION_STATUS
 
 ## Execution steps
 
-Branch creation is T01. The new zero-materialization audit artifact pair is T02a. STEP_STATUS, PIPELINE_SECTION_STATUS, and PHASE_STATUS edits are T02..T04. Per-dataset and root research_log entries are T05. CHANGELOG, version bump, and planning/INDEX.md shuffle are T06..T07. The validation-and-PR steps are T08..T10.
+Branch creation is T01. The new zero-materialization audit artifact pair is T02a. STEP_STATUS, PIPELINE_SECTION_STATUS, and PHASE_STATUS edits are T02..T04. Per-dataset research_log entry only (NO root / CROSS entry, per `.claude/ml-protocol.md` lines 51-54) is T05; T05.b was REMOVED in v3 per BLOCKING condition C2. CHANGELOG, version bump, and planning/INDEX.md shuffle are T06..T07. The validation-and-PR steps are T08..T11.
 
 ### T01 Branch creation
 
@@ -274,9 +274,9 @@ Stop condition: both files exist on disk; JSON validates against §3 required-fi
   - **Category:** A (science / Phase 02 / step closure).
   - **Dataset:** sc2egset.
   - **Branch:** `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`.
-  - **PR:** the number assigned at PR-creation time (placeholder `PR #<n>` until T08; replaced by exact PR number in T09 amendment if user demands strict accounting — see Q5 below).
+  - **PR:** `PR #230` (literal). PR #230 is the EXISTING draft PR for this closure; it was created before plan execution. No placeholder is used and no T10 amendment is required.
   - **Step scope:** Step 02_01_01 — closure of the catalog-only registry-skeleton step with a zero-materialization CROSS-02-01-v1.0.1 leakage-audit artifact pair.
-  - **closure_status:** `closed_after_section10_verdict_audit_persisted` — REUSE of the PR #229 token to preserve epistemic continuity from PR #229's evidence-persistence entry. The semantic increment of THIS PR over PR #229 is captured in a separate field below: `leakage_audit_state: zero_materialization_pass`. (See Q3 below for the rationale for the two-field approach over a new single token.)
+  - **closure_status:** `closed` — NEW single-word token for THIS PR, symmetric with the repo's existing single-word `closure_status` convention (PR #216 used `partial`, PR #229 used `still_open`; per the per-dataset research_log entry written by PR #229, each PR picks its own short single-word token rather than reusing a prior PR's token). PR #229 did NOT use `closed_after_section10_verdict_audit_persisted` (PR #229 used `still_open`); no reuse is occurring or available. The semantic increment of THIS PR over PR #229 — emission of the CROSS-02-01 audit JSON+MD pair on disk at the spec-named path — is captured in the orthogonal long-form sibling field below: `leakage_audit_state: zero_materialization_pass`. This mirrors PR #229's orthogonal long-form pattern (`closure_status: still_open` + `evidence_persistence_state: section10_verdict_audit_persisted_step_open`). (See Q3 below for the rationale for the short-token + orthogonal-field approach over a single compound token.)
   - **leakage_audit_state:** `zero_materialization_pass` — NEW field that distinguishes "we now have a CROSS-02-01 audit artifact on disk at the spec-named path with verdict=PASS justified on §5(a) vacuity" from PR #229's "we have §10 evidence on disk but no CROSS-02-01 audit artifact".
   - **What:** The catalog-only Step 02_01_01 is closed. The closure produces a zero-materialization CROSS-02-01-v1.0.1 leakage-audit artifact pair at `reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}` (NEW per T02a), and flips STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS to record closure of the step, closure of the 02_01 pipeline section, and Phase 02 transition to `in_progress`.
   - **Why:** the ROADMAP `continue_predicate` three-clause read is now satisfied on disk (C1 by PR #216, C2 by THIS PR's new zero-materialization audit pair, C3 by PR #229); the §5(a) vacuity argument is real on the empty materialized set; the §3 + §5(c) artifact-presence is satisfied by THIS PR's new artifact pair. The closure honours the convention-based enforcement mechanism (§5 line 149) by routing through `reviewer-adversarial` both pre-execution (critique gate) and post-execution (final-gate review).
@@ -284,10 +284,10 @@ Stop condition: both files exist on disk; JSON validates against §3 required-fi
   - **Findings:** Step 02_01_01 is closed; the 02_01 pipeline section is closed; Phase 02 is now `in_progress`. The closure does NOT materialize any feature column (catalog-only by design); does NOT replace the §10 evidence; does NOT replace a future post-materialization audit.
   - **What this means (status reopen disclosure — REQUIRED by reviewer feedback fix 1):** PIPELINE_SECTION_STATUS `02_01 = complete` is derived from STEP_STATUS per the YAML header rule "Pipeline section is complete when ALL its steps are complete." If a future PR adds a successor step (e.g., `02_01_02`) to STEP_STATUS with status `in_progress`, the derivation chain will mechanically re-derive `02_01 = in_progress`. This is INTENDED YAML-derivation behaviour, not silent revisionism. The closure-then-reopen sequence is designed-in to the YAML-derivation rule. No reviewer should treat a future `02_01 = in_progress` value as a regression of this closure.
   - **What this means (catalog-only authorisation softening — REQUIRED by reviewer feedback fix 5):** the closure does NOT authorise the start of `02_01_02`; instead, the gate for a future planner-science session to design `02_01_02` is now open (no implication of when such a session occurs, who runs it, or what its scope is). The closure also does NOT authorise any Phase 03 work; Phase 02 has only 1 of 8 canonical sections closed (02_01); Phase 02's remaining 7 sections (02_02..02_08 per docs/PHASES.md) are not started.
-  - **Decisions taken:** emit the zero-materialization CROSS-02-01 artifact pair at the spec-named path; use the field value `"training_fold_only"` for `normalization_fit_scope` (alternative beta, v3 RESOLVED pre-execution per the v2 reviewer-adversarial BLOCKING condition C1; spec-permitted value vacuously satisfied on empty `features_audited`); use `"N/A_no_target_encoding"` (spec-permitted) for `target_encoding_fold_awareness`; use `"pass"` (vacuously) for the structural-check fields with explicit documentation in the JSON `notes` and MD that the catalog's declared cutoff rules are CROSS-02-03 §10 territory audited by PR #229. Reuse the PR #229 closure_status token `closed_after_section10_verdict_audit_persisted` and add a NEW field `leakage_audit_state: zero_materialization_pass` to capture this PR's increment.
+  - **Decisions taken:** emit the zero-materialization CROSS-02-01 artifact pair at the spec-named path; use the field value `"training_fold_only"` for `normalization_fit_scope` (alternative beta, v3 RESOLVED pre-execution per the v2 reviewer-adversarial BLOCKING condition C1; spec-permitted value vacuously satisfied on empty `features_audited`); use `"N/A_no_target_encoding"` (spec-permitted) for `target_encoding_fold_awareness`; use `"pass"` (vacuously) for the structural-check fields with explicit documentation in the JSON `notes` and MD that the catalog's declared cutoff rules are CROSS-02-03 §10 territory audited by PR #229. Use the NEW single-word closure_status token `closed` for THIS PR (PR #229 used `still_open`, not `closed_after_section10_verdict_audit_persisted`; no reuse is available or occurring; the short-token + orthogonal-field pattern matches PR #229's own structure), and add the NEW orthogonal long-form sibling field `leakage_audit_state: zero_materialization_pass` to capture this PR's semantic increment (CROSS-02-01 audit JSON+MD pair on disk at the spec-named path).
   - **Decisions deferred:** Step `02_01_02` design (a future planner-science session may begin); the post-materialization CROSS-02-01 audit for any future 02_01 materialization step (a future audit run per CROSS-02-01-v1.0.1 §4 line 117); the manifest update to `thesis/pass2_evidence/notebook_regeneration_manifest.md` (see OQ4 below); Phase 03+ work.
   - **Thesis mapping:** Chapter 4 §4.5 — citable as the closure-row lineage entry for Step 02_01_01 at the catalog-only registry layer. Does NOT enable any empirical leakage-clearance thesis claim.
-  - **Open questions / follow-ups:** OQ1 (normalization_fit_scope spec-strict reading); OQ2 (this is the first 02_01_01 closure for any dataset; aoestats and aoe2companion will need parallel closures when their Phase 02 work begins, with the same zero-materialization template if their first steps are also catalog-only); OQ3 (reviewer-adversarial mandatory final gate is the v1 enforcement mechanism per §5 line 149); OQ4 (the next planner-science session must update `thesis/pass2_evidence/notebook_regeneration_manifest.md` status vocabulary with the new closure token combination `closed_after_section10_verdict_audit_persisted` + `leakage_audit_state: zero_materialization_pass`).
+  - **Open questions / follow-ups:** OQ1 (normalization_fit_scope spec-strict reading); OQ2 (this is the first 02_01_01 closure for any dataset; aoestats and aoe2companion will need parallel closures when their Phase 02 work begins, with the same zero-materialization template if their first steps are also catalog-only); OQ3 (reviewer-adversarial mandatory final gate is the v1 enforcement mechanism per §5 line 149); OQ4 (the next planner-science session must update `thesis/pass2_evidence/notebook_regeneration_manifest.md` status vocabulary with the new closure token combination `closure_status: closed` + `leakage_audit_state: zero_materialization_pass`).
   - **Acknowledged trade-offs:** the zero-materialization artifact pair is a hand-written stub, not a notebook-generated artifact. This is intentional for a catalog-only step where no notebook would have anything to compute; emitting a notebook would falsify the lineage. The artifact pair encodes the §5(a) vacuity argument as documentation, not as an empirical run.
 
 - Allowed files: the per-dataset research_log only.
@@ -302,12 +302,12 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
 
 - Target file: `CHANGELOG.md` and `pyproject.toml`.
 - CHANGELOG.md edits:
-  - Move the contents of `## [Unreleased]` (currently empty Added/Changed/Fixed/Removed buckets per the read above) under a new `## [3.65.0] — 2026-05-21 (PR #<n>: feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit)` block.
+  - Move the contents of `## [Unreleased]` (currently empty Added/Changed/Fixed/Removed buckets per the read above) under a new `## [3.65.0] — 2026-05-21 (PR #230: feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit)` block.
   - The new `[3.65.0]` block MUST contain:
     - **Added:**
       - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json` (NEW; CROSS-02-01-v1.0.1 zero-materialization closure stub for the catalog-only registry layer; verdict=PASS justified on §5(a) vacuity + §3/§5(c) artifact-presence at the spec-named path; features_audited=[]).
       - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.md` (NEW; companion MD with 7 prescribed sections including top non-overclaim disclaimer, §3 spec citation, §5(a) vacuity argument, §3/§5(c) artifact-presence argument, explicit non-substitution statement, verdict justification, and OQ1 cross-reference).
-      - New `research_log.md` entry in `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (Step 02_01_01 closure; `closure_status: closed_after_section10_verdict_audit_persisted`; `leakage_audit_state: zero_materialization_pass`).
+      - New `research_log.md` entry in `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (Step 02_01_01 closure; `closure_status: closed`; `leakage_audit_state: zero_materialization_pass`; PR #230).
     - **Changed:**
       - `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` — added `"02_01_01": complete`.
       - `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` — added `"02_01": complete` (phase: "02", name: "Pre-Game vs In-Game Boundary").
@@ -331,7 +331,7 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
 - Target file: `planning/INDEX.md`.
 - Two surgical edits:
   1. **Archive PR #229.** Move the current Active line (`feat/sc2egset-02-01-01-section10-audit-persistence (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict-audit evidence persistence; ...; Step 02_01_01 NOT closed (PR #229, draft)`) into the Archive table as a new row with: `feat/sc2egset-02-01-01-section10-audit-persistence | 2026-05-21 | A | SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict-audit evidence persistence; persist CSV+MD artifacts + per-dataset research_log entry; STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS / ROADMAP / INVARIANTS / registry CSV/MD / validator / validator tests / root research_log frozen; Step 02_01_01 NOT closed | current_plan.md | #229 (merged 2026-05-21 at master a14dc547)`.
-  2. **New Active line.** Replace the Active block with: `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 closure via zero-materialization CROSS-02-01-v1.0.1 leakage-audit artifact pair at the spec-named path; STEP_STATUS adds 02_01_01: complete; PIPELINE_SECTION_STATUS adds 02_01: complete; PHASE_STATUS Phase 02 -> in_progress; per-dataset and CROSS research_log entries; CHANGELOG + version bump 3.64.0 -> 3.65.0; no notebook, no source, no validator, no spec, no ROADMAP body, no registry CSV/MD, no INVARIANTS.md edits (PR #<n>, draft)`.
+  2. **New Active line.** Replace the Active block with: `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 closure via zero-materialization CROSS-02-01-v1.0.1 leakage-audit artifact pair at the spec-named path; STEP_STATUS adds 02_01_01: complete; PIPELINE_SECTION_STATUS adds 02_01: complete; PHASE_STATUS Phase 02 -> in_progress; per-dataset research_log entry only (no CROSS entry, per `.claude/ml-protocol.md` lines 51-54); CHANGELOG + version bump 3.64.0 -> 3.65.0; no notebook, no source, no validator, no spec, no ROADMAP body, no registry CSV/MD, no INVARIANTS.md edits (PR #230, draft)`.
 
 - **Per reviewer feedback fix 2 (PR #228 vs PR #229 SHA disambiguation):** the Archive table already contains the correct PR #228 row (`feat/sc2egset-02-01-01-section10-verdict-audit ... #228 (merged 2026-05-21 at master 5c7ef380)`). The new PR #229 archive row added by this T07 step MUST cite `5c7ef380` for PR #228 (already in place) and `a14dc547` for PR #229 (new). Per v3 Nit 5, replace the v2 "visually verify" instruction with explicit bash checks: `grep -c "5c7ef380" planning/INDEX.md` and `grep -c "a14dc547" planning/INDEX.md` — each MUST return ≥ 1 AND the two SHAs MUST be on distinct rows (one row per PR). Concretely: run `grep -n "5c7ef380" planning/INDEX.md` and `grep -n "a14dc547" planning/INDEX.md` and confirm the line numbers differ.
 
@@ -353,9 +353,9 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
   9. `source .venv/bin/activate && poetry run mypy src/rts_predict/` — type check clean.
 
 - Stop condition: all 9 commands succeed.
-- If ANY command fails: HALT; investigate root cause before re-attempting; do NOT push, do NOT create PR.
+- If ANY command fails: HALT; investigate root cause before re-attempting; do NOT push, do NOT update PR #230 body, do NOT mark PR #230 ready.
 
-### T09 Commit + push + draft PR
+### T09 Commit + push + update existing draft PR #230
 
 - Commit message (HEREDOC-free, in `.github/tmp/commit.txt`, then `git commit -F .github/tmp/commit.txt` per memory):
   ```
@@ -381,17 +381,26 @@ The v2 plan added T05.b writing a CROSS entry to root `reports/research_log.md`.
   Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
   ```
 - Push: `git push -u origin feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`.
-- PR creation: `gh pr create --draft --title "feat(sc2egset): close 02_01_01 with zero-materialization CROSS-02-01 leakage audit (3.65.0)" --body-file .github/tmp/pr.txt` per memory; the body file mirrors the CHANGELOG `[3.65.0]` block plus a Test plan checklist.
-- After PR creation: `rm .github/tmp/pr.txt` per memory.
+- PR body update on the EXISTING draft PR #230: `gh pr edit 230 --body-file .github/tmp/pr.txt`. PR #230 was created from this branch before execution and remains the persistent draft PR for this closure. Do NOT call `gh pr create`. The body file mirrors the CHANGELOG `[3.65.0]` block plus a Test plan checklist plus a Validation report section.
+- After PR body update: `rm .github/tmp/pr.txt` per memory.
 
-- Allowed files: `.github/tmp/commit.txt` (created and deleted in this step), `.github/tmp/pr.txt` (created and deleted in this step).
-- Stop condition: draft PR exists at `gh pr view --json url`; PR number `<n>` recorded; commit SHA recorded.
+- Allowed files: `.github/tmp/commit.txt` (created and deleted in this step), `.github/tmp/pr.txt` (created, used as input to `gh pr edit 230 --body-file`, and deleted in this step).
+- Stop condition: `gh pr view 230 --json state,isDraft,number` returns `state=OPEN`, `isDraft=true`, `number=230`; the updated body is visible via `gh pr view 230 --json body`; commit SHA recorded; PR #230 remains DRAFT throughout T09 (do NOT call `gh pr ready 230` in T09).
 
-### T10 Post-PR amendments
+### T10 No-placeholder verification
 
-- After PR creation, if the user demands strict accounting of PR number in the prose entries (per Q5), amend T05 (per-dataset research_log entry) and T06 (CHANGELOG entry) to replace `PR #<n>` with the exact assigned PR number. Otherwise leave the placeholder as is (the placeholder is then resolved in the final-gate review pass).
-- Allowed files: same as T05 and T06.
-- Stop condition: prose entries reference the assigned PR number; PR pushed.
+- PR #230 is the EXISTING draft PR; the literal `PR #230` is already used in T05 (per-dataset research_log entry), T06 (CHANGELOG `[3.65.0]` block header and Added bullet), and T07 (planning/INDEX.md Active line and Archive row, the latter for PR #229). T10 verifies — via `grep` — that NO `PR #<n>` / `PR #<TBD>` / `PR #{n}` placeholder survives anywhere in the diff: `git diff master..HEAD | grep -E 'PR #<(n|TBD)>|PR #\{n\}'` MUST return zero lines.
+- Allowed files: none (read-only verification step).
+- Stop condition: the grep returns zero lines; the placeholder-free state is confirmed.
+
+### T11 Post-execution reviewer-adversarial final gate, then `gh pr ready 230`
+
+- PR #230 remains DRAFT throughout T01..T10. T11 is run only after T08 validation passes, T09 has updated PR #230's body via `gh pr edit 230 --body-file`, and T10 has resolved any PR-number placeholders.
+- **Step 1:** invoke `@reviewer-adversarial` post-execution final gate (per §9). Reviewer reads this plan + the `master..HEAD` diff on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Required scope per §9 (file-manifest match, JSON schema, MD section count, §5 disclaimer presence, OQ1 notes, YAML cascade).
+- **Step 2:** if and only if the final gate returns APPROVE, run `gh pr ready 230` to mark PR #230 ready for review.
+- **Step 3:** STOP. Do NOT merge PR #230. Merge remains the user's decision.
+- Allowed files: none (final-gate review is read-only; `gh pr ready 230` mutates only the PR ready-state, not any tracked file).
+- Stop condition: `@reviewer-adversarial` final-gate verdict is APPROVE AND `gh pr view 230 --json isDraft` returns `isDraft=false`. PR #230 remains OPEN and NOT merged.
 
 ## File Manifest
 
@@ -399,7 +408,7 @@ The full file manifest is enumerated in **§6 Allowed files (10-entry manifest: 
 
 ## Gate Condition
 
-The closure gate condition is enumerated across §11 (Open questions / blockers) and across the T08 validation step. Summary: the future execution PR passes its closure gate if and only if (a) all 9 diff-touching files in §6 are present in the diff with the prescribed content, (b) zero forbidden-list paths from §7 are touched, (c) the new `leakage_audit_sc2egset.json` validates against CROSS-02-01-v1.0.1 §3 schema with `verdict = "PASS"` and `features_audited = []`, (d) the new `.md` sibling contains all 8 prescribed sections including the v3-added "Audit queries: none — vacuously satisfied" section, (e) STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS derivations are honest under the YAML-header derivation rules (Q4 walkthrough), (f) the per-dataset `research_log.md` entry uses both the `closure_status: closed` flip and the new `leakage_audit_state: zero_materialization_pass` field with explicit non-reuse of PR #216's `partial` and PR #229's `still_open` tokens, and (g) the `@reviewer-adversarial` post-execution final-gate review passes. See §9 for reviewer routing and §11 for the open-questions / blockers gate.
+The closure gate condition is enumerated across §11 (Open questions / blockers) and across the T08 validation step. Summary: the future execution PR passes its closure gate if and only if (a) all 9 diff-touching files in §6 are present in the diff with the prescribed content, (b) zero forbidden-list paths from §7 are touched, (c) the new `leakage_audit_sc2egset.json` validates against CROSS-02-01-v1.0.1 §3 schema with `verdict = "PASS"` and `features_audited = []`, (d) the new `.md` sibling contains all 8 prescribed sections including the v3-added "Audit queries: none — vacuously satisfied" section, (e) STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS derivations are honest under the YAML-header derivation rules (Q4 walkthrough), (f) the per-dataset `research_log.md` entry uses the NEW single-word `closure_status: closed` token plus the NEW orthogonal long-form sibling field `leakage_audit_state: zero_materialization_pass` with explicit non-reuse of PR #216's `partial` and PR #229's `still_open` tokens, (g) `PR #230` is referenced literally everywhere (no `PR #<n>` / `PR #<TBD>` placeholder survives — verified by T10), and (h) the `@reviewer-adversarial` post-execution final-gate review per T11 returns APPROVE, after which `gh pr ready 230` is run; PR #230 is NOT merged. See §9 for reviewer routing, T11 for the final-gate-then-ready sequence, and §11 for the open-questions / blockers gate.
 
 ## Open Questions
 
@@ -480,17 +489,23 @@ YES, on all three clauses.
 - §5(b) `verdict = "PASS"` — satisfied by the new JSON artifact's verdict field.
 - §5(c) "Both the JSON artifact and the sibling Markdown report are present at the prescribed path" — satisfied by T02a writing both files at `reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}`.
 
-### Q3: Why use the original closure_status token plus a new field instead of a new combined token? (UPDATED per reviewer feedback fix 9 + revised resolution)
+### Q3: Why use a short `closure_status` token plus an orthogonal long-form sibling field, instead of a single long compound token? (v3 RESOLVED per user directive: PR #229 did NOT use `closed_after_section10_verdict_audit_persisted` — that long-form was a planner-side invention; PR #229 used the short `still_open` token plus the orthogonal long-form `evidence_persistence_state` field. The short + orthogonal pattern is the established repo convention; v3 plan adopts it for THIS PR.)
 
-The v1 plan recommended the token `closed_after_section10_verdict_audit_persisted_and_zero_materialization_leakage_audit`. The task instructions for this v2 plan recommend the cleaner approach: reuse the original PR #229 token `closed_after_section10_verdict_audit_persisted` and add a separate field `leakage_audit_state: zero_materialization_pass`.
+Concrete repo evidence for the short `closure_status` convention:
+- PR #216: per-dataset research_log L35 = `closure_status: partial`; registry MD L101 = `closure_status: partial` (single short word).
+- PR #229: per-dataset research_log L12 = `closure_status: still_open`; sibling field L13 = `evidence_persistence_state: section10_verdict_audit_persisted_step_open` (short closure_status + orthogonal long-form field).
+- PR #229 per-dataset research_log L19 explicitly forbade reusing PR #216's token ("Explicitly do NOT reuse PR #216's `closure_status: partial` token"), establishing the convention that each PR picks its own short single-word `closure_status`.
 
-This v2 plan adopts the cleaner two-field approach. Rationale:
-- The PR #229 entry already establishes `closed_after_section10_verdict_audit_persisted` as the canonical post-§10-evidence-on-disk state. Reusing it preserves epistemic continuity from PR #229 to THIS PR.
-- The new field `leakage_audit_state` cleanly factors out the orthogonal dimension "is there a CROSS-02-01 leakage-audit artifact on disk at the spec-named path?" with values `not_yet_emitted` (the state at PR #229) and `zero_materialization_pass` (the state at THIS PR).
-- A single long compound token would lose the orthogonal-dimension structure and would be hard to parse for future readers.
-- A single new token would lose epistemic continuity with PR #229.
+v3 plan adopts this pattern for THIS PR:
+- `closure_status: closed` — short single-word token, NEW for THIS PR (not a reuse — PR #229's token was `still_open`, not `closed_after_...`).
+- `leakage_audit_state: zero_materialization_pass` — orthogonal long-form sibling field, NEW for THIS PR, factoring out the dimension "is there a CROSS-02-01 leakage-audit artifact on disk at the spec-named path?" with values `not_yet_emitted` (the state at PR #229) and `zero_materialization_pass` (the state at THIS PR).
 
-The artifact-presence resolution (T02a emits the actual JSON+MD pair) is captured by the new field's `zero_materialization_pass` value. The closure-progression history for Step 02_01_01 reads cleanly: PR #216 (`closure_status: partial`), PR #229 (`closure_status: still_open`, evidence persisted), THIS PR (`closure_status: closed_after_section10_verdict_audit_persisted`, `leakage_audit_state: zero_materialization_pass`).
+Rationale for the short + orthogonal pattern over a single long compound token:
+- A single long compound token would collapse the orthogonal closure dimension (open/partial/still_open/closed) with the orthogonal evidence/audit dimension, making the progression hard to read.
+- The pattern matches PR #229's own structure exactly.
+- The token `closed` is the canonical terminal value for `closure_status`, symmetric to `partial` and `still_open` (the prior PRs' terminal values for their epistemic state).
+
+The closure-progression history for Step 02_01_01 reads cleanly under this pattern: PR #216 (`closure_status: partial`), PR #229 (`closure_status: still_open` + `evidence_persistence_state: section10_verdict_audit_persisted_step_open`), THIS PR (`closure_status: closed` + `leakage_audit_state: zero_materialization_pass`, recorded against `PR #230`).
 
 ### Q4: Does this PR cascade Phase 02 to `in_progress`? (UPDATED per task instructions)
 
@@ -508,7 +523,7 @@ Reopen behaviour (REQUIRED by reviewer feedback fix 1 — see Assumption A4):
 
 ### Q5: Does the PR number in research_log / CHANGELOG need to be the exact assigned number?
 
-PARTIAL. The CHANGELOG block header (`## [3.65.0] — 2026-05-21 (PR #<n>: feat/...)`) and the research_log entry both use a `<n>` placeholder until the PR is created. T10 amends the placeholder to the exact assigned PR number after T09 creates the draft PR. If the user demands strict accounting, T10 runs unconditionally; if the user permits, T10 may be folded into the final-gate review pass.
+YES, and it is known. PR #230 is the EXISTING draft PR for this closure; it was created before plan execution. The CHANGELOG block header and the per-dataset research_log entry both use the literal `PR #230`. No placeholder appears in any prose entry. T10 is retained only to formalise the "no placeholder remains" verification after T09's `gh pr edit 230 --body-file` publishes the body.
 
 ### Q6: Is `INVARIANTS.md` touched?
 
@@ -626,7 +641,7 @@ Forbidden from modification or creation in this PR:
 - All source code under `src/rts_predict/` (no code change in this closure PR).
 - All tests under `tests/` (no test change in this closure PR).
 - All thesis chapters under `thesis/chapters/`.
-- **`thesis/pass2_evidence/notebook_regeneration_manifest.md`** — NEW in this forbidden list per reviewer feedback fix 3. Updates to this manifest's status vocabulary for the new closure token combination (`closed_after_section10_verdict_audit_persisted` + `leakage_audit_state: zero_materialization_pass`) are deferred to a future planner-science session per OQ4.
+- **`thesis/pass2_evidence/notebook_regeneration_manifest.md`** — NEW in this forbidden list per reviewer feedback fix 3. Updates to this manifest's status vocabulary for the new closure token combination (`closure_status: closed` + `leakage_audit_state: zero_materialization_pass`) are deferred to a future planner-science session per OQ4.
 - All `thesis/pass2_evidence/` sibling files (claim_evidence_matrix, dependency_lineage_audit, methodology_risk_register, reviewer_gate_report, sec_4_1_crosswalk, sec_4_2_crosswalk, etc.).
 - Any path under `.claude/` (no rule or invariant change).
 - Any path under `docs/` (no doc change; `docs/PHASES.md` is read for its 8-section canonical structure but not edited).
@@ -640,8 +655,9 @@ Per the `feat/` branch-prefix rule: minor-version bump. 3.64.0 → 3.65.0.
 Release-tail tasks (sequence preserved):
 1. T06 (CHANGELOG edit + pyproject.toml version bump) — done in the main execution sequence.
 2. T07 (planning/INDEX.md archive + new Active line) — done in the main execution sequence.
-3. T09 (commit + push + draft PR) — done in the main execution sequence.
-4. T10 (post-PR amendments for PR number placeholder) — done after PR creation.
+3. T09 (commit + push + update existing draft PR #230 via `gh pr edit 230 --body-file`) — done in the main execution sequence.
+4. T10 (no-placeholder verification) — done after T09's `gh pr edit 230 --body-file`.
+5. T11 (`@reviewer-adversarial` post-execution final gate, then `gh pr ready 230` on APPROVE; do NOT merge) — done after T10.
 
 No tag is created in this PR; tags are created at master merge per the user's standard release flow.
 
@@ -656,9 +672,10 @@ No tag is created in this PR; tags are created at master merge per the user's st
 
 **Execution:** `@executor` on Sonnet (mechanical multi-file editing per the file manifest in §6; no scientific reasoning required; all decisions resolved by this plan).
 
-**Post-execution final gate (MANDATORY for Cat A):**
-- Primary: `@reviewer-adversarial` reads this plan + the post-execution diff (`master..HEAD`). Required scope: assert the §6 file manifest matches the diff exactly; assert the §3 schema is satisfied by the new JSON; assert the 7 MD sections are present; assert the §5 disclaimers appear in research_log + CHANGELOG + MD; assert OQ1 is documented in the JSON `notes`; assert the YAML cascade chain is correct.
+**Post-execution final gate (MANDATORY for Cat A; executed as T11):**
+- Primary: `@reviewer-adversarial` reads this plan + the post-execution diff (`master..HEAD`). Required scope: assert the §6 file manifest matches the diff exactly; assert the §3 schema is satisfied by the new JSON; assert all 8 MD sections are present (including the v3-added "Audit queries: none — vacuously satisfied" sec 8 per Nit 4); assert the §5 disclaimers appear in per-dataset research_log + CHANGELOG + MD; assert OQ1 is documented in the JSON `notes`; assert the YAML cascade chain is correct; assert the per-dataset research_log entry uses `closure_status: closed` + `leakage_audit_state: zero_materialization_pass`; assert literal `PR #230` appears everywhere (no placeholder survives); assert NO root `reports/research_log.md` edit appears in the diff.
 - Fallback (per `.claude/rules/data-analysis-lineage.md` "Use reviewer-deep for structural correctness, spec compliance, and invariant tracing"): if `@reviewer-adversarial` recommends offloading the structural-correctness pass, `@reviewer-deep` may run as the final-gate alternative. This is a fallback, not a default. Default is `@reviewer-adversarial`.
+- **Ordering (Route A; the plan adopts Route A).** PR #230 remains DRAFT throughout T01..T10. T11 runs the post-execution final gate while PR #230 is DRAFT. Only on APPROVE does T11 run `gh pr ready 230`. The plan does NOT instruct any executor to merge PR #230; merge remains the user's decision.
 
 ## §10 Risks
 
@@ -666,7 +683,7 @@ No tag is created in this PR; tags are created at master merge per the user's st
 
 **R2 (MEDIUM) — manifest entry deferred.** `thesis/pass2_evidence/notebook_regeneration_manifest.md` does not have an entry for the new artifact pair after this PR lands. The closure is valid (per §5 line 149 the v1 enforcement mechanism is `reviewer-adversarial` review, not the manifest), but the manifest stale-status tracking will be out of sync until OQ4 is resolved by a future planner-science session. Mitigation: OQ4 is explicit (§11) and the missing manifest entry does NOT block any Phase 02 work because Phase 02 work after this PR is gated by the future post-materialization CROSS-02-01 audit, which has its own manifest-entry requirement at that audit's PR time.
 
-**R3 (MEDIUM) — PR #229 ordering coupling.** This PR ASSUMES PR #229 is merged to master at SHA `a14dc547` (which the master HEAD verification confirms). If PR #229 is reverted between this plan's submission and this PR's merge, the §10 verdict-audit CSV+MD would be absent from master, the C3 clause of the ROADMAP `continue_predicate` would no longer be satisfied, and this PR's closure justification would fail. Mitigation: the `base_ref` is pinned to `a14dc547` in the frontmatter; if master HEAD advances during execution, the executor MUST verify PR #229's artifacts are still on disk before committing.
+**R3 (MEDIUM) — PR #229 ordering coupling.** THIS PR (PR #230) ASSUMES PR #229 is merged to master at SHA `a14dc547` (which the master HEAD verification confirms). If PR #229 is reverted between this plan's submission and PR #230's eventual merge (which is a separate user decision; this plan does NOT instruct any executor to merge PR #230), the §10 verdict-audit CSV+MD would be absent from master, the C3 clause of the ROADMAP `continue_predicate` would no longer be satisfied, and PR #230's closure justification would fail. Mitigation: the `base_ref` is pinned to `a14dc547` in the frontmatter; if master HEAD advances during execution, the executor MUST verify PR #229's artifacts are still on disk before committing.
 
 **R4 (LOW) — version bump collision.** If another PR lands between this plan's submission and this PR's merge that also bumps pyproject.toml version, the version bump in T06 will conflict. Mitigation: planning/INDEX.md verification at execution time will reveal any new merged PRs; in that case T06 is amended to bump from the new master version (e.g., 3.65.0 -> 3.66.0).
 
@@ -682,7 +699,7 @@ No tag is created in this PR; tags are created at master merge per the user's st
 
 **OQ3:** Is the convention-based v1 enforcement mechanism (CROSS-02-01-v1.0.1 §5 line 149: "(i) the reviewer-adversarial mandatory review gate before any 02_01 exit PR is merged, and (ii) this spec's convention") satisfied by routing this PR through `@reviewer-adversarial` both pre-execution AND post-execution? Planner-science default answer: YES, the double routing operationalises the convention. Resolution path: `@reviewer-adversarial` rules during the pre-execution critique gate.
 
-**OQ4:** The next planner-science session must update `thesis/pass2_evidence/notebook_regeneration_manifest.md` to add the new closure token combination (`closure_status: closed_after_section10_verdict_audit_persisted` + `leakage_audit_state: zero_materialization_pass`) to the status vocabulary, and to record an entry for the new audit artifact pair at `reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}` as `confirmed_intact` (the closure has landed and the artifact pair is on disk). This OQ does NOT block this PR (the manifest is in the forbidden list per §7; closure is valid per §5 line 149 without the manifest entry), but it is a follow-up scheduled item.
+**OQ4:** The next planner-science session must update `thesis/pass2_evidence/notebook_regeneration_manifest.md` to add the new closure token combination (`closure_status: closed` + `leakage_audit_state: zero_materialization_pass`) to the status vocabulary, and to record an entry for the new audit artifact pair at `reports/artifacts/02_01_01/leakage_audit_sc2egset.{json,md}` as `confirmed_intact` (the closure has landed and the artifact pair is on disk, recorded against `PR #230`). This OQ does NOT block this PR (the manifest is in the forbidden list per §7; closure is valid per §5 line 149 without the manifest entry), but it is a follow-up scheduled item.
 
 **OQ5:** Does the closure of Step 02_01_01 trigger any thesis-side editorial pass on Chapter 4 §4.5? Planner-science default answer: NO, the §4.5 framing (PR #219) is at the registry-methodology level and does not depend on the closure status; a future Chapter 4 update may add a closure-row sentence but is not blocked by this PR. Resolution path: deferred to a future thesis-side planner-science session.
 
