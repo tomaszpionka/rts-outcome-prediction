@@ -80,13 +80,15 @@ here with their resolution status in this materialized plan.
    RESOLVED. `current_plan.md` §13 enumerates ordered Steps A/B/C/D with
    "Step A — Planning-only draft PR (THIS PR)" identified as the
    materialization prerequisite that the executor cannot bypass.
-3. **`audit_pr` lifecycle pinned.** RESOLVED. `current_plan.md` §6 states:
-   the artifact is written with `PR #<TBD>` and is NOT amended
-   post-PR-open; the final PR number lands only in CHANGELOG + per-dataset
-   research_log. Rationale included: PERSIST excludes `audit_pr` from
-   byte-equality, so a placeholder is safe at write time, but amending
-   post-PR-open would produce a self-amending artifact whose hashes
-   change post-merge.
+3. **`audit_pr` lifecycle pinned.** RESOLVED. Draft PR #229 exists before
+   any artifact is generated, so `audit_pr` is written deterministically as
+   the literal `PR #229` everywhere it appears (artifact CSV row, artifact
+   MD §2 provenance, per-dataset research_log entry, CHANGELOG `[3.64.0]`
+   header). No placeholder token is ever written to disk; no post-`gh pr create`
+   substitution pass is required. PERSIST allowed-drift narrows to
+   `{audit_executed_at_utc_date, git_sha}`; `audit_pr` is NOT in the
+   allowed-drift set because the deterministic literal cannot legitimately
+   drift between in-memory and on-disk encoding.
 4. **R-7 framing anchor citable, not implicit.** RESOLVED at the prose
    level — `current_plan.md` §14 R-7 anchors framing to PR #228's
    approved Round-1 / Round-2 baseline; the merged
@@ -225,12 +227,11 @@ byte-equivalence with a fresh validator run on the same frozen inputs.
   bypasses re-run, the artifact could diverge from the validator's
   current output). Mitigation: the executor MUST run the artifact-write
   cell as part of the PR commit, not paste in a stale file.
-- The artifact uses `PR #<TBD>` as the `audit_pr` placeholder and does not
-  amend post-PR-open. A future reader scanning the artifact in isolation
-  would see `PR #<TBD>` and have to cross-reference the CHANGELOG entry
-  to find the actual PR number. This is a defensibility trade-off chosen
-  over a self-amending artifact (rejected because amending would change
-  hashes post-merge).
+- Draft-PR-first benefit: PR #229 exists before artifact generation, so
+  the artifact carries `PR #229` directly. Future readers can navigate to
+  the source PR without cross-referencing the CHANGELOG. No placeholder
+  ever appears on disk. The trade-off recorded above (self-amending
+  artifact rejected) is no longer relevant — there is nothing to amend.
 
 ## Alternatives considered and rejected
 
@@ -272,6 +273,10 @@ byte-equivalence with a fresh validator run on the same frozen inputs.
     represent this without trivially excluding timestamps from comparison.
   - **Reconsider if:** A future workflow needs sub-day audit timing (none
     currently).
+
+## Draft-PR-first workflow correction — PR #229
+
+The materialized plan was corrected so future execution uses the existing draft PR #229 rather than creating a new PR. Because PR #229 exists before artifact writing, `audit_pr` is now fixed as `PR #229`; PERSIST allowed drift is narrowed accordingly. No scientific scope changed. No execution was performed.
 
 ## Citations
 

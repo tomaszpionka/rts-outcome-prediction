@@ -142,7 +142,7 @@ audit is now persisted on disk while Step `02_01_01` remains open.
    e. Render MD per §Artifact MD structure and write via
       `Path(path).write_text(content, encoding="utf-8")`.
    f. `print(...)` a closure summary listing both artifact paths and
-      `PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr, git_sha}`.
+      `PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, git_sha}`.
 3. Update the front-matter banner markdown cell: replace the existing line
    `NO artifact written` with two lines:
    `artifact persisted in evidence-persistence PR — 02_01_01_section10_verdict_audit.{csv,md}`
@@ -188,7 +188,7 @@ artifact paths through the notebook (NOT through any side-channel script).
 **Verification:**
 - `wc -l <csv>` reports 27 lines (header + 26 data rows).
 - `grep -c '^| ' <md>` shows the per-row table has 26+ data rows.
-- `grep "audit_pr.*PR #<TBD>" <csv>` matches (placeholder NOT amended).
+- `grep "audit_pr.*PR #229" <csv>` matches (literal, no placeholder).
 - `grep -c "did not fire" <md>` ≥ 10 (one per falsifier roll-call row).
 
 **File scope:**
@@ -215,7 +215,7 @@ tokens.
      title `"Persist PM-1 §10 verdict-audit evidence (Step 02_01_01 still open)"`.
    - Category: A.
    - Dataset: sc2egset.
-   - Branch + PR number placeholder (filled post-`gh pr create`).
+   - Branch `feat/sc2egset-02-01-01-section10-audit-persistence` + PR number `PR #229` (draft PR already exists; written directly, no post-open substitution).
    - `closure_status: still_open`
    - `evidence_persistence_state: section10_verdict_audit_persisted_step_open`
    - What: PR #228 validated PM-1 in memory; this PR persists the evidence
@@ -270,7 +270,7 @@ the planning index.
 1. `pyproject.toml`: `version = "3.63.0"` → `version = "3.64.0"`.
 2. `CHANGELOG.md`: move the (currently empty) `[Unreleased]` block contents
    into a new versioned section
-   `## [3.64.0] — YYYY-MM-DD (PR #<N>: feat/sc2egset-02-01-01-section10-audit-persistence)`
+   `## [3.64.0] — YYYY-MM-DD (PR #229: feat/sc2egset-02-01-01-section10-audit-persistence)`
    immediately above `## [3.63.0]`. Re-emit empty `[Unreleased]` with the
    four standard sub-headers `### Added`, `### Changed`, `### Fixed`, `### Removed`.
    Inside `[3.64.0]`:
@@ -310,32 +310,40 @@ the planning index.
 
 ---
 
-### T06 — Executor (later turn): open PR + run final validation
+### T06 — Executor (later turn): update existing draft PR #229 body and mark ready when complete
 
-**Objective:** Open the PR, run the test suite, and produce the validation
-report for the final reviewer-deep gate.
+**Objective:** Update the body of the existing draft PR #229 with the final
+T02..T05 execution summary and validation report; mark the PR ready for
+review only after the diff and validation are complete. Do NOT open a new PR.
+
+Context: Draft PR #229 (open, mergeable) already exists on branch
+`feat/sc2egset-02-01-01-section10-audit-persistence`. The PR number is
+known before any artifact is written, so `audit_pr` is the literal
+`PR #229` everywhere — no placeholder, no post-open substitution.
 
 **Instructions:**
-1. Write the PR body to `.github/tmp/pr.txt` per
-   `.claude/rules/git-workflow.md`.
-2. `gh pr create --title "feat(sc2egset): persist PM-1 section-10 audit evidence without closing 02_01_01" --body-file .github/tmp/pr.txt`.
-3. Delete `.github/tmp/pr.txt` post-creation.
-4. After PR open, substitute the actual PR number into the CHANGELOG and
-   research_log placeholders ONLY (NOT into the artifact CSV/MD —
-   `audit_pr` remains `PR #<TBD>` in the artifact per the lifecycle clause
-   below).
-5. Run `source .venv/bin/activate && poetry run pytest tests/ -v --cov --cov-report=term-missing | tee coverage.txt` and verify pass + coverage ≥ 95%; delete `coverage.txt` after verifying.
+1. Write the updated PR body to `.github/tmp/pr.txt` per
+   `.claude/rules/git-workflow.md`. The body must cover: this
+   planning-correction commit; the T02..T05 execution diff (notebook
+   cell + 2 artifacts + per-dataset research_log + release tail);
+   the validation report (PERSIST PASS line, pytest + coverage
+   result, 10-file diff manifest from `git diff --name-only master..HEAD`).
+2. Run `gh pr edit 229 --body-file .github/tmp/pr.txt`.
+3. Delete `.github/tmp/pr.txt`.
+4. Run `source .venv/bin/activate && poetry run pytest tests/ -v --cov --cov-report=term-missing | tee coverage.txt` and verify pass + coverage ≥ 95%; delete `coverage.txt` after verifying.
+5. Mark PR #229 ready for review ONLY after the execution diff is complete,
+   the validation report is attached to the body, and reviewer-deep is
+   queued or has passed: `gh pr ready 229` (or via the GitHub UI).
 
 **Verification:**
-- `gh pr view <N> --json title,isDraft,headRefName` shows the correct title,
-  `isDraft: false` (ready for review), and the persistence branch name.
-- The PR body lists the PERSIST PASS line, the pytest/coverage result, and
-  the 10-file diff manifest from `git diff --name-only master..HEAD`.
+- `gh pr view 229 --json isDraft,state,headRefName` returns the expected
+  state (`isDraft=true` until step 5 completes; `state=OPEN` throughout;
+  `headRefName=feat/sc2egset-02-01-01-section10-audit-persistence`).
+- `ls .github/tmp/pr.txt` returns "no such file" after step 3.
+- No `gh pr create` is invoked anywhere in T06.
 
 **File scope:**
-- `.github/tmp/pr.txt` (transient, deleted post-creation)
-- `CHANGELOG.md` (PR number substitution only)
-- `src/.../sc2egset/reports/research_log.md` (PR number substitution only)
+- `.github/tmp/pr.txt` (transient, deleted in step 3)
 
 **Read scope:**
 - All T02–T05 outputs.
@@ -376,8 +384,7 @@ For the FULL increment (T01..T06, evaluated by reviewer-deep at PR ready-state):
 - The persisted CSV has exactly 26 data rows; the feature-family ID set is
   identical to the frozen registry's 26-ID set.
 - The PERSIST byte-equivalence check passes ("PERSIST PASS: persisted CSV
-  byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr,
-  git_sha}").
+  byte-equivalent on reload modulo {audit_executed_at_utc_date, git_sha}").
 - `pytest tests/ -v --cov` passes with coverage ≥ 95%.
 - The artifact MD has §1 non-closure disclaimer at the top and the
   falsifier roll-call lists F-1, F-1a, F-1b, F-2, F-3, F-4, F-5, F-6, F-7,
@@ -548,7 +555,7 @@ File path:
 15. `validator_module` (repo-relative path)
 16. `validator_module_sha256`
 17. `source_pr` (literal `PR #228`)
-18. `audit_pr` (placeholder `PR #<TBD>` at write time; see §Audit-PR lifecycle below)
+18. `audit_pr` (literal `PR #229` — draft PR exists before artifact generation; no placeholder, no substitution)
 19. `registry_csv_sha256`
 20. `tracker_csv_sha256`
 21. `spec_revision_cross_02_03` (literal `CROSS-02-03-v1.0.1`)
@@ -569,17 +576,23 @@ Determinism rules:
 
 # §6 Audit-PR lifecycle (load-bearing — addresses nit 3)
 
-- At write time, the artifact CSV column `audit_pr` is the literal placeholder
-  string `PR #<TBD>`.
-- The artifact CSV/MD is committed with the `PR #<TBD>` placeholder and is
-  **NOT amended post-PR-open**.
-- The final PR number is recorded ONLY in:
-  - `CHANGELOG.md` `[3.64.0]` section header;
-  - the per-dataset `research_log.md` entry header.
-- Rationale: the PERSIST byte-equivalence check excludes `audit_pr` from
-  byte-equality so the placeholder is safe; amending after `gh pr create`
-  would create a self-amending artifact whose hashes change post-PR-open,
-  which the PERSIST falsifier cannot represent.
+Draft PR #229 (branch `feat/sc2egset-02-01-01-section10-audit-persistence`)
+is already open when this plan is materialized. Because the PR exists
+BEFORE any artifact is written:
+
+- `audit_pr` is the literal string `PR #229` everywhere it appears
+  (artifact CSV row, artifact MD §2 provenance block, per-dataset
+  `research_log.md` entry, `CHANGELOG.md` `[3.64.0]` section header).
+- No placeholder token (`PR #<TBD>` or equivalent) is ever written to disk.
+- No post-`gh pr create` substitution pass is required.
+- No amend-commit pass is required (the artifact CSV/MD is written once,
+  with the final PR number already in place).
+
+The PR body is updated in T06 via `gh pr edit 229 --body-file ...` after
+T02..T05 execution. PR #229 remains DRAFT after this planning-correction
+commit and through T02..T05; it is marked ready for review only after the
+execution diff and validation report are complete (see T06 and §13
+Reviewer routing).
 
 # §7 Artifact MD structure (load-bearing)
 
@@ -597,7 +610,7 @@ Sections (in order):
 - **§2 Provenance.** `audit_executed_at_utc_date` (YYYY-MM-DD), `git_sha`,
   `validator_module` + `validator_module_sha256`, `registry_csv_sha256`,
   `tracker_csv_sha256`, `spec_revision_cross_02_03` (=`CROSS-02-03-v1.0.1`),
-  `source_pr = PR #228`, `audit_pr = PR #<TBD>` (placeholder per §6).
+  `source_pr = PR #228`, `audit_pr = PR #229` (literal, per §6 — no placeholder).
   One bullet per field, repo-relative paths.
 - **§3 Aggregate result.** `passed=True`, `rows_audited=26`,
   `halting_falsifier=None`, `len(stricter_drifts)=0`, `len(looser_drifts)=0`,
@@ -697,7 +710,7 @@ Required fields in the new reverse-chronological entry (inserted above the
 - Category: A.
 - Dataset: sc2egset.
 - Branch: `feat/sc2egset-02-01-01-section10-audit-persistence`.
-- PR: substituted post-`gh pr create`.
+- PR: `PR #229` (draft PR already exists; written directly, no substitution).
 - **`closure_status: still_open`** (deliberately distinct from PR #216's
   `partial`).
 - **`evidence_persistence_state: section10_verdict_audit_persisted_step_open`**.
@@ -756,15 +769,19 @@ Inside the notebook artifact-write cell, after the CSV is first written:
 4. Compare row-by-row, column-by-column, byte-equivalent modulo ONLY:
    - `audit_executed_at_utc_date` (date can differ across UTC-day boundaries;
      must be identical within a single execution),
-   - `audit_pr` (placeholder until PR open),
    - `git_sha` (allowed to differ pre/post PR open if the audited commit
      differs).
+
+   Note: `audit_pr` is NOT in the allowed-drift set. PR #229 is known
+   before artifact generation and is written deterministically as the
+   literal `PR #229`; a re-run in the same notebook session must reproduce
+   the same string. Any drift in `audit_pr` HALTs PERSIST.
 5. If any other column differs, **HALT — PERSIST falsifier fired**;
    do NOT commit the artifact; raise `AssertionError` with a row-level diff
    print.
 
 Success print:
-`PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, audit_pr, git_sha}`.
+`PERSIST PASS: persisted CSV byte-equivalent on reload modulo {audit_executed_at_utc_date, git_sha}`.
 
 Reload assertions:
 - `len(reloaded) == 26`.
@@ -812,7 +829,7 @@ Structural halt-on-detection conditions (executor MUST verify before commit):
 
 - `pyproject.toml`: `version = "3.63.0"` → `version = "3.64.0"`.
 - `CHANGELOG.md`: move `[Unreleased]` into a new `## [3.64.0] — YYYY-MM-DD
-  (PR #<N>: feat/sc2egset-02-01-01-section10-audit-persistence)` block;
+  (PR #229: feat/sc2egset-02-01-01-section10-audit-persistence)` block;
   re-emit `[Unreleased]` empty with the four standard sub-headers (`### Added`,
   `### Changed`, `### Fixed`, `### Removed`).
 - `planning/INDEX.md`: archive PR #228 in the Archive table with
@@ -826,6 +843,11 @@ version bump; Category A evidence-persistence work is more than a chore.
 
 Explicit, ordered sequence (DO NOT reorder; DO NOT collapse):
 
+- **PR #229 remains DRAFT after this planning-correction commit and
+  through T02..T05.** It is marked ready for review (via `gh pr ready 229`
+  or the GitHub UI) ONLY after T06 attaches the execution diff and
+  validation report to the body, and `@reviewer-deep` is queued or has
+  passed.
 - **Step A — Planning-only draft PR (THIS PR):** Parent materializes the
   approved chat plan to `planning/current_plan.md` and the approved
   conditions-satisfied critique to `planning/current_plan.critique.md`,
