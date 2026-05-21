@@ -19,6 +19,33 @@ merged to `master`.
 
 ### Removed
 
+## [3.63.0] — 2026-05-21 (PR #228: feat/sc2egset-02-01-01-section10-verdict-audit)
+
+### Added
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`: PM-1 §10 verdict-audit validator for the SC2EGSet feature-family registry (26 rows). Implements bidirectional §10 verdict equality (`F-1` overall; `F-1a` stricter drift halts; `F-1b` looser drift halts), an independent §10.2 blocking-trigger checklist evaluated WITHOUT reading the registry `status` column (mechanical `row.drop` independence guard), and dataset/spec synonym mapping `blocked_until_additional_validation` ↔ `blocked_until_validation`.
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.{py,ipynb}`: jupytext-paired PM-1 audit notebook scaffold; calls the validator and asserts the gate (`passed=True`, `rows_audited=26`, `materialized_column_count=0`); banner declares "design-time §10 verdict audit, NOT materialization; does NOT close Step 02_01_01".
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_registry_section10_verdicts.py`: tests covering T-INDEP independence, T-F1A/T-F1B drift halts, T-F2 independent §10.2 trigger, T-F3..T-F7 falsifiers, T-VAC vacuous clause-2, T-26ROW real registry pass, T-ROWCNT/T-EMPTY/T-SYN.
+- `planning/current_plan.md`: durable approved Category-A plan (20 sections).
+- `planning/current_plan.critique.md`: reviewer-adversarial Round-1 (APPROVE-WITH-CONDITIONS, 2026-05-20) + bounded conditions-satisfied check (APPROVE, 2026-05-21).
+
+### Notes
+
+- This PR is a clause-3 increment of Step 02_01_01; clause-2's materialized-column set is EMPTY for the catalog-layer registry (vacuously satisfied per `02_01_leakage_audit_protocol.md:117-121` materialization definition).
+- This PR explicitly does **NOT** close Step `02_01_01` and does **NOT** update `STEP_STATUS.yaml`, `PHASE_STATUS.yaml`, `ROADMAP.md`, `research_log.md`, or any `reports/artifacts/**` file.
+
+### Changed
+
+*(none)*
+
+### Fixed
+
+*(none)*
+
+### Removed
+
+*(none)*
+
 ## [3.62.0] — 2026-05-19 (PR #227: docs/thesis-appendix-key-canonicalization)
 
 ### Added
