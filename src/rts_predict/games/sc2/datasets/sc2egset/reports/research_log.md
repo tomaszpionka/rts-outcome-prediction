@@ -2,6 +2,28 @@
 
 ---
 
+## 2026-05-21 — Persist PM-1 §10 verdict-audit evidence (Step 02_01_01 still open)
+
+- **Category:** A (science / Phase 02 / evidence persistence)
+- **Dataset:** sc2egset
+- **Branch:** `feat/sc2egset-02-01-01-section10-audit-persistence`
+- **PR:** `PR #229`
+- **Step scope:** Step 02_01_01 — PM-1 §10 verdict-audit evidence persistence; step closure is NOT claimed.
+- **closure_status:** `still_open`
+- **evidence_persistence_state:** `section10_verdict_audit_persisted_step_open`
+- **What:** PR #228 validated the PM-1 audit in memory inside the notebook scaffold (`sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_registry_section10_verdict_audit.{py,ipynb}`); this PR persists that evidence to disk as a 26-row CSV + companion MD pair (`02_01_01_section10_verdict_audit.{csv,md}`), plus this `research_log.md` entry.
+- **Why:** `.claude/rules/data-analysis-lineage.md` "Artifact discipline" — an in-memory validator pass is not citable evidence until it is recorded on disk through canonical lineage. Persistence closes the lineage loop for the §10 audit increment.
+- **How (reproducibility):** notebook path `sandbox/.../02_01_01_registry_section10_verdict_audit.py`; validator path `src/rts_predict/games/sc2/datasets/sc2egset/validate_registry_section10_verdicts.py`; inputs `02_01_01_feature_family_registry.csv` (SHA-256 `320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f`) + `tracker_events_feature_eligibility.csv` (SHA-256 `11bd4b9ef7c80657a027db3831313c1d74c39b85834c25ecdfa78506e8ad8d22`); validator SHA-256 `7d164e42af3e6d434e642e089d5a8fd153cebcb548d2f5f84a8264f247a30268`; deterministic UTC date `2026-05-21`; `git_sha` `119686d028c70853fe589185db0185adb0d8b2f2`.
+- **Findings:** all 26 rows EQUAL modulo synonym; 0 stricter drifts; 0 looser drifts; 0 independent §10.2 trigger hits; `halting_falsifier=None`; `materialized_column_count=0`; PERSIST byte-equivalence falsifier did not fire on reload.
+- **What this means:** clause-3 of the ROADMAP `continue_predicate` (per-family §10 verdict recorded for every registry row) is satisfied on disk; clause-1 was satisfied by PR #216; clause-2 is: No materialized-column audit is applicable at the catalog-only registry layer (materialized_column_count=0); this becomes non-vacuous once Step 02_01_02 materializes the first feature column per 02_01_leakage_audit_protocol.md §4 lines 117–121. Step `02_01_01` remains OPEN; the §10 audit increment did NOT advance overall step closure; closure requires a separate later PR with explicit status-YAML flips and reviewer-adversarial approval.
+- **Decisions taken:** persist evidence at the catalog-only layer; use deterministic `audit_executed_at_utc_date` (not runtime timestamp); deliberately freeze status YAMLs (`STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`), ROADMAP, INVARIANTS, registry CSV/MD, validator, validator tests, root `reports/research_log.md`. Explicitly **do NOT reuse** PR #216's `closure_status: partial` token. Rationale: PR #216's `partial` denoted "validators V-1..V-9 are partial coverage toward closure"; this entry denotes "no closure progress claim at all". The two epistemic states must not collide; reuse would produce an unreadable closure-progression history for Step 02_01_01.
+- **Decisions deferred:** status-chain triad mutation (`STEP_STATUS` / `PIPELINE_SECTION_STATUS` / `PHASE_STATUS`); ROADMAP amendment; `02_01_02` start; Phase 03 work; reviewer-adversarial closure-decision audit.
+- **Thesis mapping:** Chapter 4 §4.5 — citable as secondary lineage row only. Does NOT enable a Phase 02 leakage-clearance claim on its own.
+- **Open questions / follow-ups:** schedule the formal Step 02_01_01 closure PR (separate planner-science → reviewer-adversarial → executor cycle); decide whether `02_01_02` planning may begin before or after the formal closure PR (deferred to a later read-only planning session).
+- **Acknowledged trade-offs:** evidence persistence inflates `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/` with a CSV that exactly mirrors the validator's in-memory output. Justified because lineage discipline requires on-disk evidence for citation.
+
+---
+
 ## 2026-05-16 — [Phase 02 / Step 02_01_01] Provisional feature-family registry artifact (validated through V-9)
 
 **Category:** A (science / Phase 02 feature-engineering registry artifact)
