@@ -2096,6 +2096,181 @@ research_log_entry: >-
   into src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
 ```
 
+### Step 02_01_02 — First pre_game feature-family materialization (sc2egset)
+
+```yaml
+step_number: "02_01_02"
+name: "First pre_game feature-family materialization (sc2egset)"
+description: >-
+  First MATERIALIZATION step of Pipeline Section 02_01: materialize the 5
+  pre_game feature families declared allowed in the Step 02_01_01 registry
+  (focal_race_with_opponent_race_pair, map_type_encoded, patch_version_encoded,
+  matchup_encoded, is_mmr_missing_flag [pre-game missingness/provenance flag, NOT
+  a skill feature; KEEP-IN-TRANCHE-1 per reviewer-adversarial]) into a
+  per-(focal_match_id, focal_player)
+  feature table, then re-run the CROSS-02-01-v1.0.1 post-materialization
+  leakage audit on the resulting non-empty features_audited set. Scope is the
+  minimal lowest-risk tranche: every selected family has status=allowed,
+  candidate_leakage_modes=none, cold_start_handling=G-CS-1, and
+  allowed_cutoff_rule=snapshot_at_match_start in
+  02_01_01_feature_family_registry.csv. The 6 history_enriched_pre_game families
+  (cold-start gates G-CS-2..G-CS-5; rolling/h2h/rating leakage modes) and the 11
+  in_game_snapshot families (tracker-event-bound, event.loop <= cutoff_loop
+  caveats) are DEFERRED to successor Steps 02_01_03+ so that distinct
+  leakage-falsifier regimes are not batched into one notebook (per
+  .claude/rules/data-analysis-lineage.md "Feature-engineering discipline").
+  NO feature value is materialized in this ROADMAP-stub PR -- this entry only
+  declares the future step per .claude/rules/data-analysis-lineage.md
+  "Non-batching rule for empirical work" sequence step 1; the notebook scaffold,
+  one validation module, materialization, and the post-materialization audit are
+  produced by SEPARATE FUTURE PRs (sequence steps 2-9).
+phase: "02 -- Feature Engineering"
+pipeline_section: "02_01 -- Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: >-
+  Can the 5 allowed pre_game feature families from the Step 02_01_01 registry be
+  materialized into a per-(focal_match_id, focal_player) feature table whose
+  every column passes the CROSS-02-01-v1.0.1 post-materialization leakage audit
+  with a NON-vacuous (non-empty features_audited) PASS verdict, under strict
+  snapshot-at-match-start cutoff and symmetric focal/opponent construction?
+method: >-
+  For each of the 5 pre_game families, write a DuckDB projection over
+  replay_players_raw / matches_flat keyed on (filename, player_id_worldwide)
+  producing focal_* and opponent_* columns symmetrically (Invariant I5). The
+  cutoff is snapshot_at_match_start: every column is read from the target game's
+  own pre-game metadata (race, map, patch, matchup, MMR-missing flag) -- these are
+  known-at-match-start fields, NOT history aggregates and NOT tracker-derived, so
+  no history_time < target_time window applies and no post-game token may appear.
+  Then run the CROSS-02-01-v1.0.1 audit (02_01_leakage_audit_protocol.md section
+  2.1 cutoff structural check, 2.2 POST-GAME token absence, 2.3 normalization
+  fit-scope) over the materialized columns; emit a NON-vacuous
+  leakage_audit_sc2egset.{json,md} with features_audited = the 5 (or expanded
+  focal_*/opponent_*) materialized column names. All non-trivial logic lives in
+  src/rts_predict/ and is imported by the notebook. THIS PR delivers only the
+  ROADMAP stub (sequence step 1); materialization is a separate future PR.
+stratification: >-
+  Per family: dataset_tag = sc2egset; prediction_setting = pre_game. SC2 races
+  (Prot / Terr / Zerg / Rand) are stratification axes for the race-pair and
+  matchup families (RISK-26 Random-race semantics cited); map_type and
+  patch_version partition the encoded categoricals. Corpus-wide single-number
+  aggregates are not an acceptable sole output.
+predecessors: "02_01_01"
+notebook_path: >-
+  sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.py
+inputs:
+  duckdb_tables:
+    - "matches_flat"
+    - "replay_players_raw"
+    - "matches_history_minimal"
+  schema_yamls:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml"
+  prior_artifacts:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json"
+  external_references:
+    - "reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1)"
+    - "reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1) sections 2.1/2.2/2.3, 4 (materialization)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) section 6, section 9 (G-CS-1)"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1) section 4 D2/D3/D4/D5/D6/D8, section 10"
+    - ".claude/rules/data-analysis-lineage.md"
+    - ".claude/ml-protocol.md (three leakage failure modes)"
+    - ".claude/scientific-invariants.md (I3, I5, I6, I7, I8, I9, I10)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_matrix.parquet"
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.md"
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.md"
+reproducibility: >-
+  Every materialized column traces to a registry row in
+  02_01_01_feature_family_registry.csv; every projection SQL is embedded verbatim
+  in the report MD alongside its result (Invariant I6). No magic numbers
+  (Invariant I7): pre_game families carry cold_start_handling G-CS-1 (no
+  pseudocount / threshold / smoothing constant); encoder vocabularies are
+  fit on training folds only (no cross-fold or cross-dataset fit). Seed 42
+  convention; deterministic export; relative-path provenance (Invariant I10).
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Every pre_game column is read at snapshot_at_match_start from the target
+      game's own pre-game metadata; no history window and no tracker-derived
+      value is used, so no information from game T or later enters. The
+      post-materialization CROSS-02-01-v1.0.1 section 2.2 POST-GAME token absence
+      check is run on the materialized set and must report 0 violations.
+  - number: "5"
+    how_upheld: >-
+      The same projection produces focal_* and opponent_* columns symmetrically;
+      no player slot is privileged. RISK-24 data-dependent slot-assignment
+      falsifier is enumerated in the materialization notebook.
+  - number: "6"
+    how_upheld: >-
+      Every reported count/distribution in the report MD is accompanied by its
+      verbatim DuckDB SQL; no value is paraphrased.
+  - number: "7"
+    how_upheld: >-
+      No magic numbers -- pre_game families are G-CS-1 (no cold-start constant);
+      any later numeric (cutoff_loop, window length) belongs to deferred
+      in_game / history tranches, not this Step.
+  - number: "8"
+    how_upheld: >-
+      The 5 pre_game families are exactly the shared cross-game pre-game
+      categories (faction matchup, map) named in Invariant I8; encoders carry the
+      dataset_tag = 'sc2egset' partition note and are not fit cross-dataset,
+      preserving cross-game comparability for the AoE2 datasets.
+  - number: "9"
+    how_upheld: >-
+      The Step reads only Phase 01 outputs and the CLOSED Step 02_01_01 catalog
+      artifacts (all lower-numbered, on disk); it makes no source-stratified
+      evaluation claim and builds no model.
+  - number: "10"
+    how_upheld: >-
+      The materialized feature table and its provenance use the relative-path
+      convention; no absolute path is written to any artifact.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only after
+    the future scaffold-and-materialization PR materializes the feature table +
+    the NON-vacuous CROSS-02-01-v1.0.1 audit pair; at that point the predicate is
+    "the planned Parquet feature matrix, the audit JSON, and both report MDs
+    exist at the declared paths and are non-empty, and the audit JSON has
+    features_audited != [] with verdict = PASS."
+  continue_predicate: >-
+    A future PR may begin Step 02_01_03 (the next 02_01 materialization step --
+    history_enriched_pre_game tranche) only after this Step 02_01_02 has reached
+    its artifact-check at a future PR, the CROSS-02-01-v1.0.1 post-materialization
+    audit has returned a NON-vacuous PASS (future_leak_count = 0,
+    post_game_token_violations = 0 over a non-empty features_audited), and a
+    per-family CROSS-02-03-v1.0.1 section 10 verdict consistent with the
+    materialized columns is recorded. The section 2.1 design-time verdict audit (PR #229)
+    is a distinct artifact and does NOT substitute for this post-materialization
+    CROSS-02-01 audit (PR #230 evidence remains distinct from PR #229 evidence).
+  halt_predicate: >-
+    Halt before generating any feature artifact if any of the following hold
+    (per .claude/rules/data-analysis-lineage.md "Stop conditions"):
+      - any materialized pre_game column reads a value that is not knowable at
+        snapshot_at_match_start (Invariant I3 violation);
+      - the CROSS-02-01-v1.0.1 section 2.2 POST-GAME token absence check reports
+        any violation on the materialized set;
+      - any family outside the 5 allowed pre_game rows is materialized in this
+        Step (scope creep into the deferred history / in_game tranches);
+      - the focal_* / opponent_* construction is asymmetric (Invariant I5);
+      - any encoder is fit on validation/test folds or cross-dataset
+        (normalization leakage, Invariant I3);
+      - the future notebook scaffold attempts to batch ROADMAP + notebook +
+        artifact + next step in one execution (non-batching rule).
+thesis_mapping:
+  - "Chapter 4 -- Data and Methodology > 4.5 Feature engineering plan (sc2egset pre_game materialization)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per .claude/rules/data-analysis-lineage.md
+  "Non-batching rule" sequence (step 1 -- ROADMAP stub only -- produces no
+  research_log entry). Required on the future scaffold-and-materialization PR per
+  the standard step-completion protocol; entry goes into
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
+```
+
 ---
 
 ## Phase 03 — Splitting & Baselines (placeholder)

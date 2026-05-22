@@ -19,6 +19,19 @@ merged to `master`.
 
 ### Removed
 
+## [3.67.0] — 2026-05-22 (PR #232: feat/sc2egset-02-01-02-roadmap-stub)
+
+### Added
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` — inserted the Step `02_01_02` ROADMAP stub (first `pre_game` feature-family materialization design) under Pipeline Section `02_01`: declares materialization of the 5 allowed `pre_game` registry families only (`focal_race_with_opponent_race_pair`, `map_type_encoded`, `patch_version_encoded`, `matchup_encoded`, `is_mmr_missing_flag`); `predecessors: "02_01_01"`; full temporal/leakage/cold-start/SQL design recorded as a declaration only. Insertion-only; the closed `02_01_01` block and the Phase 03 placeholder are byte-unchanged.
+
+### Notes
+
+- ROADMAP-only PR: NO notebook scaffolded, NO artifact generated, NO feature value materialized, NO status YAML flip, NO `research_log.md` entry, NO Phase 03 work.
+- `is_mmr_missing_flag` is kept in tranche 1 as a pre-game missingness/provenance flag (NOT a skill feature); the 6 `history_enriched_pre_game` and 11 `in_game_snapshot` families are deferred to Steps `02_01_03+`.
+- Pipeline Section `02_01` remains `complete` because this ROADMAP-only PR adds NO `STEP_STATUS` row. The YAML-derived re-derivation of `02_01 → in_progress` occurs only when `02_01_02` later executes and lands a `STEP_STATUS` row (intended behaviour, pre-disclosed in the PR #230 status-reopen note).
+- PR #229 §10 design-time verdict-audit evidence and PR #230 / future post-materialization CROSS-02-01 evidence are kept distinct.
+
 ## [3.66.0] — 2026-05-22 (PR #231: docs/thesis-pass2-020101-manifest-closure-reconciliation)
 
 ### Changed
