@@ -150,3 +150,83 @@ before any feature value is materialized.
 ## Draft-PR-first workflow correction — PR #232
 
 PR #232 already exists before Layer-2 execution. The plan now uses literal `PR #232` in all future execution outputs instead of `PR #<this PR>` placeholders. The plan distinguishes the current 2-file planning diff, the 4 future execution files, and the 6-file final tracked PR diff. No scientific scope changed.
+
+## Category-A pre-execution adversarial critique — PR #232 (Layer-2 gate)
+
+> Produced by `@reviewer-adversarial` on 2026-05-22 against branch HEAD `146013e1`
+> (base master `e96374fe`). This is the Category-A pre-execution methodology gate
+> that the reviewer-deep Layer-1 gate deferred (DEFER-TO-LAYER-2). It must be in the
+> record before any Layer-2 ROADMAP execution turn begins.
+
+### Verdict
+
+**APPROVE-WITH-NITS — zero blockers, zero conditions, no `current_plan.md` edit required.**
+The ROADMAP-only stub is methodologically defensible as a recorded design decision.
+The two methodology-sensitive questions reviewer-deep deferred — the 5-family scope
+cut and the `is_mmr_missing_flag` placement — are both adjudicated defensible, the
+flag's placement *positively mandated* by the LOCKED CROSS-02-02 spec.
+
+### `is_mmr_missing_flag` decision: KEEP-IN-TRANCHE-1
+
+- **Cannot leak:** registry `snapshot_at_match_start`, `candidate_leakage_modes=none`,
+  `G-CS-1`; it is an `MMR=0` sentinel read from the replay's own pre-game header — no
+  history window, no outcome dependency, no tracker event. Invariant #3 safe.
+- **Not degenerate:** ~84% TRUE / 16% FALSE in the 44,418-row prediction scope
+  (37,422 player-rows flagged; MMR = 83.95% missing per the 01_04_01 missingness
+  ledger, MAR-primary).
+- **Spec-mandated placement:** `reports/specs/02_02_feature_engineering_plan.md`
+  line 228 ("use the missingness flag, not the MMR scalar; rating proxies must come
+  from `history_enriched_pre_game`") and line 539 (designates `is_mmr_missing` the
+  canonical first SC2 validation module). Deferring it with the rating/history
+  families would CONTRADICT the locked spec — the spec deliberately separates the
+  pre_game *missingness flag* from the deferred *rating proxies* / MMR scalar.
+- **Caveat (deferred to materialization PR, nit 1):** the flag is a replay-
+  *provenance* proxy (ladder vs. tournament), not a skill measure, and has no AoE2
+  analog. The future materialization report must characterize it as provenance, not
+  skill — but that is the materialization PR's burden, not a reason to move it.
+
+### Focus-area adjudications (all 10 — all defensible)
+
+1. `02_01_02` ROADMAP-only stub is the correct next atomic unit — YES (TAXONOMY
+   sequential steps; data-analysis-lineage sequence step 1; closed-block precedent).
+2. 5-family pre_game scope defensible — YES (the only rows with leakage_modes=none +
+   G-CS-1 + snapshot_at_match_start; principled cut; not over/under-scoped).
+3. `is_mmr_missing_flag` — KEEP-IN-TRANCHE-1 (see above).
+4. Avoids materialization / notebooks / artifacts / status flips / research-log writes — YES.
+5. PR #229 §10 vs PR #230 CROSS-02-01 evidence kept DISTINCT — YES (continue_predicate
+   states §10 does not substitute for the post-materialization audit).
+6. No overclaim of empirical leakage clearance — YES (02_01_01 framed catalog-only/vacuous).
+7. `02_01_03+` deferral of history (6) + in_game (11) tranches non-abandoning — YES (sequenced).
+8. Status-reopen logic honest — YES (no STEP_STATUS row → 02_01 stays complete;
+   re-derivation to in_progress fires only on execution; pre-disclosed CHANGELOG L53 +
+   research_log L18; the 01_04 net-zero reopen is the established precedent).
+9. Future Layer-2 file scope correct (6-file final diff) — YES (all 6 exist; 3.66.0→3.67.0 minor).
+10. Any blocker requiring re-planning before Layer-2 — NO.
+
+### Non-blocking nits (fold into the FUTURE Layer-2 materialization PR; no `current_plan.md` edit now)
+
+1. **Provenance-proxy framing + overstated cross-game prose.** Of the 5 tranche-1
+   families, only `matchup` and `map` are genuinely cross-game-shared (Invariant #8);
+   `patch_version_encoded` and `is_mmr_missing_flag` are SC2-specific (AoE2 uses
+   leaderboard/mode provenance). The stub's `scientific_invariants_applied` #8 field
+   already narrows this correctly; only the looser "Materialization scope" prose
+   overstates it. The future materialization MD must (a) call `is_mmr_missing` a
+   provenance indicator, not a skill feature, and (b) not sell the whole tranche as
+   cross-game-shared.
+2. **Pre-existing CHANGELOG self-inconsistency in the closed PR #230 block** (CHANGELOG
+   L46 "Phase 02 not_started → in_progress" vs L78 "Phase 02 remains not_started";
+   PHASE_STATUS authoritatively shows in_progress; the closed §10 / leakage_audit
+   artifacts still say "Phase 02 not_started", now stale). The stub correctly does NOT
+   touch these closed artifacts. A future Category C/E hygiene unit should reconcile
+   them — not this plan's concern.
+3. **Registry-path drift** (= reviewer-deep N1, re-confirmed): the closed block outputs
+   name `..._registry_sc2egset.csv`; the on-disk file is `..._registry.csv`. The stub
+   `inputs` already cite the true name; T01 step 4 forbids propagating the stale path.
+   Correctly quarantined; no plan action.
+
+### Mandatory for the FUTURE Layer-2 materialization (not this stub PR)
+
+Before the `02_01_02` materialization PR executes, a Claude Chat second-pass review is
+REQUIRED (in addition to the executor's own analysis): the focal/opponent projection
+SQL is where the first non-vacuous leakage computation lands, and subtle leakage there
+must get a second pass even if the executor's output looks correct.
