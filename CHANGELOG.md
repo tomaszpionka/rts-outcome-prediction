@@ -19,6 +19,18 @@ merged to `master`.
 
 ### Removed
 
+## [3.66.0] — 2026-05-22 (PR #231: docs/thesis-pass2-020101-manifest-closure-reconciliation)
+
+### Changed
+
+- `thesis/pass2_evidence/notebook_regeneration_manifest.md` — OQ4 reconciliation with the PR #230 catalog-only closure of SC2EGSet Step 02_01_01: added the new `catalog_only_closed_zero_materialization` status token; re-tokenized the `02_01_01_feature_family_registry_skeleton.py` row off the now-false `partial_coverage_v9_baseline` (the row no longer says "no Step closure"); added 2 Phase-02 rows (the PR #229 §10 verdict-audit notebook and the PR #230 hand-written CROSS-02-01 artifact pair), all 3 carrying the new token; updated the Summary "Last updated" + Change note + footnote (footnote accounting, not a new column); `confirmed_intact` total unchanged.
+- `planning/INDEX.md` — archived PR #230 (merged 2026-05-22 at master `0c45c490`); new Active line for `docs/thesis-pass2-020101-manifest-closure-reconciliation` (PR #231).
+
+### Notes
+
+- **Thesis-lineage bookkeeping only.** No status YAML, artifact, notebook, source, test, dataset/root `research_log`, or thesis chapter changed. PR #230's closure is preserved untouched: Step 02_01_01 closed at the catalog-only registry layer; Phase 02 `in_progress`; Step 02_01_02 NOT started; Phase 03 NOT started.
+- The new token asserts catalog-layer closure ONLY; a future post-materialization CROSS-02-01 audit remains REQUIRED before any empirical leakage-clearance claim.
+
 ## [3.65.0] — 2026-05-21 (PR #230: feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit)
 
 ### Added

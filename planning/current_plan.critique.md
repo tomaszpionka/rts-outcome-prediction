@@ -1,88 +1,85 @@
 ---
 plan_ref: planning/current_plan.md
-created: 2026-05-21
-reviewer_model: reviewer-adversarial (Opus 4.7, Category A pre-execution gate)
-category: A
-plan_revision_chain: v1 (HOLD-REPLAN) → v2 (APPROVE-WITH-CONDITIONS) → v3 (this — APPROVE-WITH-NITS)
+created: 2026-05-22
+reviewer_model: reviewer-adversarial (Opus, Category F pre-execution gate)
+category: F
+base_ref: 0c45c490e4b306892cf796f2cf3db72201bae826
 ---
 
-# Critique — v3 closure plan (bounded conditions check)
+# Critique — OQ4 manifest reconciliation plan (pre-execution gate)
 
-reviewer: reviewer-adversarial (Category A pre-execution gate; round 2 of 3-round cap)
-base_ref: a14dc547bf19245ddc205048dbaf9cb6b11d9400
-plan_target: planning/current_plan.md (materialized from /tmp/planner_plan_v3.md)
-
-> Produced by reviewer-adversarial. Audience: Tomasz + viva preparation.
-> Pre-execution Category A methodology gate per `.claude/rules/data-analysis-lineage.md`.
-> This is round 2 of the 3-round adversarial cap (`feedback_adversarial_cap_execution.md`).
+> Produced by reviewer-adversarial. Category F pre-execution methodology gate per
+> `.claude/rules/data-analysis-lineage.md`. Round 1 of the 3-round adversarial cap
+> (`feedback_adversarial_cap_execution.md`).
 
 ## Verdict
 
-**APPROVE-WITH-NITS**
-
-Both v2 BLOCKING conditions (C1 OQ1 schema-conformant value; C2 root research_log CROSS entry removed) are resolved pre-execution. No new methodology blockers introduced. The plan is methodologically defensible and may proceed to materialization. Per the 3-round cap, APPROVE-WITH-NITS closes the planning gate cleanly without forcing user adjudication. Four non-blocking nits are recorded for executor-time cleanup (none load-bearing).
-
-## Round status
-
-Round 2 of 3-round cap (`feedback_adversarial_cap_execution.md`).
-
-- v1 (Outcome A) → HOLD-REPLAN (CROSS-02-01 §3/§5(c) artifact-presence requirement conflated with §5(a) vacuity).
-- v2 (Outcome A′(i)) → APPROVE-WITH-CONDITIONS (2 blockers: C1 OQ1 new-string violation of §3 schema; C2 root research_log entry violates `.claude/ml-protocol.md`).
-- v3 (this) → APPROVE-WITH-NITS. Both v2 blockers RESOLVED pre-execution.
-
-## Source-of-truth note
-
-The reviewer read the v3 plan at `/tmp/planner_plan_v3.md` (677 lines, 81196 bytes) as the authoritative target. The v3 plan was materialized to `planning/current_plan.md` on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit` (planning-only commit). `planning/current_plan.md` and `planning/current_plan.critique.md` on `master` were read only as historical context from merged PR #229 and were not treated as the current target plan.
+**APPROVE-WITH-NITS — zero blockers.** One MUST-FIX nit (N1, the §10-audit row token) plus
+two presentational nits (N2, N3). All three are folded into the materialized plan
+(Execution steps E1–E4, Assumptions A3, OQ-M1). No methodology blocker; the plan is
+defensible and may be materialized to a draft planning PR.
 
 ## Bounded check matrix
 
-| # | Bounded check | Result | Evidence (line numbers) |
-|---:|---|---|---|
-| 1 | C1 resolution (`normalization_fit_scope = "training_fold_only"`) | PASS | L172 JSON value `"normalization_fit_scope": "training_fold_only"`; L178 JSON `notes` carries v3 resolved-β rationale with symmetry argument citing `target_encoding_fold_awareness` + structural-check fields; L667 §11 OQ1 `"RESOLVED pre-execution; alternative beta chosen for schema-strict reading"`; L653 §10 R1 marked `"(LOW — downgraded from HIGH in v3 per BLOCKING condition C1 resolution)"`; full-file scan reveals no live `"N/A_no_features_materialized"` reference outside historical ledger contexts (L26 ledger, L115 U1 RESOLVED block prose, L321 CHANGELOG `Notes` historical citation, L400 §1 rationale). |
-| 2 | C2 resolution (root `reports/research_log.md` removed) | PASS | L297-299 T05.b REMOVED-justification block citing `.claude/ml-protocol.md` lines 51-54 verbatim; L511-525 Q8 manifest is 10 entries (9 diff-touching + 1 transient), root `reports/research_log.md` absent; L523 v3 note confirms drop; L579-595 §6 manifest matches (9 diff + 1 transient, item 6 is per-dataset only); L59 Scope clause states "NO CROSS entry in root `reports/research_log.md` is added by THIS PR (per `.claude/ml-protocol.md` lines 51-54)"; L307-310 CHANGELOG `### Added` bullets list only per-dataset research_log (no root entry); L669 §11 OQ2 amended with per-dataset citation note ("Future aoestats / aoe2companion sessions ... may cite THIS PR's per-dataset research_log entry as the methodological precedent; no CROSS entry is added by THIS PR ..."). |
-| 3 | Branch name (long form `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit` propagated) | PASS | L2 `plan_id:`; L7 `branch:`; L46 ledger; L143 T01; L276 T05 research_log entry Branch field; L305 T06 CHANGELOG block header; L315 T06 planning/INDEX.md prescription; L333-334 T07; L383 T09 push command; L384 T09 PR title implied via commit message header L362. No `feat/sc2egset-02-01-01-closure-leakage-audit` (v2 short form) remains anywhere in v3. |
-| 4 | Non-blocker nits 3, 4, 5 folded in | PASS | **Nit 3 (heredoc forbidden in T02a.2):** L183 "Do NOT use a `cat > … << 'EOF' … EOF` heredoc (zsh breaks heredoc-in-quoted-argument forms per memory `feedback_git_commit_format.md`)" — `python -c "import json; json.dump(...)"` is canonical method. **Nit 4 (MD sec 8 "Audit queries: none — vacuously satisfied"):** L210 standalone section 8 added with explicit "MUST appear as a standalone section per Nit 4 of the v2 reviewer-adversarial gate" prose; L403 §1 outcome adjudication confirms "the v3-added 'Audit queries: none — vacuously satisfied' sec 8 per Nit 4". **Nit 5 (explicit grep replaces visual-verify in T07):** L336 "Per v3 Nit 5, replace the v2 'visually verify' instruction with explicit bash checks: `grep -c \"5c7ef380\" planning/INDEX.md` and `grep -c \"a14dc547\" planning/INDEX.md` — each MUST return ≥ 1 AND the two SHAs MUST be on distinct rows". |
-| 5 | No new methodology blockers introduced | PASS-WITH-NITS | (a) C1 fix is internally consistent: §3 PASS condition `"training_fold_only"` is met literally; JSON `notes` field carries the vacuous-satisfaction rationale; symmetry with peer fields (`target_encoding_fold_awareness`, structural checks) is explicit and defensible. (b) C2 fix has no orphan reference: full-file scan for "root research_log" / "CROSS entry" / "T05.b" finds only REMOVED-justification (L297-299), explanation in §1 rationale (L405), Q8 v3 note (L523), §6 v3 note (L594), and OQ2 amendment (L669) — no live citation as a deliverable. (c) Manifest count cascades correctly: §6 = 9 diff + 1 transient (L579-595); Q8 = 10 entries 9-diff + 1-transient (L511-525); T08 pre-merge validation step 2 cites "9 diff-touching files in the §6 manifest exactly (items 1–9; item 10 transient pair MUST NOT appear)" (L346); CHANGELOG `Notes` not enumerated against file-count but does not contradict; §Scope text (L59) no longer references root research_log. (d) All previously-PASSed v2 checks remain: C9 token (L473-481 Q3 unchanged), C10 halt (L221 falsifier halt), C11 manifest forbidden (L541 + L617 unchanged), C12 final gate (L647-649 unchanged), C3 cascade (L487-495 Q4 unchanged), C6 no overclaim (L571-577 §5 disclaimers unchanged), C7 disentanglement (L571 §5(1) sibling-but-distinct clause unchanged). See "Non-blocking nits" below for two minor wording-inconsistency observations. |
-| 6 | Plan structure integrity | PASS | All 11 required sections present: §1 Outcome adjudication (L396), §2 Repo evidence (L414), §3 Q&A (L455), §4 Cascade analysis (L547), §5 Disclaimers (L567), §6 Allowed files (L579), §7 Forbidden files (L598), §8 Release-tail (L624), §9 Reviewer routing (L636), §10 Risks (L651), §11 Open questions (L665). §11 ends at L677 with the prescribed line "No blockers remain that prevent execution after `@reviewer-adversarial` pre-execution critique gate clearance." Plan length 677 lines (matches planner summary). |
+| # | Check | Result | Evidence |
+|---|-------|--------|----------|
+| 1 | Outcome A vs B/C/D | SOUND | OQ4 (PR #230 research_log) names manifest reconciliation as the explicit next-planner task; B/C/D rejections hold (manifest IS load-bearing per its own `partial_coverage_v9_baseline` definition; not pipeline-generated per git history; non-batching rule forbids D). |
+| 2 | OQ4 blocking before 02_01_02 | SOUND | manifest `02_01_01` row still says "no Step closure" + `partial_coverage_v9_baseline`, contradicting STEP_STATUS `02_01_01: complete`. Reconciliation is a genuine prerequisite (Invariant #9). |
+| 3 | New token + §10 row | AT RISK -> RESOLVED via N1 | New token defensible; §10-audit row `confirmed_intact` would overclaim (step closed at PR #230, not PR #229). See audit below. |
+| 4 | Avoids Phase 03 / leakage | SOUND | Out-of-scope list names Phase 03 + post-materialization audit; forbidden paths include INVARIANTS, registry CSV/MD, artifacts/**. |
+| 5 | Avoids data/code/notebooks/status YAMLs | SOUND | Allowed files = manifest + planning pair + CHANGELOG + pyproject; status YAMLs, validators, sandbox, artifacts all forbidden. |
+| 6 | Hand-edit policy handled | SOUND | No generator script (grep = 0); git log shows only hand edits. "Artifact discipline" precondition (a generating pipeline) is genuinely absent. |
+| 7 | No 02_01_02 design mixing | SOUND | 02_01_02 design explicitly out of scope; only manifest + INDEX + version touched. |
+| 8 | INDEX archival convention | SOUND | Archive row format matches existing rows; cites merge SHA `0c45c490`; single Active line replacement. |
+| 9 | Version bump 3.65.0 -> 3.66.0 | SOUND | git-workflow "minor for feat/refactor/docs"; F (docs/thesis-) is doc-family -> minor. |
+| 10 | Blockers | NONE | One MUST-FIX nit (N1) + two presentational nits (N2, N3), all folded into the plan. |
 
 ## Blocking issues
 
-None. Both v2 BLOCKING conditions (C1 OQ1 schema-conformant value; C2 root research_log CROSS entry removed) are resolved pre-execution. The plan is methodologically defensible and may proceed to materialization.
+None.
 
-## Non-blocking nits
+## Non-blocking nits (all folded into the materialized plan)
 
-These are wording-consistency observations only; they do not block APPROVE and do not require a v4 revision before materialization. The executor may either fold them at materialization time or defer to a post-merge cleanup PR.
+- **N1 (MUST-FIX, folded into E3 Row A + A3).** The PR #229 §10-audit notebook row must NOT
+  be labeled `confirmed_intact`. The §10-audit notebook is not its own ROADMAP step — the
+  single `02_01_01` step covers both notebooks — and the step's STEP_STATUS flip landed at
+  PR #230 (`a47d0809`), not PR #229 (whose research_log recorded `closure_status:
+  still_open`). The `confirmed_intact` rule requires the FULL chain including STEP_STATUS
+  and warns against premature promotion. Resolution adopted (user-confirmed): assign the
+  §10-audit row the new `catalog_only_closed_zero_materialization` token, sharing the
+  single step's closure provenance with the other two rows.
+- **N2 (folded into E4 + OQ-M1).** Use footnote accounting under the Summary table, not a
+  new column — the new token applies to exactly 3 sc2egset Phase-02 rows; a new column
+  would add mostly-empty cells across other dataset/phase rows and perturb the existing
+  `confirmed_intact` total invariant.
+- **N3 (folded into E3 Row B).** The PR #230 CROSS-02-01 pair is hand-written, not a
+  notebook; its row's notebook-path cell and artifact-status cell explicitly state
+  "hand-written … not a notebook; no regeneration lineage applies" so a blank notebook path
+  is not misread as a missing-notebook defect.
 
-1. **(N1) Stale "v2" self-references in §1 and Q3.** L84 ("This v3 plan resolves BOTH BLOCKING conditions...") is correct, but L400 says "(The v1 plan was earlier returned HOLD-REPLAN; the v2 plan implemented A'(i) faithfully via T02a; v3 corrects the residual two BLOCKING conditions in v2.)" and L475 reads "This v2 plan adopts the cleaner two-field approach" (should be "This v3 plan adopts ..."). Q4 L483 also still reads "(UPDATED per task instructions)" rather than "(unchanged in v3)". These are residual v2-era phrasing slips inherited verbatim; they are not load-bearing but make the v3 self-attribution slightly inconsistent.
+## Highest-risk decision audit (check 3 — the confirmed_intact / §10 row)
 
-2. **(N2) §1 outcome adjudication says MD has 8 sections, MD spec lists 8 numbered sections; T02a.4 stop condition still says "7 prescribed sections" (L225).** L403 correctly counts 8 ("The MD contains 8 sections ... and the v3-added 'Audit queries: none — vacuously satisfied' sec 8 per Nit 4"). MD spec at L193-210 lists sections 1-8 explicitly. But T02a.4 stop condition at L225 reads "MD contains all 7 prescribed sections" — should be "all 8 prescribed sections" to match the v3-added sec 8. The executor will catch this empirically (the MD will physically contain 8 sections), but the stop-condition string is a residual v2 count.
-
-3. **(N3) T05 Decisions taken paragraph (L287) still describes the alternative-β rationale with the v3-edit-ledger phrasing "v3 RESOLVED pre-execution per the v2 reviewer-adversarial BLOCKING condition C1".** This is correct but verbose; reads as a self-referential trail. Not load-bearing.
-
-4. **(N4) T07 SHA-disambiguation count check is correct but slightly under-specified.** L336 says `grep -c "5c7ef380"` and `grep -c "a14dc547"` must each return ≥ 1 AND the two SHAs must be on distinct rows. The "distinct rows" check is enforced via `grep -n` line-number-differ comparison. This is correct. However, the count `≥ 1` (rather than `= 1`) means an accidental duplicate row would silently pass. A `= 1` count would be slightly tighter; ≥ 1 + distinct-line-numbers is adequate.
-
-None of N1-N4 constitutes a methodology flaw or schema violation. The executor may fix them as part of T02a/T05/T07 execution without altering plan scope.
+Rejecting `confirmed_intact` for the registry-skeleton row is correct (no post-V-9
+regeneration; the post-materialization-audit obligation survives). The risk was the
+§10-audit row. The §10-audit artifact's own sub-lineage (PR #228 in-memory validation ->
+PR #229 notebook -> 26-row CSV+MD -> research_log) is intact, but its STEP_STATUS leg was
+satisfied only by PR #230. `confirmed_intact` is defined at Step granularity ("promote a
+Step"), so labeling the §10 row `confirmed_intact` would imply PR #229 closed the step,
+which it did not. N1 resolves this by assigning the new catalog-only-closure token to all
+three rows that share the single step's closure provenance. Not a blocker; the resolution
+is a clean token choice, now embedded in E3.
 
 ## Safe next instruction
 
-**APPROVE-WITH-NITS.** Parent may materialize `/tmp/planner_plan_v3.md` to `planning/current_plan.md` on the existing draft PR #230 (head `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`). PR #230 is already OPEN and DRAFT; do NOT call `gh pr create`. Body updates use `gh pr edit 230 --body-file`. The 4 non-blocking nits (N1-N4) above are optional wording cleanups; the executor may either fold them at materialization time or carry them as a tiny follow-up cleanup. None requires a v4 plan revision or another adversarial round.
+Parent may materialize the plan + this critique to a draft PR on branch
+`docs/thesis-pass2-020101-manifest-closure-reconciliation` (DONE in this PR), with N1/N2/N3
+folded into the plan (DONE: E1–E4, A3, OQ-M1). Do NOT execute the manifest update; do NOT
+mark the PR ready; do NOT merge. Execution (E1–E7) requires a separate, explicitly-approved
+turn after this plan is inspectable on the draft PR. Per the 3-round cap, this APPROVE-WITH-
+NITS closes the planning gate; the post-execution Cat F final gate runs after E1–E7.
 
-Per the 3-round cap (`feedback_adversarial_cap_execution.md`), this is the second and final adversarial round; APPROVE-WITH-NITS closes the planning gate cleanly without forcing user adjudication.
+## Draft-PR-first workflow correction — PR #231
 
-PR #230 is the existing draft for this plan; the materialized plan is published to it via the planning-pair commit on branch `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`. Execution (T01..T11) requires a separate, explicit user approval turn after the materialized plan is inspectable on PR #230.
+*Appended 2026-05-22 in a separate plan-correction-only round (NOT a new adversarial round; the 3-round cap remains at 1 of 3 used for this plan).*
 
-## Manifest-count correction addendum — PR #230
-
-*Appended 2026-05-21 in a separate plan-correction-only round (NOT a new adversarial round; the 3-round adversarial cap remains at 2 of 3 used).*
-
-The bounded-check #5 evidence at L42 above correctly attests that the internal §6 / Q8 / T08 cross-references in the v3 plan are mutually consistent at the **§6-enumeration layer** (9 execution files + 1 transient pair = 10 entries). However, the v3 plan as materialized did NOT disambiguate that enumeration count from the **final tracked PR diff count** that `git diff --name-only master..HEAD` will actually return after execution. Because PR #230 already contains 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`, committed in `dbbd3bf8` before plan execution begins), the final tracked PR diff after execution is **11 files** = 2 planning + 9 execution, NOT 9.
-
-Three concepts must be disambiguated in the live plan prose:
-
-- **execution_files = 9** — the 9 NEW/MODIFIED files added by T02a–T07 (§6 items 1–9).
-- **final_tracked_diff_files = 11** — the 2 planning files already in PR #230 + the 9 execution files; what `git diff --name-only master..HEAD` actually returns post-execution.
-- **transient_files** — `.github/tmp/commit.txt` and `.github/tmp/pr.txt` (§6 item 10); created and deleted in T09; MUST NOT appear in the final diff or on disk at final-gate time.
-
-T08 step 2 previously ran `git diff --name-only master..HEAD` and asserted "9 diff-touching files", which would empirically return 11 and fail the plan's own pre-merge gate. This plan-correction-only round folds the 11-file expected list into T08 step 2 (plus a 9-file execution-subset check plus a transient-absence check), and aligns the §6 header, Q8, §File Manifest summary, §Gate Condition, T11 step 1, and §9 final-gate scope to the same three-concept distinction.
-
-No methodology decision is changed. No new adversarial round is required. The v3 plan remains APPROVE-WITH-NITS at the methodology layer; the 11-vs-9 disambiguation is purely a count/wording correction.
+PR #231 already exists before execution, so the plan now uses literal `PR #231` in all future execution outputs instead of `PR #<n>` / `PR #<this PR>` placeholders (manifest "Last updated" line E4, CHANGELOG `[3.66.0]` header E6, `planning/INDEX.md` Active line E5, the PR body, and validation E11). Historical references to PR #229 / PR #230 are unchanged. The plan also now distinguishes the **current 2-file planning diff**, the **4 future execution files** (manifest, INDEX, CHANGELOG, pyproject), and the **6-file final tracked PR diff** (2 planning + 4 execution), and adds the transient-absence and placeholder-absence checks to E7 (now 11 checks). Per the established self-referential false-positive handling, the execution-placeholder grep is scoped to the 4 execution files + PR body; placeholder-like strings inside the planning files are regex-documentation only and the planning files must not be edited to mask the check. No scientific scope changed; Outcome A, Category F, the new `catalog_only_closed_zero_materialization` token, and the N1/N2/N3 resolutions all stand.
