@@ -48,5 +48,9 @@ pipeline_sections:
     name: "Decision Gates"
     phase: "01"
     status: complete
+  "02_01":
+    name: "Pre-Game vs In-Game Boundary"
+    phase: "02"
+    status: complete
   # Pipeline sections for Phases 02-06 added when those Phases become active.
   # Phase 07 has no pipeline sections.

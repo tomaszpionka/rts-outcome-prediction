@@ -193,3 +193,7 @@ steps:
     pipeline_section: "01_06"
     status: complete
     completed_at: "2026-04-19"
+  "02_01_01":
+    name: "Feature-family registry skeleton"
+    pipeline_section: "02_01"
+    status: complete
