@@ -19,6 +19,26 @@ merged to `master`.
 
 ### Removed
 
+## [3.68.0] — 2026-05-23 (PR #233: feat/sc2egset-02-01-02-pre-game-materialization-scaffold)
+
+### Added
+
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.py` + `.ipynb` — jupytext py:percent notebook scaffold (non-batching sequence step 2 of 9); banner declares SCAFFOLD + ONE VALIDATION MODULE; cells: banner → imports → context/inputs → 5-family tranche design table → projection design markdown (snapshot_at_match_start cutoff; no history `<` filter; symmetric focal/opponent self-join; is_mmr_missing framed as missingness/provenance, not skill) → designed column-names tuple → run validator → closing "nothing persisted / no status flipped" cell. No `def`/`class`/lambda in cells; no DuckDB `CREATE`/`INSERT`/`COPY`/`to_parquet`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_pre_game_feature_materialization.py` — validation module; `PreGameTrancheRow` + `PreGameScaffoldValidationResult` frozen dataclasses; public entrypoint `validate_pre_game_feature_materialization(registry_csv_path, designed_column_names)`; allowlist-first + boundary-aware token-equality `_is_forbidden_skill_column` (ChatGPT second-pass correction — approved `is_mmr_missing` flag names pass while scalar MMR/rating/skill columns are rejected); checks: 5-family tranche membership, no-tracker, no-history-in-tranche, no-in-game-in-tranche, symmetry, no-POST-GAME-token, approved-source-table, is-flag-not-skill, forbidden-skill-column; `materialized_output_paths` always `()`; writes nothing.
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_pre_game_feature_materialization.py` — test file; synthetic `tmp_path` CSVs + real-CSV `skipif` smoke; covers: 5-family membership, extra-family rejection, is_mmr_missing flag framing, allowlist PASS / scalar-MMR/rating/skill FAIL / no-false-positive edge cases (cumulative/summary/skillset_id/elong), stale `_sc2egset` path rejected, tracker/history/in-game rejection, asymmetric rejection, POST-GAME-token rejection, `materialized_output_paths==()`, PR #230 leakage JSON vacuity unchanged, real-registry smoke.
+
+### Notes
+
+- No materialization: NO feature value computed or written; NO Parquet/CSV/JSON/MD artifact.
+- No status YAML flip: STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS byte-unchanged.
+- No `research_log` entry written.
+- No ROADMAP edit.
+- No Phase 03 work.
+- PR #230 `leakage_audit_sc2egset.json` unchanged (`features_audited==[]`); vacuity holds.
+- ChatGPT second-pass MMR-missingness allowlist + boundary-aware token-equality correction included: `APPROVED_MMR_MISSINGNESS_TOKENS` = `{is_mmr_missing, is_mmr_missing_flag, focal_is_mmr_missing, opponent_is_mmr_missing}` (closed allowlist); `_is_forbidden_skill_column` uses token equality, never substring.
+- `is_mmr_missing_flag` stays tranche 1 as a pre-game missingness/provenance flag — NOT a skill feature; scalar MMR/rating proxies remain forbidden/deferred.
+- The mandatory Claude/ChatGPT second-pass leakage review over focal/opponent projection SQL remains REQUIRED before any future materialization PR.
+
 ## [3.67.0] — 2026-05-22 (PR #232: feat/sc2egset-02-01-02-roadmap-stub)
 
 ### Added
