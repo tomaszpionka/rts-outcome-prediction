@@ -205,7 +205,7 @@ new Active line to this branch.
    yet merged at execution, HALT (see Gate Condition). (Merged 2026-05-22 at
    `e96374fef43ce06d03098d9bea8296b4ff74a409`.)
 2. Set the new `## Active plan` bullet to:
-   `feat/sc2egset-02-01-02-roadmap-stub (2026-05-22) — Category A: ROADMAP-only stub defining Step 02_01_02 under Pipeline Section 02_01 (first pre_game feature-family materialization design; 5 allowed pre_game families; full temporal/leakage/cold-start/SQL design recorded as declaration only). NO feature value materialized, NO notebook, NO artifact, NO status YAML flip, NO Phase 03 work. Version bump 3.66.0 → 3.67.0 (PR #<this PR>, draft).`
+   `feat/sc2egset-02-01-02-roadmap-stub (2026-05-22) — Category A: ROADMAP-only stub defining Step 02_01_02 under Pipeline Section 02_01 (first pre_game feature-family materialization design; 5 allowed pre_game families; full temporal/leakage/cold-start/SQL design recorded as declaration only). NO feature value materialized, NO notebook, NO artifact, NO status YAML flip, NO Phase 03 work. Version bump 3.66.0 → 3.67.0 (PR #232, draft).`
 
 **Verification:**
 - `planning/INDEX.md` Archive table contains exactly one row whose Merged-PR cell starts `#231`.
@@ -229,7 +229,7 @@ versioned CHANGELOG block.
 1. `pyproject.toml`: change `version = "3.66.0"` → `version = "3.67.0"` (minor;
    feat-family per git-workflow). Edit the version line ONLY.
 2. `CHANGELOG.md`: move the (currently empty) `[Unreleased]` content under a new
-   `## [3.67.0] — 2026-05-22 (PR #<this PR>: feat/sc2egset-02-01-02-roadmap-stub)`
+   `## [3.67.0] — 2026-05-22 (PR #232: feat/sc2egset-02-01-02-roadmap-stub)`
    block with a `### Added` entry: "ROADMAP Step `02_01_02` stub (sc2egset,
    Pipeline Section 02_01) — first pre_game feature-family materialization
    design (5 allowed pre_game families); declaration only, NO materialization."
@@ -272,10 +272,23 @@ and nothing forbidden.
    ```
 2. Confirm NO status YAML, artifact, notebook, validator, test, spec, INVARIANTS,
    research_log, or thesis chapter is in the diff (grep the name-only list).
+3. Confirm the EXECUTION subset is exactly the 4 Layer-2 files (the final 6-file
+   diff minus the 2 already-materialized planning files):
+   `git diff --name-only master..HEAD | grep -vE '^planning/current_plan(\.critique)?\.md$' | sort`
+   returns exactly: `CHANGELOG.md`, `planning/INDEX.md`, `pyproject.toml`,
+   `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`.
+4. Confirm NO unresolved this-PR placeholder reached any Layer-2 EXECUTION output
+   (ROADMAP.md, planning/INDEX.md, CHANGELOG.md, pyproject.toml) or the PR #232
+   body — every reference resolves to the literal `PR #232`. (The search token
+   `PR #<this PR>` in these verification bullets is regex-documentation, NOT a live
+   placeholder; do not edit it to mask the check.)
 
 **Verification:**
 - `git diff --name-only master..HEAD | wc -l` returns 6.
 - `git diff --name-only master..HEAD | grep -E 'STEP_STATUS|PIPELINE_SECTION_STATUS|PHASE_STATUS|/artifacts/|/sandbox/|research_log|thesis/|INVARIANTS|validate_|/specs/|tests/'` returns nothing (exit 1).
+- `git diff master..HEAD -- CHANGELOG.md planning/INDEX.md pyproject.toml src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md | grep -F 'PR #<this PR>'` returns nothing (exit 1).
+- `gh pr view 232 --json body --jq '.body' | grep -F 'PR #<this PR>'` returns nothing (exit 1).
+- `git diff --name-only master..HEAD | grep -vE '^planning/current_plan(\.critique)?\.md$' | wc -l` returns 4.
 
 **File scope:**
 - (verification only — writes nothing)
@@ -514,6 +527,22 @@ materialization is sequenced, not abandoned.
 | `planning/INDEX.md` | Update (Layer 2 — archive PR #231, set new Active line) |
 | `CHANGELOG.md` | Update (Layer 2 — `[Unreleased]` → `[3.67.0]`) |
 | `pyproject.toml` | Update (Layer 2 — version line 3.66.0 → 3.67.0) |
+
+## Draft-PR-first file-count contract
+
+```text
+Current planning-only draft diff before Layer-2 execution: exactly 2 tracked planning files.
+Future Layer-2 execution adds exactly 4 tracked execution files:
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
+  planning/INDEX.md
+  CHANGELOG.md
+  pyproject.toml
+Final tracked PR diff after Layer-2 execution: exactly 6 tracked files.
+Transient .github/tmp/* files, if used, must not appear in the final diff.
+```
+
+PR #232 already exists; all future Layer-2 execution outputs use the literal
+`PR #232` (not a PR-number placeholder).
 
 ## Gate Condition
 

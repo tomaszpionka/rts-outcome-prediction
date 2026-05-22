@@ -146,3 +146,7 @@ material leakage/status/Phase-03 effect), neither trigger fires. Reviewer-advers
 is correctly deferred to the Layer-2 / scaffold turn, where the full Category A
 pre-execution critique of the materialization-scope decision MUST be produced
 before any feature value is materialized.
+
+## Draft-PR-first workflow correction — PR #232
+
+PR #232 already exists before Layer-2 execution. The plan now uses literal `PR #232` in all future execution outputs instead of `PR #<this PR>` placeholders. The plan distinguishes the current 2-file planning diff, the 4 future execution files, and the 6-file final tracked PR diff. No scientific scope changed.
