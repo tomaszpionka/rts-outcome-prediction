@@ -144,3 +144,7 @@ reports/specs/02_02_feature_engineering_plan.md (§6.1, §9, §12.1);
 reports/specs/02_03_temporal_feature_audit_protocol.md (§6.1, D5/D7);
 sandbox/jupytext.toml; validate_registry_skeleton.py (naming reference);
 thesis/pass2_evidence/methodology_risk_register.md (RISK-20/24/26).
+
+## ChatGPT second-pass leakage review addendum — PR #233
+
+The second-pass identified that the planned `FORBIDDEN_SKILL_TOKENS` check would falsely reject the approved `is_mmr_missing_flag` / `focal_is_mmr_missing` / `opponent_is_mmr_missing` names because they contain the substring `mmr`. The plan now distinguishes approved MMR-missingness/provenance tokens from scalar/rating/skill MMR tokens using an explicit allowlist plus boundary-aware forbidden-token checks. No scope or scientific decision changed: `is_mmr_missing_flag` remains tranche 1, but scalar MMR/rating proxies remain forbidden/deferred.

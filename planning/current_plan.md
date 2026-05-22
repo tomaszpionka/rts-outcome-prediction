@@ -203,7 +203,21 @@ ALLOWED_PRE_GAME_SOURCE_TABLES: frozenset[str] = frozenset({
 # is_mmr_missing is a MISSINGNESS/PROVENANCE flag, NOT a skill feature
 # (CROSS-02-02 §6.1 line 228: "Use the missingness flag, not the MMR scalar").
 IS_MMR_MISSING_FAMILY_ID: str = "sc2egset.pre_game.is_mmr_missing_flag"
-FORBIDDEN_SKILL_TOKENS: tuple[str, ...] = ("mmr", "rating", "elo", "glicko", "skill", "mu", "sigma")
+# Matching rule (see _is_forbidden_skill_column): a candidate name is lowercased
+# and split on "_" into its underscore-delimited token set; it is ALLOWED if it
+# is in APPROVED_MMR_MISSINGNESS_TOKENS, otherwise it is REJECTED iff any
+# FORBIDDEN_SKILL_TOKENS member equals one of its tokens (boundary-aware token
+# equality — NEVER substring containment, so "mu"/"sigma" reject only as
+# standalone tokens, never inside words like "cumulative"/"summary").
+APPROVED_MMR_MISSINGNESS_TOKENS: frozenset[str] = frozenset({
+    "is_mmr_missing",
+    "is_mmr_missing_flag",
+    "focal_is_mmr_missing",
+    "opponent_is_mmr_missing",
+})
+FORBIDDEN_SKILL_TOKENS: frozenset[str] = frozenset({
+    "mmr", "rating", "elo", "glicko", "skill", "mu", "sigma",
+})
 TRUE_REGISTRY_CSV_RELPATH: str = (
     "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
     "02_feature_engineering/01_pre_game_vs_in_game_boundary/"
@@ -254,7 +268,25 @@ Signatures:
 def load_pre_game_tranche_rows(registry_csv_path: Path | str) -> list[PreGameTrancheRow]: ...
     # reads only TRANCHE1 rows; RAISES if path resolves to STALE_REGISTRY_FILENAME_FRAGMENT
 def _check_tranche_membership(rows, full_registry) -> tuple[tuple[str, ...], tuple[str, ...]]: ...
+def _is_forbidden_skill_column(name: str) -> bool: ...
+    # Allowlist-first, boundary-aware. Lowercase name; if name in
+    # APPROVED_MMR_MISSINGNESS_TOKENS -> False (allowed — approved missingness flag,
+    # even though it contains the "mmr" token). Else split on "_" and return True iff
+    # any FORBIDDEN_SKILL_TOKENS member EQUALS one of the tokens (token equality, NEVER
+    # substring). Allowed: focal_is_mmr_missing, opponent_is_mmr_missing,
+    # is_mmr_missing(_flag). Forbidden: mmr, focal_mmr, opponent_mmr, mmr_value, rating,
+    # elo, glicko, skill, mu, sigma. No new false positives: cumulative / summary
+    # (contain "mu" as a substring, not a token) -> False (allowed). Pure; reads no file.
 def _check_is_mmr_missing_is_flag_not_skill(rows) -> bool: ...
+    # True iff ALL: (1) IS_MMR_MISSING_FAMILY_ID present in rows; (2) every approved
+    # designed flag column (focal_is_mmr_missing, opponent_is_mmr_missing,
+    # is_mmr_missing[_flag]) satisfies _is_forbidden_skill_column(...) is False;
+    # (3) NO designed column for this family is a forbidden skill-scalar
+    # (_is_forbidden_skill_column True) — bare mmr / focal_mmr / opponent_mmr /
+    # mmr_value MUST be absent; (4) provenance framing not skill: family_id ends in
+    # "is_mmr_missing_flag", prediction_setting=pre_game, candidate_leakage_modes=none.
+    # _is_forbidden_skill_column is the SOLE allow/reject source; NO flat `token in name`
+    # substring test anywhere in the module.
 def _check_no_tracker_in_pre_game(rows) -> tuple[str, ...]: ...
 def _check_no_deferred_settings_in_tranche(full_registry) -> tuple[tuple[str, ...], tuple[str, ...]]: ...
 def _check_symmetry(rows) -> tuple[str, ...]: ...
@@ -277,8 +309,25 @@ from a feature table. This keeps the validator pure and the notebook artifact-fr
 `tmp_path` synthetic CSVs + a real-CSV `skipif` test). Required cases:
 1. 5-family tranche membership (exactly the 5 ids).
 2. No extra pre_game family included beyond the tranche.
-3. `is_mmr_missing_flag` present AND treated as missingness/provenance (NOT
-   skill: no FORBIDDEN_SKILL_TOKENS in its lineage).
+3. **`is_mmr_missing_flag` is a provenance/missingness flag, not a skill estimate**
+   — explicit PASS and FAIL cases over `_is_forbidden_skill_column` and
+   `_check_is_mmr_missing_is_flag_not_skill`:
+   - PASS (allowed missingness flags): `focal_is_mmr_missing`,
+     `opponent_is_mmr_missing`, `is_mmr_missing_flag`, `is_mmr_missing` each
+     satisfy `_is_forbidden_skill_column(...) is False`; `_check_..._not_skill`
+     returns True when the family is present and its designed columns are exactly
+     these flag names.
+   - FAIL (forbidden skill/rating/MMR-scalar): `focal_mmr`, `opponent_mmr`,
+     `mmr_value`, `mmr`, `rating`, `elo`, `glicko`, `skill`, `mu`, `sigma` each
+     satisfy `_is_forbidden_skill_column(...) is True`; supplying any as a designed
+     column makes `_check_..._not_skill` return False and fires the falsifier.
+   - No-new-false-positive guard: innocent names containing a forbidden token's
+     letters inside a larger token — e.g. `cumulative`, `summary` — satisfy
+     `_is_forbidden_skill_column(...) is False`.
+   - FAIL (skill framing in prose/lineage): a design-record/lineage string that
+     frames the flag as a skill ESTIMATE (e.g. "skill estimate", "reconstructed
+     rating", "mmr scalar" as a feature) rather than provenance/missingness fails
+     the provenance-framing assertion.
 4. True registry path used; stale `_sc2egset` path raises / is absent in new code.
 5. No tracker-derived family in the pre_game tranche.
 6. No history_enriched_pre_game family in tranche 1.
@@ -349,6 +398,14 @@ EXACTLY the 9-file File Manifest; no artifact/status YAML/research_log/ROADMAP.
 - **F-history-creep / F-ingame-creep:** a history_enriched_pre_game / in_game_snapshot
   family inside tranche 1.
 - **F-postgame-token:** a POST_GAME token in a designed column name or source field.
+- **F-mmr-scalar:** a designed column for the `is_mmr_missing` family (or any
+  tranche-1 column) is a forbidden skill/rating/MMR-scalar use under
+  `_is_forbidden_skill_column` (a `FORBIDDEN_SKILL_TOKENS` member equals a
+  standalone underscore token of a name NOT in `APPROVED_MMR_MISSINGNESS_TOKENS`),
+  OR the `is_mmr_missing` family is framed in prose/lineage as a skill estimate
+  rather than a missingness/provenance flag. Distinct from F-postgame-token; the
+  approved missingness flag does NOT fire it. (F-fold-fit and F-source-drift are
+  unaffected by this correction.)
 - **F-fold-fit:** an encoder/scaler specified as fit on full data / cross-fold /
   cross-dataset (Invariant I3 normalization leakage).
 - **F-source-drift:** a tranche-1 source not in `ALLOWED_PRE_GAME_SOURCE_TABLES`,
@@ -392,6 +449,14 @@ The future Layer-2 scaffold-execution PR is mergeable iff ALL hold:
 
 ## Open Questions
 
+- **RESOLVED (ChatGPT second-pass leakage review, PR #233):** the planned
+  `FORBIDDEN_SKILL_TOKENS` check would have false-rejected the approved
+  `is_mmr_missing` flag names (`is_mmr_missing_flag`, `focal_is_mmr_missing`,
+  `opponent_is_mmr_missing`) because they contain the substring `mmr`. Corrected
+  to allowlist-first (`APPROVED_MMR_MISSINGNESS_TOKENS`) + boundary-aware
+  token-equality matching (see T02 constants + `_is_forbidden_skill_column`);
+  scalar MMR / rating / skill columns remain forbidden/deferred. No scope or
+  scientific decision changed — `is_mmr_missing_flag` stays tranche 1.
 - **View-vs-raw source + anchor reconciliation (coupled).** The registry CSV
   binds sources to `replay_players_raw`/`matches_flat` and anchor to
   `details_timeUTC` (raw); CROSS-02-02 §6.1 / CROSS-02-00 §5.1 name view-level
