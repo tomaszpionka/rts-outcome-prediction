@@ -13,7 +13,7 @@ critique_required_before_execution: true
 critique_reviewer: reviewer-adversarial
 gate_reviewer: "reviewer-adversarial (Category A pre-execution gate) — APPROVE-WITH-NITS, zero blockers"
 chat_second_pass_required_before_materialization: true
-planning_pr: "PR #<TBD>"
+planning_pr: "PR #233"
 source_artifacts:
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv
@@ -54,7 +54,7 @@ Delivered in two layers:
   PR body within the same turn.
 - **LAYER 2 (the FUTURE scaffold-execution PR this plan DESCRIBES; separate
   approved turn; runs on THIS SAME branch / PR — the future-execution PR is
-  `PR #<TBD>`, i.e. this planning PR carried forward):** creates/edits the 9
+  `PR #233`, i.e. this planning PR carried forward):** creates/edits the 9
   files in the File Manifest and NOTHING else. NO feature materialization, NO
   artifact, NO status YAML, NO research_log, NO ROADMAP edit, NO Phase 03.
 
@@ -333,7 +333,7 @@ NONE executed against feature data.
 ### T05 — Release tail + final scope verification
 
 `pyproject.toml` 3.67.0 → 3.68.0 (minor); `CHANGELOG.md` `[Unreleased]` →
-`[3.68.0] — 2026-05-22 (PR #<TBD>: feat/sc2egset-02-01-02-pre-game-materialization-scaffold)`
+`[3.68.0] — 2026-05-22 (PR #233: feat/sc2egset-02-01-02-pre-game-materialization-scaffold)`
 (Added: validator + tests + notebook scaffold; Notes: zero-materialization, no
 status flip, no artifact, leakage audit remains future/vacuous);
 `planning/INDEX.md` archive-line update. Final scope check: the tracked diff is
