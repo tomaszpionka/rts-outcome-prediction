@@ -2244,7 +2244,7 @@ gate:
     audit has returned a NON-vacuous PASS (future_leak_count = 0,
     post_game_token_violations = 0 over a non-empty features_audited), and a
     per-family CROSS-02-03-v1.0.1 section 10 verdict consistent with the
-    materialized columns is recorded. The section 2.1 design-time verdict audit (PR #229)
+    materialized columns is recorded. The §10 design-time verdict audit (PR #229)
     is a distinct artifact and does NOT substitute for this post-materialization
     CROSS-02-01 audit (PR #230 evidence remains distinct from PR #229 evidence).
   halt_predicate: >-
