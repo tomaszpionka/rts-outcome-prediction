@@ -1,12 +1,13 @@
 # Planning Index
 
 ## Active plan
-- feat/sc2egset-02-01-01-section10-audit-persistence (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict-audit evidence persistence; persist CSV+MD artifacts + per-dataset research_log entry; STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS / ROADMAP / INVARIANTS / registry CSV/MD / validator / validator tests / root research_log frozen; Step 02_01_01 NOT closed (PR #229, draft)
+- feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit (2026-05-21) — Category A: SC2EGSet Phase-02 Step 02_01_01 closure via zero-materialization CROSS-02-01-v1.0.1 leakage-audit artifact pair at the spec-named path; STEP_STATUS adds 02_01_01: complete; PIPELINE_SECTION_STATUS adds 02_01: complete; PHASE_STATUS Phase 02 -> in_progress; per-dataset research_log entry only (no CROSS entry, per `.claude/ml-protocol.md` lines 51-54); CHANGELOG + version bump 3.64.0 -> 3.65.0; no notebook, no source, no validator, no spec, no ROADMAP body, no registry CSV/MD, no INVARIANTS.md edits (PR #230, draft)
 
 ## Archive
 
 | Branch | Date | Category | Description | Plan file | Merged PR |
 |--------|------|----------|-------------|-----------|-----------|
+| feat/sc2egset-02-01-01-section10-audit-persistence | 2026-05-21 | A | SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict-audit evidence persistence; persist CSV+MD artifacts + per-dataset research_log entry; STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS / ROADMAP / INVARIANTS / registry CSV/MD / validator / validator tests / root research_log frozen; Step 02_01_01 NOT closed | current_plan.md | #229 (merged 2026-05-21 at master a14dc547) |
 | feat/sc2egset-02-01-01-section10-verdict-audit | 2026-05-21 | A | SC2EGSet Phase-02 Step 02_01_01 PM-1 §10 verdict audit: validator + jupytext notebook scaffold; all 26 registry rows audited; materialized_column_count=0; no status/ROADMAP/research_log/artifact mutation; Step 02_01_01 NOT closed | current_plan.md | #228 (merged 2026-05-21 at master 5c7ef380) |
 | docs/thesis-appendix-key-canonicalization | 2026-05-19 | F | Appendix-only bib-key canonicalization: Baek2022→BaekKim2022, Porcpine2020→Porcpine2020EloAoE, Herbrich2007→Herbrich2006 key/style normalization with 2007 retained, Glickman2025 appendix typo fix, BT2025Survey appendix repair; references.bib + chapters untouched | current_plan.md | #227 (merged 2026-05-19 at master db8aeafc) |
 | docs/thesis-bialecki2023-author-correction | 2026-05-19 | F | Bialecki2023 authors 3–4 post-merge correction (overturned #225 surname+initial-blind no-edit) | current_plan.md | #226 (merged 2026-05-19 at master 637fdb93) |

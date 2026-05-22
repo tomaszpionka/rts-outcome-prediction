@@ -1,0 +1,15 @@
+{
+  "spec_version": "CROSS-02-01-v1",
+  "dataset": "sc2egset",
+  "phase_02_step": "02_01_01",
+  "audit_date": "2026-05-21",
+  "future_leak_count": 0,
+  "post_game_token_violations": 0,
+  "normalization_fit_scope": "training_fold_only",
+  "target_encoding_fold_awareness": "N/A_no_target_encoding",
+  "cutoff_time_filter_structural_check": "pass",
+  "reference_window_assertion": "pass",
+  "features_audited": [],
+  "verdict": "PASS",
+  "notes": "Zero-materialization closure of Step 02_01_01 (catalog-only registry skeleton). features_audited is empty because no feature column is materialized to DuckDB (no VIEW or table introducing a Phase 02 feature column) or to Parquet at the registry-skeleton layer; PR #216 emitted the registry CSV+MD only, PR #228 added the in-memory PM-1 §10 verdict-audit validator, and PR #229 persisted the §10 verdict-audit CSV+MD on disk. verdict='PASS' is justified on CROSS-02-01-v1.0.1 §5(a) vacuity (every materialized column appears in features_audited — vacuously true on the empty set) plus CROSS-02-01-v1.0.1 §3 / §5(c) artifact-presence at the spec-named path. This artifact is NOT a substitute for the PR #229 CROSS-02-03 §10 verdict-audit pair (which records per-family design-time verdicts for all 26 catalog rows) and is NOT a substitute for a future post-materialization CROSS-02-01 audit that any later Step 02_01_02 (or other 02_01 materialization step) will require, at which point features_audited will be non-empty. The actual frozen spec point-release is CROSS-02-01-v1.0.1 (LOCKED 2026-04-26); the spec_version field uses the §3-prescribed major-version prefix 'CROSS-02-01-v1'. RESOLVED pre-execution (v3, alternative beta chosen): no normalizer was fit at the catalog-only registry layer; the §3 pass condition `training_fold_only` is vacuously satisfied on empty features_audited; this treatment is symmetric to the field values used for `target_encoding_fold_awareness` (`N/A_no_target_encoding` - spec-permitted) and `cutoff_time_filter_structural_check` / `reference_window_assertion` (`pass` vacuously). The structural-check fields (cutoff_time_filter_structural_check, reference_window_assertion) use 'pass' vacuously because no real SQL filter was applied to feature data; the catalog's declared cutoff rules (history rows: history_time < target_time; in_game rows: event.loop <= cutoff_loop) are CROSS-02-03 §10 design-time declarations audited by PR #229's §10 evidence artifact, not by this CROSS-02-01 leakage audit."
+}

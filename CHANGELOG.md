@@ -19,6 +19,31 @@ merged to `master`.
 
 ### Removed
 
+## [3.65.0] — 2026-05-21 (PR #230: feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit)
+
+### Added
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json` (NEW; CROSS-02-01-v1.0.1 zero-materialization closure stub for the catalog-only registry layer; verdict=PASS justified on §5(a) vacuity + §3/§5(c) artifact-presence at the spec-named path; features_audited=[]).
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.md` (NEW; companion MD with the 8 prescribed sections: (1) top non-overclaim disclaimer, (2) §3 spec citation verbatim, (3) §5(a) vacuity argument, (4) §3/§5(c) artifact-presence argument, (5) explicit non-substitution statement, (6) verdict justification, (7) OQ1-RESOLVED cross-reference, and (8) the standalone "Audit queries: none — vacuously satisfied" section).
+- New `research_log.md` entry in `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (Step 02_01_01 closure; `closure_status: closed`; `leakage_audit_state: zero_materialization_pass`; PR #230).
+
+### Changed
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` — added `"02_01_01": complete`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` — added `"02_01": complete` (phase: "02", name: "Pre-Game vs In-Game Boundary").
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` — Phase 02 `not_started` → `in_progress`.
+- `planning/INDEX.md` — PR #229 archived (merged 2026-05-21 at master `a14dc547`); new Active plan line for `feat/sc2egset-02-01-01-formal-closure-with-zero-materialization-audit`.
+- `pyproject.toml` — version 3.64.0 → 3.65.0.
+
+### Notes
+
+- **This PR closes Step 02_01_01 at the catalog-only registry layer.** Closure is justified on the zero-materialization CROSS-02-01 leakage-audit artifact pair (verdict=PASS) at the spec-named path plus the §5(a) vacuity argument on the empty materialized set. No feature column is materialized by this PR.
+- **Status-reopen disclosure.** PIPELINE_SECTION_STATUS `02_01 = complete` is YAML-derived from STEP_STATUS per the file header rule "Pipeline section is complete when ALL its steps are complete." If a future PR adds a successor step (e.g., `02_01_02`) to STEP_STATUS with status `in_progress`, the derivation chain will re-derive `02_01 = in_progress`. This is intended YAML-derivation behaviour, not silent revisionism. No regression is implied by a future `02_01 = in_progress` value.
+- **Non-substitution disclaimers.** The new artifact pair does NOT substitute for the PR #229 §10 verdict-audit CSV+MD pair (which audits CROSS-02-03 §10 design-time per-family verdicts for all 26 catalog rows). The new artifact pair does NOT substitute for a future post-materialization CROSS-02-01 audit that any later 02_01 materialization step will require. The new artifact pair does NOT make Step 02_01_01 a materialization step; Step 02_01_01 remains catalog-only.
+- **OQ1 RESOLVED pre-execution.** The JSON field `normalization_fit_scope = "training_fold_only"` is the spec-permitted PASS value (alternative beta), vacuously satisfied on empty `features_audited` at the catalog-only layer (no normalizer was fit). Treatment is symmetric to `target_encoding_fold_awareness` (`N/A_no_target_encoding` — spec-permitted) and `cutoff_time_filter_structural_check` / `reference_window_assertion` (`pass` vacuously).
+- **No notebook is created.** Step 02_01_01 closure at the catalog-only layer requires no notebook; emitting one would falsify the lineage.
+- **No source code, no validator, no spec, no ROADMAP body, no registry CSV/MD, no Phase 01 artifact, no INVARIANTS.md, no root research_log, no thesis chapter is touched.** This is a closure PR, not a feature PR.
+
 ## [3.64.0] — 2026-05-21 (PR #229: feat/sc2egset-02-01-01-section10-audit-persistence)
 
 ### Added

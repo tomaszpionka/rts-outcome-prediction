@@ -21,7 +21,7 @@ phases:
     status: complete
   "02":
     name: "Feature Engineering"
-    status: not_started
+    status: in_progress
   "03":
     name: "Splitting & Baselines"
     status: not_started
