@@ -285,11 +285,11 @@ The required sequencing — with manifest status transitions explicit at each st
 
 ## Phase 02+ notebooks (all datasets)
 
-No Phase 02+ notebooks exist yet. When created, they will be added to this manifest.
+SC2EGSet now has catalog-layer Phase 02 lineage rows for Step 02_01_01 recorded in the dedicated "sc2egset — Phase 02 notebooks" table above (registry skeleton, §10 verdict-audit, CROSS-02-01 closure pair). AoE2-side (aoestats, aoe2companion) Phase 02 notebooks are not yet started. The catalog-only SC2EGSet rows are tracked with `catalog_only_closed_zero_materialization` and are not counted in `confirmed_intact`. Other Phase 02+ notebooks, when created, will be added to this manifest.
 
 | Dataset | Phase | Status |
 |---------|-------|--------|
-| sc2egset | 02+ | phase_blocked — no notebooks exist |
+| sc2egset | 02 | catalog-only Step 02_01_01 closure — 3 lineage rows recorded above in the sc2egset Phase 02 table (registry skeleton, §10 verdict-audit, CROSS-02-01 pair); Step 02_01_02 not started |
 | aoestats | 02+ | phase_blocked — no notebooks exist |
 | aoe2companion | 02+ | phase_blocked — no notebooks exist |
 
@@ -307,7 +307,7 @@ No Phase 02+ notebooks exist yet. When created, they will be added to this manif
 | sc2egset (Phase 01) | 33 | 2 | 0 | 0 | 0 |
 | aoestats (Phase 01) | 22 | 5 | 0 | 0 | 0 |
 | aoe2companion (Phase 01) | 31 | 0 | 0 | 0 | 0 |
-| Phase 02+ (all) | 0 | 0 | 0 | 0 | n/a (no notebooks exist) |
+| Phase 02+ (all) | 0 | 0 | 0 | 0 | see footnote (3 sc2egset catalog-only rows tracked outside these columns; AoE2-side Phase 02 not started) |
 | **Total** | **86** | **7** | **0** | **0** | **0** |
 
 † 3 sc2egset Phase 02 rows carry `catalog_only_closed_zero_materialization` (registry skeleton, §10 verdict-audit, CROSS-02-01 closure pair); these are NOT counted in `confirmed_intact` and are tracked outside the table columns above.
