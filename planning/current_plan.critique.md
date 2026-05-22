@@ -77,3 +77,9 @@ folded into the plan (DONE: E1–E4, A3, OQ-M1). Do NOT execute the manifest upd
 mark the PR ready; do NOT merge. Execution (E1–E7) requires a separate, explicitly-approved
 turn after this plan is inspectable on the draft PR. Per the 3-round cap, this APPROVE-WITH-
 NITS closes the planning gate; the post-execution Cat F final gate runs after E1–E7.
+
+## Draft-PR-first workflow correction — PR #231
+
+*Appended 2026-05-22 in a separate plan-correction-only round (NOT a new adversarial round; the 3-round cap remains at 1 of 3 used for this plan).*
+
+PR #231 already exists before execution, so the plan now uses literal `PR #231` in all future execution outputs instead of `PR #<n>` / `PR #<this PR>` placeholders (manifest "Last updated" line E4, CHANGELOG `[3.66.0]` header E6, `planning/INDEX.md` Active line E5, the PR body, and validation E11). Historical references to PR #229 / PR #230 are unchanged. The plan also now distinguishes the **current 2-file planning diff**, the **4 future execution files** (manifest, INDEX, CHANGELOG, pyproject), and the **6-file final tracked PR diff** (2 planning + 4 execution), and adds the transient-absence and placeholder-absence checks to E7 (now 11 checks). Per the established self-referential false-positive handling, the execution-placeholder grep is scoped to the 4 execution files + PR body; placeholder-like strings inside the planning files are regex-documentation only and the planning files must not be edited to mask the check. No scientific scope changed; Outcome A, Category F, the new `catalog_only_closed_zero_materialization` token, and the N1/N2/N3 resolutions all stand.

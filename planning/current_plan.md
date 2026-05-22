@@ -156,7 +156,7 @@ missing-notebook defect):
 ### E4 — Update the manifest Summary block (footnote accounting, per N2)
 
 - Update the **Last updated** line to: `**Last updated:** 2026-05-22 by
-  planner-science-directed executor (PR #<this PR>, OQ4 manifest closure reconciliation for
+  planner-science-directed executor (PR #231, OQ4 manifest closure reconciliation for
   SC2EGSet Step 02_01_01).`
 - Add a one-line **Change** note recording: SC2EGSet Step 02_01_01 row moved
   `partial_coverage_v9_baseline` -> `catalog_only_closed_zero_materialization` (PR #230
@@ -181,14 +181,14 @@ missing-notebook defect):
   catalog-only closure of SC2EGSet Step 02_01_01 (move the 02_01_01 row to a new
   catalog_only_closed_zero_materialization token, add §10-audit + CROSS-02-01 rows,
   cross-reference PR #230 sibling tokens); archive PR #230; version bump; NO 02_01_02, NO
-  Phase 03, NO chapter prose.`
+  Phase 03, NO chapter prose (PR #231, draft).`
 
 ### E6 — Release tail
 
 - `pyproject.toml`: bump `version = "3.65.0"` -> `version = "3.66.0"` (minor; docs/thesis
   family per git-workflow policy).
 - `CHANGELOG.md`: move `[Unreleased]` content under a new
-  `## [3.66.0] — 2026-05-22 (PR #<n>: docs/thesis-pass2-020101-manifest-closure-reconciliation)`
+  `## [3.66.0] — 2026-05-22 (PR #231: docs/thesis-pass2-020101-manifest-closure-reconciliation)`
   block with a `### Changed` entry describing the manifest reconciliation + INDEX archival;
   re-empty `[Unreleased]` with the four standard sub-headers; preserve `[3.65.0]` and
   older blocks.
@@ -202,7 +202,18 @@ missing-notebook defect):
 5. No file under `…/reports/artifacts/**`, no `…/research_log.md` (per-dataset OR root), no `thesis/chapters/**`, no notebook, no validator/test is in the diff.
 6. `pyproject.toml` = `3.66.0`; `CHANGELOG.md` has `## [3.66.0]` and an empty `[Unreleased]`; `[3.65.0]` preserved.
 7. `planning/INDEX.md`: PR #230 appears once in Archive with merge SHA `0c45c490`, no "draft" qualifier on it; the new branch is the sole Active line.
-8. Final tracked diff = exactly the allowed files. The planning pair is already on the branch from THIS materialization commit; the execution commit adds manifest + INDEX + CHANGELOG + pyproject (4 files).
+8. **Final tracked diff = exactly 6 files** (`git diff --name-only master..HEAD | sort`) — the 2 planning files (already on the branch from THIS materialization commit) + the 4 execution files:
+   ```
+   CHANGELOG.md
+   planning/INDEX.md
+   planning/current_plan.critique.md
+   planning/current_plan.md
+   pyproject.toml
+   thesis/pass2_evidence/notebook_regeneration_manifest.md
+   ```
+9. **Execution-file subset = exactly 4**: `git diff --name-only master..HEAD | grep -vE '^planning/current_plan(\.critique)?\.md$' | sort` returns exactly `CHANGELOG.md`, `planning/INDEX.md`, `pyproject.toml`, `thesis/pass2_evidence/notebook_regeneration_manifest.md` (count = 4).
+10. **Transient files absent**: `test ! -e .github/tmp/commit.txt && test ! -e .github/tmp/pr.txt` exits 0 — both created/deleted during wrap-up if used and MUST NOT appear in the final diff.
+11. **No live PR-number placeholders in execution files or the PR #231 body**: scoped to the 4 execution files AND the PR body, a grep for `PR #<n>` / `PR #<this PR>` / `PR #<TBD>` / `PR #{n}` returns 0 — every reference to this PR is the literal `PR #231`. Any placeholder-like strings remaining anywhere in the diff are ONLY regex-documentation text inside the planning files (`planning/current_plan.md` / `.critique.md`), which are exempt from the execution-placeholder check; the planning files MUST NOT be edited to mask the check.
 
 ## File Manifest
 
@@ -217,9 +228,13 @@ Future execution-PR file set (justified per file):
 | `CHANGELOG.md` | `[Unreleased]` -> `[3.66.0]` move. | Edit. |
 | `pyproject.toml` | Single version source; minor bump. | Edit (version line only). |
 
-This planning PR's tracked diff = exactly `planning/current_plan.md` +
-`planning/current_plan.critique.md` (2 files). The eventual execution PR adds the manifest,
-INDEX, CHANGELOG, and pyproject edits on the same branch.
+**Manifest-count (draft-PR-first; PR #231 already exists before execution):**
+- Current planning-only draft diff before execution = **2 tracked planning files** (`planning/current_plan.md`, `planning/current_plan.critique.md`).
+- Future execution adds **4 tracked execution files** (`thesis/pass2_evidence/notebook_regeneration_manifest.md`, `planning/INDEX.md`, `CHANGELOG.md`, `pyproject.toml`).
+- **Final tracked PR diff after execution = 6 files** (2 planning + 4 execution).
+- Transient `.github/tmp/commit.txt` and `.github/tmp/pr.txt` are created/deleted during wrap-up if needed and MUST NOT appear in the final diff.
+
+Because PR #231 already exists before execution, the future execution writes literal `PR #231` everywhere it references this manifest-reconciliation PR (manifest "Last updated" line, CHANGELOG `[3.66.0]` header, `planning/INDEX.md` Active line, the PR body, and validation). No `PR #<n>` / `PR #<this PR>` placeholder is used in any execution file. Do NOT call `gh pr create`; the future execution updates the EXISTING draft PR #231 body via `gh pr edit 231`.
 
 ## Gate Condition
 
@@ -227,8 +242,11 @@ The future execution PR is mergeable iff: (a) the manifest `02_01_01` row assert
 catalog-only closure with the new token and no longer says "no Step closure"; (b) the two
 new rows exist with `catalog_only_closed_zero_materialization`; (c) the vocabulary defines
 the new token and cross-references the PR #230 sibling tokens; (d) PR #230 is archived in
-INDEX with merge SHA `0c45c490` and the stale "draft" qualifier removed; (e) all 8 E7
-validation checks pass; (f) version is `3.66.0` with a matching CHANGELOG block; (g) the
+INDEX with merge SHA `0c45c490` and the stale "draft" qualifier removed; (e) all 11 E7
+validation checks pass (final tracked diff = 6 files = 2 planning + 4 execution; execution
+subset = 4; transient `.github/tmp/*` absent; no `PR #<n>` / `PR #<this PR>` placeholder in
+any execution file or the PR #231 body — all references are literal `PR #231`); (f) version
+is `3.66.0` with a matching CHANGELOG block; (g) the
 `@reviewer-adversarial` post-execution Cat F final gate returns APPROVE with zero blockers.
 PR #230's closure is preserved untouched throughout.
 
