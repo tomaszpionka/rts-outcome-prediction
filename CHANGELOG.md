@@ -19,6 +19,31 @@ merged to `master`.
 
 ### Removed
 
+## [3.69.0] — 2026-05-23 (PR #234: feat/sc2egset-02-01-02-source-anchor-race-adjudication)
+
+### Added
+
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.py` + `.ipynb` — jupytext py:percent adjudication notebook (Layer-2 execution); cells: banner (NON-MATERIALIZATION; ONE artifact pair; no status/research_log/ROADMAP/spec/YAML/Phase-03 changes) → imports → context (specs, cleaning-layer YAMLs, registry CSV, PR #229 §10 verdict CSV, PR #230 vacuous leakage JSON, RISK-26 register) → 3-decision question table → run `adjudicate_pre_game_source_layer(...)` → print `result.passed`, count of decisions, artifact paths, halting falsifier → closing non-substitution + future-gate statement. No `def`/`class`/lambda in cells; no DuckDB `CREATE`/`INSERT`/`COPY`/`to_parquet`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_pre_game_source_layer.py` — adjudication module; frozen dataclasses `SourceLayerCandidate`, `AnchorCandidate`, `RaceColumnCandidate`, `AdjudicationDecision`, `AdjudicationResult`; module-level UPPER_SNAKE constants (Invariant I7); named SQL constants with `_QUERY` suffix; public entrypoint `adjudicate_pre_game_source_layer(duckdb_path, registry_csv_path, output_artifact_dir)`; private helpers `_run_source_layer_peeks`, `_run_anchor_peeks`, `_run_race_and_random_peeks`, `_adjudicate_source_layer`, `_adjudicate_anchor`, `_adjudicate_race_and_random`, `_render_artifact_csv`, `_render_artifact_md`; 18 falsifiers implemented; `materialized_output_paths` always `()`.
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_pre_game_source_layer.py` — test file; synthetic `tmp_path` DuckDB fixtures + real-DB `skipif` smoke; 33 tests covering: 3-decision shape, rationale ≥ 80 chars, `materialized_output_paths==()`, `q1_no_evidence`, `q2_anchor_type_mismatch`, `q3_prior_decision_silently_reversed`, `q3_random_vocabulary_dropped`, `q1_source_1v1_lost`, stale-path, real-DB smoke (5 assertions), MHM-faction-Random absence (3 assertions), private-helper coverage (7 tests).
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv` — 3-row deterministic adjudication CSV; 24 columns including all required provenance hashes (validator module, DuckDB, registry CSV, methodology risk register, four CROSS-02-NN specs, two cleaning-layer YAMLs); `audit_pr=PR #234`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.md` — 8-section MD companion; verbatim peek SQL per Invariant I6; Q3.RATIFY and Q3.AMEND both presented; chosen outcome Q3.RATIFY with rationale ≥ 250 words; falsifier roll-call (18 falsifiers); `lineage_position` = artifact #4 in 5-artifact lineage; explicit non-substitution statement; spec-amendments-proposed (NOT applied).
+
+### Notes
+
+- No feature materialization: NO feature value computed or written; NO Parquet/CSV feature table; NO `reports/artifacts/02_01_02/leakage_audit_*` file.
+- No status YAML flip: STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS byte-unchanged.
+- No `research_log` entry written.
+- No ROADMAP edit.
+- No spec or cleaning-layer YAML patch (`matches_long_raw.yaml`, `matches_history_minimal.yaml`); amendments proposed in artifact MD §8 only.
+- No Phase 03 or 02_01_03+ work.
+- PR #230 `leakage_audit_sc2egset.json` unchanged (`features_audited==[]`; vacuity holds).
+- Post-materialization CROSS-02-01 audit and mandatory Claude/ChatGPT second-pass leakage review remain FUTURE. Distinct gates; not discharged by this artifact.
+- Q1 source layer = `matches_flat_clean` (cleaned-raw, 1v1-scoped native; 22,209 × 2 = 44,418).
+- Q2(a) Phase-02 row-identity = `started_at` TIMESTAMP from MHM (canonical per CROSS-02-00 §3.1); `details_timeUTC` retained as provenance only. Q2(b) Phase-03 hold-out = `started_at` TIMESTAMP RECOMMENDATION ONLY; Phase 03 planning binds.
+- Q3 = RATIFY cleaning-layer convention (`race` = PRE_GAME per `matches_long_raw.yaml:101-103` and `matches_history_minimal.yaml:52-53`; `selectedRace` excluded). RISK-26 gap = documented_gap; CROSS-02-02 §6.1 minor amendment proposed as future-PR target. Not applied.
+- Version bump 3.68.0 → 3.69.0 per git-workflow rule (minor for feat; new on-disk artifact pair + validator module + tests added).
+
 ## [3.68.0] — 2026-05-23 (PR #233: feat/sc2egset-02-01-02-pre-game-materialization-scaffold)
 
 ### Added
