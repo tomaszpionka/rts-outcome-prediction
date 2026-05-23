@@ -12,7 +12,7 @@ non_batching_sequence_position: "Step 8 of 9 (research_log / STEP_STATUS / manif
 critique_required_before_execution: true
 critique_reviewer: reviewer-adversarial
 gate_reviewer: "reviewer-adversarial (Category A pre-execution gate)"
-planning_pr: "PR #<TBD>"
+planning_pr: "PR #237"
 source_artifacts:
   # PR #236 evidence (materialization + first non-vacuous audit; closure-justifying inputs)
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet
