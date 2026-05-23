@@ -19,7 +19,7 @@ critique_required_before_execution: true
 critique_reviewer: reviewer-adversarial
 gate_reviewer: "reviewer-adversarial (Category A pre-execution gate)"
 chat_second_pass_required_before_materialization: true
-planning_pr: "PR #235 (draft)"
+planning_pr: "PR #235"
 source_artifacts:
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv
   - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.md
