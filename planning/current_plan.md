@@ -251,6 +251,7 @@ class PreGameScaffoldValidationResult:
     passed: bool
     tranche_family_ids: tuple[str, ...]
     tranche_count: int
+    missing_families_in_tranche: tuple[str, ...]
     extra_families_in_tranche: tuple[str, ...]
     is_mmr_missing_classified_as_flag: bool
     tracker_in_pre_game: tuple[str, ...]
@@ -267,7 +268,10 @@ Signatures:
 ```python
 def load_pre_game_tranche_rows(registry_csv_path: Path | str) -> list[PreGameTrancheRow]: ...
     # reads only TRANCHE1 rows; RAISES if path resolves to STALE_REGISTRY_FILENAME_FRAGMENT
-def _check_tranche_membership(rows, full_registry) -> tuple[tuple[str, ...], tuple[str, ...]]: ...
+def _check_tranche_membership(rows, full_registry) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]: ...
+    # Returns (tranche_family_ids, missing_families_in_tranche, extra_families_in_tranche).
+    # missing = TRANCHE1_PRE_GAME_FAMILY_IDS - set(loaded ids); extra = pre_game rows
+    # outside TRANCHE1_PRE_GAME_FAMILY_IDS; both sorted for determinism.
 def _is_forbidden_skill_column(name: str) -> bool: ...
     # Allowlist-first, boundary-aware. Lowercase name; if name in
     # APPROVED_MMR_MISSINGNESS_TOKENS -> False (allowed — approved missingness flag,
@@ -410,7 +414,8 @@ EXACTLY the 9-file File Manifest; no artifact/status YAML/research_log/ROADMAP.
   cross-dataset (Invariant I3 normalization leakage).
 - **F-source-drift:** a tranche-1 source not in `ALLOWED_PRE_GAME_SOURCE_TABLES`,
   OR the stale `02_01_01_feature_family_registry_sc2egset.csv` path used in new code.
-- **F-family-set-drift:** tranche-1 family-id set != the 5 in `TRANCHE1_PRE_GAME_FAMILY_IDS`.
+- **F-missing-family:** an expected `TRANCHE1_PRE_GAME_FAMILY_IDS` family is absent from the loaded tranche (exact set equality required; halts before all other tranche-1 falsifiers).
+- **F-family-set-drift:** tranche-1 family-id set != the 5 in `TRANCHE1_PRE_GAME_FAMILY_IDS` (covers both missing and extra; missing is the higher-priority `F-missing-family` halt above; extra fires `extra_in_tranche`; duplicates fire `tranche_count_mismatch`).
 - **F-mutation:** the diff touches any STATUS YAML / research_log / ROADMAP / artifact.
 - **F-phase03:** any Phase 03 (or 02_01_03) file or content appears.
 
@@ -446,6 +451,7 @@ The future Layer-2 scaffold-execution PR is mergeable iff ALL hold:
    (the scaffold did NOT make it non-vacuous).
 7. The reviewer-adversarial critique gate is satisfied (recorded for the LAYER 1
    plan in `planning/current_plan.critique.md`).
+8. Tranche membership is exactly the 5 ids: `missing_families_in_tranche == ()`, `extra_families_in_tranche == ()`, `tranche_count == EXPECTED_TRANCHE1_COUNT`.
 
 ## Open Questions
 

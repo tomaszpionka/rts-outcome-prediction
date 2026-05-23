@@ -148,3 +148,7 @@ thesis/pass2_evidence/methodology_risk_register.md (RISK-20/24/26).
 ## ChatGPT second-pass leakage review addendum — PR #233
 
 The second-pass identified that the planned `FORBIDDEN_SKILL_TOKENS` check would falsely reject the approved `is_mmr_missing_flag` / `focal_is_mmr_missing` / `opponent_is_mmr_missing` names because they contain the substring `mmr`. The plan now distinguishes approved MMR-missingness/provenance tokens from scalar/rating/skill MMR tokens using an explicit allowlist plus boundary-aware forbidden-token checks. No scope or scientific decision changed: `is_mmr_missing_flag` remains tranche 1, but scalar MMR/rating proxies remain forbidden/deferred.
+
+## ChatGPT repo-first implementation review addendum — PR #233 exact-membership fix
+
+ChatGPT identified that the first execution of the validator enforced "no extra pre_game family" but did not mechanically fail when a non-MMR expected tranche family was missing. The validator now exposes `missing_families_in_tranche`, checks exact set equality against `TRANCHE1_PRE_GAME_FAMILY_IDS`, and halts on `missing_families_in_tranche` before other falsifiers. This is an implementation correction against the approved exact-5-family plan; no scope changed.

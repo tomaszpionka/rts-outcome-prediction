@@ -14,6 +14,10 @@ Binding sources:
     - Invariant I7 (no magic numbers — module-level UPPER_SNAKE constants).
 
 Falsifiers implemented (a fired falsifier sets halting_falsifier and passed=False):
+    missing_families_in_tranche: one or more expected TRANCHE1_PRE_GAME_FAMILY_IDS
+        absent from the registry.
+    tranche_count_mismatch: loaded tranche row count != EXPECTED_TRANCHE1_COUNT
+        (e.g. duplicate rows).
     extra_in_tranche: extra pre_game families in tranche beyond TRANCHE1_PRE_GAME_FAMILY_IDS.
     is_mmr_missing_not_flag: is_mmr_missing family absent or framed as skill scalar.
     tracker_in_pre_game: a tranche-1 family has a tracker source (Invariant I3).
@@ -154,6 +158,10 @@ class PreGameScaffoldValidationResult:
         passed: True iff no halting falsifier fired.
         tranche_family_ids: Tuple of family_ids loaded from the tranche.
         tranche_count: Count of tranche-1 rows loaded.
+        missing_families_in_tranche: Expected tranche-1 family_ids that are
+            absent from the loaded tranche (set difference
+            ``TRANCHE1_PRE_GAME_FAMILY_IDS - set(tranche_family_ids)``).
+            Sorted for determinism.
         extra_families_in_tranche: pre_game family_ids in registry but not in
             TRANCHE1_PRE_GAME_FAMILY_IDS.
         is_mmr_missing_classified_as_flag: True iff the is_mmr_missing family
@@ -179,6 +187,7 @@ class PreGameScaffoldValidationResult:
     passed: bool
     tranche_family_ids: tuple[str, ...]
     tranche_count: int
+    missing_families_in_tranche: tuple[str, ...]
     extra_families_in_tranche: tuple[str, ...]
     is_mmr_missing_classified_as_flag: bool
     tracker_in_pre_game: tuple[str, ...]
@@ -309,7 +318,7 @@ def _is_forbidden_skill_column(name: str) -> bool:
 def _check_tranche_membership(
     rows: list[PreGameTrancheRow],
     full_registry: list[dict[str, str]],
-) -> tuple[tuple[str, ...], tuple[str, ...]]:
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     """Check that the tranche contains exactly TRANCHE1_PRE_GAME_FAMILY_IDS.
 
     Args:
@@ -317,18 +326,24 @@ def _check_tranche_membership(
         full_registry: All rows from the registry CSV.
 
     Returns:
-        (tranche_family_ids, extra_pre_game_beyond_tranche) where
-        extra_pre_game_beyond_tranche contains pre_game family_ids in the
-        full registry that are NOT in TRANCHE1_PRE_GAME_FAMILY_IDS.
+        (tranche_family_ids, missing_families_in_tranche, extra_pre_game_beyond_tranche)
+        where missing_families_in_tranche is the set difference
+        TRANCHE1_PRE_GAME_FAMILY_IDS - set(loaded ids), sorted for determinism,
+        and extra_pre_game_beyond_tranche contains pre_game family_ids in the
+        full registry that are NOT in TRANCHE1_PRE_GAME_FAMILY_IDS, sorted for
+        determinism.
     """
     tranche_ids = tuple(r.feature_family_id for r in rows)
+    missing: tuple[str, ...] = tuple(
+        sorted(TRANCHE1_PRE_GAME_FAMILY_IDS - set(tranche_ids))
+    )
     extra: list[str] = []
     for row in full_registry:
         fid = row.get("feature_family_id", "")
         ps = row.get("prediction_setting", "")
         if ps == PRE_GAME_PREDICTION_SETTING and fid not in TRANCHE1_PRE_GAME_FAMILY_IDS:
             extra.append(fid)
-    return tranche_ids, tuple(extra)
+    return tranche_ids, missing, tuple(sorted(extra))
 
 
 def _check_is_mmr_missing_is_flag_not_skill(
@@ -557,7 +572,10 @@ def validate_pre_game_feature_materialization(
     rows = load_pre_game_tranche_rows(path)
     full_registry = _load_full_registry(path)
 
-    tranche_ids, extra_families = _check_tranche_membership(rows, full_registry)
+    tranche_ids, missing_families, extra_families = _check_tranche_membership(
+        rows, full_registry
+    )
+    tranche_count = len(rows)
     is_flag = _check_is_mmr_missing_is_flag_not_skill(rows, designed_column_names)
     tracker_hits = _check_no_tracker_in_pre_game(rows)
     history_hits, in_game_hits = _check_no_deferred_settings_in_tranche(full_registry)
@@ -566,18 +584,29 @@ def validate_pre_game_feature_materialization(
     unexpected_src = _check_source_tables(rows)
     forbidden_cols = _check_forbidden_skill_columns(designed_column_names, rows)
 
-    # Determine first halting falsifier in priority order
+    # Determine first halting falsifier in priority order.
+    # missing_families_in_tranche is highest priority — an incomplete tranche
+    # must be caught before any per-row checks are meaningful.
+    # extra_in_tranche, history_in_tranche, and in_game_in_tranche fire before
+    # tranche_count_mismatch so that the most descriptive structural falsifier
+    # always wins.  tranche_count_mismatch is the defensive catch for pure
+    # duplicate rows (missing, extra, history, and in_game all empty but
+    # count != EXPECTED_TRANCHE1_COUNT).
     halting_falsifier: str | None = None
-    if extra_families:
+    if missing_families:
+        halting_falsifier = "missing_families_in_tranche"
+    elif extra_families:
         halting_falsifier = "extra_in_tranche"
-    elif not is_flag:
-        halting_falsifier = "is_mmr_missing_not_flag"
-    elif tracker_hits:
-        halting_falsifier = "tracker_in_pre_game"
     elif history_hits:
         halting_falsifier = "history_in_tranche"
     elif in_game_hits:
         halting_falsifier = "in_game_in_tranche"
+    elif tranche_count != EXPECTED_TRANCHE1_COUNT:
+        halting_falsifier = "tranche_count_mismatch"
+    elif not is_flag:
+        halting_falsifier = "is_mmr_missing_not_flag"
+    elif tracker_hits:
+        halting_falsifier = "tracker_in_pre_game"
     elif asym_hits:
         halting_falsifier = "asymmetric"
     elif post_game_hits:
@@ -593,14 +622,15 @@ def validate_pre_game_feature_materialization(
         "validate_pre_game_feature_materialization: passed=%s tranche_count=%d "
         "halting_falsifier=%s",
         passed,
-        len(rows),
+        tranche_count,
         halting_falsifier,
     )
 
     return PreGameScaffoldValidationResult(
         passed=passed,
         tranche_family_ids=tranche_ids,
-        tranche_count=len(rows),
+        tranche_count=tranche_count,
+        missing_families_in_tranche=missing_families,
         extra_families_in_tranche=extra_families,
         is_mmr_missing_classified_as_flag=is_flag,
         tracker_in_pre_game=tracker_hits,

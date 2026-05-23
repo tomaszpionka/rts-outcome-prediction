@@ -170,7 +170,7 @@ class TestExactTrancheMembership:
     """Exactly 5 tranche-1 families are loaded from a synthetic CSV."""
 
     def test_five_family_ids_loaded(self, tmp_path: Path) -> None:
-        """All 5 TRANCHE1_PRE_GAME_FAMILY_IDS are loaded; no extras."""
+        """All 5 TRANCHE1_PRE_GAME_FAMILY_IDS are loaded; no extras, no missing."""
         csv_path = tmp_path / "registry.csv"
         _write_csv(csv_path, _all_five_tranche_rows())
 
@@ -180,6 +180,7 @@ class TestExactTrancheMembership:
 
         assert result.tranche_count == EXPECTED_TRANCHE1_COUNT
         assert set(result.tranche_family_ids) == TRANCHE1_PRE_GAME_FAMILY_IDS
+        assert result.missing_families_in_tranche == ()
         assert result.extra_families_in_tranche == ()
 
     def test_passed_is_true_with_five_rows(self, tmp_path: Path) -> None:
@@ -221,6 +222,40 @@ class TestExtraPreGameFamilyRejected:
         assert result.passed is False
         assert result.halting_falsifier == "extra_in_tranche"
         assert "sc2egset.pre_game.unknown_extra_family" in result.extra_families_in_tranche
+
+
+# ---------------------------------------------------------------------------
+# Test: Missing expected family fires missing_families_in_tranche
+# ---------------------------------------------------------------------------
+
+
+class TestMissingFamilyInTranche:
+    """A missing expected non-MMR tranche family fires missing_families_in_tranche."""
+
+    @pytest.mark.parametrize(
+        "missing_fid",
+        [
+            "sc2egset.pre_game.map_type_encoded",
+            "sc2egset.pre_game.patch_version_encoded",
+        ],
+    )
+    def test_missing_non_mmr_family_fires_falsifier(
+        self, tmp_path: Path, missing_fid: str
+    ) -> None:
+        """Removing a non-MMR expected family (keeping is_mmr_missing_flag) halts validation."""
+        csv_path = tmp_path / "registry.csv"
+        rows = [r for r in _all_five_tranche_rows() if r["feature_family_id"] != missing_fid]
+        _write_csv(csv_path, rows)
+
+        result = validate_pre_game_feature_materialization(
+            csv_path, DESIGNED_COLUMN_NAMES
+        )
+
+        assert result.passed is False
+        assert result.halting_falsifier == "missing_families_in_tranche"
+        assert missing_fid in result.missing_families_in_tranche
+        # is_mmr_missing_flag is still present — confirms the gap closed by this fix
+        assert "sc2egset.pre_game.is_mmr_missing_flag" in result.tranche_family_ids
 
 
 # ---------------------------------------------------------------------------
@@ -584,6 +619,20 @@ class TestRealRegistryCsvSmoke:
             REGISTRY_CSV_PATH, DESIGNED_COLUMN_NAMES
         )
         assert result.halting_falsifier is None
+
+    def test_missing_families_in_tranche_is_empty(self) -> None:
+        """Real registry has no missing expected tranche-1 families."""
+        result = validate_pre_game_feature_materialization(
+            REGISTRY_CSV_PATH, DESIGNED_COLUMN_NAMES
+        )
+        assert result.missing_families_in_tranche == ()
+
+    def test_extra_families_in_tranche_is_empty(self) -> None:
+        """Real registry has no extra pre_game families beyond the tranche."""
+        result = validate_pre_game_feature_materialization(
+            REGISTRY_CSV_PATH, DESIGNED_COLUMN_NAMES
+        )
+        assert result.extra_families_in_tranche == ()
 
 
 # ---------------------------------------------------------------------------
