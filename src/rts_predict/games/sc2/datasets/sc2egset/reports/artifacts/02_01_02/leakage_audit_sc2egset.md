@@ -10,7 +10,7 @@ CROSS-02-01-v1.0.1 Section 5 gate condition is mechanically satisfied: `features
 
 **Examiner-clarity sentence (verbatim):** `started_at` is projected as a row-identity anchor only (CROSS-02-00 Section 5.1 = CONTEXT; PR #234 Q2(a) use_as_window_bound = false) and is excluded from `features_audited`.
 
-This is the first non-vacuous CROSS-02-01 post-materialization audit for Step 02_01_02 (PR #<TBD>).
+This is the first non-vacuous CROSS-02-01 post-materialization audit for Step 02_01_02 (PR #236).
 
 ## 2. Materialization SQL + source-binding justification
 
@@ -206,6 +206,6 @@ Lineage position: this audit + the materialized Parquet form artifact #5 in the 
 
 Phase-03 binding: the PR #234 Q2(b) Phase-03 chronological hold-out RECOMMENDATION (`started_at TIMESTAMP`) is projected here as a column for downstream convenience; the binding decision remains with Phase 03 planning. CROSS-02-02 Section 6.1 minor amendment (proposed in PR #234 Section 8) remains PROPOSED only -- NOT applied here.
 
-This audit is produced under PR #<TBD> alongside the materialization Parquet at `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet`.
+This audit is produced under PR #236 alongside the materialization Parquet at `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet`.
 
 Step 02_01_02 NOT closed by this PR; closure deferred to a separate PR per planning U2.B (PR #229 -> PR #230 precedent).
