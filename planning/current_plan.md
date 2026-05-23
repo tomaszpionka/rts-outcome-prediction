@@ -656,6 +656,10 @@ The Layer-2 materialization-execution PR is mergeable iff ALL of:
 
 - **OQ7 (Layer-2 nit — for reviewer-adversarial Layer-1 attention).** Should the Layer-2 PR include `SET TimeZone = 'UTC'` (CROSS-02-00 §3.3) at the first DuckDB connection in the materialization module's `materialize_pre_game_features` entry point? Default YES — recorded in T01 cell 2 (notebook side) AND in `materialize_pre_game_features` (module side). Reviewer should verify both placements.
 
+### ChatGPT second-pass leakage review verdict (U3.A; resolves OQ2)
+
+> [2026-05-23 — GPT-5.2 Thinking leakage review]: APPROVE. I reviewed the exact `_MATERIALIZATION_QUERY` in PR #235. It projects only static game-T columns from `matches_flat_clean` plus `started_at` from `matches_history_minimal` as a row-identity anchor, contains no target or post-game columns, reads no tracker tables, applies no history-window `<` or `<=` filter, excludes `selectedRace`, and preserves focal/opponent symmetry at the materialized grain. Non-blocking caveat: this approval assumes PR #234 Q3 remains binding — i.e. `race` is accepted under the repo’s documented-gap convention — and that `focal_match_id`, `focal_player`, `opponent_player`, and `started_at` remain excluded from downstream model features.
+
 ## Out of Scope
 
 - The 6 `history_enriched_pre_game` families (Step 02_01_03+).
