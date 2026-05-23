@@ -17,23 +17,32 @@
 # %% [markdown]
 # # Step 02_01_02 — First pre_game feature-family materialization: sc2egset
 #
-# **SCAFFOLD + ONE VALIDATION MODULE (non-batching sequence step 2 of 9).**
-# This notebook DESIGNS the pre_game projection and RUNS one validation module
-# against the closed 02_01_01 registry CSV. It is NOT materialization.
+# **MATERIALIZATION + POST-MAT AUDIT (non-batching sequence steps 6-8 of 9).**
+# This notebook now materialises the 5 tranche-1 pre_game families into ONE
+# Parquet artifact (44,418 rows × 11 projected columns) and runs the
+# post-materialization CROSS-02-01-v1.0.1 leakage audit. The 11 projected
+# columns partition into 3 IDENTITY (focal_match_id, focal_player,
+# opponent_player), 1 CONTEXT row-identity anchor (started_at), and 7 audited
+# PRE_GAME features (focal_race, opponent_race, race_pair, map_type,
+# patch_version, focal_is_mmr_missing, opponent_is_mmr_missing). Only the 7
+# PRE_GAME columns enter `features_audited`.
 #
-# **This PR does NOT:** materialize any feature value · write any artifact
-# (Parquet / CSV / JSON / MD) · flip STEP_STATUS / PIPELINE_SECTION_STATUS /
-# PHASE_STATUS · write a research_log entry · edit the ROADMAP · start Step
-# 02_01_03 · start Phase 03 · close Step 02_01_02.
+# `started_at` is projected as a row-identity anchor only (CROSS-02-00
+# Section 5.1 = CONTEXT; PR #234 Q2(a) use_as_window_bound = false) and is
+# excluded from `features_audited`.
 #
-# **Leakage status:** the CROSS-02-01-v1.0.1 post-materialization leakage audit
-# is NOT run here and remains FUTURE. The 02_01_01 leakage audit is vacuous
-# (features_audited=[]) by design; it becomes non-vacuous only when a future PR
-# materializes the feature table. This scaffold designs the projection; it does
-# NOT clear leakage.
+# **This PR does NOT:** flip STEP_STATUS / PIPELINE_SECTION_STATUS /
+# PHASE_STATUS · edit ROADMAP · patch any spec or cleaning-layer YAML · start
+# Step 02_01_03 · start Phase 03 · close Step 02_01_02. Closure is deferred
+# to a separate U2.B closure PR.
 #
-# **Phase:** 02 · **Pipeline Section:** 02_01 · **Step:** 02_01_02 (scaffold
-# increment 1 of N) · **Dataset:** sc2egset · **Predecessors:** 02_01_01 (closed).
+# **Lineage:** the original PR #233 SCAFFOLD + ONE VALIDATION MODULE cells
+# are preserved below (for back-compat regression); the materialization +
+# audit cells run AFTER the scaffold validator passes.
+#
+# **Phase:** 02 · **Pipeline Section:** 02_01 · **Step:** 02_01_02 ·
+# **Dataset:** sc2egset · **Predecessors:** 02_01_01 (closed),
+# PR #229/#230/#233/#234.
 
 # %%
 from pathlib import Path
@@ -187,38 +196,152 @@ assert result.materialized_output_paths == ()
 assert result.halting_falsifier is None
 
 # %% [markdown]
-# ## Closing — nothing persisted; no status flipped
+# ## Materialization + post-mat audit (non-batching steps 6-8 of 9)
 #
-# This cell summarises what this scaffold notebook did and did NOT do.
+# The cells below execute the Layer-2 deliverable authorised by merged
+# PR #235. Cells: imports (with `SET TimeZone = 'UTC'` on the DuckDB
+# session per CROSS-02-00 Section 3.3) → PR #234 frozen-inputs context →
+# materialization call → audit call → closing.
+
+# %%
+import datetime as _dt
+
+from rts_predict.games.sc2.datasets.sc2egset.materialize_pre_game_features import (
+    EXPECTED_AUDITED_FEATURE_COLUMNS,
+    EXPECTED_OUTPUT_COLUMNS,
+    EXPECTED_OUTPUT_ROW_COUNT,
+    PROJECTED_CONTEXT_COLUMNS,
+    PROJECTED_IDENTITY_COLUMNS,
+    materialize_pre_game_features,
+    run_post_materialization_audit,
+)
+
+# %% [markdown]
+# ### PR #234 frozen-inputs context
 #
-# **What was done (scaffold-only, non-batching step 2 of 9):**
-# - Declared the design contract for the 5 tranche-1 pre_game families.
-# - Ran one validation module (`validate_pre_game_feature_materialization`)
-#   against the closed 02_01_01 registry CSV.
-# - Confirmed: `passed=True`, `tranche_count=5`,
-#   `materialized_output_paths=()`, `halting_falsifier=None`.
+# All three coupled decisions from PR #234 are BINDING for this materialization:
 #
-# **Nothing persisted:**
-# - No Parquet / CSV / JSON / MD artifact was written.
-# - No feature value was computed or materialized.
-# - No DuckDB CREATE / INSERT / COPY / to_parquet / feature SELECT was executed.
+# - **Q1 source layer = `matches_flat_clean`** (cleaned-raw, 1v1-scoped
+#   native; 22,209 replays × 2 player-rows = 44,418).
+# - **Q2(a) Phase-02 row-identity anchor = `started_at TIMESTAMP`** from MHM,
+#   `use_as_window_bound = false`, `use_as_row_identity = true`. The anchor is
+#   CONTEXT per CROSS-02-00 Section 5.1, not PRE_GAME; it is NOT a model feature.
+# - **Q3 = RATIFY** cleaning-layer convention: read `race` (3-value:
+#   {Prot, Terr, Zerg}); `selectedRace` excluded.
 #
-# **No status flipped:**
+# The 11 output columns partition as:
+# - 3 identity: `focal_match_id`, `focal_player`, `opponent_player`.
+# - 1 context anchor: `started_at` (CONTEXT; not a feature).
+# - 7 audited PRE_GAME features (the contents of `features_audited`):
+#   `focal_race`, `opponent_race`, `race_pair`, `map_type`, `patch_version`,
+#   `focal_is_mmr_missing`, `opponent_is_mmr_missing`.
+#
+# PR #234 CSV (`02_01_02_source_anchor_race_adjudication.csv`) carries SHA-256
+# bonds for every provenance input; the materialization module re-hashes
+# these and writes them into the audit JSON for evidence bonding.
+
+# %%
+DUCKDB_PATH = Path(
+    "src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb"
+)
+OUTPUT_PARQUET_PATH = Path(
+    "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
+    "02_feature_engineering/01_pre_game_vs_in_game_boundary/"
+    "02_01_02_pre_game_features.parquet"
+)
+AUDIT_JSON_PATH = Path(
+    "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
+    "02_01_02/leakage_audit_sc2egset.json"
+)
+AUDIT_MD_PATH = Path(
+    "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
+    "02_01_02/leakage_audit_sc2egset.md"
+)
+AUDIT_DATE = _dt.date.today().isoformat()
+AUDIT_PR_LABEL = "PR #236"
+
+# %%
+mat_result = materialize_pre_game_features(
+    duckdb_path=DUCKDB_PATH,
+    output_parquet_path=OUTPUT_PARQUET_PATH,
+    registry_csv_path=REGISTRY_CSV,
+)
+
+print("passed:", mat_result.passed)
+print("row_count:", mat_result.row_count)
+print("len(column_names):", len(mat_result.column_names))
+print("parquet_path:", mat_result.parquet_path)
+print("distinct_focal_match_id:", mat_result.distinct_focal_match_id_count)
+print("race_vocabulary:", sorted(mat_result.race_vocabulary))
+print(
+    "is_mmr_missing (False, True):",
+    (
+        mat_result.is_mmr_missing_false_count,
+        mat_result.is_mmr_missing_true_count,
+    ),
+)
+print("distinct_map_count:", mat_result.distinct_map_count)
+print("distinct_patch_count:", mat_result.distinct_patch_count)
+print("halting_falsifier:", mat_result.halting_falsifier)
+
+assert mat_result.row_count == EXPECTED_OUTPUT_ROW_COUNT
+assert mat_result.column_names == EXPECTED_OUTPUT_COLUMNS
+assert mat_result.halting_falsifier is None
+assert mat_result.materialized_output_paths != ()
+
+# %%
+audit_result = run_post_materialization_audit(
+    parquet_path=OUTPUT_PARQUET_PATH,
+    audit_json_path=AUDIT_JSON_PATH,
+    audit_md_path=AUDIT_MD_PATH,
+    duckdb_path=DUCKDB_PATH,
+    audit_date=AUDIT_DATE,
+    audit_pr=AUDIT_PR_LABEL,
+)
+
+print("verdict:", audit_result.verdict)
+print("features_audited:", audit_result.features_audited)
+print("projected_context_columns:", audit_result.projected_context_columns)
+print("projected_identity_columns:", audit_result.projected_identity_columns)
+print("halting_falsifier:", audit_result.halting_falsifier)
+
+assert audit_result.verdict == "PASS"
+assert len(audit_result.features_audited) == 7
+assert audit_result.features_audited == EXPECTED_AUDITED_FEATURE_COLUMNS
+assert audit_result.projected_context_columns == PROJECTED_CONTEXT_COLUMNS
+assert audit_result.projected_identity_columns == PROJECTED_IDENTITY_COLUMNS
+assert audit_result.halting_falsifier is None
+assert set(audit_result.features_audited).isdisjoint(
+    set(audit_result.projected_context_columns)
+    | set(audit_result.projected_identity_columns)
+)
+
+# %% [markdown]
+# ## Closing — feature Parquet + non-vacuous audit persisted; no closure claimed
+#
+# **What was done (non-batching steps 6-8 of 9):**
+# - Materialised 02_01_02 feature Parquet at
+#   `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet`
+#   (44,418 rows × 11 projected columns: 3 identity + 1 context anchor +
+#   7 audited PRE_GAME features).
+# - Persisted the FIRST non-vacuous CROSS-02-01 audit pair at
+#   `reports/artifacts/02_01_02/leakage_audit_sc2egset.{json,md}`
+#   (`features_audited` has exactly the 7 PRE_GAME feature columns;
+#   `verdict = PASS`).
+#
+# **What was NOT done (deferred to the U2.B closure PR):**
 # - STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS are byte-unchanged.
-# - The `research_log.md` was NOT updated.
-# - The ROADMAP was NOT edited.
+# - `02_01_02: complete` is NOT added to STEP_STATUS.
+# - The dataset's `research_log.md` records this PR as `closure_status:
+#   still_open`, `leakage_audit_state: post_materialization_pass`.
+# - ROADMAP body, specs, and cleaning-layer YAMLs are byte-unchanged.
+# - PR #230 audit JSON at `02_01_01/leakage_audit_sc2egset.json` is
+#   byte-unchanged (distinct path; vacuous record preserved).
+# - Phase 03 is not started; Step 02_01_03 is not started.
 #
-# **Leakage audit unchanged:**
-# - The CROSS-02-01 post-materialization leakage audit
-#   (`02_01_02/leakage_audit_sc2egset.json`) does NOT exist and is NOT created.
-# - The PR #230 `leakage_audit_sc2egset.json` remains unchanged
-#   (`features_audited==[]`).
-# - The CROSS-02-01 audit remains FUTURE — to be run in the first
-#   materialization PR only.
+# **Examiner-clarity sentence:** `started_at` is projected as a row-identity
+# anchor only (CROSS-02-00 Section 5.1 = CONTEXT; PR #234 Q2(a)
+# use_as_window_bound = false) and is excluded from `features_audited`.
 #
-# **Required before any future materialization PR:**
-# - A mandatory Claude/ChatGPT second-pass leakage review over the
-#   focal/opponent projection SQL, the `snapshot_at_match_start` cutoff
-#   semantics, and the view-vs-raw source reconciliation.
-# - This review is a DISTINCT gate from the scaffold PR's reviewer-adversarial
-#   gate; it is NOT discharged by this notebook.
+# **Lineage position:** artifact #5 of 5 in the Step 02_01_02 readiness
+# lineage (PR #229 → PR #230 → PR #233 → PR #234 → this PR).
