@@ -41,6 +41,8 @@ Falsifiers implemented (a fired falsifier sets halting_falsifier and passed=Fals
     q3_random_vocabulary_dropped: under Q3.AMEND, Random rows excluded without mitigation.
     q3_random_spelling_uncanonicalised: under Q3.AMEND, Rand/Random preserved as distinct
         categories without canonicalisation rule.
+    provenance_sha_not_found: any *_sha256 column in the rendered CSV is NOT_FOUND, empty,
+        wrong length, or non-hex — CSV halted before write (Invariant I6).
     spec_amendment_silent: spec amendment proposed in MD §8 but not in CSV field.
     non_substitution_silent: MD omits explicit non-substitution statement (§7).
     materialization_creep: any code path computes a feature value or writes Parquet.
@@ -64,6 +66,16 @@ from typing import Any
 import duckdb
 
 LOGGER = logging.getLogger(__name__)
+
+
+class ProvenanceShaNotFoundError(Exception):
+    """Raised when a *_sha256 column in the rendered CSV is invalid.
+
+    This signals that the provenance_sha_not_found halting falsifier has fired:
+    a SHA-256 value is NOT_FOUND, empty, not 64 characters, or not lowercase hex.
+    The CSV is NOT written when this exception is raised.
+    """
+
 
 # ---------------------------------------------------------------------------
 # Module-level constants — no magic numbers (Invariant I7)
@@ -657,6 +669,28 @@ def _check_falsifiers_race(
 # ---------------------------------------------------------------------------
 
 
+def _find_repo_root(start: Path) -> Path:
+    """Walk up from start until pyproject.toml is found; return that directory.
+
+    Args:
+        start: Starting path (file or directory).
+
+    Returns:
+        The directory containing pyproject.toml.
+
+    Raises:
+        FileNotFoundError: If no pyproject.toml is found walking up from start.
+    """
+    candidate = start.resolve()
+    while candidate != candidate.parent:
+        if (candidate / "pyproject.toml").exists():
+            return candidate
+        candidate = candidate.parent
+    raise FileNotFoundError(
+        f"No pyproject.toml found walking up from {start}; cannot determine repo root."
+    )
+
+
 def _sha256_file(path: Path) -> str:
     """Compute SHA-256 hex digest of a file, or 'NOT_FOUND' if absent.
 
@@ -710,6 +744,37 @@ def _get_git_sha() -> str:
 # ---------------------------------------------------------------------------
 
 
+def _validate_provenance_shas(rendered_rows: list[dict[str, str]]) -> None:
+    """Validate all *_sha256 column values in rendered rows are 64-char lowercase hex digests.
+
+    This is the provenance_sha_not_found halting falsifier check (Invariant I6).
+    Raises ProvenanceShaNotFoundError if any value is invalid — the caller must
+    NOT write the CSV in that case.
+
+    Args:
+        rendered_rows: List of row dicts to validate.
+
+    Raises:
+        ProvenanceShaNotFoundError: If any *_sha256 column is NOT_FOUND, empty,
+            wrong length, or not lowercase hex.
+    """
+    _valid_hex_chars: frozenset[str] = frozenset("0123456789abcdef")
+    for row_dict in rendered_rows:
+        for key, value in row_dict.items():
+            if not key.endswith("_sha256"):
+                continue
+            if (
+                value == "NOT_FOUND"
+                or not value
+                or len(value) != 64
+                or not all(c in _valid_hex_chars for c in value)
+            ):
+                raise ProvenanceShaNotFoundError(
+                    f"Provenance SHA falsifier fired: row {row_dict.get('decision_id')!r} "
+                    f"field {key!r} = {value!r}"
+                )
+
+
 def _render_artifact_csv(result: AdjudicationResult, out_path: Path) -> None:
     """Write the 3-row deterministic adjudication CSV artifact.
 
@@ -717,7 +782,9 @@ def _render_artifact_csv(result: AdjudicationResult, out_path: Path) -> None:
         result: The AdjudicationResult to serialize.
         out_path: Destination path for the CSV.
     """
-    repo_root = out_path.parents[7]
+    # Derive repo root from this module's own location — always inside the repo,
+    # unlike out_path which may point to a temp directory during testing.
+    repo_root = _find_repo_root(Path(__file__))
     _module_rel = "src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_pre_game_source_layer.py"
     module_path = repo_root / _module_rel
     duckdb_path = repo_root / "src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb"
@@ -783,42 +850,48 @@ def _render_artifact_csv(result: AdjudicationResult, out_path: Path) -> None:
         ),
     }
 
+    rendered_rows: list[dict[str, str]] = []
+    for decision in result.decisions:
+        rendered_rows.append(
+            {
+                "decision_id": decision.decision_id,
+                "decision_name": _decision_names.get(
+                    decision.decision_id, decision.decision_id
+                ),
+                "candidates_considered": "; ".join(decision.candidates_considered),
+                "chosen": decision.chosen,
+                "rationale_excerpt_300char": decision.rationale_paragraph[:300],
+                "falsifiers_recorded": "; ".join(decision.falsifiers_recorded),
+                "blocking_for_materialization": str(decision.blocking_for_materialization),
+                "spec_contradictions": "; ".join(result.contradictions_with_specs),
+                "spec_amendments_proposed": _spec_amendments.get(decision.decision_id, ""),
+                "provenance_git_sha": git_sha,
+                "provenance_executed_at_utc_date": EXECUTED_AT_UTC_DATE,
+                "audit_pr": AUDIT_PR,
+                "validator_module": "adjudicate_pre_game_source_layer.py",
+                "validator_module_sha256": module_sha,
+                "duckdb_path": str(
+                    Path("src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb")
+                ),
+                "duckdb_path_sha256": duckdb_sha,
+                "registry_csv_sha256": registry_sha,
+                "methodology_risk_register_sha256": risk_register_sha,
+                "spec_02_00_sha256": spec_00_sha,
+                "spec_02_01_sha256": spec_01_sha,
+                "spec_02_02_sha256": spec_02_sha,
+                "spec_02_03_sha256": spec_03_sha,
+                "matches_long_raw_yaml_sha256": mlr_sha,
+                "matches_history_minimal_yaml_sha256": mhm_sha,
+            }
+        )
+
+    _validate_provenance_shas(rendered_rows)
+
     with out_path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
-        for decision in result.decisions:
-            writer.writerow(
-                {
-                    "decision_id": decision.decision_id,
-                    "decision_name": _decision_names.get(
-                        decision.decision_id, decision.decision_id
-                    ),
-                    "candidates_considered": "; ".join(decision.candidates_considered),
-                    "chosen": decision.chosen,
-                    "rationale_excerpt_300char": decision.rationale_paragraph[:300],
-                    "falsifiers_recorded": "; ".join(decision.falsifiers_recorded),
-                    "blocking_for_materialization": str(decision.blocking_for_materialization),
-                    "spec_contradictions": "; ".join(result.contradictions_with_specs),
-                    "spec_amendments_proposed": _spec_amendments.get(decision.decision_id, ""),
-                    "provenance_git_sha": git_sha,
-                    "provenance_executed_at_utc_date": EXECUTED_AT_UTC_DATE,
-                    "audit_pr": AUDIT_PR,
-                    "validator_module": "adjudicate_pre_game_source_layer.py",
-                    "validator_module_sha256": module_sha,
-                    "duckdb_path": str(
-                        Path("src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb")
-                    ),
-                    "duckdb_path_sha256": duckdb_sha,
-                    "registry_csv_sha256": registry_sha,
-                    "methodology_risk_register_sha256": risk_register_sha,
-                    "spec_02_00_sha256": spec_00_sha,
-                    "spec_02_01_sha256": spec_01_sha,
-                    "spec_02_02_sha256": spec_02_sha,
-                    "spec_02_03_sha256": spec_03_sha,
-                    "matches_long_raw_yaml_sha256": mlr_sha,
-                    "matches_history_minimal_yaml_sha256": mhm_sha,
-                }
-            )
+        for row_dict in rendered_rows:
+            writer.writerow(row_dict)
     LOGGER.debug("_render_artifact_csv: written to %s", out_path)
 
 
@@ -868,6 +941,7 @@ def _build_md_content(
         "q3_prior_decision_silently_reversed",
         "q3_random_vocabulary_dropped",
         "q3_random_spelling_uncanonicalised",
+        "provenance_sha_not_found",
         "spec_amendment_silent",
         "non_substitution_silent",
         "materialization_creep",
@@ -1186,10 +1260,31 @@ def adjudicate_pre_game_source_layer(
     _render_artifact_md(result, md_out, source_peeks, anchor_peeks, race_peeks)
 
     if halting is None:
-        _render_artifact_csv(result, csv_out)
-        LOGGER.info(
-            "adjudicate_pre_game_source_layer: passed=True; artifacts written to %s", out_dir
-        )
+        try:
+            _render_artifact_csv(result, csv_out)
+        except ProvenanceShaNotFoundError as exc:
+            LOGGER.error(
+                "adjudicate_pre_game_source_layer: provenance_sha_not_found falsifier: %s", exc
+            )
+            halting = "provenance_sha_not_found"
+            result = AdjudicationResult(
+                passed=False,
+                decisions=result.decisions,
+                contradictions_with_specs=result.contradictions_with_specs,
+                spec_amendments_proposed=result.spec_amendments_proposed,
+                materialized_output_paths=(),
+                artifact_csv_path=str(csv_out),
+                artifact_md_path=str(md_out),
+                halting_falsifier=halting,
+            )
+            LOGGER.warning(
+                "adjudicate_pre_game_source_layer: halting falsifier fired: %s; CSV not written",
+                halting,
+            )
+        else:
+            LOGGER.info(
+                "adjudicate_pre_game_source_layer: passed=True; artifacts written to %s", out_dir
+            )
     else:
         LOGGER.warning(
             "adjudicate_pre_game_source_layer: halting falsifier fired: %s; CSV not written",

@@ -19,6 +19,7 @@ Uses ``@pytest.mark.skipif`` for real-DB tests.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import duckdb
@@ -32,14 +33,17 @@ from rts_predict.games.sc2.datasets.sc2egset.adjudicate_pre_game_source_layer im
     EXPECTED_TRUE_1V1_DISTINCT_REPLAY_ID,
     POST_DECISION_RACE_TOKENS,
     PRE_GAME_RACE_TOKENS,
+    ProvenanceShaNotFoundError,
     _adjudicate_anchor,
     _adjudicate_race_and_random,
     _adjudicate_source_layer,
     _check_falsifiers_anchor,
     _check_falsifiers_source_layer,
+    _find_repo_root,
     _run_anchor_peeks,
     _run_race_and_random_peeks,
     _run_source_layer_peeks,
+    _validate_provenance_shas,
     adjudicate_pre_game_source_layer,
 )
 
@@ -712,3 +716,122 @@ class TestPrivateHelpers:
         md_path = out_dir / "02_01_02_source_anchor_race_adjudication.md"
         assert result.passed is False
         assert md_path.exists(), "MD artifact must be written even when falsifier fires"
+
+
+# ---------------------------------------------------------------------------
+# Test 16: Provenance SHA-256 integrity (TestProvenanceShaIntegrity)
+# ---------------------------------------------------------------------------
+
+
+_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+@pytest.mark.skipif(
+    not REAL_DB_PATH.exists(),
+    reason="Real DuckDB not found on disk",
+)
+class TestProvenanceShaIntegrityRealDb:
+    """Real-DB test: every *_sha256 column must be a 64-char lowercase hex digest."""
+
+    def test_real_db_csv_has_hex_digest_per_sha_column(self, tmp_path: Path) -> None:
+        """Every *_sha256 column in the rendered CSV matches ^[0-9a-f]{64}$.
+
+        Guards against NOT_FOUND, empty, wrong-length, non-hex, or uppercase values
+        (Invariant I6 — reproducibility). Regression test for the parents[7] bug.
+        """
+        import csv as _csv
+
+        result = adjudicate_pre_game_source_layer(REAL_DB_PATH, REGISTRY_CSV_PATH, tmp_path / "out")
+        assert result.passed is True, f"Expected passed=True; halting={result.halting_falsifier}"
+        assert result.artifact_csv_path is not None
+
+        with open(result.artifact_csv_path, encoding="utf-8") as fh:
+            rows = list(_csv.DictReader(fh))
+
+        assert len(rows) == 3, f"Expected 3 rows, got {len(rows)}"
+        sha_cols = [c for c in rows[0].keys() if c.endswith("_sha256")]
+        assert len(sha_cols) > 0, "No *_sha256 columns found in CSV"
+
+        failures: list[str] = []
+        for i, row in enumerate(rows):
+            for col in sha_cols:
+                value = row[col]
+                if not _HEX64_RE.fullmatch(value):
+                    failures.append(
+                        f"row {i} ({row.get('decision_id')!r}) col {col!r}: {value!r}"
+                    )
+        assert not failures, (
+            f"provenance_sha_not_found: {len(failures)} column(s) failed hex-digest check:\n"
+            + "\n".join(failures)
+        )
+
+
+class TestProvenanceShaIntegrity:
+    """Synthetic tests for the provenance_sha_not_found falsifier."""
+
+    def test_synthetic_missing_upstream_fires_falsifier(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Monkeypatching _sha256_file to return NOT_FOUND fires provenance_sha_not_found.
+
+        Asserts: result.passed is False, halting_falsifier == "provenance_sha_not_found",
+        and the CSV file does NOT exist on disk after the call.
+        """
+        from rts_predict.games.sc2.datasets.sc2egset import adjudicate_pre_game_source_layer as mod
+
+        db_path = _make_minimal_duckdb(tmp_path)
+        out_dir = tmp_path / "out"
+
+        # Monkeypatch _sha256_file to return NOT_FOUND for every call
+        monkeypatch.setattr(mod, "_sha256_file", lambda path: "NOT_FOUND")
+
+        result = adjudicate_pre_game_source_layer(db_path, REGISTRY_CSV_PATH, out_dir)
+
+        assert result.passed is False, "Expected passed=False when SHA falsifier fires"
+        assert result.halting_falsifier == "provenance_sha_not_found", (
+            "Expected halting_falsifier='provenance_sha_not_found', "
+            f"got {result.halting_falsifier!r}"
+        )
+        csv_path = out_dir / "02_01_02_source_anchor_race_adjudication.csv"
+        assert not csv_path.exists(), (
+            "CSV must NOT be written when provenance_sha_not_found falsifier fires"
+        )
+
+    def test_sha_digest_regex_is_strict(self) -> None:
+        """_validate_provenance_shas rejects invalid SHA values.
+
+        Invalid values: NOT_FOUND, empty string, too-short hex, invalid char,
+        and uppercase hex (must be lowercase).
+        """
+        valid_sha = "a" * 64  # valid 64-char lowercase hex
+
+        invalid_cases = [
+            ("NOT_FOUND", "literal NOT_FOUND"),
+            ("", "empty string"),
+            ("1234", "too short"),
+            ("1234567890123456789012345678901234567890123456789012345678901234X", "invalid char X"),
+            ("A" * 64, "uppercase hex"),
+        ]
+
+        for bad_value, description in invalid_cases:
+            row_dict = {"decision_id": "Q1_source_layer", "validator_module_sha256": bad_value}
+            with pytest.raises(ProvenanceShaNotFoundError, match="[Pp]rovenance SHA falsifier"):
+                _validate_provenance_shas([row_dict])
+
+        # A valid 64-char lowercase hex must NOT raise
+        good_row = {"decision_id": "Q1_source_layer", "validator_module_sha256": valid_sha}
+        _validate_provenance_shas([good_row])  # should not raise
+
+    def test_find_repo_root_finds_pyproject_toml(self) -> None:
+        """_find_repo_root walking up from a nested path returns the repo root."""
+        # Use this test file's own path — it's inside the repo
+        nested_path = Path(__file__).resolve()
+        repo_root = _find_repo_root(nested_path)
+        assert (repo_root / "pyproject.toml").exists(), (
+            f"_find_repo_root returned {repo_root} but no pyproject.toml found there"
+        )
+
+    def test_find_repo_root_raises_on_non_repo_path(self, tmp_path: Path) -> None:
+        """_find_repo_root raises FileNotFoundError when no pyproject.toml exists."""
+        with pytest.raises(FileNotFoundError, match="pyproject.toml"):
+            _find_repo_root(tmp_path / "deep" / "nested" / "file.txt")
