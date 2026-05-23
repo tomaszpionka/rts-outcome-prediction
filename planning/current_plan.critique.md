@@ -2,231 +2,153 @@
 plan_ref: planning/current_plan.md
 created: 2026-05-22
 category: A
-base_ref: e96374fef43ce06d03098d9bea8296b4ff74a409
-gate_reviewer: reviewer-deep (Layer-1 draft-PR gate)
-adversarial_status: DEFERRED to Layer-2 / scaffold turn (reviewer-deep recommendation)
+base_ref: 3cda752813659490e4992df78ecb10a72b8f010c
+reviewer_model: reviewer-adversarial (Opus, Category A pre-execution methodology gate)
+verdict: APPROVE-WITH-NITS
+blockers: 0
+authorizes_layer1_materialization: true
+chat_second_pass_required_before_materialization: true
 ---
 
-# Critique — SC2EGSet Step 02_01_02 ROADMAP-only stub plan (Layer-1 gate)
+# Critique — SC2EGSet Step 02_01_02 scaffold + one validation module (Category A pre-execution gate)
 
-> Produced by `@reviewer-deep` as the draft-PR gate for the Layer-1 planning PR.
-> Per the orchestration routing rule, reviewer-adversarial is escalated only on a
-> reviewer-deep blocker OR a material leakage/status/Phase-03 effect; reviewer-deep
-> found neither and recommends **DEFER-TO-LAYER-2** (see escalation section). The
-> full Category A reviewer-adversarial pre-execution critique is therefore produced
-> before the FUTURE Layer-2 EXECUTION turn, not for this stub-only draft PR.
+> Produced by `@reviewer-adversarial` as the Category A pre-execution methodology
+> gate (Phase 02, methodology-sensitive, designs the first non-vacuous
+> leakage-sensitive path). Every load-bearing claim was independently verified
+> against the on-disk repo; no claim was taken on trust.
 
 ## Verdict
 
-**APPROVE-WITH-NITS — zero blockers.** The plan is correct under repo taxonomy,
-the non-batching rule, the source-of-truth hierarchy, and SemVer policy. Every
-load-bearing claim traces to an on-disk artifact the reviewer verified. The
-framing is honest — it never overclaims leakage clearance, and it actively
-preserves the PR #229 / PR #230 evidence distinction that the source artifacts
-themselves enforce. The three nits are non-blocking and belong in the Layer-2
-execution spec, not in a re-plan; they are folded into plan tasks T01 (N1), T03
-(N2), and the Layer-2 final gate (N3).
+**APPROVE-WITH-NITS — zero blockers; no required `current_plan.md` edit.**
+Authorizes materializing the draft planning PR this turn. The two nits are
+Layer-2 / future-PR instructions (folded into plan §4.1/§4.3/§7), not NOW edits.
 
-## Per-check results (the 10 required gate checks)
+## Non-blocking nits (Layer-2 / future-PR instructions)
 
-| # | Check | Result | Evidence |
-|---|-------|--------|----------|
-| 1 | Outcome A correct under taxonomy + non-batching rule | PASS | docs/TAXONOMY.md Step §: `{PHASE}_{SECTION}_{STEP}`, sequential within section → `02_01_02` legit under `02_01`. data-analysis-lineage.md mandates "ROADMAP stub only" as sequence step 1. PR #230 research_log: closure "does NOT authorise the start of `02_01_02`; the gate to **design** it is now open." |
-| 2 | No batching of ROADMAP + notebook + artifact + status/log | PASS | Layer 2 = 6 files; T04 forbids any STEP_STATUS/artifact/notebook/spec/research_log/thesis in the diff; stub `outputs` marked "(planned, NOT created)"; `research_log_entry` + `gate.artifact_check` explicitly deferred. |
-| 3 | Does not start Phase 03 | PASS | T01 inserts the stub *before* `## Phase 03` (ROADMAP ~line 2101); stub `phase: "02 -- Feature Engineering"`; out-of-scope excludes Phase 03. |
-| 4 | No overclaim of empirical leakage clearance | PASS | On-disk `leakage_audit_sc2egset.json` `features_audited:[]`, verdict PASS on §5(a) vacuity; `.md` self-describes as non-substituting for a future post-materialization audit. The plan mirrors this: `continue_predicate` requires a future *non-vacuous* CROSS-02-01 PASS; literal "NO feature value is materialized in this ROADMAP-stub PR" present. |
-| 5 | Uses the closed 02_01_01 artifacts correctly | PASS (path nit N1) | All cited inputs exist on disk (registry CSV/MD, §10 verdict CSV/MD, leakage_audit JSON/MD, the 4 LOCKED specs, matches_history_minimal.yaml, step_template.yaml). Stub `outputs` correctly marked "(planned, NOT created)". See N1 on the registry path-naming. |
-| 6 | Keeps PR #229 §10 and PR #230 CROSS-02-01 evidence distinct | PASS | Distinction enforced by the source artifacts (leakage_audit_sc2egset.md §5 lines 82-90; .json notes). Plan out-of-scope keeps them distinct; §10 design-time verdict (26 catalog rows) ≠ future post-materialization CROSS-02-01 audit (non-empty features_audited). |
-| 7 | Planned files minimal + repo-consistent | PASS | All 6 Layer-2 files exist on disk today (edits, not surprise creations); no forbidden path in either layer; Layer 1 = exactly the 2 planning files. |
-| 8 | Version bump 3.66.0 → 3.67.0 (minor) follows git-workflow SemVer | PASS | git-workflow.md: "minor for feat/refactor/docs". feat/ branch → minor correct; on-disk pyproject = 3.66.0 → 3.67.0 is the next minor. |
-| 9 | Materializable into a draft PR WITHOUT execution this turn | PASS | Layer 1 commits only the 2 planning files; no ROADMAP/status/artifact touch this turn. Matches the PR #231 draft-PR-first precedent (commits 2c78c6e4 / af1fc934). |
-| 10 | Any blocker explicit | PASS | Plan flags its own highest-risk item (the 5-family scope decision) and routes it to adversarial review before the future scaffold PR. No hidden blocker; none found. |
+1. **Risk-register path.** The `RISK-NN` identifiers (RISK-24 focal/opponent
+   slot asymmetry; RISK-26 SC2 Random race must not be conflated with eventual
+   race; RISK-20 cross-region fragmentation) live in
+   `thesis/pass2_evidence/methodology_risk_register.md`, NOT the dataset-level
+   `risk_register_sc2egset.csv` (which uses the `SC-R01..` scheme). The future
+   scaffold notebook must cite the methodology-register path so a reader does
+   not grep the dataset register, find `SC-R`, and conclude the falsifier is
+   undefined. Verified: RISK-24 @ methodology_risk_register.md:445; RISK-26
+   @ line 479; RISK-20 @ line 375. No NOW edit required.
+2. **Anchor-column divergence is the SAME view-vs-raw decision.** The registry
+   CSV records `temporal_anchor=details_timeUTC` (raw column); CROSS-02-02 §6.1
+   / CROSS-02-00 §5.1 name the harmonized-view anchor `started_at`. This is the
+   same view-vs-raw divergence as the source-table divergence (§4.1). The
+   future second-pass must treat anchor-column-name and source-table-layer as
+   ONE coupled decision, not two. (Plan §4.1 now records this.) No NOW edit.
 
-## Additional verifications
+## 13-check results (all PASS)
 
-- **Stub under section 02_01; stub-only PR does not change PIPELINE_SECTION_STATUS — PASS.**
-  STEP_STATUS has `02_01_01: complete`, no `02_01_02` row; PIPELINE_SECTION_STATUS
-  has `02_01: complete` (only Phase-02 section). Adding NO STEP_STATUS row leaves
-  the derivation untouched → `02_01` stays `complete`. The "status reopen
-  disclosure" is real and on disk in BOTH places the plan cites: CHANGELOG.md
-  line 53 (PR #230 block) and per-dataset research_log.md line 18. Not invented.
-  Sub-concern resolved: `02_01 = complete` (sole listed section) is consistent
-  with PHASE_STATUS Phase 02 = `in_progress` — PIPELINE_SECTION_STATUS lists
-  sections incrementally (1-of-8 canonical sections added; phase `in_progress`
-  when ANY section is in_progress or complete). NOT a derivation bug.
-- **Stub field schema matches the closed 02_01_01 block + step_template.yaml — PASS.**
-  Closed block (ROADMAP ~1914-2097) uses the same field set; stub conventions
-  (`predecessors: "02_01_01"`, invariants I3/I5/I6/I7/I8/I9/I10, gate triad,
-  outputs marked planned) match both the closed block and step_template.yaml. All
-  cited invariant IDs valid (I3 temporal, I5 symmetric, I6 report-with-code, I7
-  magic numbers, I8 cross-game, I9 pipeline discipline, I10 provenance).
-- **5 pre_game families exist with the claimed classification — PASS.**
-  Registry CSV verified one-for-one: `focal_race_with_opponent_race_pair`,
-  `map_type_encoded`, `patch_version_encoded`, `matchup_encoded`,
-  `is_mmr_missing_flag` — all `prediction_setting=pre_game`, `status=allowed`,
-  `cold_start_handling=G-CS-1`, `candidate_leakage_modes=none`,
-  `allowed_cutoff_rule=snapshot_at_match_start`. The 6 deferred
-  `history_enriched_pre_game` families carry genuine leakage modes — deferring
-  them to isolate distinct leakage-falsifier regimes is methodologically sound.
+1. **Outcome A correctly chosen — PASS.** data-analysis-lineage.md:43-53 mandates
+   the 9-step non-batching sequence; step 1 = ROADMAP stub (PR #232), step 2 =
+   "notebook scaffold + one validation module," steps 7-8 = artifacts/status only
+   after all validation modules pass. Outcome B forbidden by the ROADMAP halt
+   predicate (ROADMAP.md:2250-2263, incl. "halt if the future notebook scaffold
+   attempts to batch ROADMAP + notebook + artifact + next step"). CROSS-02-02
+   §12.1 line 539 verbatim: "a single `is_mmr_missing` flag for sc2egset … No
+   feature table is produced." Confirmed exactly.
+2. **Non-batching obeyed — PASS.** Layer-2 manifest = scaffold .py + .ipynb +
+   validator + test + planning/INDEX + 2 planning files + CHANGELOG + pyproject.
+   No Parquet/artifact/status/research_log/ROADMAP. Exactly sequence step 2.
+3. **No feature value materialized — PASS.** `materialized_output_paths` hard-coded
+   to `()`; validator writes nothing; notebook persists nothing (FORBIDDEN
+   CREATE/INSERT/COPY/to_parquet). Gate asserts the json still has
+   `features_audited==[]` (verified on disk).
+4. **No artifact/status/research_log mutation — PASS.** Manifest excludes all;
+   F-mutation falsifier + gate require diff == 9-file manifest exactly. ROADMAP
+   itself confirms research_log NOT required for this lineage step.
+5. **Phase 03 / 02_01_03 / 02_02+ untouched — PASS.** Out-of-scope §10 + F-phase03;
+   ROADMAP.md:2240-2249 gates 02_01_03 behind a non-vacuous post-materialization
+   audit this scaffold does not run.
+6. **is_mmr_missing_flag framing safe — PASS.** CROSS-02-02 §6.1 line 228 verbatim:
+   "Use the missingness flag, not the MMR scalar. MMR is structurally absent for
+   83.95% of rows … the raw scalar is not a defensible naive skill feature."
+   Validator `_check_is_mmr_missing_is_flag_not_skill` + `FORBIDDEN_SKILL_TOKENS`
+   enforces flag-not-scalar. CROSS-02-03 §6.1 line 240 independently lists it as
+   an allowed pre-game flag. Registry CSV row 6 confirms classification.
+7. **5-family tranche correct, free of history/in-game — PASS.** Registry CSV rows
+   2-6 are exactly the 5 named families (pre_game/allowed/none/G-CS-1/
+   snapshot_at_match_start); rows 7-12 (6 history_enriched, history_time<target,
+   G-CS-2..5, rolling/h2h/rating modes) and rows 13-23 (11 in_game_snapshot,
+   tracker_events_raw, event.loop≤cutoff_loop) correctly deferred. §10 verdict
+   audit: all 5 carry derived_section10_verdict=allowed, empty halting_falsifier.
+8. **SQL/projection design sufficient + §4.2 cutoff semantics correct — PASS.**
+   CROSS-02-03 §6.1 line 235 ("a pre_game family reads only static pre-match
+   attributes of game T", cutoff "none (game-T attribute)") + CROSS-02-02 §6.1
+   lines 224-228 confirm the planner is CORRECT that these 5 static families take
+   NO history_time<target_time strict-< filter (that operator is for the deferred
+   history tranche per CROSS-02-03 D5/§6.2). Leak-freedom triad (game-T pre-game
+   columns only + POST-GAME token absence + non-tracker source) is correct.
+   CROSS-02-00 §3.2 line 187 confirms started_at exists only in
+   matches_history_minimal; sc2egset raw anchor is VARCHAR details_timeUTC.
+   Design is specific enough for the downstream Chat second-pass (which §7
+   mandates and the scaffold gate does NOT discharge).
+9. **Focal/opponent symmetry (I5) addressed — PASS.** §4.3 self-join on
+   (filename, player_id_worldwide); SAME expression both slots; no privileged
+   slot; RISK-24 enumerated; designed names contain no POST_GAME token.
+   `EXPECTED_PER_PLAYER_CONSTRUCTION="symmetric"` + `_check_symmetry`; registry
+   per_player_construction=symmetric for all 5.
+10. **PR #229 §10 vs PR #230 CROSS-02-01 evidence DISTINCT — PASS.** The
+    leakage_audit json's own `notes` field states it is NOT a substitute for the
+    PR #229 §10 verdict pair NOR for a future post-materialization audit. §10
+    verdict CSV has 26 data rows (verified). Ledger §11 accurate; scaffold adds
+    none, claims no clearance.
+11. **Files minimal + repo-consistent — PASS.** Validator/test naming matches the
+    two on-disk pairs (validate_registry_skeleton, validate_registry_section10_verdicts);
+    jupytext config at sandbox/jupytext.toml = `formats = "ipynb,py:percent"`;
+    9-file manifest minimal; notebook path matches the ROADMAP-declared notebook_path.
+12. **Version bump correct — PASS.** Current pyproject 3.67.0 (verified); future
+    scaffold-execution PR → 3.68.0 (MINOR, Category A feat); Layer-1 planning PR
+    does not bump. Consistent with git-workflow "minor for feat".
+13. **Blockers — none.** Every load-bearing assertion confirmed against disk.
 
-## Methodology critique
+## SQL / leakage-surface assessment (§4.1 / §4.2 / §4.3)
 
-- **Reproducibility chain (fragile link, → N1).** The closed `02_01_01` ROADMAP
-  block (~lines 2006/2008) names `02_01_01_feature_family_registry_sc2egset.csv`,
-  but the on-disk artifact is `02_01_01_feature_family_registry.csv` (no
-  `_sc2egset`). The catalog exists; only the closed block's *declared path*
-  drifts. The new `02_01_02` stub must cite the registry by its TRUE on-disk name
-  in its own `inputs` (the plan already does so) and must NOT propagate the stale
-  path. Quarantining the stale string out of scope is correct (editing the closed
-  block would break gate (a)).
-- **Temporal discipline.** Nothing in this diff feeds a model — it is a ROADMAP
-  stub. The riskiest *recorded* operation is the tranche selection; the 5 chosen
-  families all declare `snapshot_at_match_start` + `candidate_leakage_modes=none`
-  (race/map/patch/matchup/mmr-missing are match-setup facts known at T, not
-  post-game outcomes). No `.shift()`, window, or normalization stat is computed
-  here. Safe.
-- **Honest framing.** The plan says `02_01_01` materialized "no feature *value/
-  column*" — TRUE (registry is a catalog; leakage_audit JSON `features_audited:[]`
-  confirms). It never says "no artifact exists". No overstatement found.
-- **Cross-game generalization.** The 5 pre_game families (race/civ, map, patch,
-  matchup, mmr-missing) are match-setup facts available in both SC2 and AoE2
-  without in-game reconstruction. Deferring the 11 SC2-tracker-bound
-  `in_game_snapshot` families front-loads the cross-game-symmetric subset —
-  the opposite of silent SC2-drift. Stub invariant I8 correctly cited.
+The leakage surface is the point of this unit and the plan handles it correctly
+for a scaffold. **§4.2** is the load-bearing claim and survives scrutiny: the 5
+families are game-T static pre-match attributes; the spec corpus (CROSS-02-03
+§6.1 line 235; CROSS-02-02 §6.1 "none (game-T attribute)") confirms NO
+`history_time < target_time` strict-`<` filter applies to them (that operator is
+reserved for the deferred history tranche, CROSS-02-03 D5/§6.2). Leak-freedom
+correctly rests on the triad (game-T-pre-game-columns-only + POST-GAME-token-
+absence + non-tracker-source); the future substantive CROSS-02-01 §2.2 check
+(must report 0) is correctly deferred to materialization, not claimed now. The
+Random-race-is-post-decision trap (RISK-26) is correctly captured in §4.4
+("eventually-played race is post-decision, NOT used"). **§4.1** is the most
+material divergence: the registry CSV binds to `replay_players_raw`/`matches_flat`
+(raw/flat) while CROSS-02-02 §6.1 names `matches_history_minimal.faction` /
+`player_history_all.*` (view layer). The plan does NOT silently pick a layer — it
+binds to the closed registry CSV (the authoritative catalog per the lineage
+rule), records the divergence, and explicitly DEFERS the view-vs-raw layer
+decision to the mandatory future second-pass (§4.1/§7/§10). This is the correct
+disposition for a design-only scaffold. **§4.3** specifies a symmetric self-join
+on (filename, player_id_worldwide) with the same expression in both slots and
+RISK-24 enumerated — adequate for the downstream Chat leakage review §7 mandates.
+The anchor-column-name divergence (details_timeUTC vs started_at) is the same
+coupled view-vs-raw issue (nit 2). None of this makes the SCAFFOLD plan wrong or
+indefensible; the genuinely leakage-sensitive resolution is correctly deferred to
+the materialization PR plus its non-discharged Chat second-pass.
 
-## Non-blocker follow-ups (tracked for Layer-2 execution)
+## Files inspected
 
-1. **N1 — Registry-artifact path drift.** Layer-2 stub `inputs` must cite the
-   registry by its true on-disk name `02_01_01_feature_family_registry.csv/.md`,
-   NOT the closed block's stale `..._registry_sc2egset.csv` path. Do NOT fix it
-   inside the closed `02_01_01` block (would violate gate (a)); fix only in the
-   new stub's own citations. (Folded into plan T01 step 4.)
-2. **N2 — Pre-empt the Phase-02 derivation question.** The Layer-2 stub /
-   CHANGELOG should note that `02_01 = complete` (sole listed section) is
-   consistent with Phase 02 `in_progress` because PIPELINE_SECTION_STATUS lists
-   sections incrementally (1-of-8 → phase `in_progress`). Prevents a future
-   reviewer from flagging a non-bug. (Folded into plan T03 CHANGELOG `### Notes`.)
-3. **N3 — §10 / CROSS-02-01 non-substitution language in stub prose.** Verify at
-   Layer-2 execution that the stub's `description` / `continue_predicate` text
-   actually restates the distinction (not only the inputs list). The closed block
-   already does (lines 2060-2066), so copying conventions should carry it —
-   confirm, don't assume. (Tracked for the Layer-2 final gate; the stub
-   `continue_predicate` in this plan already carries the non-substitution clause.)
+.claude/scientific-invariants.md; .claude/rules/data-analysis-lineage.md;
+sc2egset PHASE_STATUS.yaml / STEP_STATUS.yaml / ROADMAP.md (Step 02_01_02,
+lines 2099-2272); 02_01_01_feature_family_registry.{csv,md};
+02_01_01_section10_verdict_audit.csv; 02_01_01/leakage_audit_sc2egset.json;
+reports/specs/02_00_feature_input_contract.md (§3.1/§3.2);
+reports/specs/02_02_feature_engineering_plan.md (§6.1, §9, §12.1);
+reports/specs/02_03_temporal_feature_audit_protocol.md (§6.1, D5/D7);
+sandbox/jupytext.toml; validate_registry_skeleton.py (naming reference);
+thesis/pass2_evidence/methodology_risk_register.md (RISK-20/24/26).
 
-## Honesty audit
+## ChatGPT second-pass leakage review addendum — PR #233
 
-Framing accurate; every tested claim traces to an on-disk artifact:
-- "vacuous/zero-materialization audit" → leakage_audit_sc2egset.json
-  `features_audited:[]`, verdict PASS on §5(a) vacuity. Accurate.
-- "status reopen pre-disclosed in PR #230 CHANGELOG + research_log" →
-  CHANGELOG.md line 53, research_log.md line 18. Accurate, not invented.
-- "OQ4 resolved by PR #231" → PR #231 merged at e96374fe; manifest token present.
-  Accurate.
-- "5 pre_game families, status=allowed, leakage_modes=none, G-CS-1" → registry
-  CSV rows verified one-for-one. Accurate.
-- The one drift (registry path `_sc2egset`) is a pre-existing ROADMAP error the
-  plan quarantines, not an overstatement by the plan.
+The second-pass identified that the planned `FORBIDDEN_SKILL_TOKENS` check would falsely reject the approved `is_mmr_missing_flag` / `focal_is_mmr_missing` / `opponent_is_mmr_missing` names because they contain the substring `mmr`. The plan now distinguishes approved MMR-missingness/provenance tokens from scalar/rating/skill MMR tokens using an explicit allowlist plus boundary-aware forbidden-token checks. No scope or scientific decision changed: `is_mmr_missing_flag` remains tranche 1, but scalar MMR/rating proxies remain forbidden/deferred.
 
-## Adversarial-escalation recommendation: DEFER-TO-LAYER-2
+## ChatGPT repo-first implementation review addendum — PR #233 exact-membership fix
 
-A recorded-but-not-executed scope decision in a ROADMAP stub does NOT materially
-affect leakage semantics at the draft-planning-PR stage. The trigger for
-adversarial review is the *execution* of leakage-affecting code, not its *design
-on paper*. Here: (a) no feature column is materialized this turn (stub outputs
-explicitly "planned, NOT created"); (b) the actual leakage computation — the
-non-vacuous CROSS-02-01 audit over a non-empty `features_audited` — lands in a
-separate future PR; (c) that future PR will itself get a Category A
-reviewer-adversarial gate, the correct and sufficient checkpoint. The families
-the plan would record are the *least* leakage-contested in the registry
-(`candidate_leakage_modes=none`, `snapshot_at_match_start`); the contested
-rolling-window/rating families are explicitly deferred. No blocker found; nothing
-in this stub asserts empirical leakage clearance, flips a status gate, or starts
-Phase 03. Per the routing rule (escalate only on a reviewer-deep blocker OR a
-material leakage/status/Phase-03 effect), neither trigger fires. Reviewer-adversarial
-is correctly deferred to the Layer-2 / scaffold turn, where the full Category A
-pre-execution critique of the materialization-scope decision MUST be produced
-before any feature value is materialized.
-
-## Draft-PR-first workflow correction — PR #232
-
-PR #232 already exists before Layer-2 execution. The plan now uses literal `PR #232` in all future execution outputs instead of `PR #<this PR>` placeholders. The plan distinguishes the current 2-file planning diff, the 4 future execution files, and the 6-file final tracked PR diff. No scientific scope changed.
-
-## Category-A pre-execution adversarial critique — PR #232 (Layer-2 gate)
-
-> Produced by `@reviewer-adversarial` on 2026-05-22 against branch HEAD `146013e1`
-> (base master `e96374fe`). This is the Category-A pre-execution methodology gate
-> that the reviewer-deep Layer-1 gate deferred (DEFER-TO-LAYER-2). It must be in the
-> record before any Layer-2 ROADMAP execution turn begins.
-
-### Verdict
-
-**APPROVE-WITH-NITS — zero blockers, zero conditions, no `current_plan.md` edit required.**
-The ROADMAP-only stub is methodologically defensible as a recorded design decision.
-The two methodology-sensitive questions reviewer-deep deferred — the 5-family scope
-cut and the `is_mmr_missing_flag` placement — are both adjudicated defensible, the
-flag's placement *positively mandated* by the LOCKED CROSS-02-02 spec.
-
-### `is_mmr_missing_flag` decision: KEEP-IN-TRANCHE-1
-
-- **Cannot leak:** registry `snapshot_at_match_start`, `candidate_leakage_modes=none`,
-  `G-CS-1`; it is an `MMR=0` sentinel read from the replay's own pre-game header — no
-  history window, no outcome dependency, no tracker event. Invariant #3 safe.
-- **Not degenerate:** ~84% TRUE / 16% FALSE in the 44,418-row prediction scope
-  (37,422 player-rows flagged; MMR = 83.95% missing per the 01_04_01 missingness
-  ledger, MAR-primary).
-- **Spec-mandated placement:** `reports/specs/02_02_feature_engineering_plan.md`
-  line 228 ("use the missingness flag, not the MMR scalar; rating proxies must come
-  from `history_enriched_pre_game`") and line 539 (designates `is_mmr_missing` the
-  canonical first SC2 validation module). Deferring it with the rating/history
-  families would CONTRADICT the locked spec — the spec deliberately separates the
-  pre_game *missingness flag* from the deferred *rating proxies* / MMR scalar.
-- **Caveat (deferred to materialization PR, nit 1):** the flag is a replay-
-  *provenance* proxy (ladder vs. tournament), not a skill measure, and has no AoE2
-  analog. The future materialization report must characterize it as provenance, not
-  skill — but that is the materialization PR's burden, not a reason to move it.
-
-### Focus-area adjudications (all 10 — all defensible)
-
-1. `02_01_02` ROADMAP-only stub is the correct next atomic unit — YES (TAXONOMY
-   sequential steps; data-analysis-lineage sequence step 1; closed-block precedent).
-2. 5-family pre_game scope defensible — YES (the only rows with leakage_modes=none +
-   G-CS-1 + snapshot_at_match_start; principled cut; not over/under-scoped).
-3. `is_mmr_missing_flag` — KEEP-IN-TRANCHE-1 (see above).
-4. Avoids materialization / notebooks / artifacts / status flips / research-log writes — YES.
-5. PR #229 §10 vs PR #230 CROSS-02-01 evidence kept DISTINCT — YES (continue_predicate
-   states §10 does not substitute for the post-materialization audit).
-6. No overclaim of empirical leakage clearance — YES (02_01_01 framed catalog-only/vacuous).
-7. `02_01_03+` deferral of history (6) + in_game (11) tranches non-abandoning — YES (sequenced).
-8. Status-reopen logic honest — YES (no STEP_STATUS row → 02_01 stays complete;
-   re-derivation to in_progress fires only on execution; pre-disclosed CHANGELOG L53 +
-   research_log L18; the 01_04 net-zero reopen is the established precedent).
-9. Future Layer-2 file scope correct (6-file final diff) — YES (all 6 exist; 3.66.0→3.67.0 minor).
-10. Any blocker requiring re-planning before Layer-2 — NO.
-
-### Non-blocking nits (fold into the FUTURE Layer-2 materialization PR; no `current_plan.md` edit now)
-
-1. **Provenance-proxy framing + overstated cross-game prose.** Of the 5 tranche-1
-   families, only `matchup` and `map` are genuinely cross-game-shared (Invariant #8);
-   `patch_version_encoded` and `is_mmr_missing_flag` are SC2-specific (AoE2 uses
-   leaderboard/mode provenance). The stub's `scientific_invariants_applied` #8 field
-   already narrows this correctly; only the looser "Materialization scope" prose
-   overstates it. The future materialization MD must (a) call `is_mmr_missing` a
-   provenance indicator, not a skill feature, and (b) not sell the whole tranche as
-   cross-game-shared.
-2. **Pre-existing CHANGELOG self-inconsistency in the closed PR #230 block** (CHANGELOG
-   L46 "Phase 02 not_started → in_progress" vs L78 "Phase 02 remains not_started";
-   PHASE_STATUS authoritatively shows in_progress; the closed §10 / leakage_audit
-   artifacts still say "Phase 02 not_started", now stale). The stub correctly does NOT
-   touch these closed artifacts. A future Category C/E hygiene unit should reconcile
-   them — not this plan's concern.
-3. **Registry-path drift** (= reviewer-deep N1, re-confirmed): the closed block outputs
-   name `..._registry_sc2egset.csv`; the on-disk file is `..._registry.csv`. The stub
-   `inputs` already cite the true name; T01 step 4 forbids propagating the stale path.
-   Correctly quarantined; no plan action.
-
-### Mandatory for the FUTURE Layer-2 materialization (not this stub PR)
-
-Before the `02_01_02` materialization PR executes, a Claude Chat second-pass review is
-REQUIRED (in addition to the executor's own analysis): the focal/opponent projection
-SQL is where the first non-vacuous leakage computation lands, and subtle leakage there
-must get a second pass even if the executor's output looks correct.
+ChatGPT identified that the first execution of the validator enforced "no extra pre_game family" but did not mechanically fail when a non-MMR expected tranche family was missing. The validator now exposes `missing_families_in_tranche`, checks exact set equality against `TRANCHE1_PRE_GAME_FAMILY_IDS`, and halts on `missing_families_in_tranche` before other falsifiers. This is an implementation correction against the approved exact-5-family plan; no scope changed.
