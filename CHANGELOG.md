@@ -19,6 +19,36 @@ merged to `master`.
 
 ### Removed
 
+## [3.70.0] — 2026-05-23 (PR #236: feat/sc2egset-02-01-02-pre-game-materialization-execution)
+
+### Added
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/materialize_pre_game_features.py` — materialization + post-materialization audit module; frozen `MaterializationResult` + `AuditResult` dataclasses; module-level UPPER_SNAKE constants (Invariant I7); named SQL constants with `_QUERY` suffix (`_MATERIALIZATION_QUERY` reproduces the full projection — Invariant I6); public entrypoints `materialize_pre_game_features(duckdb_path, output_parquet_path, registry_csv_path)` and `run_post_materialization_audit(parquet_path, audit_json_path, audit_md_path, duckdb_path, audit_date, dataset, phase_02_step, audit_pr)`; 22 falsifiers implemented (incl. F-row-count-mismatch, F-symmetry-violation, F-race-vocabulary-drift, F-is-mmr-missing-distribution-drift, F-selectedRace-projected, F-post-game-token-projected, F-scalar-mmr-projected, F-tracker-source-read, F-history-window-leakage, F-features-audited-empty, F-features-audited-not-7, F-context-column-counted-as-feature, F-examiner-clarity-sentence-missing); examiner-clarity sentence embedded verbatim in BOTH the audit JSON `notes` and the audit MD §1.
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_materialize_pre_game_features.py` — 45-test mirrored-tree test file; synthetic `tmp_path` DuckDB fixtures (10-replay generator with configurable race vocab, MMR-missing flag, map name, patch); real-DB `skipif` smoke (row count, MMR distribution, audit JSON schema, examiner-clarity sentence presence, PR #234 binding hash check, PR #230 byte-preservation, reproducibility across runs); direct `_evaluate_materialization_falsifiers` / `_evaluate_audit_falsifiers` coverage on every halting label; ≥95% coverage.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet` — 44,418 rows × 11 projected cols (3 IDENTITY: `focal_match_id`, `focal_player`, `opponent_player`; 1 CONTEXT row-identity anchor: `started_at`; 7 audited PRE_GAME features: `focal_race`, `opponent_race`, `race_pair`, `map_type`, `patch_version`, `focal_is_mmr_missing`, `opponent_is_mmr_missing`); ZSTD compression; 100,000-row groups.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json` — first non-vacuous CROSS-02-01-v1.0.1 §3 audit JSON for Step 02_01_02; `features_audited` = exactly the 7 PRE_GAME feature columns; `projected_context_columns = ["started_at"]`; `projected_identity_columns = ["focal_match_id", "focal_player", "opponent_player"]`; `verdict = PASS`; full SHA-256 provenance bonds (PR #234 binding CSV+MD, registry CSV, 4 CROSS-02-NN specs, 3 cleaning-layer YAMLs, methodology risk register, materialization module, materialized Parquet).
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.md` — 8-section MD companion; verbatim `_MATERIALIZATION_QUERY` per Invariant I6; verbatim `matches_flat_clean.yaml:178-189` provenance block + registry-cell upstream-source → MFC cleaned-view binding paragraph; examiner-clarity sentence verbatim in §1; non-overclaim disclaimer; non-substitution + lineage statement.
+
+### Changed
+
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.py` + `.ipynb` — jupytext py:percent banner promoted from "SCAFFOLD + ONE VALIDATION MODULE" to "MATERIALIZATION + POST-MAT AUDIT (non-batching sequence steps 6-8 of 9)"; PR #233 scaffold cells preserved for lineage; new cells appended for imports (with `SET TimeZone = 'UTC'` per CROSS-02-00 §3.3, applied by the module on the DuckDB session), PR #234 frozen-inputs context, materialization call with assertions on row count / column order / halting falsifier, audit call with assertions on `verdict = PASS` / 7-tuple `features_audited` / role-partition disjointness; closing cell rewritten to record what was persisted (Parquet + non-vacuous audit JSON+MD) and what was NOT done (status YAML flips deferred to U2.B closure PR).
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` — append-only entry at top recording materialization-execution PR #236: `closure_status: still_open`, `leakage_audit_state: post_materialization_pass`, `features_audited_count: 7`, `row_count: 44418`, explicit "Step 02_01_02 NOT closed by this PR" statement, status YAML flips deferred to U2.B closure PR, Phase 03 not started.
+- `planning/INDEX.md` — archive PR #235 (merged 2026-05-23 at master `3b4340cb`) with the materialization-execution Layer-1 plan summary; promote PR #236 active line for this execution PR.
+
+### Notes
+
+- No status YAML flip: `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml` byte-unchanged. Step 02_01_02 closure is deferred to a separate U2.B closure PR per the merged Layer-1 plan (`planning/current_plan.md` §Open Questions OQ1 / §File Manifest closure-PR row).
+- No ROADMAP edit (the 02_01_02 stub block from PR #232 is untouched).
+- No spec amendment (CROSS-02-02 §6.1 minor amendment proposed in PR #234 §8 remains future-PR target).
+- No cleaning-layer YAML patch (`matches_flat_clean.yaml`, `matches_history_minimal.yaml`, `matches_long_raw.yaml` byte-unchanged).
+- No Phase 03 or 02_01_03+ work.
+- PR #230 audit JSON at `02_01_01/leakage_audit_sc2egset.json` is byte-unchanged (vacuous `features_audited == []` historical record preserved at its distinct path).
+- PR #234 adjudication artifacts at `02_01_02_source_anchor_race_adjudication.{csv,md}` are byte-unchanged.
+- PR #233 scaffold validator + tests are byte-unchanged.
+- ChatGPT second-pass leakage review (GPT-5.2 Thinking, 2026-05-23) returned APPROVE on the exact `_MATERIALIZATION_QUERY`; verdict quoted verbatim in `planning/current_plan.md` §Open Questions with ISO date.
+- Q1 source layer = `matches_flat_clean`; Q2(a) Phase-02 row-identity = `started_at TIMESTAMP` (`use_as_window_bound = false`); Q3 = RATIFY (`race`, not `selectedRace`).
+- Version bump 3.69.0 → 3.70.0 per git-workflow rule (minor for `feat`; new on-disk feature Parquet + audit JSON+MD + module + 45 tests + research_log entry).
+
 ## [3.69.0] — 2026-05-23 (PR #234: feat/sc2egset-02-01-02-source-anchor-race-adjudication)
 
 ### Added

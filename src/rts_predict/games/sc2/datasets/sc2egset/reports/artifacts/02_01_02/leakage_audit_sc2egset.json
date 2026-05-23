@@ -1,0 +1,48 @@
+{
+  "spec_version": "CROSS-02-01-v1",
+  "dataset": "sc2egset",
+  "phase_02_step": "02_01_02",
+  "audit_date": "2026-05-23",
+  "future_leak_count": 0,
+  "post_game_token_violations": 0,
+  "normalization_fit_scope": "training_fold_only",
+  "target_encoding_fold_awareness": "N/A_no_target_encoding",
+  "cutoff_time_filter_structural_check": "pass",
+  "reference_window_assertion": "pass",
+  "features_audited": [
+    "focal_race",
+    "opponent_race",
+    "race_pair",
+    "map_type",
+    "patch_version",
+    "focal_is_mmr_missing",
+    "opponent_is_mmr_missing"
+  ],
+  "projected_context_columns": [
+    "started_at"
+  ],
+  "projected_identity_columns": [
+    "focal_match_id",
+    "focal_player",
+    "opponent_player"
+  ],
+  "verdict": "PASS",
+  "audit_pr": "PR #236",
+  "lineage_position": "artifact #5 in the 5-artifact lineage for Step 02_01_02 readiness (after: PR #229 Section 10 design-time verdict pair; PR #230 vacuous CROSS-02-01 audit pair; PR #233 scaffold + 1 validator; PR #234 adjudication artifact pair; this materialization + post-mat audit)",
+  "feature_parquet_path": "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet",
+  "feature_parquet_sha256": "24db73fbb897f883f73891745bc5e98d3e6c9a33d961c9606f6e2c5dc224ff39",
+  "materialize_module_sha256": "dfcdf3ff80d37187388d3e0dbad199378e41d9351eb516f2807515d75066400d",
+  "registry_csv_sha256": "320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f",
+  "pr_234_binding_csv_sha256": "af1da660f4ab62195c78e3988c4e25a992c1ebbd5db164e5df6b619d7921b062",
+  "pr_234_binding_md_sha256": "c27f633dac74f931574dd0a90ed3361ca97efd7b67ff1452eb4fc3253177038f",
+  "methodology_risk_register_sha256": "502e4a00ea5611c6a245cc65192c00ca1b16e8263fb2882d54f44e8cf057fc92",
+  "matches_flat_clean_yaml_sha256": "9f76c1912624535b7b7ac0d2fb767fd4b9791a1d808bf73f747416d557d6cb1f",
+  "matches_history_minimal_yaml_sha256": "4c700e1b1584186542d6c1c43f847c03ee8664ced948534143e605a05ae7e67f",
+  "matches_long_raw_yaml_sha256": "9c240c0a97e9fb0d41deb857b2de2ce264f53980ee79b44193276ce55d71998b",
+  "spec_02_00_sha256": "53e02bc964e85bd86ca7ed4bcb12ac0911f60db3187be908a394d9d965afe946",
+  "spec_02_01_sha256": "2b3f60f3be9008da82297fb2966c76bce661842523716c3937ffc646c41f4684",
+  "spec_02_02_sha256": "86af792370272e611f048aae0c48c9cc595eb4b44c1db38c0bb4ecea0ff1b289",
+  "spec_02_03_sha256": "59e3227307c51ad09fb12b485caec36aa54413d175cb46acc382c06fbb8ac546",
+  "provenance_git_sha": "51288130d3614cd5ea12b4fcb32ce946cb3ebc24",
+  "notes": "Step 02_01_02 NOT closed by this PR; closure deferred to a separate PR per planning U2.B (PR #229 -> PR #230 precedent). PIPELINE_SECTION_STATUS 02_01 = complete remains derived from STEP_STATUS until a future PR adds 02_01_02 to STEP_STATUS, at which point YAML-derivation re-derives 02_01 = in_progress (intended behaviour, pre-disclosed in PR #230 CHANGELOG Notes). cutoff_time_filter_structural_check = pass is justified BY DESIGN for the 5 tranche-1 static game-T attributes per CROSS-02-03 Section 6.1; no strict-< filter applies; the anchor started_at is a row-identity column not a window bound. normalization_fit_scope = training_fold_only is vacuously satisfied because no encoder/scaler was fit at this layer -- raw categorical strings and BOOLEAN values are retained for Phase 03 fold-aware encoder fitting (Invariant I3 normalization-leakage discipline; CROSS-02-02 Section 9.1 G-CS-6). PR #230 audit JSON at 02_01_01/leakage_audit_sc2egset.json remains byte-unchanged (features_audited == [] historical record preserved at distinct path). EXAMINER-CLARITY: `started_at` is projected as a row-identity anchor only (CROSS-02-00 Section 5.1 = CONTEXT; PR #234 Q2(a) use_as_window_bound = false) and is excluded from `features_audited`. The 11 output columns partition into 3 projected identity columns (`focal_match_id`, `focal_player`, `opponent_player`), 1 projected context anchor (`started_at`), and 7 audited PRE_GAME feature columns (the exact contents of `features_audited` above). Only the 7 audited columns are model features; the 3 identity columns are lineage / split keys; the 1 context anchor is a row-identity anchor never consumed as a numeric/categorical feature. This is the first non-vacuous CROSS-02-01 audit for Step 02_01_02 (PR #236)."
+}
