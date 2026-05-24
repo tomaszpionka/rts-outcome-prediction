@@ -6,7 +6,7 @@ plan_base_ref: 3c6709bfc21baba893d34a3b87c308d7f8ba787e
 plan_branch: feat/sc2egset-02-01-03-history-source-anchor-coldstart-adjudication
 plan_step: "02_01_03 (Layer-1 source/anchor/cold-start adjudication planning)"
 plan_category: A
-planning_pr: "PR #<assigned-at-open>"
+planning_pr: "PR #242"
 round: 3
 rounds_cap: 3
 verdict: APPROVE-WITH-NITS
