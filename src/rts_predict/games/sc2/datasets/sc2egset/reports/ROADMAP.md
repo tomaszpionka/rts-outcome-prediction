@@ -2271,6 +2271,257 @@ research_log_entry: >-
   src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
 ```
 
+### Step 02_01_03 — History-enriched pre_game feature-family materialization (sc2egset)
+
+```yaml
+step_number: "02_01_03"
+name: "History-enriched pre_game feature-family materialization (sc2egset)"
+description: >-
+  Second MATERIALIZATION step of Pipeline Section 02_01: materialize the 6
+  history_enriched_pre_game feature families declared allowed (or
+  allowed_with_caveat for cross_region_fragmentation_handling) in the closed
+  Step 02_01_01 registry — focal_player_history, opponent_player_history,
+  matchup_history_aggregate, reconstructed_rating,
+  cross_region_fragmentation_handling, in_game_history_aggregate. Then
+  re-run the CROSS-02-01-v1.0.1 post-materialization leakage audit on the
+  resulting non-empty features_audited set. Strict history cutoff:
+  history_time < target_time (per CROSS-02-02 §6.2 row 1 strict-less-than;
+  Invariant I3; CROSS-02-00-v3.0.1 §3.3; CROSS-02-03 §5.1). Per-dataset
+  history anchor: ph.details_timeUTC < target.started_at. The 6th family
+  in_game_history_aggregate aggregates IN_GAME_HISTORICAL columns
+  (APM/SQ/supplyCappedPercent/header_elapsedGameLoops) over PRIOR matches;
+  these columns are retained in scope per CROSS-02-02 §6.2 row 6 for
+  history-aggregation use while remaining forbidden as direct game-T
+  pre-game features. No tracker_events_raw source for any family (Invariant
+  I3; Amendment 2 of PR #208). The 5 closed pre_game families materialized
+  by PR #236 are READ as upstream evidence inputs but NOT re-materialized.
+  The 11 in_game_snapshot families (tracker-event-bound) are DEFERRED to a
+  successor Step 02_01_04+. Lineage position: ROADMAP stub is artifact #1
+  of N for Step 02_01_03 readiness (subsequent artifacts: notebook scaffold
+  + one validator, tranche-2 source/anchor/cold-start adjudication,
+  materialization-execution plan, materialization-execution, closure).
+  This is the SECOND materialization tranche of Pipeline Section 02_01;
+  tranche 1 (PR #236) materialized 5 pre_game families; tranche 3 (future
+  Step 02_01_04) will materialize in_game_snapshot families. NO feature
+  value is materialized in this ROADMAP-stub PR — this entry only declares
+  the future step per .claude/rules/data-analysis-lineage.md "Non-batching
+  rule for empirical work" sequence step 1; the notebook scaffold, one
+  validation module, source/anchor/cold-start adjudication, materialization,
+  and the post-materialization audit are produced by SEPARATE FUTURE PRs
+  (sequence steps 2-9).
+phase: "02 — Feature Engineering"
+pipeline_section: "02_01 — Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: >-
+  Can the 6 allowed history_enriched_pre_game feature families from the
+  closed Step 02_01_01 registry be materialized into a
+  per-(focal_match_id, focal_player) feature table whose every column
+  passes the CROSS-02-01-v1.0.1 post-materialization leakage audit with a
+  NON-vacuous (non-empty features_audited) PASS verdict, under strict
+  history_time < target_time cutoff (no <=, no closed-interval window, no
+  target-match final state — covers G-L-1, G-L-3, G-L-4, G-L-7),
+  symmetric focal/opponent construction (Invariant I5), and explicit
+  cold-start handling per CROSS-02-02 §9 (G-CS-2 through G-CS-6)?
+method: >-
+  For each of the 6 history_enriched_pre_game families, write a DuckDB
+  projection over matches_flat_clean joined to player_history_all keyed on
+  (player_id_worldwide) and filtered by ph.details_timeUTC <
+  target.started_at (STRICT inequality; Invariant I3; G-L-1 prohibits <=;
+  G-L-3 prohibits target-match final state; G-L-7 prohibits rolling /
+  h2h that include the target match). Produce focal_* and opponent_*
+  columns symmetrically (Invariant I5). Cold-start handling per family:
+  G-CS-2 (allow cold_start flag with declared threshold derivation) /
+  G-CS-3 (empirical smoothing-prior derivation from training fold only) /
+  G-CS-4 (no global rating fit; rating reconstructed forward in time from
+  prior decisive results only) / G-CS-5 (per-source cold-start
+  enumeration) / G-CS-6 (encoder + smoothing-prior fit on training folds
+  only). All smoothing/threshold constants empirically derived from
+  training folds only (Invariant I3 normalization discipline + G-CS-6) or
+  cited from literature (Invariant I7). Run the CROSS-02-01-v1.0.1 audit
+  (sections 2.1 cutoff structural check, 2.2 POST-GAME token absence, 2.3
+  normalization fit-scope, 2.4 reference window) over the materialized
+  columns; emit a NON-vacuous leakage_audit_sc2egset.{json,md} under
+  reports/artifacts/02_01_03/ with features_audited = the full set of
+  focal_* + opponent_* + matchup_* + rating_* + sensitivity column names.
+  All non-trivial logic in src/rts_predict/. THIS PR delivers only the
+  ROADMAP stub (sequence step 1); materialization is a separate future PR.
+stratification: >-
+  Per family: dataset_tag = sc2egset; prediction_setting =
+  history_enriched_pre_game. SC2 races (Prot / Terr / Zerg) are
+  stratification axes for matchup_history_aggregate (vocabulary {Prot,
+  Terr, Zerg} per closed PR #234 Q3.RATIFY; Random handled per
+  documented_gap noted in PR #234 §8). Cross-region fragmentation
+  sensitivity arm is co-stratified (with vs without filter) per
+  CROSS-02-02 §6.2 row 5 / RISK-20; the choice between (a)
+  strict-exclusion, (b) dual-feature-path, (c) sensitivity-indicator
+  co-registration is DEFERRED to the tranche-2 source/anchor/cold-start
+  adjudication PR (analogous to PR #234 for tranche-1).
+predecessors: "02_01_02"
+notebook_path: >-
+  sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.py
+inputs:
+  duckdb_tables:
+    - "matches_flat_clean"
+    - "matches_history_minimal"
+    - "player_history_all"
+  schema_yamls:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml"
+  prior_artifacts:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.json"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv"
+  external_references:
+    - "reports/specs/02_00_feature_input_contract.md (CROSS-02-00-v3.0.1) §3.3 strict-less-than rule, §5.4 SC2 column classification (IN_GAME_HISTORICAL distinct from IN_GAME)"
+    - "reports/specs/02_01_leakage_audit_protocol.md (CROSS-02-01-v1.0.1) §2.1 / §2.2 / §2.3 / §2.4"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1) §6.2 (6 history families; row 6 IN_GAME_HISTORICAL retention note), §9 (G-CS-2 / G-CS-3 / G-CS-4 / G-CS-5 / G-CS-6), §10 (G-L-1 / G-L-3 / G-L-4 / G-L-7)"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1) §3 audit object, §4 D1-D15, §5.1 strict-less-than, §6.2 history_enriched_pre_game prediction-setting rules, §10 verdicts"
+    - ".claude/rules/data-analysis-lineage.md (non-batching rule; halt-before-artifact)"
+    - ".claude/ml-protocol.md (three leakage failure modes — rolling, h2h, co-occurring matches)"
+    - ".claude/scientific-invariants.md (I3 temporal, I3 normalization, I5 symmetry, I6 SQL provenance, I7 no magic numbers, I8 cross-game, I9 step-derived conclusions, I10 relative-path)"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/methodology_risk_register.md (RISK-20 cross-region fragmentation; RISK-24 slot asymmetry; RISK-26 Random race semantics)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet"
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.json"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.md"
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.md"
+reproducibility: >-
+  Every materialized column traces to a registry row in
+  02_01_01_feature_family_registry.csv (rows 7-12); every projection SQL
+  with its strict-< history filter is embedded verbatim in the report MD
+  alongside its result (Invariant I6). No magic numbers (Invariant I7):
+  cold-start thresholds (K), smoothing pseudocounts (m), and Bayesian
+  prior strengths (alpha) are either empirically derived from training
+  folds only (G-CS-1 / G-CS-3) or cited from literature; the derivation
+  procedure is recorded in the materialization PR's report MD. Encoder
+  and smoothing-prior fit on training folds only (G-CS-6; CROSS-02-01
+  §2.3). Glicko-2 rating reconstructed forward in time match-by-match —
+  no global / batch fit. Seed 42 convention; deterministic export;
+  relative-path provenance (Invariant I10).
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Every history-derived column applies STRICT ph.details_timeUTC <
+      target.started_at; no closed-interval, no <=, no rolling window
+      that includes the target match (G-L-1, G-L-3, G-L-7). Rating
+      reconstruction is forward in time only — game T's outcome never
+      enters game T's rating feature (CROSS-02-02 §10 G-L-4). All
+      smoothing/scaling/imputation statistics are fit on training folds
+      only (Invariant I3 normalization-leakage discipline; G-CS-6). No
+      tracker-derived source (Invariant I3; Amendment 2 of PR #208).
+  - number: "5"
+    how_upheld: >-
+      Every per-player family produces focal_* and opponent_* columns
+      symmetrically via the same SQL pattern; no player slot is
+      privileged. RISK-24 data-dependent slot-assignment falsifier
+      enumerated in the materialization notebook.
+  - number: "6"
+    how_upheld: >-
+      Every reported count/distribution in the report MD is accompanied
+      by its verbatim DuckDB SQL with the strict-< filter; no value is
+      paraphrased.
+  - number: "7"
+    how_upheld: >-
+      No magic numbers. Cold-start threshold K, smoothing pseudocount m,
+      Bayesian prior strength alpha, and rating-reconstruction
+      hyperparameters are each either empirically derived from training
+      folds (G-CS-1/G-CS-3/G-CS-6) or cited from literature with the
+      citation embedded in the materialization PR's report MD.
+  - number: "8"
+    how_upheld: >-
+      The 6 history families are the shared cross-game history
+      categories (player_history, opponent_history, matchup_history,
+      reconstructed rating) named in Invariant I8; encoders + smoothing
+      priors carry dataset_tag = 'sc2egset' partition and are not fit
+      cross-dataset.
+  - number: "9"
+    how_upheld: >-
+      The Step reads only Phase 01 outputs and the CLOSED Steps 02_01_01
+      + 02_01_02 artifacts (all lower-numbered, on disk); builds no
+      model; makes no source-stratified evaluation claim.
+  - number: "10"
+    how_upheld: >-
+      The materialized feature table and its provenance use the
+      relative-path convention; no absolute path is written to any
+      artifact.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only
+    after the future scaffold-and-materialization PR materializes the
+    feature table + the NON-vacuous CROSS-02-01-v1.0.1 audit pair; at
+    that point the predicate is "the planned Parquet feature matrix, the
+    audit JSON, and both report MDs exist at the declared paths and are
+    non-empty, the audit JSON has features_audited != [] with verdict =
+    PASS, and every history column projected applied a strict-<
+    ph.details_timeUTC < target.started_at filter verifiable in the
+    materialization SQL."
+  continue_predicate: >-
+    A future PR may begin Step 02_01_04 (the next 02_01 materialization
+    step — in_game_snapshot tranche) only after this Step 02_01_03 has
+    reached its artifact-check at a future PR, the CROSS-02-01-v1.0.1
+    post-materialization audit has returned a NON-vacuous PASS
+    (future_leak_count = 0, post_game_token_violations = 0 over a
+    non-empty features_audited covering all 6 history families'
+    materialized columns), and a per-family CROSS-02-03-v1.0.1 §10
+    verdict consistent with the materialized columns is recorded. The
+    §10 design-time verdict audit (PR #229) is a distinct artifact and
+    does NOT substitute for this post-materialization CROSS-02-01 audit;
+    a re-executed §10 audit over the 6 history rows (distinct from the
+    PR #229 design-time audit that covered the catalog at registry-
+    creation time) is required before tranche-3 may begin, OR a
+    non-vacuous justification for not re-running must be recorded in the
+    materialization PR's research_log entry.
+  halt_predicate: >-
+    Halt before generating any feature artifact if any of the following
+    hold (per .claude/rules/data-analysis-lineage.md "Stop conditions"):
+      - any materialized history column uses <= or no time filter
+        (G-L-1 violation; Invariant I3);
+      - any rolling aggregate or head-to-head aggregate includes the
+        target match's own row (G-L-7);
+      - any history column uses the target match's final state
+        (G-L-3 violation);
+      - any rating uses game T's outcome (G-L-4);
+      - any encoder, scaler, smoothing prior, or rating-reconstruction
+        hyperparameter is fit on validation/test folds, on the full
+        dataset, or cross-dataset (Invariant I3 normalization-leakage;
+        G-CS-6);
+      - any tracker_events_raw column is read for a history family
+        (Invariant I3; Amendment 2 of PR #208);
+      - any family outside the 6 history_enriched_pre_game rows is
+        materialized in this Step (scope creep into the deferred
+        in_game_snapshot tranche);
+      - any cold-start row pins a numeric pseudocount, threshold, or
+        smoothing constant without a fold-aware empirical derivation or
+        literature citation (Invariant I7; G-CS-1);
+      - the focal_* / opponent_* construction is asymmetric (Invariant
+        I5; RISK-24);
+      - the cross_region_fragmentation_handling sensitivity arm is
+        materialized without prior tranche-2 source/anchor/cold-start
+        adjudication selecting (a) strict-exclusion, (b) dual-path, or
+        (c) sensitivity-indicator co-registration (CROSS-02-02 §6.2
+        row 5; RISK-20);
+      - the future notebook scaffold attempts to batch ROADMAP +
+        notebook + artifact + next step in one execution (non-batching
+        rule);
+      - any future-Step pre-emption appears (e.g., 02_01_04 in_game
+        material in the same PR).
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > §4.5 Feature engineering plan (sc2egset history_enriched_pre_game materialization)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per
+  .claude/rules/data-analysis-lineage.md "Non-batching rule" sequence
+  (step 1 — ROADMAP stub only — produces no research_log entry).
+  Required on the future scaffold-and-materialization PR per the
+  standard step-completion protocol; entry goes into
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
+```
+
 ---
 
 ## Phase 03 — Splitting & Baselines (placeholder)
