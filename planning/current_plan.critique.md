@@ -6,7 +6,7 @@ plan_base_ref: e372e7b66be66b6026fb3bc39f51d1975da0b8b1
 plan_branch: feat/sc2egset-02-01-03-history-cross-region-adjudication
 plan_step: "02_01_03 (Layer-1 Q5-only cross-region retention-measurement successor adjudication planning)"
 plan_category: A
-planning_pr: "PR #<assigned-at-open>"
+planning_pr: "PR #243"
 rounds_run: 4
 rounds_cap: 3
 cap_override: "user-authorized R4 with strict B4-only mechanical scope"
