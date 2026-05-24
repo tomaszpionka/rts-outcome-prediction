@@ -6,7 +6,7 @@ plan_base_ref: f378f6f4ac37783e08dfcbe922d0c60b522a272a
 plan_branch: feat/sc2egset-02-01-03-history-scaffold
 plan_step: "02_01_03 (Layer-1 scaffold + ONE validation module planning)"
 plan_category: A
-planning_pr: "PR #<TBD>"
+planning_pr: "PR #240"
 verdict: APPROVE-WITH-NITS
 blockers: 0
 nits: 7

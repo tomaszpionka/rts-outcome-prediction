@@ -30,7 +30,7 @@ date: 2026-05-24
 planner_model: claude-opus-4-7[1m]
 non_batching_sequence_position: "Step 2 of 9 (scaffold + ONE validation module) — follows merged ROADMAP-only stub (PR #239); precedes future tranche-2 source/anchor/cold-start adjudication, materialization-execution plan, materialization-execution, audit, and closure."
 gate_reviewer: "reviewer-adversarial (Category A pre-execution gate)"
-planning_pr: "PR #<TBD>"
+planning_pr: "PR #240"
 planning_pr_scope: "Layer-1 (2 files only) — planning/current_plan.md + planning/current_plan.critique.md. NO scaffold, NO validator, NO test, NO source/notebook/artifact, NO pyproject bump, NO CHANGELOG entry, NO planning/INDEX.md archive, NO status YAML flip, NO research_log entry."
 future_execution_pr_scope: "Layer-2 (9 files: 7 deliverable + 2 inherited planning) — sandbox/.../02_01_03_history_enriched_pre_game_feature_materialization.{py,ipynb} (scaffold pair) + src/.../validate_history_enriched_pre_game_materialization.py + tests/.../test_validate_history_enriched_pre_game_materialization.py + planning/INDEX.md (archive PR #239 → promote Layer-2) + CHANGELOG.md (new [3.72.0] block) + pyproject.toml (3.71.0 → 3.72.0) + planning/current_plan.md (persisted from Layer-1) + planning/current_plan.critique.md (persisted from Layer-1). NO materialization, NO artifact, NO status YAML flip, NO research_log, NO Phase 03, NO Step 02_01_04, NO baseline modeling."
 ---
