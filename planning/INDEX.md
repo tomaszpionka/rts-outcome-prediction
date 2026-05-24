@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- feat/sc2egset-02-01-03-history-scaffold (2026-05-24) — Category A: Layer-2 execution PR for SC2EGSet Step 02_01_03 scaffold + ONE validation module (history-enriched pre_game tranche; 6 families). 7 execution files (validator module + mirrored test file + jupytext scaffold .py/.ipynb pair + planning/INDEX.md archive + CHANGELOG.md + pyproject.toml bump) + 2 inherited planning files (current_plan.md + current_plan.critique.md from PR #240). 16-falsifier priority chain; ≥30 tests; 98% coverage on the validator module. Version bump `3.71.0 → 3.72.0`. NO feature materialization, NO Parquet/audit artifact, NO status YAML flip, NO research_log, NO ROADMAP edit, NO cross-region policy choice, NO rating reconstruction algorithm pin, NO Step 02_01_04, NO Phase 03, NO baseline modeling. (PR #<TBD>, draft)
+- feat/sc2egset-02-01-03-history-scaffold (2026-05-24) — Category A: Layer-2 execution PR for SC2EGSet Step 02_01_03 scaffold + ONE validation module (history-enriched pre_game tranche; 6 families). 7 execution files (validator module + mirrored test file + jupytext scaffold .py/.ipynb pair + planning/INDEX.md archive + CHANGELOG.md + pyproject.toml bump) + 2 inherited planning files (current_plan.md + current_plan.critique.md from PR #240). 16-falsifier priority chain; ≥30 tests; 98% coverage on the validator module. Version bump `3.71.0 → 3.72.0`. NO feature materialization, NO Parquet/audit artifact, NO status YAML flip, NO research_log, NO ROADMAP edit, NO cross-region policy choice, NO rating reconstruction algorithm pin, NO Step 02_01_04, NO Phase 03, NO baseline modeling. (PR #241, draft)
 
 ## Archive
 

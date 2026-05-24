@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.72.0] — 2026-05-24 (PR #<TBD>: feat/sc2egset-02-01-03-history-scaffold)
+## [3.72.0] — 2026-05-24 (PR #241: feat/sc2egset-02-01-03-history-scaffold)
 
 ### Added
 
