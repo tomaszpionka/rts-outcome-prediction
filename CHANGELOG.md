@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.71.0] — 2026-05-24 (PR #<TBD>: feat/sc2egset-02-01-03-roadmap-stub)
+## [3.71.0] — 2026-05-24 (PR #239: feat/sc2egset-02-01-03-roadmap-stub)
 
 ### Added
 

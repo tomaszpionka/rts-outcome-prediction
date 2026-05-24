@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- feat/sc2egset-02-01-03-roadmap-stub (2026-05-24) — Category A: Layer-2 ROADMAP-only execution PR. Inserts Step `02_01_03` yaml block into `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (history-enriched pre_game tranche; 6 families: focal_player_history, opponent_player_history, matchup_history_aggregate, reconstructed_rating, cross_region_fragmentation_handling, in_game_history_aggregate; strict `ph.details_timeUTC < target.started_at`; G-L-1/3/4/7 halt gates; G-CS-2..6 cold-start gates; cross-region RISK-20 adjudication gating; §10 audit re-run gating). Version bump `3.70.1 → 3.71.0`. NO feature materialization, NO artifact, NO status YAML flip, NO research_log, NO Phase 03, NO baseline modeling. (PR #<TBD>, draft)
+- feat/sc2egset-02-01-03-roadmap-stub (2026-05-24) — Category A: Layer-2 ROADMAP-only execution PR. Inserts Step `02_01_03` yaml block into `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (history-enriched pre_game tranche; 6 families: focal_player_history, opponent_player_history, matchup_history_aggregate, reconstructed_rating, cross_region_fragmentation_handling, in_game_history_aggregate; strict `ph.details_timeUTC < target.started_at`; G-L-1/3/4/7 halt gates; G-CS-2..6 cold-start gates; cross-region RISK-20 adjudication gating; §10 audit re-run gating). Version bump `3.70.1 → 3.71.0`. NO feature materialization, NO artifact, NO status YAML flip, NO research_log, NO Phase 03, NO baseline modeling. (PR #239, draft)
 
 ## Archive
 
