@@ -69,3 +69,7 @@ The Layer-2 execution PR is expected to ship **7 execution files** (scaffold .py
 - **Lenses applied**: temporal discipline (Invariants I3, I4), statistical methodology (I8 — N/A for scaffold), feature engineering (I2, I5, I7), thesis defensibility (examiner simulation), cross-game comparability (I8 — N/A for SC2-only scaffold).
 - **Verdict resolution**: 11 challenges adjudicated; 0 blockers; 7 non-blocking nits; APPROVE-WITH-NITS.
 - **Rounds**: 1 of 3 used (per `feedback_adversarial_cap_execution.md` 3-round symmetric cap).
+
+## Manifest-count clarification addendum (post-review N1 application)
+
+**N1 was applied before merge.** Four contradictory phrases in `planning/current_plan.md` (Scope L47, Execution Steps L278, File Manifest L600, Gate Condition L628) that referenced "exactly 8 files" / "8 deliverable" / "T01-T08 produce the 8" / "8 deliverable + 1 inherited" have been corrected to the consistent contract: **7 execution files + 2 inherited planning files = 9 total** for the future Layer-2 PR. The frontmatter `future_execution_pr_scope` field (L35) was already correct and required no edit. The four corrections are pure-wording (no scientific scope change, no falsifier-order change, no T-step renaming, no Open Questions change). Nits N2–N7 remain unchanged and are addressable as targeted in-place edits during Layer-2 T05/T06/T07 execution.

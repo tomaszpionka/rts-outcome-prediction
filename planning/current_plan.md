@@ -44,10 +44,12 @@ This is a **Layer-1 planning PR**. It commits ONLY two files:
 
 This plan describes the future **Layer-2 execution PR** on branch
 `feat/sc2egset-02-01-03-history-scaffold`. The Layer-2 execution PR will
-deliver exactly 8 files: a jupytext-paired scaffold notebook (.py + .ipynb),
-a validation module under `src/rts_predict/`, a mirrored test file, and
-three repo-housekeeping updates (`planning/INDEX.md`, `CHANGELOG.md`,
-`pyproject.toml`) — plus the two inherited planning files. The Layer-2 PR
+have a **9-file final tracked diff**: **7 execution files** (a jupytext-paired
+scaffold notebook .py + .ipynb, a validation module under `src/rts_predict/`,
+a mirrored test file, and three repo-housekeeping updates `planning/INDEX.md` +
+`CHANGELOG.md` + `pyproject.toml`) **plus the 2 inherited planning files**
+(`planning/current_plan.md` + `planning/current_plan.critique.md` carried
+forward from this Layer-1 PR). The Layer-2 PR
 performs the non-batching sequence step 2 ("Notebook scaffold + one
 validation module") for SC2EGSet Step 02_01_03 (history-enriched pre_game
 tranche; 6 families).
@@ -275,9 +277,12 @@ artifact, lineage source, downstream decision).
 ## Execution Steps
 
 Each task below describes work to be performed by the Layer-2 executor.
-T01 through T08 produce the 8 Layer-2 deliverable files. T09 is the
-Layer-2 final-gate dispatch. **None of T01-T09 executes at this Layer-1
-PR.** This Layer-1 PR only commits the plan + critique (2 files).
+T01 through T08 produce the **7 Layer-2 execution files**; together with the
+**2 inherited planning files** (`planning/current_plan.md` +
+`planning/current_plan.critique.md` carried forward from this Layer-1 PR), the
+future Layer-2 PR has a **9-file tracked diff**. T09 is the Layer-2 final-gate
+dispatch. **None of T01-T09 executes at this Layer-1 PR.** This Layer-1 PR
+only commits the plan + critique (2 files).
 
 ### T01 — Validator dataclasses and constants
 
@@ -597,7 +602,7 @@ Implement the 13 test classes (one per falsifier in T03 priority order) plus the
 - `planning/current_plan.md` (created — this document)
 - `planning/current_plan.critique.md` (created by reviewer-adversarial in a separate dispatch)
 
-### Future Layer-2 execution PR (8 deliverable files + 1 inherited)
+### Future Layer-2 execution PR (7 execution files + 2 inherited planning = 9 total)
 - `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.py` (created by T06)
 - `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.ipynb` (created by T06)
 - `src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py` (created by T01-T03)
@@ -625,7 +630,7 @@ Implement the 13 test classes (one per falsifier in T03 priority order) plus the
 
 The Layer-2 execution PR passes the gate iff ALL of the following hold (verified by reviewer-deep + reviewer-adversarial if dispatched):
 
-1. **Exact file scope.** `git diff --name-only master..HEAD` shows exactly the 8 deliverable files + the 2 inherited planning files. No extras.
+1. **Exact file scope.** `git diff --name-only master..HEAD` shows exactly the **7 execution files + 2 inherited planning files = 9 tracked files**. No extras.
 
 2. **Validator passes on real registry.** A one-line bash command:
    ```
