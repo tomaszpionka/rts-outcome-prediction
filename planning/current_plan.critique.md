@@ -1,92 +1,103 @@
 ---
-plan_ref: planning/current_plan.md
-created: 2026-05-23
-category: A
-base_ref: 93240b19a7dc75e4a9c74d2c392f0c25091bc3ea
-reviewer_model: reviewer-adversarial (Opus, Category A pre-execution methodology gate)
+critique_of: planning/current_plan.md
+plan_branch: chore/sc2egset-02-01-02-formal-closure
+plan_step: "02_01_02 (U2.B formal closure planning)"
+plan_category: A
+critique_role: reviewer-adversarial (Category A Layer-1 pre-execution gate)
+critique_model: claude-opus-4-7[1m]
+critique_date: 2026-05-24
 verdict: APPROVE-WITH-NITS
-blockers: 0
-authorizes_layer1_materialization: true
-chat_second_pass_required_before_materialization: true
-revision_rounds: 2
+blockers_count: 0
+blockers_addressed_inline: 1
+nits_count: 6
 ---
 
-# Critique — SC2EGSet Step 02_01_02 materialization-execution plan (Category A pre-execution gate)
+# Adversarial Critique — SC2EGSet 02_01_02 U2.B Formal Closure Plan
 
-> Produced by `@reviewer-adversarial` in two passes. Pass 1 over the original
-> planner-science draft returned HOLD-WITH-BLOCKERS (2 blockers, 7 nits N1-N7).
-> Pass 2 (lightweight) over the user-revised plan returned APPROVE-WITH-NITS
-> (zero blockers, 3 cosmetic nits). The revision applied Option X
-> (features_audited = 7 PRE_GAME columns excluding the started_at anchor) + nits
-> N1-N4 via a focused @planner-science revision turn. Nits N5-N7 are deferred to
-> Layer-2 PR planning per the user's bounded-revision instruction.
+**Plan:** `planning/current_plan.md` on branch `chore/sc2egset-02-01-02-formal-closure`.
+**Base ref:** `39298c0afd3a23bfbd4603415314af784a672952` (PR #236 merge commit; master HEAD).
+**Final verdict:** **APPROVE-WITH-NITS.** Originally raised 1 blocker (B1) and 6 non-blocking nits. B1 was addressed inline in the plan body before this critique was written; the remaining 6 nits are recommendations the Layer-2 executor may apply or defer.
 
-## Verdict
+## Per-challenge-area verdict
 
-**APPROVE-WITH-NITS — zero blockers; no required `current_plan.md` edit beyond
-what the revision already applied. Authorizes materializing the Layer-1 draft
-planning PR this turn.**
+| # | Area | Verdict | Note |
+|---|---|---|---|
+| 1 | Closure is the next atomic step | **PASS** | PR #236 cleared CROSS-02-01 Section 5; closure is the mechanically defensible next unit. |
+| 2 | Step 02_01_03 planning before closure permitted? | **PASS** | PR #229 → PR #230 precedent correctly cited; plan defers 02_01_03 planning. |
+| 3 | Phase 03 baseline planning barred? | **PASS** | `docs/PHASES.md` lists 8 sections (`02_01` ... `02_08`); only `02_01` is complete. No clause permits Phase 03 start while Phase 02 is `in_progress`. |
+| 4 | PR #236 evidence sufficient to close `02_01_02`? | **PASS** | Audit JSON: `verdict = "PASS"`, `features_audited` length 7 = the 7 PRE_GAME materialized columns; JSON+MD at spec-named path. All 3 ROADMAP `continue_predicate` clauses cleared. |
+| 5 | `PIPELINE_SECTION_STATUS.yaml` byte-unchanged? | **PASS (was CAUTION)** | Original CAUTION flagged a contradiction between the plan and PR #236 audit JSON `notes` re-derivation language. Addressed inline (see B1). |
+| 6 | `PHASE_STATUS.yaml` byte-unchanged? | **PASS** | Phase 02 stays `in_progress` (1 of 8 sections complete); Phase 03 stays `not_started`. |
+| 7 | Category A / `chore/` + patch routing | **PASS (with N1 nit)** | `chore/` + patch defensible: closure adds no new artifact / source / test. PR #230 used `feat/` + minor because it created 2 new audit artifacts; the present closure creates none. |
+| 8 | `completed_at = "2026-05-23"` | **PASS** | PR #230 precedent: `02_01_01` row uses `2026-04-19` (audit date), NOT `2026-05-22` (merge date). Convention upheld. |
+| 9 | Closure-entry overclaim risk | **PASS** | PR #230 entry uses the same defensive-negation pattern. Mirrored here. |
+| 10 | Non-batching obedience (Layer-1 = 2 files; Layer-2 = 6 files) | **PASS** | Sequence step 8 (research_log / STEP_STATUS / manifest) is exactly the Layer-2 scope. |
+| 11 | No artifact / source / test / notebook / spec / ROADMAP / root-research-log change | **PASS** | Falsifiers `F-any-artifact-source-test-notebook-spec-or-roadmap-change` + `F-root-research-log-touched` explicitly enforce. |
+| 12 | Plan structure (8 named `##` sections) | **PASS** | All required sections present: `## Scope`, `## Problem Statement`, `## Assumptions & Unknowns`, `## Literature Context`, `## Execution Steps`, `## File Manifest`, `## Gate Condition`, `## Open Questions`. Pre-commit hook will not reject. |
 
-## Pass 1 — original-plan adversarial verdict (HOLD-WITH-BLOCKERS)
+## Blockers
 
-Outcome A defensibility: **PASS**. Sequenced choice — planning-only Layer 1 (2 files) authorising a future Layer 2 materialization PR — is consistent with the non-batching rule.
+### B1 — `PIPELINE_SECTION_STATUS.yaml` reconciliation with PR #236 audit JSON `notes` — **ADDRESSED INLINE**
 
-Eight user-mandated challenges:
+*Original issue.* The PR #236 audit JSON `notes` field (byte-frozen on master) reads: *"PIPELINE_SECTION_STATUS 02_01 = complete remains derived from STEP_STATUS until a future PR adds 02_01_02 to STEP_STATUS, at which point YAML-derivation re-derives 02_01 = in_progress (intended behaviour, pre-disclosed in PR #230 CHANGELOG Notes)."*
 
-1. **Feature/audit count consistency** — FAIL (BLOCKER 1). Plan said 7 (prose), 8 (T05 JSON + T03 test + Gate Conditions), and 11 (T01 cell 5 assertion) — three mutually inconsistent values.
-2. **PR #233 design drift (focal/opponent_matchup → race_pair)** — PASS-WITH-NIT (N1). Validator allows the 11-tuple; symmetric `race_pair` improves Invariant I5 satisfaction. Add T04 regression assertion.
-3. **Identity columns NOT features + `started_at` classification** — FAIL (BLOCKER 2). `started_at` was listed in `features_audited` despite being CONTEXT per CROSS-02-00 §5.1 line 360.
-4. **Source-layer binding (MFC vs registry replay_players_raw/matches_flat)** — PASS-WITH-NIT (N2). MFC is the cleaned 1v1-scoped projection over registry-cited upstreams per `matches_flat_clean.yaml:178-189`. Add 1-paragraph binding justification to audit MD §2.
-5. **No strict `<` filter** — PASS. SQL contains only equality JOINs + ORDER BY on started_at.
-6. **Closure sequencing (U2.B)** — PASS. PR #229 → PR #230 precedent + non-batching step 8 supports separate closure PR.
-7. **ChatGPT second-pass timing (U3.A)** — PASS-WITH-NIT (N3). Projection SQL is final at Layer-1 merge time. Clarify Gate Condition 12 to require verbatim quote of verdict.
-8. **Non-batching discipline** — PASS-WITH-NIT (N4). Disambiguate File Manifest "11 files" arithmetic.
+*Why this matters.* The closure-justifying evidence artifact predicts re-derivation to `in_progress` when `02_01_02` lands. The plan asserts byte-unchanged at `complete`. Both readings cannot be correct under the YAML header rule's ambiguous wording.
 
-Two blockers: B1 feature-count contradiction; B2 `started_at` classified as feature. Both fixable by ~3-line edits across T02/T03/T05/T01/Gate Condition.
+*Resolution applied inline (plan §T04 Notes block, line ~273).* The plan now records the reconciliation sentence: *"PR #236 audit JSON `notes` re-derivation language was conditioned on a successor landing with status `in_progress` (the typical scaffold-style path); this closure lands the successor directly with status `complete`, so the more-specific 'ALL steps complete' clause of the derivation rule dominates and re-derivation yields `complete`. PR #232 and PR #234 plan bodies anticipated this exact case ('if the successor lands with status `complete` directly, the section stays `complete`'). The PR #236 audit JSON is NOT amended by this PR; the reconciliation is recorded here in the closure CHANGELOG Notes as the authoritative location."*
 
-Seven nits: N1-N4 (recommended for application alongside the blocker fix); N5-N7 (Layer-2 / cosmetic, deferred).
+*Verdict.* B1 promoted from blocker to **addressed**; the Layer-2 executor must preserve this sentence verbatim in the `[3.70.1]` CHANGELOG Notes block.
 
-## Pass 2 — revised-plan lightweight adversarial verdict (APPROVE-WITH-NITS)
+## Non-blocking nits
 
-Both blockers CLOSED; all four N1-N4 nits APPLIED; constraint-5 (no Option Y leakage) ENFORCED; zero scope creep.
+### N1 — `chore/` + patch versus `feat/` + minor (branch / version)
+Plan reasoning is internally consistent: `.claude/rules/git-workflow.md` line 25 ties version-bump to branch prefix; this closure has no new artifact / source / test. PR #230's `feat/` was justified by 2 NEW audit artifacts. **Recommendation: keep `chore/` + patch `3.70.1`.** Pre-empt examiner-inconsistency optics with one CHANGELOG-Notes sentence: *"Branch prefix differs from PR #230 because PR #230 added 2 new audit artifacts; the present closure adds none and is patch-class per `.claude/rules/git-workflow.md`."*
 
-- **B1 PASS** — every count occurrence normalised to 7 audited features across T01 (cell 5 assertion), T02 (dataclass docstring + new `EXPECTED_AUDITED_FEATURE_COLUMN_COUNT: int = 7` constant + new `EXPECTED_AUDITED_FEATURE_COLUMNS` tuple), T03 (test 11 + new test 18 mutual-disjointness), T05 (JSON + MD §1/§6), Gate Conditions 2/6, Problem Statement, Evidence-distinctness ledger. Output Parquet preserved at 11 cols.
-- **B2 PASS** — `started_at` explicitly NOT in `features_audited`; new `PROJECTED_CONTEXT_COLUMNS: tuple = ("started_at",)` constant + `projected_context_columns` JSON field as clearly non-feature carrier; examiner-clarity sentence "`started_at` is projected as a row-identity anchor only and is excluded from `features_audited`" appears in JSON notes + MD §1/§4 + Problem Statement + research_log + Evidence ledger.
-- **N1 PASS** — T04 explicitly states the existing scaffold validator is re-invoked over the new 11-tuple `EXPECTED_OUTPUT_COLUMNS` and is expected to PASS unchanged because its column-name checks are allowlist-based (boundary-aware POST_GAME token equality + forbidden-skill token equality) with no hard-coded 9-tuple assertion.
-- **N2 PASS** — T05 MD §2 includes the registry → MFC binding 1-paragraph justification with a YAML blockquote citing `matches_flat_clean.yaml:178-189` (`source_tables`, `join_key`, `filter`, `scope`).
-- **N3 PASS** — Gate Condition 12 requires the ChatGPT verdict be **quoted verbatim** (not summarised) inside a Markdown blockquote prefixed with ISO YYYY-MM-DD date and model identifier.
-- **N4 PASS** — File Manifest disambiguates: Layer-1 = 2 distinct files; Layer-2 = 11 distinct on-disk files presented as 12 manifest rows because the jupytext-paired notebook is 1 logical update across 2 paired files; on-disk total = 13 = 2 + 11.
-- **Constraint 5 PASS** — No `CONTEXT_COLUMNS_PROJECTED` (Option Y) field exists. The two new JSON carriers `projected_context_columns` and `projected_identity_columns` are clearly non-feature by name and role. F-context-column-counted-as-feature falsifier + test 18 mutual-disjointness assertion enforce separation.
+### N2 — `completed_at = "2026-05-23"` thesis-citation defence
+Default is correct (PR #230 precedent: `02_01_01` row = `2026-04-19` audit date, not `2026-05-22` merge date). Optional: surface the convention in the closure entry's "How (reproducibility)" section explicitly.
 
-No-scope-creep checks — ALL PASS:
-- Layer-1 diff = 2 files exactly.
-- Layer-2 manifest unchanged file set.
-- 27 falsifiers total (24 original + 3 new tightening additions: F-features-audited-not-7, F-context-column-counted-as-feature, F-examiner-clarity-sentence-missing).
-- YAML frontmatter unchanged (category=A, branch, base_ref=`93240b19…`, date=2026-05-23).
-- All 8 required `##` sections present.
-- Decision banner (Outcome A), non-determinism classification, pipeline-section-status drift question all preserved.
-- Defaults U1=raw, U2.B=separate closure, U3.A=ChatGPT during Layer 1 all preserved.
+### N3 — Layer-2 manifest entry count optical inconsistency
+The plan body oscillates between "6 files" and "7 entries". Both correct under different counting conventions but creates examiner-question surface. Normalise on "6 distinct on-disk files; 7 manifest rows because the 2 planning files persist into the closure-PR diff per repo convention" in ONE place.
 
-## Non-blocking nits (cosmetic; Layer-2 / process; carry forward)
+### N4 — `closure_status` field formatting parity with PR #236 entry
+Plan T02 mixes `- **closure_status:** ...` (bulleted bold) with hyphen-prefixed `- closure_status: closed` (mid-list). Cosmetic; align with PR #236 entry style.
 
-- **N5 (Layer-2 nit, deferred)**: F-encoder-fit could be renamed F-encoder-fit-or-fold-leakage and made active even without an encoder fit.
-- **N6 (Layer-2 nit, deferred)**: OQ7 (DuckDB UTC `SET TimeZone = 'UTC'` placement) — declare module-side placement as authoritative.
-- **N7 (Layer-2 / cosmetic, deferred)**: Self-check #1 is 600+ words; one-paragraph TL;DR variant for audit MD §1.
-- **Revision-cosmetic-1**: File Manifest arithmetic still has a "wait, recounting" thought-fragment; final number lands correctly. Cosmetic.
-- **Revision-cosmetic-2**: T05 §4 re-asserts 7-features framing redundantly across §1/§6/T06/JSON/Problem Statement. Defensible for anchor-classification clarity. Cosmetic.
-- **Revision-cosmetic-3**: Self-check #1 still 600+ words after revision. Cosmetic.
+### N5 — Examiner pre-emption on "why not bundle into PR #236?"
+Problem Statement justifies separation via non-batching sequence steps 7 vs 8 but does not address why steps 6 + 7 WERE batched in PR #236. Optional one-sentence addition: *"PR #236 batched steps 6 + 7 (next validation module + artifact generation) because they share a single notebook execution and a single empirical falsifier (the audit verdict). Step 8 is governance with a distinct review surface (closure governance vs materialization correctness), so it rides a separate PR per PR #229 → PR #230 precedent."*
 
-## Files inspected across both passes
+### N6 — Plan body inflation
+Approximately 70 KB plan body for a 6-file substantive Layer-2 diff. Verbosity buys provenance bonds + falsifier completeness — the price of methodology rigour for Phase 02. Not a blocker.
 
-- `/tmp/mat_plan.txt` (original plan body).
-- `/tmp/mat_plan_v2.txt` (revised plan body).
-- `reports/specs/02_00_feature_input_contract.md` (§5.1 line 360 `started_at = CONTEXT` verbatim verified).
-- `reports/specs/02_03_temporal_feature_audit_protocol.md` (§6.1 lines 233-250 `pre_game` static-game-T-attribute exemption).
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_pre_game_feature_materialization.py` (lines 62-67 ALLOWED_PRE_GAME_SOURCE_TABLES; lines 287-315 `_is_forbidden_skill_column`; lines 466-500 `_check_no_post_game_tokens`; no hard 9-tuple assertion).
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_pre_game_source_layer.py` (line 105 `EXECUTED_AT_UTC_DATE` constant; lines 724-739 `_get_git_sha()` — non-determinism classification evidence).
-- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml` (lines 178-189 provenance block verbatim verified for N2).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (lines 2099-2272 Step 02_01_02 stub; lines 2233-2249 artifact_check + continue_predicate).
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.py` (lines 150-160 existing scaffold `DESIGNED_COLUMN_NAMES` 9-tuple).
-- `planning/current_plan.md` (PR #234 plan — stale, overwritten by this PR's Layer-1 Write).
-- `planning/current_plan.critique.md` (PR #234 critique — stale, overwritten by this PR's Layer-1 Write).
-- `planning/current_plan.critique_resolution.md` (older stale file — deleted; not recreated).
+## Falsifier completeness audit
+
+Traced each plan-body falsifier (14 gate-conditions + 17 falsifiers) to an on-disk or `git diff` check:
+
+- **F-pr236-audit-missing / -verdict-not-PASS / -features-audited-not-7 / -materialization-artifact-missing / -row-count-not-44418** — all cleared on master @ `39298c0a`.
+- **F-step-status-row-inconsistent-with-ROADMAP** — ROADMAP `02_01_02` stub `name` field matches the T01 target verbatim.
+- **F-pipeline-section-status-yaml-changed-without-derivation-justification** — fires correctly under B1 inline reconciliation.
+- **F-phase-status-starts-phase-03 + -changed-without-justification + -root-research-log-touched + -any-artifact-source-test-notebook-spec-or-roadmap-change** — all verifiable via `git diff --name-only`.
+- **F-closure-entry-overclaims-phase-03-or-step-02-01-03** — plan T02 includes the defensive negation.
+- **F-version-bump-incorrect / -changelog-version-mismatch / -archive-merge-sha-wrong / -active-line-overclaims-phase-03 / -batching** — all grep + diff verifiable.
+- **F-pr230-audit-mutated / -pr234-adjudication-mutated / -pr229-section10-mutated** — byte-comparison verifiable.
+
+Falsifier completeness is **STRONG**.
+
+## Lens assessment
+
+- **Temporal discipline:** N/A — governance-only closure; no data, feature, or temporal computation.
+- **Statistical methodology:** N/A — no statistical claim.
+- **Feature engineering soundness:** N/A — no feature mutation.
+- **Thesis defensibility:** **STRONG.** The closure correctly cites PR #229 §10 evidence + PR #230 vacuous audit + PR #233 scaffold + PR #234 adjudication + PR #236 materialization & non-vacuous audit. The B1 reconciliation defuses the audit-JSON-notes contradiction that an examiner would otherwise probe.
+- **Cross-game comparability:** **MAINTAINED.** Closure of an SC2-side step does not bind AoE2; no game-asymmetry is introduced.
+
+## Final summary
+
+**APPROVE-WITH-NITS.** B1 addressed inline; 6 nits are optional refinements. Layer-1 plan is ready for parent materialization to `planning/current_plan.md`. Layer-2 executor must preserve the B1 reconciliation sentence verbatim in the `[3.70.1]` CHANGELOG Notes block when writing the closure PR.
+
+## Recommended Layer-2 actions (in priority order)
+
+1. (REQUIRED) Preserve the B1 reconciliation sentence in the `[3.70.1]` CHANGELOG Notes block byte-exact (see plan §T04, line ~273 of plan body).
+2. (OPTIONAL) Apply N1's CHANGELOG-Notes branch/version-policy sentence.
+3. (OPTIONAL) Apply N3 manifest-count clarification.
+4. (OPTIONAL) Apply N4 cosmetic field-formatting parity.
+5. (OPTIONAL) Apply N5 Problem-Statement pre-emption sentence.
+6. (DEFER) N6 plan-body inflation — accept as the cost of provenance rigour.

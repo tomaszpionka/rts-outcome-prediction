@@ -2,6 +2,88 @@
 
 ---
 
+## 2026-05-24 — Formal closure of Step 02_01_02 (U2.B; status YAML flip; no new artifact)
+
+- **Category:** A (science / Phase 02 / step closure)
+- **Dataset:** sc2egset
+- **Branch:** `chore/sc2egset-02-01-02-formal-closure`
+- **PR:** `PR #237`
+- **Step scope:** Step 02_01_02 — formal closure (status YAML flip) after PR #236 materialized the pre_game tranche-1 Parquet (44,418 rows × 11 cols) and persisted the first non-vacuous CROSS-02-01-v1.0.1 leakage audit pair (`features_audited` length 7, `verdict = PASS`). PR #237 creates **no new artifact**.
+- **closure_status:** `closed`
+- **materialization_state:** `materialized`
+- **leakage_audit_state:** `post_materialization_pass`
+- **status_yaml_state:** `complete`
+- **features_audited_count:** `7`
+- **row_count:** `44418`
+- **artifact:** `02_01_02_pre_game_features.parquet`
+- **leakage_audit:** `reports/artifacts/02_01_02/leakage_audit_sc2egset.{json,md}`
+
+### What
+
+Flipped `STEP_STATUS.yaml` to add `"02_01_02": { name: "First pre_game feature-family materialization (sc2egset)", pipeline_section: "02_01", status: complete, completed_at: "2026-05-23" }`. Appended this closure entry to the dataset `research_log.md`. Updated `planning/INDEX.md` (archive PR #236; promote PR #237 to active). Added `CHANGELOG.md` `[3.70.1]` block (with the B1 reconciliation sentence about PR #236 audit JSON `notes` re-derivation language). Bumped `pyproject.toml` 3.70.0 → 3.70.1. **PR #237 creates no new on-disk artifact** — no Parquet, no audit, no notebook, no module, no test, no spec, no cleaning-layer YAML, no ROADMAP, no root `reports/research_log.md` edit. PR #236 remains the materialization/audit evidence PR.
+
+### Why
+
+CROSS-02-01-v1.0.1 §5 gate was mechanically cleared by PR #236 (`features_audited` length 7 + `verdict = PASS` + JSON/MD at spec-named paths). Per the merged Layer-1 plan (PR #235 §Open Questions OQ1), closure rides a SEPARATE U2.B PR rather than the materialization PR, mirroring the PR #229 → PR #230 evidence-then-closure precedent. The PR #229 → PR #230 sequence demonstrated that materialization correctness (Layer-2 materialization review surface) and closure governance (Layer-3 status-flip review surface) deserve separate adversarial review surfaces.
+
+The PR #236 baseline entry with `closure_status: still_open` is preserved as the historical evidence record — it remains the canonical row indicating the moment materialization was complete but closure was not yet recorded. The present entry transitions `closure_status` to `closed`.
+
+Why not bundle closure into PR #236? Two reasons. (i) Non-batching rule (`.claude/rules/data-analysis-lineage.md`) sequence step 8 (research_log / STEP_STATUS / manifest) is distinct from step 7 (artifact generation); the materialization PR batched only steps 6 + 7 because they share a notebook execution and a single empirical falsifier (audit verdict). (ii) Closure is governance with a distinct review surface (does the audit JSON's `features_audited != []` + verdict = PASS justify Step closure given the registry's catalog-only baseline?) — that is a governance question separate from "does the materialization SQL correctly project the 7 PRE_GAME columns?".
+
+### How (reproducibility)
+
+- Layer-1 planning artifact: `planning/current_plan.md` on branch `chore/sc2egset-02-01-02-formal-closure`; reviewer-adversarial verdict APPROVE-WITH-NITS (recorded in `planning/current_plan.critique.md`); B1 reconciliation addressed inline before the plan was committed.
+- Layer-2 execution: 5 files (STEP_STATUS.yaml, this research_log entry, planning/INDEX.md, CHANGELOG.md, pyproject.toml) on the same PR #237 branch.
+- Evidence inputs (byte-unchanged on master at `39298c0a`):
+  - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet` (44,418 × 11 cols; 22,209 distinct `focal_match_id`)
+  - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json` (`verdict = PASS`, `features_audited` length 7, `audit_pr = "PR #236"`)
+  - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.md`
+- `completed_at` convention: `2026-05-23` = the PR #236 audit-evidence date (NOT the closure-PR open date or merge date). Convention mirrors the rest of `STEP_STATUS.yaml` where `completed_at` records the substantive-evidence date for the step's closure-justifying artifact.
+
+### Findings
+
+- STEP_STATUS.yaml now records `02_01_02: complete` immediately after `02_01_01: complete`.
+- PIPELINE_SECTION_STATUS.yaml `02_01` remains `complete` (byte-unchanged): both `02_01_01` and `02_01_02` are `complete`; ALL steps in the section are `complete`; the derivation rule yields `complete`.
+- PHASE_STATUS.yaml is byte-unchanged: Phase 02 remains `in_progress` (only 1 of 8 canonical pipeline sections is `complete`); Phase 03 remains `not_started`.
+- PR #236 baseline entry (`closure_status: still_open`) preserved byte-unchanged.
+- No artifact / source / test / notebook / spec / cleaning-layer YAML / ROADMAP / root `reports/research_log.md` edit.
+- Phase 03 is NOT started.
+- Step 02_01_03 is NOT started.
+
+### Decisions taken
+
+- `completed_at = "2026-05-23"` (PR #236 audit-evidence date, not closure-PR merge date).
+- Patch version bump `3.70.0 → 3.70.1` per `.claude/rules/git-workflow.md` ("patch for fix/test/chore"; closure adds no new on-disk artifact).
+- Branch prefix `chore/` — governance-only, no new artifact / source / test (consistent with patch bump).
+- Closure entry recorded in dataset `research_log.md` only; root `reports/research_log.md` left byte-unchanged per `.claude/ml-protocol.md` lines 51-54 (per-dataset closure is a single-dataset status flip, not a cross-dataset decision).
+- `PIPELINE_SECTION_STATUS.yaml` left byte-unchanged; reconciliation with PR #236 audit JSON `notes` re-derivation language recorded in the `CHANGELOG.md` `[3.70.1]` Notes block as the authoritative location (the PR #236 audit JSON itself is NOT amended).
+
+### Decisions deferred
+
+- Step 02_01_03 planning (history-enriched pre_game tranche; will require a future planner-science round).
+- Phase 03 baseline planning (Phase 02 has 7 remaining sections out of 8; Phase 03 gate not met).
+- CROSS-02-02 §6.1 minor amendment (proposed in PR #234 MD §8; remains future Category E spec-only PR target).
+- AoE2 work; thesis chapter prose.
+
+### Thesis mapping
+
+Chapter 4 §4.5 (feature engineering plan) — Step 02_01_02 is citable as the FIRST closed Phase-02 step that materialised a non-empty `features_audited` audit row, alongside the existing PR #229 §10 design-time verdict audit, PR #230 vacuous catalog-only audit, PR #233 scaffold validator, PR #234 source/anchor/race adjudication, and PR #235 Layer-1 plan.
+
+### Open questions / follow-ups
+
+- Schedule the next planner-science round for Step 02_01_03 (history-enriched pre_game families). Closure of 02_01_02 opens the gate for 02_01_03 planning but does NOT initiate it.
+- Future hygiene PR may clean stale `planning/current_plan.critique_resolution.md` from PR #209 era (untouched by this PR).
+- Verify in a future audit pass that the YAML derivation-rule reconciliation embedded in this PR's `[3.70.1]` Notes block remains the authoritative resolution for the "ALL complete vs ANY complete-or-in_progress" precedence question.
+
+### Scope notes
+
+- Does NOT touch `reports/research_log.md` (root) — closure is single-dataset.
+- Does NOT touch `STEP_STATUS.yaml` rows other than to APPEND `02_01_02`; the existing `02_01_01` row is byte-unchanged.
+- Does NOT touch `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`, `ROADMAP.md`, `INVARIANTS.md`, specs, cleaning-layer YAMLs, artifacts, source modules, tests, or notebooks.
+- Does NOT touch `src/rts_predict/games/aoe2/**`, `thesis/**`, `docs/**`, `.claude/**`, or `data/**`.
+
+---
+
 ## 2026-05-23 — Materialize Step 02_01_02 pre_game tranche-1 Parquet + first non-vacuous CROSS-02-01 audit
 
 - **Category:** A (science / Phase 02 / materialization-execution)

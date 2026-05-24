@@ -19,6 +19,27 @@ merged to `master`.
 
 ### Removed
 
+## [3.70.1] — 2026-05-24 (PR #237: chore/sc2egset-02-01-02-formal-closure)
+
+### Changed
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` — added `"02_01_02"` row (`name: "First pre_game feature-family materialization (sc2egset)"`, `pipeline_section: "02_01"`, `status: complete`, `completed_at: "2026-05-23"`) immediately after the existing `02_01_01` row. `completed_at` uses the PR #236 audit-evidence date (not the closure-PR open/merge date) per the `STEP_STATUS.yaml` evidence-date convention.
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` — appended a reverse-chronological closure entry above the PR #236 entry, recording `closure_status: closed`, `materialization_state: materialized`, `leakage_audit_state: post_materialization_pass`, `status_yaml_state: complete`, `features_audited_count: 7`, `row_count: 44418`, the Parquet + audit artifact paths from PR #236, and the explicit non-closure of Step 02_01_03 + Phase 03. The PR #236 baseline entry (`closure_status: still_open`) is preserved byte-unchanged as historical evidence.
+- `planning/INDEX.md` — archived PR #236 with master merge commit `39298c0a`; promoted `chore/sc2egset-02-01-02-formal-closure` to the Active line.
+
+### Notes
+
+- **Formal closure of Step 02_01_02 only.** PR #237 creates **NO new on-disk artifact** (no Parquet, no audit JSON/MD, no notebook, no module, no test, no spec, no cleaning-layer YAML edit, no ROADMAP body edit, no `INVARIANTS.md` edit, no root `reports/research_log.md` edit). PR #236 remains the materialization/audit evidence PR; PR #237 only records that Step 02_01_02 is now `complete` in the status chain.
+- **NO Parquet or audit regeneration.** `02_01_02_pre_game_features.parquet`, `02_01_02/leakage_audit_sc2egset.json`, and `02_01_02/leakage_audit_sc2egset.md` are byte-unchanged from PR #236.
+- **NO source / test / notebook / module edit.** `materialize_pre_game_features.py`, `test_materialize_pre_game_features.py`, the sandbox notebook pair, and every other source / test / module under `src/rts_predict/**.py` and `tests/**.py` are byte-unchanged.
+- **NO ROADMAP / spec / cleaning-layer YAML / `INVARIANTS.md` patch.**
+- **NO root `reports/research_log.md` edit.**
+- **NO Step 02_01_03 work** and **NO Phase 03 work** is started or implied by this PR.
+- **`PIPELINE_SECTION_STATUS.yaml` byte-unchanged.** `02_01` remains `complete` per the YAML header rule "Pipeline section is complete when ALL its steps are complete." Both `02_01_01` and `02_01_02` are now `complete`; ALL steps in `02_01` are complete; the derivation rule yields `complete`. **Reconciliation with PR #236 audit JSON `notes` re-derivation language.** The PR #236 audit JSON `notes` field on master reads: "PIPELINE_SECTION_STATUS 02_01 = complete remains derived from STEP_STATUS until a future PR adds 02_01_02 to STEP_STATUS, at which point YAML-derivation re-derives 02_01 = in_progress (intended behaviour, pre-disclosed in PR #230 CHANGELOG Notes)." That sentence was conditioned on the successor landing with status `in_progress` (the typical scaffold-style path). This closure lands the successor directly with status `complete`, so the more-specific "ALL steps complete" clause of the derivation rule dominates and re-derivation yields `complete`. PR #232 and PR #234 plan bodies anticipated this exact case ("if the successor lands with status `complete` directly, the section stays `complete`"). The PR #236 audit JSON is NOT amended by this PR; the reconciliation is recorded here in this CHANGELOG `[3.70.1]` Notes block as the authoritative location.
+- **`PHASE_STATUS.yaml` byte-unchanged.** Phase 02 remains `in_progress` (only `02_01` is complete among 8 canonical pipeline sections per `docs/PHASES.md`); Phase 03 remains `not_started`.
+- **Branch prefix `chore/` + patch version bump.** PR #230 used `feat/` + minor (3.64.0 → 3.65.0) because it created 2 new audit artifacts; the present closure creates no new on-disk artifact, so `chore/` + patch (`3.70.0 → 3.70.1`) is the consistent choice per `.claude/rules/git-workflow.md` ("minor for feat/refactor/docs, patch for fix/test/chore").
+- PR #229 §10 verdict-audit pair, PR #230 vacuous catalog audit pair, PR #233 scaffold validator + tests, PR #234 source/anchor/race adjudication CSV+MD, PR #235 Layer-1 plan, and PR #236 materialization Parquet + audit JSON+MD remain byte-unchanged at their distinct paths.
+
 ## [3.70.0] — 2026-05-23 (PR #236: feat/sc2egset-02-01-02-pre-game-materialization-execution)
 
 ### Added
