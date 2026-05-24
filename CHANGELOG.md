@@ -19,6 +19,23 @@ merged to `master`.
 
 ### Removed
 
+## [3.71.0] — 2026-05-24 (PR #239: feat/sc2egset-02-01-03-roadmap-stub)
+
+### Added
+
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` — inserted Step `02_01_03` yaml block (History-enriched pre_game feature-family materialization (sc2egset)) under Pipeline Section `02_01 — Pre-Game vs In-Game Boundary`, immediately after the closed Step `02_01_02` block. The block declares the 6 `history_enriched_pre_game` families: `focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `reconstructed_rating`, `cross_region_fragmentation_handling` (the only `allowed_with_caveat` row; leakage mode `cross_region_history_drop`; RISK-20), `in_game_history_aggregate` (note: `history_enriched_pre_game` prediction setting, NOT `in_game_snapshot`; aggregates IN_GAME_HISTORICAL columns over PRIOR matches per CROSS-02-02 §6.2 row 6).
+- Strict history cutoff `ph.details_timeUTC < target.started_at` recorded in the block's `method` and `gate.halt_predicate` fields, with explicit enumeration of CROSS-02-02 §10 leakage gates G-L-1 (no `<=`), G-L-3 (no target-match final state), G-L-4 (no rating-uses-game-T-outcome), G-L-7 (no rolling/h2h includes target). Cold-start gates G-CS-2 through G-CS-6 listed for tranche-2 cold-start handling.
+- Future post-materialization audit obligation: `gate.continue_predicate` requires a NON-vacuous CROSS-02-01-v1.0.1 PASS (`future_leak_count = 0`, `post_game_token_violations = 0` over a non-empty `features_audited` covering all 6 history families' materialized columns) plus a re-executed §10 audit over the 6 history rows (distinct from PR #229's design-time audit) — OR a non-vacuous justification for not re-running, recorded in the future materialization PR's `research_log` entry.
+- `predecessors: "02_01_02"` only (string scalar; `02_01_01` is a transitive predecessor and is NOT listed as a direct predecessor per the reviewer-adversarial N4 resolution).
+
+### Notes
+
+- **ROADMAP-only PR.** NO feature value is materialized. NO notebook scaffold, NO validator, NO source/test/module, NO Parquet/CSV artifact, NO materialization, NO post-materialization audit, NO status YAML flip, NO `research_log` entry, NO `INVARIANTS.md` edit, NO spec amendment, NO cleaning-layer YAML edit, NO Phase 03 work, NO baseline modeling. The notebook scaffold + one validation module, tranche-2 source/anchor/cold-start adjudication, materialization-execution plan, materialization-execution, and closure are produced by SEPARATE FUTURE PRs per `.claude/rules/data-analysis-lineage.md` "Non-batching rule for empirical work" sequence steps 2-9.
+- **Status YAMLs byte-unchanged.** `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml` are not updated. No `02_01_03` row is added to `STEP_STATUS.yaml` at ROADMAP-stub time (per PR #232 precedent for `02_01_02`'s ROADMAP-stub); the row will be added at the future closure PR for Step `02_01_03`. Pipeline Section `02_01` therefore remains `complete` per the YAML-derivation rule (all currently-tracked steps `02_01_01` and `02_01_02` are complete). Phase `02` remains `in_progress`; Phase `03` remains `not_started`.
+- **Six reviewer-adversarial nits from PR #238 incorporated into the inserted block.** N1 G-L-3 explicit; N2 IN_GAME_HISTORICAL retention note for `in_game_history_aggregate`; N3 lineage-position framing (artifact #1 of N for Step 02_01_03 readiness); N4 `predecessors: "02_01_02"` string scalar; N5 cross-region adjudication gating in `halt_predicate`; N6 §10 audit re-run gating in `continue_predicate`.
+- **Layer-2 of the 02_01_03 planning sequence.** PR #238 merged the Layer-1 plan + critique. This Layer-2 PR inserts the ROADMAP block + version/CHANGELOG/INDEX tail. No follow-up PR is opened in this run; the future scaffold/validator/materialization/audit PRs are deferred to separate explicit prompts.
+- **No baseline modeling.** Phase 03 work (Splitting & Baselines) is barred per `PHASE_STATUS.yaml` Phase 03 `not_started`; only 1 of 8 Phase-02 pipeline sections is `complete` per `PIPELINE_SECTION_STATUS.yaml`.
+
 ## [3.70.1] — 2026-05-24 (PR #237: chore/sc2egset-02-01-02-formal-closure)
 
 ### Changed
