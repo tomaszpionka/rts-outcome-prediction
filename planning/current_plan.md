@@ -1,72 +1,99 @@
 ---
 category: A
-branch: feat/sc2egset-02-01-03-history-source-anchor-coldstart-adjudication
-title: "SC2EGSet Step 02_01_03 — source/anchor/cold-start adjudication (Layer-1 planning PR)"
+branch: feat/sc2egset-02-01-03-history-cross-region-adjudication
+title: "SC2EGSet Step 02_01_03 — Q5 cross-region retention-measurement successor adjudication (Layer-1 planning PR)"
 phase: "02 — Feature Engineering"
 pipeline_section: "02_01 — Pre-Game vs In-Game Boundary"
 step_number: "02_01_03"
 dataset: "sc2egset"
 predecessors:
-  - "02_01_02 (closed; PR #237 formal closure on master a16d78c2)"
+  - "PR #242 — Step 02_01_03 source/anchor/cold-start adjudication (merged on master e372e7b66be66b6026fb3bc39f51d1975da0b8b1; Q5 cross_region + Q6 rating both deferred_blocker)"
   - "PR #241 — Step 02_01_03 scaffold + ONE validator (merged on master 3c6709bf; validator SHA-256 b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904)"
-base_ref: 3c6709bfc21baba893d34a3b87c308d7f8ba787e
+  - "PR #240 — Layer-1 scaffold plan (merged 33e3c681)"
+  - "PR #239 — ROADMAP stub (merged f378f6f4)"
+  - "PR #237 — Step 02_01_02 closure (merged a16d78c2)"
+  - "PR #236 — Step 02_01_02 materialization + first non-vacuous CROSS-02-01 audit (merged 39298c0a)"
+  - "PR #234 — Step 02_01_02 tranche-1 source/anchor/race adjudication (merged 93240b19; precedent for adjudication CSV+MD shape)"
+  - "01_05_10 cross-region history impact (W=30 FAIL on disk; sequencing predecessor)"
+  - "01_04_05 cross-region annotation (adds `is_cross_region_fragmented` to player_history_all VIEW)"
+base_ref: e372e7b66be66b6026fb3bc39f51d1975da0b8b1
 date: 2026-05-24
 planner_model: claude-opus-4-7[1m]
 critique_required: true
 critique_path: "planning/current_plan.critique.md"
-gate_reviewer: "reviewer-adversarial (Category A pre-execution gate; round 3 — round 2 returned HOLD with 2 NEW blockers B-X1 + B-X2 and 4 nits N-X1..N-X4 introduced by the round-2 revision itself; this is the LAST round in the 3-round adversarial cap)"
-planning_pr_scope: "Layer-1 (exactly 2 files) — planning/current_plan.md + planning/current_plan.critique.md. NO adjudication CSV/MD, NO source module, NO test, NO notebook edits, NO feature materialization, NO ROADMAP edits, NO status YAML edits, NO research_log entry, NO CHANGELOG/pyproject/INDEX edits in this Layer-1 PR (those land in the future Layer-2 PR), NO spec or cleaning-layer YAML edits, NO thesis/docs/.claude/data/notebooks/AoE2 edits, NO Step 02_01_04 start, NO Phase 03 start, NO baseline modeling."
+gate_reviewer: "reviewer-adversarial (Category A pre-execution gate; round 4 of 4 with user-authorized one-round override of the 3-round cap — FINAL round; rounds 1, 2, and 3 returned HOLD; this revision is a strict mechanical B4 count-contradiction fix on top of the R3 plan with NO methodology change)"
+planning_pr_scope: "Layer-1 (exactly 2 files) — planning/current_plan.md + planning/current_plan.critique.md. NO Q5 successor adjudication CSV/MD, NO source module, NO test, NO notebook edits, NO feature materialization, NO ROADMAP edits, NO status YAML edits, NO research_log entry, NO CHANGELOG/pyproject/INDEX edits in this Layer-1 PR (those land in the future Layer-2 PR), NO spec or cleaning-layer YAML edits, NO thesis/docs/.claude/data/notebooks/AoE2 edits, NO Step 02_01_04 start, NO Phase 03 start, NO baseline modeling, NO Q6 rating-family adjudication work (deferred to a separate future planning round)."
 future_execution_pr_scope: |
-  Future Layer-2 adjudication execution PR = 11 final tracked files:
+  Future Layer-2 Q5-only successor adjudication PR = 11 final tracked files:
     9 deliverable/execution files:
-      1. sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.py
-      2. sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.ipynb
-      3. src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py
-      4. tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py
-      5. src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
-      6. src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+      1. sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.py
+      2. sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.ipynb
+      3. src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py
+      4. tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py
+      5. src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+      6. src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
       7. planning/INDEX.md
       8. CHANGELOG.md
       9. pyproject.toml
     + 2 inherited planning files already in the branch:
       10. planning/current_plan.md
       11. planning/current_plan.critique.md
-version_bump_planned: "Layer-1 PR — version-neutral (planning-only; no code). Future Layer-2 adjudication PR planned bump: minor 3.72.0 → 3.73.0 (feat-family per .claude/rules/git-workflow.md — adds a new adjudication module + adjudication artifact pair; no materialized feature data)."
-invariants_touched: [I3, I5, I6, I7, I8, I9, I10]
+version_bump_planned: "Layer-1 PR — version-neutral (planning-only). Future Layer-2 successor adjudication PR planned bump: minor 3.73.0 → 3.74.0 (feat-family per .claude/rules/git-workflow.md — adds a new adjudicator module + new successor adjudication artifact pair; no materialized feature data). Round-1 reviewer-adversarial accepted this rationale; record verbatim in the [3.74.0] CHANGELOG block per T08 step 1."
+invariants_touched: [I3, I6, I7, I8, I9, I10]
 source_artifacts:
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md lines 2274-2523 (Step 02_01_03 block; merged PR #239 at master f378f6f4)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv rows 7-12 (the 6 history_enriched_pre_game families; SHA-256 320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv (per-family §10 verdicts; rows 7-12 cover tranche-2)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv (PR #234 tranche-1 adjudication; format precedent)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.md (PR #234 tranche-1 adjudication MD; format precedent)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet (probe metadata only — never re-materialized)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json (PR #236 tranche-1 non-vacuous audit; lineage anchor)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py (PR #241 scaffold validator; SHA-256 b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904 — N4 provenance anchor)"
-  - "tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_history_enriched_pre_game_materialization.py (PR #241 mirrored tests; precedent for adjudicator tests)"
-  - "sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.py (PR #241 scaffold notebook; never re-edited)"
-  - "reports/specs/02_00_feature_input_contract.md §3.3 strict-< rule, §5.1 sc2egset MHM columns, §5.4 SC2 IN_GAME_HISTORICAL telemetry-scope decision (Concern 8 / T15 record), §2.1 sc2egset row-grain note (player_history_all = all game types; no 1v1 filter)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv (PR #242 parent; Q5/Q6 deferred_blocker rows; this PR's parent_pr242_csv_sha256 anchor)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md (PR #242 parent MD; this PR's parent_pr242_md_sha256 anchor)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/cross_region_history_impact_sc2egset.md (01_05_10 W=30 FAIL evidence; primary retention measurement anchor; SHA to be captured at Layer-2 write time)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/cross_region_history_impact_sc2egset.json (01_05_10 JSON; numeric anchors verified on-disk: n_cross_region_nicknames=246, median_rolling30_undercount_games=16.0, p95_rolling30_undercount_games=29.0, mmr_spearman_rho_point=0.1384, mmr_spearman_rho_bootstrap_ci_high=0.2913, n_players_with_mmr=157; NOTE: the JSON does NOT include `n_player_match_pairs` or `n_distinct_toon_ids` — those 32,031 and 1,923 anchors live ONLY in the MD §3.3 table at line 398, and were computed by 01_05_10 MD SQL 3 as a nickname-anchored join over PHA rows, NOT as a toon_id-membership query; see NIT-C resolution below)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_05_cross_region_annotation.md (1,923 cross-region toon_ids; cleaning-layer step that adds `is_cross_region_fragmented` to player_history_all VIEW per §1; §7 enumerates 3 strategies on lines 200-216: strategy 1 'Safe-subset filter: WHERE NOT is_cross_region_fragmented — restricts history to non-fragmented players' on lines 203-208, strategy 2 'Dual feature paths' on lines 210-212, strategy 3 'Sensitivity indicator' on lines 214-216)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_04_cross_region_nicknames.csv (246 cross-region nickname inventory)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/06_decision_gates/risk_register_sc2egset.md (SC-R01 MEDIUM IDENTITY entry; ~12% migration rate accepted bias)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md §2 (I2 Branch (iii) region-scoped toon_id decision; declared cross-scope tolerance)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv (row 11 = cross_region_fragmentation_handling family; SHA 320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py (PR #241 scaffold; _check_cross_region_caveat helper at line 479; SHA b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py (PR #242 adjudicator module; format precedent for the Q5 successor module)"
+  - "tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py (PR #242 mirrored tests; pattern precedent)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md lines 2274-2523 (Step 02_01_03 block; line 2356 cites CROSS-02-02 §6.2 row 5 / RISK-20 three-option enumeration; lines 2504-2508 codify the halt_predicate that this PR is designed to lift)"
+  - "reports/specs/02_02_feature_engineering_plan.md §6.2 row 5 line 242 (cross_region_fragmentation_handling 3-option enumeration; the on-disk verbatim wording in the Source column is `player_history_all.is_cross_region_fragmented (CROSS-02-00 §5.4)` and in the Constraint column is 'Phase 02 must implement one of: (a) strict-exclusion sensitivity arm, (b) dual feature paths (with vs without filter), or (c) sensitivity indicator co-registered alongside the history features.' — see NIT-A re-attribution below); §9.1 G-CS-1..G-CS-6 (no magic numbers); §10 G-L-1..G-L-9 (leakage falsifiers)"
+  - "reports/specs/02_00_feature_input_contract.md §5.4 (sc2egset PH IN_GAME_HISTORICAL columns); §3.3 strict-less-than rule"
   - "reports/specs/02_01_leakage_audit_protocol.md §2.1/§2.2/§2.3/§2.4"
-  - "reports/specs/02_02_feature_engineering_plan.md §6.2 (6 history families; row 1 focal_player_history sources from player_history_all; row 5 cross_region; row 6 in_game_history_aggregate IN_GAME_HISTORICAL retention), §9 (G-CS-2 through G-CS-6), §10 (G-L-1/3/4/7)"
-  - "reports/specs/02_03_temporal_feature_audit_protocol.md §6.2 history_enriched_pre_game prediction-setting rules, §10 D1-D15 verdicts"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml (provenance.scope = 'All replays (no 1v1/decisive filter)' — confirms history side is multi-game-type)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml (canonical schema metadata; 7 observed length variants 22-28 chars in upstream VARCHAR; TRY_CAST recommended for chronological fidelity)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/06_decision_gates/risk_register_sc2egset.md (RISK-20 cross-region fragmentation, W=30 FAIL verdict)"
+  - "reports/specs/02_03_temporal_feature_audit_protocol.md §6.2 (history_enriched_pre_game prediction-setting rules); §10 D1-D15 verdicts"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml (38-col schema; `is_cross_region_fragmented` declared at line 214 with NOTES on lines 220-226 prescribing `WHERE NOT is_cross_region_fragmented` over PHA rolling-window history; provenance.scope = 'All replays (no 1v1/decisive filter)' — see NIT-A re-attribution: the consolidated paraphrase 'Phase 02 rolling features over `player_id_worldwide` should apply `WHERE NOT is_cross_region_fragmented` as safe-subset filter, OR use dual feature paths, OR use as sensitivity indicator' lives ONLY in PHA YAML NOTES lines 220-226, NOT in 01_04_05 §7)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml (`match_id` = 'sc2egset::' || replay_id at lines 11-19; `player_id` = toon_id at line 31; `started_at` TIMESTAMP via TRY_CAST at lines 21-30)"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml (30-col schema; row_count=44418; does NOT carry `is_cross_region_fragmented` — that column lives on player_history_all per 01_04_05; MFC primary keys are `replay_id` (line 12) and `toon_id` (line 24), NOT `match_id`/`player_id`)"
   - ".claude/scientific-invariants.md (I3 temporal+normalization; I5 symmetry; I6 SQL provenance; I7 no magic numbers; I8 cross-game; I9 step-derived conclusions; I10 relative-path)"
   - ".claude/ml-protocol.md (three leakage failure modes — rolling, h2h, co-occurring matches)"
   - ".claude/rules/data-analysis-lineage.md (non-batching rule; halt-before-artifact; required structure for every empirical analysis)"
   - ".claude/rules/git-workflow.md"
-  - ".claude/rules/python-code.md"
-  - ".claude/rules/sql-data.md (replay_id canonical; matches_flat 2-rows-per-game; view-vs-raw discipline)"
-  - "docs/TAXONOMY.md"
-  - "docs/PHASES.md"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml (no 02_01_03 row yet)"
+  - ".claude/rules/python-code.md (UPPER_SNAKE constants; _QUERY suffix; mirrored test layout)"
+  - ".claude/rules/sql-data.md (replay_id canonical; view-vs-raw discipline)"
+  - "docs/TAXONOMY.md / docs/PHASES.md"
+  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml (no 02_01_03 row yet — must remain so)"
   - "src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml (02_01 = complete)"
   - "src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml (Phase 02 = in_progress; Phase 03 = not_started)"
-  - "src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md (no 02_01_03 entry yet)"
-  - "CHANGELOG.md (current [3.72.0] block describes PR #241 scaffold)"
-  - "pyproject.toml (current version = 3.72.0)"
-non_batching_sequence_position: "Step 3 of 9 (source/anchor/cold-start adjudication) — follows merged PR #239 ROADMAP-stub + PR #240 Layer-1 scaffold plan + PR #241 Layer-2 scaffold execution. Precedes future materialization-execution plan (step 4), materialization-execution (step 5), CROSS-02-01 post-materialization audit (step 6), §10 verdict re-run or justification (step 7), research_log/STEP_STATUS/manifest closure (step 8), reviewer-deep final gate (step 9)."
-deep_research_disclaimer: "External ChatGPT deep-research relevant to SC2_Datasets ToonPlayerDescMap semantics (APM, SQ, supplyCappedPercent, race, selectedRace, MMR, result) is SUPPORTING SEMANTIC CAUTION only. Repo artifacts remain source of truth. result is post-outcome → forbidden as feature. APM/SQ/supplyCappedPercent only as prior-match historical aggregates (CROSS-02-00 §5.4). Target-match tracker/game-event consumption remains in-game and is forbidden for this step."
+  - "CHANGELOG.md (current [3.73.0] block describes PR #242)"
+  - "pyproject.toml (current version = 3.73.0)"
+non_batching_sequence_position: "Step 3.5 of the lineage (Q5 cross-region retention adjudication — a refinement of the PR #242 adjudication that resolves one of its two deferred_blocker rows). Sits between PR #242 (general adjudication; sequence step 3) and the future materialization-execution plan (sequence step 4). Q6 rating-family adjudication is split off into a separate future planning round (sequence step 3.6 by convention) — see Open Questions OQ1."
+q5_q6_separation_rationale: "Outcome B selected over Outcome A per analysis above. Q5 evidence = read-only DuckDB SQL probes against the existing 01_05_10 measurement substrate (246 nicknames, 1923 toon_ids, 32031 (player,match) pairs from MD §3.3); 3-option enumeration is pre-pinned by CROSS-02-02 §6.2 row 5. Q6 evidence = literature comparison + likely offline replay-fold pilot for ≥1 of 5 candidate families (no-rating / rolling baseline / Elo / Glicko / Glicko-2 / TrueSkill); N-X3 strengthened gate requires ≥1 repo path + ≥1 citation per binding branch. Bundling would (a) produce a ~12-16-row CSV (~2× PR #242 size); (b) couple unrelated evidence chains in violation of non-batching rule sequence step 5; (c) risk a partial upgrade that re-creates the MATERIALIZATION BLOCKED state. Splitting preserves the option to keep Q6 deferred while clearing Q5."
+deep_research_disclaimer: "External literature/web searches will be required at Layer-2 ONLY to verify any rating-system citations that surface in Q5 sensitivity-arm rationale (none expected). Q6-specific rating literature is OUT OF SCOPE for this PR. Repo artifacts remain source of truth."
+round2_blocker_resolutions:
+  - "B1 (column location on PHA not MFC): resolved by re-anchoring every probe and every binding row to `player_history_all.is_cross_region_fragmented` (line 214 in player_history_all.yaml). MFC verified to have 30 columns and NO `is_cross_region_fragmented` (`grep -cE \"^- name: \" matches_flat_clean.yaml` = 30). PHA verified at 38 cols with the column declared at line 214 and notes at lines 220-226."
+  - "B2 (MFC join keys are `replay_id`/`toon_id`, not `match_id`/`player_id`): resolved by replacing every `mfc.match_id` with `mfc.replay_id` and every `mfc.player_id` with `mfc.toon_id`. MHM join updated to `target.match_id = 'sc2egset::' || mfc.replay_id` (single-prefix on MFC's unprefixed key) and `target.player_id = mfc.toon_id`."
+  - "B3 (filter HISTORY-rows-on-PHA, not TARGET-rows-on-MFC): resolved by committing explicitly to the prescribed semantics: `WHERE NOT ph.is_cross_region_fragmented` is applied to PHA history rows BEFORE aggregation. The alternative `WHERE NOT mfc.is_cross_region_fragmented` (which would drop target predictions) is now explicitly OUT OF SCOPE."
+round2_nit_resolutions:
+  - "N1 (parent_decision_id is SCHEMA EXTENSION, not inheritance): T01 step 4 now labels `parent_decision_id` as a NEW field introduced by this successor PR — back-fillable into PR #242 via future cosmetic chore (NOT in scope here). Confirmed via `grep -c parent_decision_id <pr242 csv>` = 0."
+  - "N2 (version-bump rationale acceptable; record verbatim): frontmatter `version_bump_planned` field expanded with the round-1 reviewer's acceptance note; T08 step 1 records the bump rationale verbatim in the [3.74.0] CHANGELOG block."
+  - "N3 (Q5C provisional recommendation defensive note): T05 step 4 reworded as 'PROVISIONAL pending probe results'; the executor MUST report the per-family retention table FIRST and the verdict EMERGES from the table. New A14 (verdict-emergence discipline) added to §Assumptions. T05 step 4's wording strengthened so the pre-bound `sensitivity_indicator_co_registration` recommendation cannot be silently rubber-stamped."
+  - "N4 (single-prefix join key): dissolved by B2 fix — `'sc2egset::' || mfc.replay_id` (single prefix on MFC's unprefixed `replay_id`) is canonical."
+round3_blocker_resolution:
+  - "B4 (HELPER_TO_FALSIFIER_KEY count vs FALSIFIER_PRIORITY_CHAIN count contradiction): resolved. The authoritative counts are `len(HELPER_TO_FALSIFIER_KEY) == 31` and `len(FALSIFIER_PRIORITY_CHAIN) == 31`. Arithmetic provenance (R4-final): 25 entries after promoting `materialization_creep` + `decision_count_drift` from chain-only to mapping + 4 NIT-B SHA helpers + 2 NIT-D split helpers (structured-field check + SQL byte-scan check) = 31. The `TestPriorityChainReferencesMapping` test is rewritten to use set equality / containment + the exact-count assertion (`assert set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values())` AND `assert len(FALSIFIER_PRIORITY_CHAIN) == len(set(FALSIFIER_PRIORITY_CHAIN)) == len(HELPER_TO_FALSIFIER_KEY) == 31`). T03 and T04 Verifications assert `len(HELPER_TO_FALSIFIER_KEY) == 31 AND len(FALSIFIER_PRIORITY_CHAIN) == 31 AND set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values()) AND len(set(FALSIFIER_PRIORITY_CHAIN)) == 31`. The module-import guard codifies all 4 invariants at module load (T01 step 6 Verification) so any drift fails BEFORE any test runs."
+round3_nit_resolutions:
+  - "NIT-A (verbatim quote misattribution): re-attributed. The consolidated paraphrase 'Phase 02 rolling features over `player_id_worldwide` should apply `WHERE NOT is_cross_region_fragmented` as safe-subset filter, OR use dual feature paths, OR use as sensitivity indicator' is sourced from `player_history_all.yaml` NOTES lines 220-226 ONLY (confirmed by on-disk read). When citing `01_04_05 §7`, this plan now quotes the actual on-disk strategy-1 wording from lines 203-208: 'Safe-subset filter: WHERE NOT is_cross_region_fragmented — restricts history to non-fragmented players; cleanest rolling-window estimates but reduces the training population to 7,716 / 44,817 rows = 17.2% of the corpus'. When citing `02_02_feature_engineering_plan.md` §6.2 row 5 line 242, this plan now quotes the actual on-disk Source-column wording (`player_history_all.is_cross_region_fragmented (CROSS-02-00 §5.4)`) and the actual on-disk Constraint-column wording ('Phase 02 must implement one of: (a) strict-exclusion sensitivity arm, (b) dual feature paths (with vs without filter), or (c) sensitivity indicator co-registered alongside the history features.'). Literature Context section + T05 Q5A binding rationale notes updated. The future verbatim-quote falsifier in T03 helpers checks each quote against the EXACT file/line source actually quoted."
+  - "NIT-B (missing SHA constants for round-2 load-bearing artifacts): resolved by adding 4 new EXPECTED_*_SHA256 module constants in T01 step 3 with planner-computed 64-char lowercase hex values pinned in-plan (so the Layer-2 executor does NOT have to re-derive them). 4 new helpers in T03 + 4 new keys in HELPER_TO_FALSIFIER_KEY + 4 new positions early in FALSIFIER_PRIORITY_CHAIN + 4 new tests in T06 + 4 new CSV provenance columns. HELPER_TO_FALSIFIER_KEY and FALSIFIER_PRIORITY_CHAIN are 31 entries each (B4 + NIT-B + NIT-D arithmetic — see B4 resolution above)."
+  - "NIT-C (probe anchor semantics — toon_id vs nickname): resolved. The R2 `_CROSS_REGION_BASE_PROBE_QUERY` joined PHA against `cross_region_nicks` on lowercase nickname AND claimed expected count 32,031, but 32,031 in 01_05_10 MD §3.3 was computed by SQL 3 as a nickname-anchored join (the same idiom). T03 keeps the nickname-anchored probe as the 01_05_10 EQUIVALENCE probe with expected count 32,031 (its falsifier key `cross_region_nickname_anchor_count_drift`) AND adds a SEPARATE toon_id-membership BINDING probe (the form prescribed by Q5's downstream filter semantics — `WHERE ph.is_cross_region_fragmented = TRUE` reaches every cross-region PHA history row, with its own expected count pinned at Layer-2 write time as `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT: int`; its falsifier key `cross_region_toon_id_anchor_count_drift`). The dataclass schema gains a new field `cross_region_anchor_semantics: str` ∈ {`'toon_id_based'`, `'nickname_based'`, `'both'`} populated per per-option row to make the binding explicit. The plan states BINDING vs EXPLORATORY: binding probe = toon_id-membership, exploratory probe = nickname-join. The 32,031 expectation is shared ONLY by the nickname-anchored probe."
+  - "NIT-D (vacuous text-presence falsifier under negation): resolved by replacing the substring check with a structured dataclass field `history_row_filter_on_pha_applied: str` ∈ ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED = frozenset({'yes', 'no', 'not_applicable'}). New helper `_check_history_row_filter_on_pha_field_valid` validates the field value AND cross-checks consistency with `selected_policy` (Q5A = 'yes'; Q5B = 'yes'; Q5C = 'no'; Q5_selected_policy = derived from chosen policy; Q5_per_family_impact_summary = 'not_applicable'). The old vacuous substring assertion is REMOVED from the prose part of falsifier #24. The SQL byte-scan portion (reject `mfc.is_cross_region_fragmented` as a WHERE predicate) is KEPT (it is non-vacuous). T06 `TestHistoryRowFilterFieldStructured` covers valid/invalid value cases AND Q5A-with-'no' (inconsistent → halt) AND Q5C-with-'yes' (inconsistent → halt) AND correct combos."
+round4_blocker_resolution:
+  - "R4 (B4-only mechanical fix on top of R3): the count contradiction between (frontmatter + T01 step 6 + T01 step 7 + T03 heading) claiming 29 and (T03 body + T04 + T06 + Gate Condition + CHANGELOG) claiming 31 is resolved by adopting 31 EVERYWHERE for HELPER_TO_FALSIFIER_KEY and FALSIFIER_PRIORITY_CHAIN. The R3 planner monologue at T03 (former lines 899-924) that left the count decision to the reviewer is DELETED and replaced with the decisive statement 'The 31-entry mapping and 31-entry priority chain are authoritative. See module-import verification below.' A new module-import mechanical verification (T01 step 6 Verification + module-level `assert` block per the POST_GAME_TOKEN_SCOPED_FIELDS.isdisjoint(POST_GAME_TOKEN_EXEMPT_FIELDS) precedent) catches drift at import time, not test time. T06 `TestHelperToFalsifierKeyMappingExactCount` asserts the 31/31 invariants explicitly. No methodology change; no new falsifier; no SQL probe change; no manifest change; no scope change. R1 (B1/B2/B3), R2 (N1/N3), and R3 (NIT-A/B/C/D) fixes preserved without regression."
 ---
 
 ## Scope
@@ -76,1327 +103,1334 @@ This is a **Layer-1 planning PR**. It commits ONLY two files:
 - `planning/current_plan.md` (this document)
 - `planning/current_plan.critique.md` (produced by reviewer-adversarial in a separate dispatch)
 
-This plan describes the **future Layer-2 adjudication execution PR** on branch
-`feat/sc2egset-02-01-03-history-source-anchor-coldstart-adjudication`. The
-future Layer-2 PR has an **11-file final tracked diff** — **9 deliverable/execution
-files** (notebook pair `.py` + `.ipynb`, adjudicator source module, mirrored test
-file, adjudication CSV + MD artifact pair, `planning/INDEX.md`, `CHANGELOG.md`,
-`pyproject.toml`) **plus the 2 inherited planning files**
-(`planning/current_plan.md` + `planning/current_plan.critique.md` carried
-forward from this Layer-1 PR). The notebook `.py` and `.ipynb` count as **two
-distinct deliverables** per the PR #234 precedent (B1 contract).
+This plan describes the **future Layer-2 Q5-only successor adjudication execution PR** on branch
+`feat/sc2egset-02-01-03-history-cross-region-adjudication`. The future Layer-2 PR has an
+**11-file final tracked diff** — **9 deliverable/execution files** (notebook pair `.py` +
+`.ipynb`, adjudicator source module, mirrored test file, successor adjudication CSV + MD
+artifact pair, `planning/INDEX.md`, `CHANGELOG.md`, `pyproject.toml`) **plus the 2 inherited
+planning files** carried forward from this Layer-1 PR.
 
-The future Layer-2 PR performs the non-batching sequence step 3 ("the
-tranche-2 source/anchor/cold-start adjudication artifact pair"). It is the
-tranche-2 analogue of PR #234 (which produced tranche-1's
-`02_01_02_source_anchor_race_adjudication.{csv,md}` covering Q1 source layer
-/ Q2 anchor / Q3 race column for the 5 pre_game families).
+The future Layer-2 PR is **Q5-only**. It produces ONE successor adjudication CSV+MD artifact
+pair that resolves (or explicitly narrows / re-defers) the Q5 `cross_region_fragmentation_handling`
+deferred_blocker row from the PR #242 parent CSV using read-only DuckDB retention probes that
+**read `is_cross_region_fragmented` from `player_history_all`** (per 01_04_05 §1 + PHA schema
+YAML line 214) and apply the canonical operationalization (filter HISTORY rows before
+aggregation, per CROSS-02-02 §6.2 row 5 + 01_04_05 §7 strategy 1 + PHA YAML NOTES lines
+220-226). The PR #242 CSV/MD remain **byte-unchanged**; the new artifact pair carries SHA-256
+provenance anchors to PR #242 (`parent_pr242_csv_sha256`, `parent_pr242_md_sha256`,
+`parent_pr242_artifact_sha256`) and provides the row data the future materialization plan
+will consume in place of the PR #242 deferred row.
 
-The Layer-2 PR is explicitly **adjudication-only**. It records 8 coupled
-pre-materialization decisions (Q1-Q8) for the 6 `history_enriched_pre_game`
-families and emits one CSV + one MD artifact pair. It does NOT materialize
-any feature value, does NOT write any Parquet, does NOT run the
-CROSS-02-01-v1.0.1 post-materialization leakage audit, does NOT touch any
-status YAML, does NOT append a `research_log.md` entry, does NOT close Step
-02_01_03, does NOT begin Step 02_01_04, does NOT begin Phase 03, does NOT
-re-execute the CROSS-02-03 §10 verdict audit, does NOT edit any spec or
-cleaning-layer YAML, does NOT edit the ROADMAP, does NOT re-edit the
-PR #241 scaffold notebook or validator module (both inputs are
-byte-unchanged anchors with SHA-256 provenance recorded).
+**Q6 rating-family adjudication is explicitly OUT of scope for this PR.** Q6 remains
+`deferred_blocker` and continues to block materialization. A separate future planning round
+will address Q6 per the rationale recorded in the frontmatter and Open Questions OQ1.
 
-The 8 Q-decisions, their candidates, falsifiers, evidence paths, and the
-adjudication CSV/MD schemas are fully specified in the Execution Steps and
-File Manifest sections below.
+This PR explicitly does NOT materialize any feature value, does NOT write any Parquet, does NOT
+run the CROSS-02-01-v1.0.1 post-materialization leakage audit, does NOT touch any status YAML,
+does NOT append a `research_log.md` entry, does NOT close Step 02_01_03, does NOT begin Step
+02_01_04, does NOT begin Phase 03, does NOT re-execute the CROSS-02-03 §10 verdict audit, does
+NOT edit any spec or cleaning-layer YAML, does NOT edit the ROADMAP, does NOT re-edit the
+PR #242 adjudication module / test / notebook / CSV / MD (all byte-unchanged anchors), does
+NOT re-edit the PR #241 scaffold validator (byte-unchanged anchor).
 
 ## Problem Statement
 
-PR #241 (merged on master `3c6709bf`) persisted the Step 02_01_03 scaffold
-notebook pair plus a 687-LOC validator module with 16 falsifiers, mirrored
-test file (≥30 tests; 98% coverage), and the registry-bound design contract
-for the 6 `history_enriched_pre_game` families. The validator binds to the
-closed 02_01_01 registry CSV as authoritative; it does NOT pin any
-source-layer, anchor, cold-start, cross-region, rating, or
-IN_GAME_HISTORICAL-aggregation choice.
+PR #242 (merged on master `e372e7b6`) adjudicated 8 coupled questions for the
+`history_enriched_pre_game` tranche, of which **Q5** (`cross_region_fragmentation_handling`
+operationalization per RISK-20) and **Q6** (`rating_policy` model family for
+`reconstructed_rating` per G-CS-4) closed as `verdict=deferred_blocker` /
+`binding_level=deferred_blocker`. The PR #242 MD §13 hard-stops materialization until both are
+upgraded to one of `bind_now` / `ratify_with_evidence` / `extend_with_evidence` /
+`narrow_with_evidence` in a successor adjudication PR.
 
-The next step in the non-batching sequence (`.claude/rules/data-analysis-lineage.md`
-sequence step 3) is the **source/anchor/cold-start adjudication artifact**.
-The PR #234 precedent (tranche-1) is unambiguous: 3 decisions (Q1 source
-layer, Q2 anchor, Q3 race) were adjudicated in a single CSV + MD pair after
-the scaffold validator landed and before the materialization-execution plan
-was authored. Tranche-2 mirrors the same pattern with **8 decisions** instead
-of 3 — the larger surface reflects the 6-family scope, the strict-`<` history
-cutoff, the cold-start gate set, the cross-region fragmentation policy
-deferral, the rating-reconstruction algorithm deferral, and the
-IN_GAME_HISTORICAL prior-match aggregation discipline.
+**Q5 is the empirically-tighter and lineage-richer of the two**:
 
-The 8 questions are coupled. Q1 (source layer) constrains which columns are
-available; Q2 (target anchor) and Q3 (historical row time) determine the
-strict-`<` filter expression; Q4 (cold-start policy) and Q5 (cross-region
-policy) gate the support set for prior-history counts; Q6 (rating
-reconstruction model family) determines what `reconstructed_rating` outputs
-look like at materialization time; Q7 (IN_GAME_HISTORICAL prior-match
-aggregation) determines what `in_game_history_aggregate` outputs look like;
-Q8 (`matches_history_minimal` consumption) is the PR #239 ROADMAP-nit
-documentation requirement promoted to a binding adjudication row.
+- CROSS-02-02 §6.2 row 5 (`reports/specs/02_02_feature_engineering_plan.md` line 242)
+  pre-enumerates three operationalization options in the Constraint column with the actual
+  on-disk wording: "Phase 02 must implement one of: (a) strict-exclusion sensitivity arm,
+  (b) dual feature paths (with vs without filter), or (c) sensitivity indicator co-registered
+  alongside the history features." The Source column names the column as
+  `` `player_history_all.is_cross_region_fragmented` (CROSS-02-00 §5.4) `` — the column lives
+  on the **history view (PHA)**, NOT on the **target/cleaning view (MFC)**.
+- The 01_05_10 cross-region history impact artifact (`cross_region_history_impact_sc2egset.{md,json}`,
+  W=30 FAIL verdict; on-disk JSON anchors: `n_cross_region_nicknames=246`,
+  `median_rolling30_undercount_games=16.0`, `p95_rolling30_undercount_games=29.0`,
+  `mmr_spearman_rho_bootstrap_ci_high=0.2913`, `n_players_with_mmr=157`; MD-only anchors at
+  §3.3 line 398: `1,923 distinct toon_ids`, `32,031 (player, match) pairs`) is already on disk
+  and was authored as the Phase-01 evidence substrate that this Phase-02 retention adjudication
+  is designed to consume.
+- The cleaning-layer step 01_04_05 (`01_04_05_cross_region_annotation.md` §1) added
+  `is_cross_region_fragmented` BOOLEAN as the 38th projected column of `player_history_all`
+  (NOT of `matches_flat_clean` — MFC remains a 30-column view per `matches_flat_clean.yaml`
+  schema_version `30-col (ADDENDUM: duration added 2026-04-18)`, row_count 44418). Per-option
+  retention counts for Q5 can be computed with read-only SQL against `player_history_all`
+  (history rows; source-of-truth for `is_cross_region_fragmented`) joined to
+  `matches_history_minimal` (target rows; canonical `started_at` anchor) using
+  `'sc2egset::' || ph.replay_id` for the prefixed match key.
 
-The 8 decisions must be adjudicated together (not sequentially across 8 PRs)
-because they share evidence (the same DuckDB tables, the same registry CSV,
-the same PR #234 binding), and a wrong Q1 choice would invalidate Q2-Q8
-evidence. A single adjudication pass with explicit falsifiers per decision
-is the methodologically correct atomic unit for this Layer-2 PR.
+**The canonical retention semantics is filter-HISTORY-rows, not filter-TARGET-rows.** Two
+on-disk passages anchor this:
 
-This Layer-1 PR commits the plan. The Layer-2 PR will implement it. No data
-is touched at this layer; no DuckDB query runs; no Parquet is written.
+- **`player_history_all.yaml` NOTES lines 220-226** (verbatim consolidated paraphrase, source of
+  the often-misattributed quote per NIT-A re-attribution):
+
+  > Phase 02 rolling features over `player_id_worldwide` should apply
+  > `WHERE NOT is_cross_region_fragmented` as safe-subset filter, OR use dual feature paths,
+  > OR use as sensitivity indicator.
+
+- **`01_04_05_cross_region_annotation.md` §7 strategy 1 lines 203-208** (verbatim actual
+  on-disk wording, NOT the consolidated paraphrase above):
+
+  > Safe-subset filter: `WHERE NOT is_cross_region_fragmented` — restricts history to
+  > non-fragmented players; cleanest rolling-window estimates but reduces the training
+  > population to 7,716 / 44,817 rows = 17.2% of the corpus (tournament players are
+  > over-represented among the 1,923 flagged toons; see §4 flag distribution). This is a
+  > material data loss; strategy (2) or (3) are usually preferable for non-catastrophic
+  > bias levels.
+
+- **`02_02_feature_engineering_plan.md` §6.2 row 5 line 242 Source column** (verbatim):
+
+  > `player_history_all.is_cross_region_fragmented` (CROSS-02-00 §5.4)
+
+- **`02_02_feature_engineering_plan.md` §6.2 row 5 line 242 Constraint column** (verbatim):
+
+  > Per RISK-20 / Phase 01 W=30 FAIL verdict, Phase 02 must not hard-code a retention
+  > percentage for `WHERE NOT is_cross_region_fragmented` filtering. Phase 02 must implement
+  > one of: (a) strict-exclusion sensitivity arm, (b) dual feature paths (with vs without
+  > filter), or (c) sensitivity indicator co-registered alongside the history features.
+  > The choice is deferred to a Phase 02 ROADMAP step that empirically measures retention.
+
+All four passages **prescribe filtering applied to PHA (history) rows BEFORE aggregation** —
+they do NOT prescribe filtering applied to MFC (target) rows. The two filter sites have
+different semantics:
+
+| Filter site | Effect on training/predicted set | Effect on history depth |
+|---|---|---|
+| **PHA (HISTORY)** — `WHERE NOT ph.is_cross_region_fragmented` BEFORE aggregation | unchanged (every target row is still predicted) | reduced for affected players (their cross-region historical entries are dropped from the aggregate window) |
+| MFC (TARGET) — `WHERE NOT mfc.is_cross_region_fragmented` over target rows (NOT in scope; the column does not exist on MFC; even if it did, this is not one of the three CROSS-02-02 options) | reduced (cross-region targets dropped from training/predicted set) | unchanged for kept rows |
+
+This plan binds the PHA-history-row site as the only semantics evaluated. The MFC-target-row
+alternative is NOT one of the CROSS-02-02 three options and is explicitly OUT OF SCOPE; if
+that alternative ever becomes relevant, it belongs in a different adjudication.
+
+**Q6 is intentionally OUT of scope**:
+
+- CROSS-02-02 §9.2 explicitly does not commit "a specific Bayesian-smoothing functional form" or
+  "an imputation strategy for missing rating values".
+- The N-X3 strengthened gate inherited from PR #242 requires ≥1 repo path + ≥1 primary-source
+  citation per binding family branch, plus forward-only-wording + cold-start + missingness-handling
+  language in notes. Currently no repo-path evidence exists for any of {no-rating / rolling
+  baseline / Elo / Glicko / Glicko-2 / TrueSkill}; satisfying N-X3 for a `bind_now` verdict
+  almost certainly requires an offline replay-fold backtest pilot — a Phase-02 modeling surface
+  not appropriate for a single planning round bundled with cross-region measurement.
+
+Bundling Q5+Q6 would violate the non-batching rule's sequence-step-5 boundary and produce a
+~12-16-row CSV that adversarial review at the PR #242 scale (8 rows × 33 columns) already
+exercised hard enough. **Splitting Q5 first** clears one of the two `MATERIALIZATION BLOCKED`
+rows with the easier evidence chain and preserves the option to either bind Q6 later (with a
+dedicated planning round) or document continued deferral as a calibrated decision rather than
+a residual default.
 
 ## Assumptions & Unknowns
 
-### Assumptions (BINDING for the Layer-2 PR)
+### Assumptions (BINDING for the future Layer-2 PR)
 
-A1. **PR #241 scaffold byte-unchanged.** The validator module
-   `src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py`
-   (SHA-256 `b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904`)
-   is the authoritative scaffold contract. The Layer-2 PR does NOT edit it.
-   The 64-char SHA-256 is re-asserted in every adjudication CSV row as
-   `pr241_scaffold_validator_module_sha256` (N4).
+A1. **PR #242 byte-unchanged.** The adjudication CSV, MD, adjudicator module, test file, and
+  notebook from PR #242 are byte-unchanged in this branch. The Layer-2 PR re-asserts their
+  SHA-256s as `parent_pr242_*_sha256` provenance constants in every new CSV row.
 
-A2. **Registry CSV is authoritative for tranche-2 scope.** The 6 family IDs
-   are the rows 7-12 of `02_01_01_feature_family_registry.csv` (SHA-256
-   `320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f`):
-   - `sc2egset.history_enriched_pre_game.focal_player_history`
-   - `sc2egset.history_enriched_pre_game.opponent_player_history`
-   - `sc2egset.history_enriched_pre_game.matchup_history_aggregate`
-   - `sc2egset.history_enriched_pre_game.reconstructed_rating`
-   - `sc2egset.history_enriched_pre_game.cross_region_fragmentation_handling`
-   - `sc2egset.history_enriched_pre_game.in_game_history_aggregate`
+A2. **PR #241 scaffold validator byte-unchanged.** SHA-256
+  `b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904` is re-asserted as
+  `pr241_scaffold_validator_module_sha256` in every new CSV row.
 
-A3. **Tranche-1 evidence binding (PR #234).** The PR #234 Q1=MFC,
-   Q2(a)=`started_at TIMESTAMP` BINDING, Q3=RATIFY decisions are anchored
-   inputs. The tranche-2 adjudication may RATIFY, EXTEND, or NARROW these
-   choices for the history tranche, but must explicitly cite the
-   tranche-1 evidence path (`02_01_02_source_anchor_race_adjudication.csv`
-   row by `decision_id`) before deviating.
+A3. **01_05_10 substrate is the authoritative cross-region measurement anchor.** The Layer-2 PR
+  reads (in the notebook only, via the adjudicator module) the same `replay_players_raw` /
+  `player_history_all` / `matches_history_minimal` / `matches_flat_clean` tables that 01_05_10
+  measured and reproduces the 246-nickname / 1,923-toon_id / 32,031 (player,match) pair
+  invariant within the same DuckDB; the new artifact does NOT re-derive these from raw replays.
+  See NIT-C resolution: the 32,031 anchor is nickname-anchored (per 01_05_10 SQL 3); the new
+  toon_id-membership binding probe has its own (TBD-at-Layer-2) expected count.
 
-A4. **Notebook pair = 2 deliverables.** Per PR #234 (which shipped
-   `02_01_02_source_anchor_race_adjudication.py` + `.ipynb` as 2 of its
-   deliverables), the Layer-2 PR's notebook pair counts as **two distinct
-   deliverables** in the 11-file diff. This is the B1 contract. Every
-   manifest count uses "11 = 9 deliverable + 2 inherited planning" verbatim.
+A4. **Three options are pre-enumerated by CROSS-02-02 §6.2 row 5** (line 242 of
+  `02_02_feature_engineering_plan.md`). The Layer-2 adjudicator evaluates exactly
+  `{strict_exclusion, dual_feature_path, sensitivity_indicator_co_registration}` and does not
+  invent a fourth option. Each option gets its own per-family-impact row in the successor CSV.
+  A4 explicitly excludes the MFC-target-row drop alternative (see Problem Statement table).
 
-A5. **Adjudicator module path.**
-   `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py`
-   (mirroring tranche-1's `adjudicate_pre_game_source_layer.py` filename
-   pattern). Public entrypoint
-   `adjudicate_history_enriched_pre_game_source_layer(...) ->
-   HistoryEnrichedAdjudicationResult` writes CSV + MD via two helpers
-   (`_write_csv`, `_write_md`); never writes Parquet.
+A5. **Canonical strict-< filter (B-X2 inherited).** Every SQL probe uses
+  `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at` (NOT bare CAST) per
+  `matches_history_minimal.yaml`. This is the same canonical form as PR #242's
+  `STRICT_LT_HISTORY_FILTER` and is re-asserted as `STRICT_LT_HISTORY_FILTER` in the new
+  adjudicator module.
 
-A6. **Mirrored test path.**
-   `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py`
-   per project test mirror convention.
+A6. **Adjudicator module path.**
+  `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
+  (mirroring the PR #242 `adjudicate_history_enriched_pre_game_source_layer.py` filename pattern,
+  scoped to the Q5 successor surface). Public entrypoint
+  `adjudicate_history_cross_region_retention(...) -> CrossRegionAdjudicationResult` writes CSV
+  + MD via two helpers (`_write_csv`, `_write_md`); never writes Parquet; never mutates the
+  DuckDB; never edits any prior on-disk artifact.
 
-A7. **Coverage gate.** ≥95% line coverage on the adjudicator module
-   (matching the tranche-1 + PR #241 precedent).
+A7. **Mirrored test path.**
+  `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py`
+  per `python-code.md` mirrored-tree convention.
 
-A8. **Notebook discipline.** Jupytext `py:percent` `.py` canonical + paired
-   `.ipynb` (outputs cleared); no `def` / `class` / `lambda` in cells; all
-   logic imported from the adjudicator module; `print()` only for read-only
-   exploration; `logging.getLogger(__name__)` for diagnostics. Per
-   `feedback_notebook_iterative_testing.md`, every notebook cell declares
-   its hypothesis + falsifier inline before executing.
+A8. **Coverage gate.** ≥95% line coverage on the adjudicator module (PR #234 / PR #241 / PR #242
+  precedent; matches `[tool.coverage.report] fail_under = 95` in `pyproject.toml`).
 
-A9. **CSV/MD provenance.** The CSV columns include `provenance_git_sha`
-   (resolved at write time) plus N4 `pr241_scaffold_validator_module_sha256`
-   plus `provenance_sha256` fields for every critical input (registry CSV,
-   PR #234 binding CSV+MD, methodology risk register, 4 CROSS-02-NN specs,
-   3 cleaning-layer YAMLs, DuckDB path). The MD reproduces every cited SQL
-   query and its result verbatim (Invariant I6).
+A9. **Notebook discipline.** Jupytext `py:percent` `.py` canonical + paired `.ipynb` (outputs
+  cleared); no `def`/`class`/`lambda` in cells; all logic imported from the adjudicator module;
+  `print()` only for read-only DuckDB exploration; `logging.getLogger(__name__)` for diagnostics.
+  Per `feedback_notebook_iterative_testing.md`, every notebook cell declares its hypothesis +
+  falsifier inline before executing.
 
-A10. **Q-decisions must answer "RATIFY / EXTEND / NARROW / DEFER" per
-   decision.** The 8 Q-decisions never silently pin a numeric threshold,
-   smoothing pseudocount, Bayesian prior, or rating-model hyperparameter
-   (Invariant I7). Where a choice cannot be bound at this layer (Q6 rating
-   algorithm), the verdict is `deferred_blocker` per N3 — explicit, not
-   silent. Where a choice can be bound (Q1 source layer), the verdict is
-   `bind_now` / `extend_with_evidence` with evidence-backed rationale.
+A10. **CSV/MD provenance.** Every CSV row carries `provenance_git_sha` (resolved at write time),
+  `pr241_scaffold_validator_module_sha256`, `parent_pr242_csv_sha256`, `parent_pr242_md_sha256`,
+  `parent_pr242_artifact_sha256` (which equals the hash of the CSV+MD pair concatenated), and
+  per-input SHA-256s (registry CSV, methodology risk register, 4 CROSS-02-NN specs, 3
+  cleaning-layer YAMLs, 01_05_10 MD+JSON, DuckDB path) **PLUS the 4 NIT-B added SHAs:
+  `player_history_all_yaml_sha256`, `step_01_04_05_md_sha256`, `matches_flat_clean_yaml_sha256`,
+  `cross_02_02_spec_sha256`**. The MD reproduces every SQL probe and its result verbatim
+  (Invariant I6); SHA-256 fields are 64-char lowercase hex with no `NOT_FOUND` placeholder.
+  **The verdict EMERGES from the per-family retention table — it is not pre-bound by the
+  planner. T05 step 4's recommendation is provisional.**
 
-A11. **Strict-< filter has one canonical form (B-X2).** The single canonical
-   expression for the strict-`<` history filter EVERYWHERE in the
-   adjudicator module, smoke probes, evidence bindings, and tests is:
-   ```
-   TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at
-   ```
-   `TRY_CAST` (not bare `CAST`) is chosen to handle the 7 observed length
-   variants 22-28 chars in upstream VARCHAR per
-   `matches_history_minimal.yaml`. Any divergence (bare `CAST`, missing
-   cast, wrong alias) is rejected by a dedicated falsifier
-   `strict_lt_filter_divergence`. Where the ROADMAP raw text contains
-   `ph.details_timeUTC < target.started_at` (lex-only form), this plan
-   explicitly labels that text as "ROADMAP §02_01_03 raw form (normalized
-   by this adjudication plan to the canonical TRY_CAST form for
-   chronological fidelity per `matches_history_minimal.yaml`)" and does
-   NOT propagate the bare form into any executable site.
+A11. **Per-option × per-family retention table is the central evidence object.** The successor
+  artifact decomposes each of the three options into per-family retention counts (history-rows-kept,
+  history-rows-dropped, players-affected, matches-affected) for each of the 6 history families
+  (`focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`,
+  `reconstructed_rating`, `cross_region_fragmentation_handling`, `in_game_history_aggregate`).
+  The table is the empirical substrate for the Q5 verdict; without it the verdict is
+  unjustifiable.
+
+A12. **Q6 frozen.** The Layer-2 PR makes ZERO edits to any Q6-related artifact, no Q6 row in the
+  new CSV, no Q6 wording in the new MD except a one-line statement that Q6 remains
+  `deferred_blocker` and is out of scope for this PR. The PR #242 Q6 row remains the
+  authoritative Q6 record.
+
+A13. **Three-round adversarial cap applies symmetrically** (per memory
+  `feedback_adversarial_cap_execution.md`). Round 4 of 4 on the plan side (this round is the
+  FINAL plan-side round, run under explicit user-authorized one-round override of the standard
+  3-round cap for a mechanical B4-only fix); round 1 of 3 will separately apply on the
+  execution side.
+
+A14. **Verdict-emergence discipline (round-2 N3 binding).** The planner's recommended verdict
+  in T05 step 4 is **provisional**. The Layer-2 executor MUST:
+  - Run all probes FIRST and report the per-family retention table BEFORE selecting any policy.
+  - The verdict is computed from the table, not pre-bound from the plan.
+  - If the table contradicts the provisional recommendation (e.g.,
+    `_SENSITIVITY_INDICATOR_FLAG_NONDEGENERACY_QUERY` shows a non-trivial NULL count, or
+    `_STRICT_EXCLUSION_HISTORY_FILTER_RETENTION_QUERY` shows a retention loss within a
+    notebook-declared tolerance), the executor MUST escalate to the planner BEFORE writing the
+    artifacts (per `data-analysis-lineage.md` "Stop conditions").
+  - The recommended verdict CANNOT be rubber-stamped without surfacing the per-family table
+    in the notebook output.
+
+A15. **PHA is the source-of-truth for `is_cross_region_fragmented` (round-2 B1 binding).**
+  Every reference to the column in module constants, SQL probes, decision-row scope strings,
+  rationale prose, and test fixtures resolves to `player_history_all.is_cross_region_fragmented`.
+  No probe, no row, and no rationale references `matches_flat_clean.is_cross_region_fragmented`
+  (which does not exist — MFC is a 30-column view). The Q5 successor module's only `mfc.*`
+  references are for the join keys `mfc.replay_id` and `mfc.toon_id` (the canonical MFC
+  primary keys per `matches_flat_clean.yaml` lines 12 and 24).
+
+A16. **MFC join keys are `replay_id` / `toon_id`, MHM keys are `match_id` / `player_id`
+  (round-2 B2 binding).** Every MFC ↔ MHM join uses:
+  `target.match_id = 'sc2egset::' || mfc.replay_id` AND `target.player_id = mfc.toon_id`.
+  Every PHA ↔ MHM join uses:
+  `target.match_id = 'sc2egset::' || ph.replay_id` AND `target.player_id = ph.toon_id`.
+  Single-prefix on the unprefixed MFC / PHA `replay_id`; never double-prefix.
+
+A17. **The Q5 retention filter is applied to HISTORY rows on PHA, not to TARGET rows on MFC
+  (round-2 B3 binding).** Per CROSS-02-02 §6.2 row 5 + 01_04_05 §7 strategy 1 + PHA YAML NOTES
+  lines 220-226 (each quoted verbatim from its actual on-disk location in §Literature Context),
+  the canonical operationalization is `WHERE NOT ph.is_cross_region_fragmented` applied to PHA
+  history rows BEFORE per-family aggregation. Filtering target rows on MFC (e.g.,
+  `WHERE NOT mfc.is_cross_region_fragmented`) is NOT one of the three CROSS-02-02 options and
+  is OUT OF SCOPE.
+
+A18. **(NEW round-3 NIT-B) Source-artifact SHA pinning for the round-2 load-bearing files.**
+  Four source files load-bearing to round-2 B1/B3 fixes have their SHA-256 pinned at planner
+  time and frozen as module constants. The Layer-2 executor's helpers re-compute the hashes
+  at run time and halt on any drift. Pinned values (computed via
+  `shasum -a 256 <path>` on master HEAD `e372e7b6` at planner-time 2026-05-24):
+  - `player_history_all.yaml` = `7962dd910e0b72419e35a9895689cd4ae6a51c2be0bc6e5e0fe4a0ceb8f207d0`
+  - `01_04_05_cross_region_annotation.md` = `7bac26fd69952509a9dac323436e074902ca8ba9e0bac64021ad04de7f5dc9fe`
+  - `matches_flat_clean.yaml` = `9f76c1912624535b7b7ac0d2fb767fd4b9791a1d808bf73f747416d557d6cb1f`
+  - `02_02_feature_engineering_plan.md` (`reports/specs/`) = `86af792370272e611f048aae0c48c9cc595eb4b44c1db38c0bb4ecea0ff1b289`
+  If any of these files is touched between Layer-1 merge and Layer-2 execution, the executor
+  must HALT, re-read the changed file, re-verify the round-2 B1/B3 binding rationale still
+  holds, then re-pin and re-PR. This is the same drift-discipline as the existing PR #242
+  parent SHAs.
+
+A19. **(NEW round-3 NIT-C) Probe anchor semantics are explicit and machine-readable.**
+  The successor CSV gains a new dataclass field
+  `cross_region_anchor_semantics: str ∈ ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS = frozenset({'toon_id_based', 'nickname_based', 'both'})`.
+  Each per-option decision row populates this field per the binding probe used. The new
+  toon_id-membership BINDING probe (`_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY`)
+  computes `COUNT(*) FROM player_history_all ph WHERE ph.toon_id IN (SELECT DISTINCT toon_id FROM player_history_all WHERE is_cross_region_fragmented = TRUE)`;
+  its expected count is `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT: int`,
+  pinned at Layer-2 write time (Invariant I7 — derive once from live DuckDB, then pin). The
+  EQUIVALENCE probe (`_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY`) replicates 01_05_10 MD
+  §3.3 SQL 3 nickname-join idiom and asserts the 32,031 anchor. The 32,031 expectation is
+  shared ONLY by the nickname-anchored probe; the toon_id-membership probe has its own
+  independent expectation. Falsifier keys `cross_region_nickname_anchor_count_drift` and
+  `cross_region_toon_id_anchor_count_drift` are independent.
+
+A20. **(NEW round-3 NIT-D) `history_row_filter_on_pha_applied` is a structured field, not a
+  prose substring.** The dataclass gains
+  `history_row_filter_on_pha_applied: str ∈ ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED = frozenset({'yes', 'no', 'not_applicable'})`.
+  Falsifier `_check_history_row_filter_on_pha_field_valid` (key
+  `history_row_filter_on_pha_field_invalid`) asserts the field is in the allowed set AND
+  enforces consistency with `selected_policy`:
+  - Q5A (`strict_exclusion`) → `history_row_filter_on_pha_applied = "yes"` (required)
+  - Q5B (`dual_feature_path`) → `history_row_filter_on_pha_applied = "yes"` (required)
+  - Q5C (`sensitivity_indicator_co_registration`) → `history_row_filter_on_pha_applied = "no"` (required) — OR `"not_applicable"` is also allowed for Q5C since the option does not apply any filter; the planner BINDS `"no"` for Q5C as the more informative value
+  - Q5_selected_policy → derived from chosen policy (mirror Q5A/Q5B/Q5C consistency)
+  - Q5_per_family_impact_summary → `"not_applicable"` (no per-option commitment)
+
+  The old vacuous substring assertion that required the prose `"history-row filter on PHA"`
+  in every `retention_measurement_summary` is REMOVED. The SQL byte-scan portion of falsifier
+  #24 (reject `mfc.is_cross_region_fragmented` as a WHERE predicate) is KEPT — that scan IS
+  non-vacuous.
+
+A21. **(NEW round-4 B4-only mechanical) Authoritative counts.** `HELPER_TO_FALSIFIER_KEY` and
+  `FALSIFIER_PRIORITY_CHAIN` each contain **exactly 31 entries**; their value-set is equal
+  (`set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values())`); the chain has no
+  duplicates (`len(set(FALSIFIER_PRIORITY_CHAIN)) == 31`). The 31 = 25 (post-B4 mapping
+  promotion) + 4 (NIT-B SHAs) + 2 (NIT-D structured-field + SQL-byte-scan split) arithmetic
+  is authoritative; no alternative count is permitted. All four invariants are asserted at
+  module-import time (via top-level `assert` statements per the
+  `POST_GAME_TOKEN_SCOPED_FIELDS.isdisjoint(POST_GAME_TOKEN_EXEMPT_FIELDS)` precedent inherited
+  from PR #242) so any drift fails BEFORE any test runs and BEFORE any artifact is written.
 
 ### Unknowns (DEFERRED with explicit gating)
 
-U1. **Materialization SQL.** The exact projection SQL for each of the 6
-   families is DEFERRED to the future materialization PR (Layer-3+). The
-   adjudication CSV records the BINDING source-table choice, anchor, and
-   strict-`<` filter; the SQL skeleton is recorded only as a pseudocode
-   pattern in the MD §rationale.
+U1. **Final Q5 verdict.** The Layer-2 PR may converge to any of:
+  - `bind_now` / `binding_for_materialization` with one of the three policies selected and
+    quantitative retention evidence per-family,
+  - `narrow_with_evidence` (e.g., "select option (c) sensitivity-indicator co-registration as a
+    BIND for materialization scope and option (a) strict-exclusion as a Phase-03 sensitivity
+    arm"),
+  - `deferred_recommendation` (rare; only if the measurement reveals a previously-unanticipated
+    blocker — e.g., a fourth necessary option),
+  - continued `deferred_blocker` (with strictly stronger evidence-required language than PR #242).
 
-U2. **Cold-start numeric thresholds (K, m, α).** Per Invariant I7, every
-   threshold must be empirically derived on training folds OR cited from
-   literature. Both options are DEFERRED to the materialization PR. The
-   adjudication CSV records cold-start POLICY (`fold_aware_fit` /
-   `literature_constant` / `deferred_blocker`) without pinning a numeric.
+  The Layer-2 PR does NOT pre-commit to the verdict; the verdict emerges from the per-family
+  retention table (per A14).
 
-U3. **Q6 rating reconstruction model family.** Per N3, the default verdict
-   is `deferred_blocker` unless the future Layer-2 PR's read-only evidence
-   gathering produces enough repo/primary-source binding to commit to a
-   model family (Elo / Glicko / Glicko-2 / TrueSkill / rolling baseline).
-   The ~83.95% MMR-missing density (verified in the dataset research log:
-   "is_mmr_missing distribution = (False=7128, True=37290) = 83.95% TRUE")
-   makes algorithm choice first-order; no premature pin. **N-X3
-   strengthened gate:** when verdict is `deferred_blocker`, evidence_paths
-   must be non-empty AND notes must contain explicit deferred-blocker
-   rationale ("deferred_blocker because: ..."). When verdict is a model
-   family, evidence_paths must contain at least 1 repo path AND at least
-   1 primary-source citation (newline-separated; falsifier splits and
-   counts), notes must contain forward-only wording, and notes must
-   contain explicit cold-start / missingness handling wording.
+U2. **Magnitude tolerance for retention loss.** Per Invariant I7 (no magic numbers) the
+  Layer-2 PR will NOT hard-code a "≥X% retention required" threshold. The decision rationale
+  must be either (a) literature-cited or (b) compared against the W=30 noise-floor √30 ≈ 5.5
+  precedent that 01_05_10 already grounds in literature (Hollander & Wolfe 1999 §11.2). The
+  per-family retention numbers + their 01_05_10 noise-floor comparisons together drive the
+  verdict; no scalar tolerance is committed.
 
-U4. **Post-materialization CROSS-02-01 audit.** The non-vacuous audit JSON+MD
-   covering the 6 history families' materialized columns is DEFERRED to the
-   future materialization PR. This adjudication PR writes ZERO entries
-   under `reports/artifacts/02_01_03/`.
+U3. **G-CS-5 per-source cold-start enumeration row.** Q4 in PR #242 binds G-CS-2/3/4/5 as
+  scaffold registry gates with G-CS-6 deferred to materialization. The Q5 verdict may produce a
+  GCS-5 row count update if the selected option changes the cold-start cohort (e.g.,
+  `strict_exclusion` raises the cold-start row count by removing players' historical PHA
+  entries from the aggregate window — reducing prior-match counts at target time below the
+  cold-start threshold). The Layer-2 PR may emit one auxiliary GCS-5-impact row in the
+  successor CSV; this is NOT a Q4 re-adjudication — the PR #242 Q4 row remains the binding Q4
+  record.
 
-U5. **§10 verdict-audit re-run vs justification.** The ROADMAP
-   `continue_predicate` (lines 2464+) requires either a re-executed §10
-   audit over the 6 history rows OR a non-vacuous justification recorded
-   in the materialization PR's `research_log` entry. This adjudication PR
-   does NOT discharge that obligation; it RECORDS the choice as one
-   adjudication row (within Q4 cold-start subfields) for the materialization
-   planner to consume.
+U4. **Phase 03 sensitivity-arm declaration.** If the verdict is `narrow_with_evidence` /
+  `sensitivity_indicator_co_registration`, the Phase 03 sensitivity-arm protocol is RECORDED in
+  the successor CSV (one row) but is NOT executed; Phase 03 work remains forbidden.
 
-U6. **Step closure.** The U2.B-style closure PR (adding `02_01_03: complete`
-   to `STEP_STATUS.yaml` and the closure entry to dataset `research_log.md`)
-   is DEFERRED to a separate post-materialization closure PR per the PR #237
-   tranche-1 closure precedent.
+U5. **Materialization SQL.** The exact materialization projection SQL for the
+  `cross_region_fragmentation_handling` family is DEFERRED to the future materialization PR.
+  The Q5 successor CSV records the BINDING per-option per-family retention counts; the SQL
+  skeleton is recorded only as a pseudocode pattern in the MD §rationale.
 
-U7. **AoE2 cross-game decisions.** This is a sc2egset-scoped tranche-2
-   adjudication. CROSS-02-00 cross-game decisions (faction polymorphism,
-   per-dataset encoders) are RATIFIED-by-citation only; no new cross-game
-   commitment is made.
+U6. **Q6 rating-family adjudication.** Explicitly DEFERRED to a separate future planning round.
+  See Open Questions OQ1.
+
+U7. **Step closure.** A U2.B-style closure PR (adding `02_01_03: complete` to `STEP_STATUS.yaml`
+  and the closure entry to dataset `research_log.md`) remains DEFERRED to a separate
+  post-materialization closure PR per PR #237 precedent.
+
+U8. **AoE2 cross-game decisions.** This is a sc2egset-scoped successor adjudication.
+  CROSS-02-00 cross-game decisions are RATIFIED-by-citation only; no new cross-game commitment.
+
+U9. **PHA history-row anchor count.** The smoke-falsifier anchor for total PHA rows passing
+  the `STRICT_LT_HISTORY_FILTER` over all 6 history families is TBD at Layer-2 write time
+  (replaces the round-1 MFC-target-row 44418 anchor). The Layer-2 executor will compute the
+  anchor from a one-time read-only probe over the current DuckDB during T01 and pin it as
+  `EXPECTED_PHA_STRICT_LT_HISTORY_ROW_COUNT: int` per Invariant I7 (the constant must be
+  derived from the live DuckDB and committed with provenance, NOT inserted as a magic number
+  from this Layer-1 plan).
+
+U10. **(NEW round-3 NIT-C) PHA toon_id-membership count anchor.** The new binding probe's
+  expected count is TBD at Layer-2 write time:
+  `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT: int`. It is computed once via the
+  toon_id-membership form (`SELECT COUNT(*) FROM player_history_all ph WHERE ph.toon_id IN
+  (SELECT DISTINCT toon_id FROM player_history_all WHERE is_cross_region_fragmented = TRUE)`)
+  on the live DuckDB, then pinned. It is conceptually distinct from the nickname-anchored
+  32,031 count and may not equal 32,031 (the two probes may differ slightly if any
+  cross-region toon_id has a PHA row where `LOWER(nickname)` is not in the cross-region
+  nickname set, or vice versa — a subtle edge case the executor must verify in the
+  T07 notebook output before pinning).
 
 ## Literature Context
 
-This is a methodology-scaffolding adjudication PR; the literature context
-is the project's own normative documents (cited verbatim in the
-`source_artifacts` frontmatter) plus the cross-spec invariants in
-`.claude/scientific-invariants.md`. No external academic citation is
-load-bearing for the **adjudication verdict**; literature derivations
-(cold-start empirical thresholds K, smoothing pseudocount m, Bayesian
-prior strength α, rating-reconstruction hyperparameters) are explicitly
-DEFERRED to the materialization PR per Invariant I7.
+This is a methodology-scaffolding adjudication PR. The literature context is the project's own
+normative documents (cited verbatim in `source_artifacts`) plus the cross-spec invariants in
+`.claude/scientific-invariants.md`.
 
-For the rating reconstruction family (`reconstructed_rating`, G-CS-4), the
-candidate algorithms cited at design time are: Elo (Elo 1978), Glicko
-(Glickman 1999), Glicko-2 (Glickman 2012), TrueSkill (Herbrich, Minka,
-Graepel 2006/2007). The choice between these is **Q6 — default verdict
-`deferred_blocker` per N3 (strengthened per N-X3)**. The relevant entries
-already exist in `thesis/references.bib`: `Elo1978`, `Glickman1999`,
-`Glickman2012`, `Herbrich2006`. These citations are NOT bound at this
-layer; the adjudication CSV records `rating_policy = deferred_blocker`
-(or the evidence-bound alternative the future Layer-2 PR substantiates
-under the strengthened N-X3 evidence gate).
+**Verbatim spec passages anchoring the round-2 B3 filter-semantics binding (round-3 NIT-A
+re-attribution: each quote is now sourced from its actual on-disk location and quoted byte-for-byte
+from that location, not paraphrased across files):**
 
-For the cross-region fragmentation handling family (RISK-20), the project's
-own evidence is `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/06_decision_gates/risk_register_sc2egset.md`
-RISK-20 (cross-region fragmentation; cited at ROADMAP line 2386) plus the
-Phase 01 W=30 FAIL verdict cited in CROSS-02-02 §6.2 row 5. No external
-citation is required.
+> [Source: `02_02_feature_engineering_plan.md` §6.2 row 5 line 242, Source column, verbatim]
+>
+> `player_history_all.is_cross_region_fragmented` (CROSS-02-00 §5.4)
 
-The non-batching protocol cited is `.claude/rules/data-analysis-lineage.md`
-"Non-batching rule for empirical work" (sequence step 3). The
-falsifier-discipline protocol cited is "Required structure for every
-empirical analysis" in the same rule (every empirical analysis declares
-assumption, measurement claim, sanity check, falsifier, expected artifact,
-lineage source, downstream decision).
+> [Source: `02_02_feature_engineering_plan.md` §6.2 row 5 line 242, Constraint column, verbatim]
+>
+> Per RISK-20 / Phase 01 W=30 FAIL verdict, Phase 02 must not hard-code a retention percentage
+> for `WHERE NOT is_cross_region_fragmented` filtering. Phase 02 must implement one of:
+> (a) strict-exclusion sensitivity arm, (b) dual feature paths (with vs without filter), or
+> (c) sensitivity indicator co-registered alongside the history features. The choice is
+> deferred to a Phase 02 ROADMAP step that empirically measures retention.
 
-External ChatGPT deep-research relevant to SC2_Datasets ToonPlayerDescMap
-semantics (APM, SQ, supplyCappedPercent, race, selectedRace, MMR, result)
-is **supporting semantic caution** only. Repo artifacts remain source of
-truth. The semantic notes are recorded in the MD §evidence section as
-"external semantic support" without elevating them to binding sources.
+> [Source: `01_04_05_cross_region_annotation.md` §7 strategy 1, lines 203-208, verbatim]
+>
+> Safe-subset filter: `WHERE NOT is_cross_region_fragmented` — restricts history to
+> non-fragmented players; cleanest rolling-window estimates but reduces the training population
+> to 7,716 / 44,817 rows = 17.2% of the corpus (tournament players are over-represented among
+> the 1,923 flagged toons; see §4 flag distribution). This is a material data loss; strategy
+> (2) or (3) are usually preferable for non-catastrophic bias levels.
+
+> [Source: `01_04_05_cross_region_annotation.md` §7 strategies 2 and 3, lines 210-216,
+> verbatim]
+>
+> 2. **Dual feature paths:** Compute rolling-window features for all players, then add
+>    `is_cross_region_fragmented` as a covariate in the model. The model learns to adjust
+>    for the known fragmentation bias.
+>
+> 3. **Sensitivity indicator:** Use the flag to partition evaluation metrics by
+>    `is_cross_region_fragmented` and report differential model performance. Documents
+>    remaining bias for the thesis.
+
+> [Source: `player_history_all.yaml` NOTES lines 220-226, verbatim — this is the ONLY
+> on-disk source for the consolidated paraphrase below; it does NOT appear in 01_04_05 §7
+> in this consolidated form]
+>
+> Phase 02 rolling features over `player_id_worldwide` should apply
+> `WHERE NOT is_cross_region_fragmented` as safe-subset filter, OR use dual feature paths,
+> OR use as sensitivity indicator. Blanket flag (no handle-length filter) by design — false
+> positives bounded by short-handle count (see 01_04_05 §6 conservatism argument). Empirical
+> grounding from WP-3 (01_05_10): median_rolling30_undercount=16, p95=29 on flagged toons.
+> Derivation in 01_04_05 artifact.
+
+> [Source: `01_04_05_cross_region_annotation.md` §1 — the PHA column declaration]
+>
+> This step adds `is_cross_region_fragmented` BOOLEAN to `player_history_all` VIEW so Phase 02
+> consumers can operationalize the accepted-bias framing without re-deriving the cross-region
+> set per query.
+
+All four passages prescribe the filter on the HISTORY view (PHA). None prescribe filtering
+target rows on MFC. The Q5 successor module binds to the prescribed semantics only; the
+MFC-target-row alternative is OUT OF SCOPE per A4 + A17.
+
+**Must-justify list (methodological choices needing alternatives-considered paragraphs in the
+future MD):**
+
+- selection of `strict_exclusion` vs `dual_feature_path` vs `sensitivity_indicator_co_registration`
+  per CROSS-02-02 §6.2 row 5 (verbatim Constraint-column wording above);
+- decision to read `is_cross_region_fragmented` from `player_history_all` (per
+  `player_history_all.yaml` line 214 + 01_04_05 §1 → PHA is the unique source-of-truth)
+  versus the now-rejected (round-1 B1) alternative of reading from `matches_flat_clean` —
+  MFC does NOT carry this column (verified `grep -n is_cross_region_fragmented
+  matches_flat_clean.yaml` returns empty);
+- decision to apply the filter to HISTORY rows on PHA (`WHERE NOT ph.is_cross_region_fragmented`
+  before aggregation) versus the now-rejected (round-1 B3) alternative of filtering TARGET
+  rows on MFC — neither 01_04_05 §7 strategy 1 (verbatim above) nor CROSS-02-02 §6.2 row 5
+  Constraint column (verbatim above) enumerates the TARGET-row filter as one of the three
+  options;
+- decision to compute retention impact per-family (6 families × 3 options) versus a single
+  global retention number;
+- decision to use the 01_05_10 √30 ≈ 5.5 noise-floor as the comparator rather than a fresh
+  literature-cited tolerance;
+- **(NEW round-3 NIT-C) decision to use a toon_id-membership probe as the BINDING base
+  count and reserve the nickname-anchored 01_05_10-equivalence probe (which yields 32,031)
+  as the EXPLORATORY 01_05_10-equivalence check.** Justification: the downstream Q5 filter
+  predicate is `WHERE ph.is_cross_region_fragmented = TRUE` (column-driven, anchored on the
+  derived `toon_id`-membership flag), so the binding count must use the same idiom; the
+  nickname-anchored count from 01_05_10 SQL 3 is conceptually equivalent but slightly less
+  precise (it joins on lowercase nickname, which can drift if any PHA row's nickname casing
+  diverges from `replay_players_raw`).
+
+**Must-contrast list (claims needing literature comparison):**
+
+- the 12% migration rate (SC-R01 in `risk_register_sc2egset.md`) vs the 23.5% nickname-level
+  migration in 01_05_10 §3.1 (these are NOT contradictory — they count different cardinalities;
+  the Layer-2 MD must state both and explain the difference);
+- median-undercount 16 / p95-undercount 29 against the W=30 noise-floor √30 ≈ 5.5 (already
+  cited from Hollander & Wolfe 1999 §11.2);
+- per-option retention numbers against the I2-Branch-(iii) accepted-bias framing in
+  `INVARIANTS.md` §2.
+
+**Must-cite list (key references — verify presence in `thesis/references.bib` at Layer-2 write
+time; if a citation is missing, escalate or downgrade the claim):**
+
+- Hollander & Wolfe 1999 §11.2 (already used by 01_05_10; verify bib presence);
+- de Prado 2018 Ch. 7 (normalization leakage; already cited in scientific-invariants.md I3);
+- Arlot & Celisse 2010 (split methodology; already cited in I3).
+
+None of these become Q5 binding citations on their own; they appear only as comparator
+substrate in the rationale. The Q5 verdict itself is driven by the empirical retention table,
+not by literature.
+
+External web search is NOT expected for this PR; if a citation surfaces that isn't yet in
+`thesis/references.bib`, the Layer-2 executor must escalate.
+
+**Expected length.** The future Layer-2 MD is expected to run ~450-750 lines (between the
+PR #234 MD at ~250 lines and the PR #242 MD at ~240 lines, plus the additional per-option ×
+per-family retention table, the two-probe binding/exploratory split per NIT-C, and the
+structured `history_row_filter_on_pha_applied` table per NIT-D). Voice: argumentative — every
+per-option row must defend its inclusion against the alternatives, not merely describe its
+retention number.
 
 ## Execution Steps
 
-Each task below describes work to be performed by the Layer-2 executor.
-T01-T08 produce the **9 deliverable/execution files**; together with the
-**2 inherited planning files** (`planning/current_plan.md` +
-`planning/current_plan.critique.md` carried forward from this Layer-1 PR),
-the future Layer-2 PR has an **11-file tracked diff**. T09 is the
-Layer-2 final-gate dispatch. **None of T01-T09 executes at this Layer-1
-PR.** This Layer-1 PR only commits the plan + critique (2 files).
+Each task below describes work to be performed by the future Layer-2 executor. T01-T08 produce
+the **9 deliverable/execution files**; T09 is the Layer-2 final-gate dispatch. **None of
+T01-T09 executes at this Layer-1 PR.**
 
 ### T01 — Adjudicator module: dataclasses, constants, schema constants
 
-**Objective:** Define module-level constants, the
-`HistoryEnrichedAdjudicationResult` frozen dataclass, and the
-`HistoryEnrichedAdjudicationDecision` frozen dataclass for one Q-row.
-No magic numbers (Invariant I7).
+**Objective:** Define module-level constants, the `CrossRegionAdjudicationResult` frozen
+dataclass, and the `CrossRegionAdjudicationDecision` frozen dataclass. No magic numbers
+(Invariant I7).
 
 **Instructions:**
-1. Create `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py`.
-2. Declare module-level constants matching the registry-bound set in PR #241:
-   - `HISTORY_TRANCHE2_FAMILY_IDS: frozenset[str]` (re-imported from the
-     PR #241 validator module — single source of truth).
-   - `EXPECTED_TRANCHE2_COUNT: int = 6`.
-   - `IN_GAME_HISTORICAL_AGGREGATED_COLUMNS: tuple[str, ...]` (re-imported
-     from PR #241 validator module).
-   - `PR241_VALIDATOR_MODULE_PATH: str` (relative path to validator).
-   - `EXPECTED_PR241_VALIDATOR_SHA256: str = "b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904"` (N4 binding).
-   - **B-X2 canonical strict-`<` constant:**
-     `STRICT_LT_HISTORY_FILTER: str = "TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"`
-     (TRY_CAST — not bare CAST — matches `matches_history_minimal.yaml`
-     guidance handling 7 observed length variants 22-28 chars in upstream
-     VARCHAR; alias `target` is canonical, NOT `mhm`).
-   - `STRICT_LT_FILTER_ROADMAP_RAW: str = "ph.details_timeUTC < target.started_at"`
-     (the raw lex-only form quoted from ROADMAP §02_01_03 — recorded
-     for provenance ONLY; never used as an executable expression;
-     `strict_lt_filter_divergence` falsifier asserts no executable site
-     adopts this bare form).
-   - `Q_DECISION_IDS: tuple[str, ...] = ("Q1_source_layer", "Q2_target_anchor", "Q3_history_time_column", "Q4_cold_start_policy", "Q5_cross_region_policy", "Q6_rating_policy", "Q7_in_game_historical_policy", "Q8_matches_history_minimal_consumption")`.
-   - `ALLOWED_VERDICTS: frozenset[str] = frozenset({"bind_now", "ratify_with_evidence", "extend_with_evidence", "narrow_with_evidence", "deferred_blocker", "deferred_recommendation"})`.
-   - `ALLOWED_BINDING_LEVELS: frozenset[str] = frozenset({"binding_for_materialization", "binding_for_phase_03_split", "recommendation_only", "deferred_blocker", "deferred_recommendation"})`.
-   - **B-X1 forbidden-token field scope constants:**
-     `POST_GAME_TOKEN_SCOPED_FIELDS: tuple[str, ...] = ("selected_source_layer", "selected_target_source_layer", "selected_history_source_layer", "target_anchor", "history_time_column", "feature_family_id_or_scope", "materialized_output_paths", "proposed_feature_columns", "designed_column_names")`
-     (note: `proposed_feature_columns` and `designed_column_names` are
-     reserved scope — if a successor PR adds either of these fields to
-     the schema, it falls under POST-GAME token scanning automatically).
-     `POST_GAME_TOKEN_EXEMPT_FIELDS: tuple[str, ...] = ("notes", "evidence_paths", "falsifiers", "decision_name", "rationale", "source_layer_divergence_reason", "history_source_extension_reason")`
-     (rationale-bearing fields are EXEMPT — negated prose like "no
-     target-match outcome; no future results; no global batch fit" is
-     ALLOWED here).
-   - `POST_GAME_TOKENS: frozenset[str] = frozenset({"won", "win", "loss", "result", "final_state", "match_result", "post_game", "outcome", "winner", "is_decisive"})` (mirrors PR #241 validator).
-   - `ADJUDICATION_CSV_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv"`.
-   - `ADJUDICATION_MD_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md"`.
-3. Declare `HistoryEnrichedAdjudicationDecision` frozen dataclass with the
-   **26-field schema** (N-X4 adds 2 subfields; the future Layer-2 CSV row
-   schema is exactly this dataclass's `astuple()` ordering, with the
-   `notes` field as the 27th field carrying free-text rationale — the
-   header therefore has 27 columns, `wc -l` on the CSV is `9` = 1 header
-   + 8 rows):
-   - `decision_id: str` (one of Q_DECISION_IDS)
+
+1. Create `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`.
+2. Re-import `HISTORY_TRANCHE2_FAMILY_IDS`, `EXPECTED_TRANCHE2_COUNT`,
+   `IN_GAME_HISTORICAL_AGGREGATED_COLUMNS`, `STRICT_LT_HISTORY_FILTER`,
+   `POST_GAME_TOKENS`, `POST_GAME_TOKEN_SCOPED_FIELDS`, `POST_GAME_TOKEN_EXEMPT_FIELDS`,
+   and `EXPECTED_PR241_VALIDATOR_SHA256` from the PR #241 validator module and the PR #242
+   adjudicator module. Do NOT re-declare any of these constants — single source of truth.
+
+3. Declare new module-level constants:
+   - `Q5_DECISION_IDS: tuple[str, ...] = ("Q5A_strict_exclusion_retention", "Q5B_dual_feature_path_retention", "Q5C_sensitivity_indicator_retention", "Q5_selected_policy", "Q5_per_family_impact_summary")` — exactly 5 rows. `len(Q5_DECISION_IDS) == 5`.
+   - `Q5_OPTION_NAMES: tuple[str, ...] = ("strict_exclusion", "dual_feature_path", "sensitivity_indicator_co_registration")`.
+   - `EXPECTED_CROSS_REGION_NICKNAME_COUNT: int = 246` (anchor from 01_05_10 §3.1 + JSON `n_cross_region_nicknames`).
+   - `EXPECTED_CROSS_REGION_TOON_ID_COUNT: int = 1923` (anchor from 01_04_05 + 01_05_10 MD §3.3).
+   - `EXPECTED_CROSS_REGION_PLAYER_MATCH_PAIR_COUNT_NICKNAME_ANCHORED: int = 32031` (round-3 NIT-C rename — anchor from 01_05_10 MD §3.3 line 398; semantically a NICKNAME-anchored count, NOT a toon_id-membership count; bound only by the EQUIVALENCE probe).
+   - `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT: int` — TBD at Layer-2 write time via `_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY` against the live DuckDB; pinned per Invariant I7 (round-3 NIT-C binding; this is the BINDING base probe expected count).
+   - `EXPECTED_PHA_STRICT_LT_HISTORY_ROW_COUNT: int` — TBD at Layer-2 write time via a one-time read-only probe; pinned per Invariant I7 (round-2 U9 binding; replaces the round-1 MFC-target-row 44418 anchor).
+   - `ALLOWED_Q5_VERDICTS: frozenset[str] = frozenset({"bind_now", "narrow_with_evidence", "deferred_recommendation", "deferred_blocker"})`.
+   - `ALLOWED_Q5_BINDING_LEVELS: frozenset[str] = frozenset({"binding_for_materialization", "recommendation_only", "deferred_blocker"})`.
+   - `CROSS_REGION_COLUMN_SOURCE_TABLE: str = "player_history_all"` (round-2 B1/A15 binding — single source-of-truth column declaration).
+   - `CROSS_REGION_COLUMN_NAME: str = "is_cross_region_fragmented"`.
+   - `ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS: frozenset[str] = frozenset({"toon_id_based", "nickname_based", "both"})` (round-3 NIT-C / A19 binding).
+   - `ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED: frozenset[str] = frozenset({"yes", "no", "not_applicable"})` (round-3 NIT-D / A20 binding).
+   - `PARENT_PR242_CSV_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv"`.
+   - `PARENT_PR242_MD_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md"`.
+   - `EXPECTED_PARENT_PR242_CSV_SHA256: str` and `EXPECTED_PARENT_PR242_MD_SHA256: str` — captured at Layer-2 write time via `shasum -a 256` (constants set to the verified 64-char lowercase hex; mismatch is a halting falsifier per T03).
+   - `EXPECTED_01_05_10_MD_SHA256: str` and `EXPECTED_01_05_10_JSON_SHA256: str` — captured at Layer-2 write time.
+   - **(NEW round-3 NIT-B) — 4 pinned SHA-256 module constants for the round-2-load-bearing source files. These are hardcoded at planner time (NOT TBD-at-Layer-2-write-time) so the executor does not have to re-derive them.** Pinned values per A18:
+     - `EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256: str = "7962dd910e0b72419e35a9895689cd4ae6a51c2be0bc6e5e0fe4a0ceb8f207d0"`
+     - `EXPECTED_01_04_05_MD_SHA256: str = "7bac26fd69952509a9dac323436e074902ca8ba9e0bac64021ad04de7f5dc9fe"`
+     - `EXPECTED_MATCHES_FLAT_CLEAN_YAML_SHA256: str = "9f76c1912624535b7b7ac0d2fb767fd4b9791a1d808bf73f747416d557d6cb1f"`
+     - `EXPECTED_CROSS_02_02_SPEC_SHA256: str = "86af792370272e611f048aae0c48c9cc595eb4b44c1db38c0bb4ecea0ff1b289"`
+     Each is a 64-char lowercase hex string (verified at planner-time 2026-05-24 on master HEAD `e372e7b66be66b6026fb3bc39f51d1975da0b8b1`). If any of these source files is touched between Layer-1 merge and Layer-2 execution, the matching helper in T03 halts; the executor must re-pin the constant and re-verify the round-2 B1/B3 binding rationale per A18.
+   - `Q5_SUCCESSOR_CSV_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv"`.
+   - `Q5_SUCCESSOR_MD_REL: str = "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md"`.
+
+4. Declare `CrossRegionAdjudicationDecision` frozen dataclass with the **28-field schema**
+   (final CSV column count = 28 dataclass fields + `notes` = 29 columns; `wc -l` on the CSV =
+   `6` = 1 header + 5 rows). Fields:
+   - `decision_id: str` (one of Q5_DECISION_IDS)
+   - `parent_decision_id: str` (literal `"Q5_cross_region_policy"` — **NEW field introduced by this successor PR per round-2 N1 fix; back-fillable into PR #242 via a future cosmetic chore PR, NOT in scope here**; verified `grep -c parent_decision_id <PR #242 CSV>` = 0)
    - `decision_name: str`
-   - `verdict: str` (one of ALLOWED_VERDICTS)
-   - `binding_level: str` (one of ALLOWED_BINDING_LEVELS)
-   - `feature_family_id_or_scope: str` (six-family scope or single-family id)
-   - `selected_source_layer: str` (Q1 only; "" for others) — kept as a
-     row-level shorthand for backward-compat with PR #234 schema; the
-     authoritative target/history fields are below
-   - `selected_target_source_layer: str` (N5 subfield)
-   - `selected_history_source_layer: str` (N5 subfield)
-   - `target_history_asymmetry: str` (N5 subfield; "symmetric" / "asymmetric" / "")
-   - **`source_layer_divergence_reason: str` (N-X4 NEW; Q1 only; "" otherwise)**
-     — captures operational divergence between registry-recorded source
-     (`matches_flat`) and operationally-used source (`matches_flat_clean`).
-   - **`history_source_extension_reason: str` (N-X4 NEW; Q1 only; "" otherwise)**
-     — captures the tranche-1 → tranche-2 extension (adding
-     `player_history_all` as the history-side source).
-   - `target_anchor: str` (Q2 only; "" for others)
-   - `history_time_column: str` (Q3 only; "" for others — value cites
-     the canonical TRY_CAST expression per B-X2)
-   - `cold_start_policy: str` (Q4 only; structured `G-CS-2:..|G-CS-3:..|G-CS-4:..|G-CS-5:..|G-CS-6:..`)
-   - `cross_region_policy: str` (Q5 only; one of "strict_exclusion" / "dual_feature_path" / "sensitivity_indicator_co_registration" / "deferred_blocker")
-   - `rating_policy: str` (Q6 only; one of "elo" / "glicko" / "glicko2" / "trueskill" / "rolling_winrate_baseline" / "deferred_blocker")
-   - `in_game_historical_policy: str` (Q7 only; one of "prior_match_only_strict_lt" / "deferred_blocker")
-   - `in_game_historical_columns_in_scope: str` (N1; Q7 only; deterministic pipe-separated `APM|SQ|supplyCappedPercent|header_elapsedGameLoops`)
-   - `evidence_paths: str` (newline-separated repo-relative paths)
-   - `falsifiers: str` (newline-separated `name:status` pairs)
-   - `audit_pr: str` (the future Layer-2 PR # placeholder, filled at write time)
-   - `pr241_scaffold_validator_module_sha256: str` (N4; 64-char lowercase hex)
-   - `provenance_git_sha: str` (resolved at write time)
-   - `materialized_output_paths: str` (always `""` — adjudication writes ZERO materialized data)
-   - `notes: str` (free-text deferral rationale / non-substitution disclaimer reference)
-4. Declare `HistoryEnrichedAdjudicationResult` frozen dataclass containing:
-   - `decisions: tuple[HistoryEnrichedAdjudicationDecision, ...]` (exactly 8 entries; one per Q-decision)
-   - `csv_path: str`
-   - `md_path: str`
-   - `provenance_git_sha: str`
+   - `verdict: str` (one of ALLOWED_Q5_VERDICTS)
+   - `binding_level: str` (one of ALLOWED_Q5_BINDING_LEVELS)
+   - `scope: str` (literal `"sc2egset.history_enriched_pre_game.cross_region_fragmentation_handling"` for the per-option rows; `"all_six_history_enriched_pre_game_families"` for the per-family-impact summary)
+   - `selected_policy: str` (one of Q5_OPTION_NAMES or `""` for evaluation-only rows)
+   - `rejected_options: str` (newline-joined; for the Q5_selected_policy row only)
+   - `cross_region_policy: str` (mirror of selected_policy for downstream materialization SQL keying; `""` for evaluation rows)
+   - `cross_region_retention_counts: str` (JSON-string keyed by family_id with `{history_rows_kept, history_rows_dropped, retention_pct}` triples — round-2 B3 binding: counts are over PHA HISTORY ROWS, NOT MFC target rows; populated for the 3 per-option evaluation rows)
+   - `cross_region_affected_players: int` (per-option distinct PHA `toon_id` count)
+   - `cross_region_affected_matches: int` (per-option distinct MHM `match_id` count)
+   - **`cross_region_anchor_semantics: str` (NEW round-3 NIT-C / A19 — one of ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS; binds the probe semantics per row)**
+   - **`history_row_filter_on_pha_applied: str` (NEW round-3 NIT-D / A20 — one of ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED; structured machine-readable replacement for the round-2 vacuous substring assertion)**
+   - `retention_measurement_summary: str` (one-sentence prose summary; mandatory; the round-2 verbatim-substring requirement is REPLACED by the structured `history_row_filter_on_pha_applied` field per A20)
+   - `evidence_paths: str` (newline-joined repo paths; ≥3 paths required for any `bind_now`/`narrow_with_evidence` verdict)
+   - `falsifiers: str` (newline-joined `helper_name:status` pairs; mirrors PR #242 format)
+   - `audit_pr: str` (literal `"PR #<successor-PR-number>"` — set at Layer-2 PR-open time)
    - `pr241_scaffold_validator_module_sha256: str`
-   - `falsifiers_fired: tuple[str, ...]` (every fired falsifier)
-   - `halting_falsifier: str | None`
-   - `passed: bool`
-5. Type hints on every signature; Google-style docstrings on every public
-   surface; constants in UPPER_SNAKE_CASE.
+   - `parent_pr242_csv_sha256: str`
+   - `parent_pr242_md_sha256: str`
+   - `parent_pr242_artifact_sha256: str` (SHA-256 of the concatenated CSV+MD byte stream)
+   - `provenance_01_05_10_md_sha256: str` (anchor to the 01_05_10 evidence)
+   - **`player_history_all_yaml_sha256: str` (NEW round-3 NIT-B / A18)**
+   - **`step_01_04_05_md_sha256: str` (NEW round-3 NIT-B / A18)**
+   - **`matches_flat_clean_yaml_sha256: str` (NEW round-3 NIT-B / A18)**
+   - **`cross_02_02_spec_sha256: str` (NEW round-3 NIT-B / A18)**
+   - `materialized_output_paths: str` (always literal `""` — this is an adjudication, not a materialization)
+   - + `notes: str` (free-text rationale; column 29)
 
-**Verification:**
-- `source .venv/bin/activate && poetry run python -c "from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer import Q_DECISION_IDS, EXPECTED_PR241_VALIDATOR_SHA256, STRICT_LT_HISTORY_FILTER, POST_GAME_TOKEN_SCOPED_FIELDS, POST_GAME_TOKEN_EXEMPT_FIELDS; assert len(Q_DECISION_IDS) == 8 and len(EXPECTED_PR241_VALIDATOR_SHA256) == 64 and 'TRY_CAST' in STRICT_LT_HISTORY_FILTER and 'target.started_at' in STRICT_LT_HISTORY_FILTER and 'notes' in POST_GAME_TOKEN_EXEMPT_FIELDS and 'evidence_paths' in POST_GAME_TOKEN_EXEMPT_FIELDS"` returns exit 0.
+5. Declare `CrossRegionAdjudicationResult` frozen dataclass with fields
+   `decisions: tuple[CrossRegionAdjudicationDecision, ...]`, `csv_path: Path`, `md_path: Path`,
+   `provenance_git_sha: str`.
+
+6. Add explicit `FALSIFIER_PRIORITY_CHAIN: tuple[str, ...]` module-level constant ordering all
+   halting falsifiers (per PR #242 round-3 N-R3-C precedent — module-level not in-function).
+   See T04 step 2 for the full **31-entry** chain (per A21).
+
+   **Module-import mechanical verification (round-4 B4 — caught at import time, NOT test
+   time).** Immediately after `FALSIFIER_PRIORITY_CHAIN` and `HELPER_TO_FALSIFIER_KEY` are
+   declared at module level, add the following four top-level `assert` statements (placed at
+   module-load scope, mirroring the
+   `POST_GAME_TOKEN_SCOPED_FIELDS.isdisjoint(POST_GAME_TOKEN_EXEMPT_FIELDS)` precedent
+   inherited from PR #242 — so any drift in the count or duplicate or orphan chain entry
+   raises `AssertionError` at `import` time and fails BEFORE any test runs and BEFORE any
+   artifact is written):
+
+   ```python
+   # Module-import mechanical verification (round-4 B4 invariants; per A21).
+   # These run at module load — drift fails before any test runs and before any artifact is written.
+   assert len(HELPER_TO_FALSIFIER_KEY) == 31, "B4 invariant: helper count drifted"
+   assert len(FALSIFIER_PRIORITY_CHAIN) == 31, "B4 invariant: chain count drifted"
+   assert len(set(FALSIFIER_PRIORITY_CHAIN)) == 31, "B4 invariant: chain duplicates"
+   assert set(FALSIFIER_PRIORITY_CHAIN) <= set(HELPER_TO_FALSIFIER_KEY.values()), \
+       "B4 invariant: orphan chain entries"
+   ```
+
+   These four assertions are EQUIVALENT to T06's `TestHelperToFalsifierKeyMappingExactCount`
+   + rewritten `TestPriorityChainReferencesMapping` but execute at module-import time so
+   `python -c "import rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention"`
+   alone catches the drift.
+
+7. Add explicit `HELPER_TO_FALSIFIER_KEY: dict[str, str]` literal table mapping each `_check_*`
+   helper name to its falsifier key (per PR #242 round-3 N-X1 precedent). The mapping has
+   **exactly 31 entries** per A21 (arithmetic: 25 entries post-B4 mapping promotion + 4 NIT-B
+   SHA helpers + 2 NIT-D split helpers = 31). See T03 for the complete enumerated list and
+   T04 for the chain ordering.
+
+**Verification:** the module loads cleanly via
+`python -c "from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention import HISTORY_TRANCHE2_FAMILY_IDS, STRICT_LT_HISTORY_FILTER, Q5_DECISION_IDS, CROSS_REGION_COLUMN_SOURCE_TABLE, ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS, ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED, EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256, EXPECTED_01_04_05_MD_SHA256, EXPECTED_MATCHES_FLAT_CLEAN_YAML_SHA256, EXPECTED_CROSS_02_02_SPEC_SHA256, HELPER_TO_FALSIFIER_KEY, FALSIFIER_PRIORITY_CHAIN; assert len(Q5_DECISION_IDS) == 5; assert 'strict_exclusion' not in STRICT_LT_HISTORY_FILTER; assert CROSS_REGION_COLUMN_SOURCE_TABLE == 'player_history_all'; assert ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS == frozenset({'toon_id_based','nickname_based','both'}); assert ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED == frozenset({'yes','no','not_applicable'}); assert len(EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256) == 64 and all(c in '0123456789abcdef' for c in EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256); assert len(HELPER_TO_FALSIFIER_KEY) == 31; assert len(FALSIFIER_PRIORITY_CHAIN) == 31; assert len(set(FALSIFIER_PRIORITY_CHAIN)) == 31; assert set(FALSIFIER_PRIORITY_CHAIN) <= set(HELPER_TO_FALSIFIER_KEY.values())"` runs without exception.
+
+The four count/uniqueness/containment assertions above are ALSO enforced at module-import
+time by the top-level `assert` block in step 6 — so even a bare
+`python -c "import rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention"`
+will raise `AssertionError` on any drift, before any test runs.
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py`
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
 
 **Read scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py` (PR #241; constants re-imported)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv` (PR #234 format precedent)
-- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml` (B-X2 canonical form provenance)
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py`
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py`
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml` (verify line 214 column name + lines 220-226 notes)
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml` (verify 30-col schema + absence of `is_cross_region_fragmented`)
 
-### T02 — Adjudicator module: evidence-loading helpers + per-Q falsifiers (Q1, Q2, Q3, Q8)
+### T02 — Adjudicator module: SQL probe constants (round-2 B1+B2+B3 + round-3 NIT-C two-probe rewrite)
 
-**Objective:** Implement read-only DuckDB / Parquet / CSV probes for Q1
-(source layer), Q2 (target anchor), Q3 (history time column), Q8
-(`matches_history_minimal` consumption). Each probe returns a typed
-evidence record; no writes. Per-Q falsifiers attach to each probe.
+**Objective:** Declare the read-only SQL probe constants (named per `python-code.md` `_QUERY`
+suffix; UPPER_SNAKE_CASE) that drive the per-option × per-family retention measurements. All
+probes read `is_cross_region_fragmented` from PHA (not MFC), apply the filter to HISTORY rows
+(not TARGET rows), and use MFC's canonical `replay_id` / `toon_id` keys + MHM's canonical
+`'sc2egset::'`-prefixed `match_id` (per A15, A16, A17). Round-3 NIT-C: TWO base probes —
+one BINDING (toon_id-membership) and one EQUIVALENCE (nickname-anchored, replicating
+01_05_10 SQL 3).
 
 **Instructions:**
-1. Implement `_load_pr234_binding_csv(path: Path) -> dict[str, dict[str, str]]` returning Q1/Q2/Q3 decision dicts from the tranche-1 adjudication CSV.
-2. Implement `_load_registry_csv(path: Path) -> list[dict[str, str]]` loading the closed 02_01_01 registry.
-3. Implement `_probe_view_row_counts(con: duckdb.DuckDBPyConnection) -> dict[str, int]` running:
-   - `SELECT COUNT(*) FROM matches_flat_clean` (expect 44418).
-   - `SELECT COUNT(*) FROM matches_history_minimal` (expect 44418).
-   - `SELECT COUNT(*) FROM player_history_all` (expect 44817).
-   - `SELECT COUNT(DISTINCT replay_id) FROM matches_flat_clean` (expect 22209).
-   Mirror the tranche-1 PR #234 probe pattern verbatim.
-4. Implement `_probe_history_time_column_candidates(con) -> dict[str, dict[str, object]]` returning DESCRIBE-style metadata for `player_history_all.details_timeUTC`, `matches_history_minimal.started_at`, and any candidate history-time column. Record dtype and null count for each.
-5. **B-X2 canonical smoke probe.** Implement `_probe_strict_lt_filter_smoke(con) -> dict[str, int]` running a small read-only smoke pair to demonstrate the strict-`<` semantics yields 0 self-rows. SQL string is built as a single string constant and MUST use the canonical form (B-X2) verbatim — `target` alias (not `mhm`) and `TRY_CAST`. The text the falsifier `strict_lt_filter_divergence` checks against the canonical constant `STRICT_LT_HISTORY_FILTER`:
+
+1. Declare `_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY: str` (round-3 NIT-C — BINDING
+   probe). Computes the toon_id-membership count: every PHA history row whose `toon_id` is
+   in the set of cross-region toon_ids (anchored by the derived `is_cross_region_fragmented`
+   flag itself). SQL (canonical; verbatim — no f-strings):
+
    ```sql
-   SELECT COUNT(*) FROM player_history_all ph
-   JOIN matches_history_minimal target ON ph.toon_id = target.player_id
-   WHERE TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at
-     AND ph.replay_id = REPLACE(target.match_id, 'sc2egset::', '')
+   -- BINDING base probe (round-3 NIT-C; anchor: toon_id-membership; expected count
+   -- pinned at Layer-2 write time as EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT)
+   SELECT COUNT(*) AS n_pha_rows_toonid_membership_anchored
+   FROM player_history_all ph
+   WHERE ph.toon_id IN (
+     SELECT DISTINCT toon_id
+     FROM player_history_all
+     WHERE is_cross_region_fragmented = TRUE
+   )
    ```
-   Expected: 0 (the only row where `ph.details_timeUTC = target.started_at`
-   is the target row itself, excluded by strict-`<`). The probe stores
-   the SQL string verbatim in its returned dict for cross-site falsifier
-   inspection.
-6. Implement `_probe_matches_history_minimal_columns(con) -> list[str]` listing MHM columns to substantiate Q8 (the consumption documentation).
-7. Implement per-Q falsifier helpers, each returning `(bool_did_fire, message)`:
-   - `_check_q1_source_layer_evidence_consistent(pr234_binding, registry, view_counts) -> tuple[bool, str]` — Q1 evidence must reconcile with PR #234 Q1 binding (MFC); if registry source is `matches_flat` but PR #234 binding is `matches_flat_clean`, record the divergence and verdict `extend_with_evidence` (cleaned-raw is operationally chosen; raw is registry-recorded). The divergence rationale is recorded in `source_layer_divergence_reason` (N-X4).
-   - `_check_q2_target_anchor_type_match(pr234_binding, view_metadata) -> tuple[bool, str]` — Q2 must verify `started_at` TIMESTAMP type via DESCRIBE.
-   - `_check_q3_history_time_column_dtype(history_time_metadata) -> tuple[bool, str]` — Q3 must verify `ph.details_timeUTC` exists with non-null dtype; record VARCHAR-to-TIMESTAMP TRY_CAST assumption (B-X2 canonical).
-   - `_check_q3_monotonicity_smoke(con) -> tuple[bool, str]` — Q3 must verify the cast `TRY_CAST(ph.details_timeUTC AS TIMESTAMP)` succeeds on a 1000-row sample (read-only), AND the count of TRY_CAST failures (NULL returns) is 0 on that sample. If TRY_CAST returns NULL on any sample row, the falsifier fires and the bound expression must be revised (e.g., upstream cleaning step required) before proceeding.
-   - `_check_in_game_historical_strict_lt(rows) -> tuple[bool, str]` — **N2 falsifier; Q7-specific**. Verifies that the `in_game_history_aggregate` decision row's `cold_start_policy` and `in_game_historical_policy` together encode strict-`<` semantics for IN_GAME_HISTORICAL prior-match aggregation (NOT a runtime SQL check; a row-text check on the adjudication decision). Distinct from any generic `_check_strict_lt_policy`.
-   - `_check_q8_mhm_documented(mhm_cols, decision_row) -> tuple[bool, str]` — Q8 must verify the adjudication row's `notes` field cites both `matches_history_minimal` purposes per the PR #239 ROADMAP nit (cold-start enumeration + row-identity anchor) and that `feature_family_id_or_scope` says "NOT a feature source unless explicitly justified".
+
+   Falsifier `cross_region_toon_id_anchor_count_drift`: halts if observed count differs from
+   `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT`. The expected count is TBD at Layer-2
+   write time (U10).
+
+2. Declare `_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY: str` (round-3 NIT-C — EQUIVALENCE
+   probe). Replicates the 01_05_10 MD §3.3 SQL 3 idiom (nickname-anchored join over PHA) and
+   asserts the 32,031 anchor. SQL (canonical; verbatim — no f-strings):
+
+   ```sql
+   -- EQUIVALENCE base probe (round-3 NIT-C; anchor: lowercase nickname; expected count
+   -- 32031 per 01_05_10 MD §3.3 line 398; this probe is EXPLORATORY/equivalence-check,
+   -- NOT the binding probe). Replicates 01_05_10 SQL 3 idiom verbatim.
+   WITH cross_region_nicks AS (
+     SELECT LOWER(nickname) AS nick
+     FROM replay_players_raw
+     GROUP BY 1
+     HAVING COUNT(DISTINCT region) > 1
+   )
+   SELECT
+     (SELECT COUNT(*) FROM cross_region_nicks) AS n_cross_region_nicknames,
+     (SELECT COUNT(DISTINCT ph.toon_id)
+        FROM player_history_all ph
+        WHERE ph.is_cross_region_fragmented = TRUE) AS n_cross_region_toon_ids,
+     (SELECT COUNT(*)
+        FROM player_history_all ph
+        INNER JOIN cross_region_nicks crn ON LOWER(ph.nickname) = crn.nick
+        WHERE ph.details_timeUTC IS NOT NULL) AS n_player_match_pairs_nickname_anchored
+   ```
+
+   Falsifier `cross_region_nickname_anchor_count_drift`: halts if any of the 3 counts
+   differs from `(EXPECTED_CROSS_REGION_NICKNAME_COUNT,
+   EXPECTED_CROSS_REGION_TOON_ID_COUNT, EXPECTED_CROSS_REGION_PLAYER_MATCH_PAIR_COUNT_NICKNAME_ANCHORED)` =
+   `(246, 1923, 32031)`. **The 32,031 expectation is shared ONLY by this nickname-anchored
+   probe.** The toon_id-membership BINDING probe in step 1 has its own independent expected
+   count (which may differ slightly from 32,031 — see U10).
+
+3. Declare `_STRICT_EXCLUSION_HISTORY_FILTER_RETENTION_QUERY: str` — per-family retention under
+   option (a). **Round-2 B3 binding: filter `WHERE NOT ph.is_cross_region_fragmented` is
+   applied to PHA HISTORY rows BEFORE aggregation; NO `mfc.is_cross_region_fragmented` filter
+   anywhere.** For each of the 6 history families, count
+   `(history_rows_kept, history_rows_dropped, players_affected, matches_affected)`. SQL pattern:
+
+   ```sql
+   WITH base AS (
+     SELECT
+       target.match_id      AS target_match_id,        -- 'sc2egset::' || mfc.replay_id
+       target.player_id     AS target_player,          -- mfc.toon_id
+       target.started_at,                              -- TIMESTAMP via TRY_CAST
+       ph.replay_id         AS history_replay_id,
+       ph.toon_id           AS history_toon_id,
+       ph.details_timeUTC   AS history_time,
+       ph.is_cross_region_fragmented AS history_is_xr,
+       <family_specific_columns from ph>
+     FROM matches_flat_clean mfc
+     JOIN matches_history_minimal target
+       ON target.match_id  = 'sc2egset::' || mfc.replay_id      -- A16
+      AND target.player_id = mfc.toon_id                         -- A16
+     LEFT JOIN player_history_all ph
+       ON ph.toon_id = mfc.toon_id
+      AND TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at  -- A5
+   )
+   SELECT
+     '<family_id>' AS family_id,
+     COUNT(*) FILTER (WHERE history_is_xr = FALSE) AS history_rows_kept,
+     COUNT(*) FILTER (WHERE history_is_xr = TRUE)  AS history_rows_dropped,
+     COUNT(DISTINCT history_toon_id) FILTER (WHERE history_is_xr = TRUE) AS players_affected,
+     COUNT(DISTINCT target_match_id) FILTER (WHERE history_is_xr = TRUE) AS matches_affected
+   FROM base
+   GROUP BY family_id
+   ```
+
+   Falsifier `strict_exclusion_history_filter_retention_smoke_failed`: halts if
+   `history_rows_kept + history_rows_dropped != EXPECTED_PHA_STRICT_LT_HISTORY_ROW_COUNT` for
+   any family (round-2 U9 binding).
+
+4. Declare `_DUAL_FEATURE_PATH_RETENTION_QUERY: str` — option (b): no history rows dropped,
+   but per-family the materialized columns split into `xr_*` and `nonxr_*` PHA-history-derived
+   variants. All joins use A16 keys. Filter is again applied to PHA history rows per A17:
+   one CTE splits PHA rows on `ph.is_cross_region_fragmented` and computes per-target-match
+   per-branch counts.
+
+5. Declare `_SENSITIVITY_INDICATOR_RETENTION_QUERY: str` — option (c): no history rows
+   dropped, no per-family branch split; a single `is_cross_region_fragmented` flag is
+   co-registered from PHA at the target-time anchor. Probe verifies the flag is non-degenerate
+   on PHA AND target-time-anchored (Invariant I3). The co-registration semantics is "for each
+   target row, project the maximum or boolean-OR of `ph.is_cross_region_fragmented` over the
+   player's strictly-prior PHA history window per `STRICT_LT_HISTORY_FILTER`".
+
+6. Declare `_FAMILY_LEVEL_IMPACT_QUERY: str` — produces the per-family-impact summary row's
+   `cross_region_retention_counts` JSON payload by stacking the three per-option probes. All
+   probes operate on PHA history rows (B3); JSON keys are family_ids; values are
+   `{history_rows_kept, history_rows_dropped, retention_pct}` triples.
+
+7. Every query uses `STRICT_LT_HISTORY_FILTER` for any join over `player_history_all` (B-X2
+   inherited canonical form); the literal string `ph.details_timeUTC < target.started_at`
+   (bare lex form) MUST NOT appear in any executable site (declare `STRICT_LT_FILTER_ROADMAP_RAW`
+   for the provenance-only constant per PR #242 round-3 N-X1 precedent; falsifier
+   `strict_lt_filter_divergence` byte-scans the module).
+
+8. **Round-2 B1 binding — no `mfc.is_cross_region_fragmented` anywhere.** Every executable
+   SQL string in the module must satisfy `grep -E "mfc\.is_cross_region_fragmented"` = 0
+   lines. Falsifier `_check_no_mfc_cross_region_column_reference` (key
+   `mfc_cross_region_column_referenced`) byte-scans the module.
+
+9. **Round-2 B3 + round-3 NIT-D binding — no `mfc.is_cross_region_fragmented` as a filter
+   predicate.** The SQL byte-scan portion of falsifier
+   `_check_q5_filter_target_is_pha_history_sql` (key
+   `q5_filter_target_is_pha_history_violated_sql`) ensures every WHERE clause referencing
+   `is_cross_region_fragmented` anchors on the `ph.` alias (NOT on `mfc.`). The R2 vacuous
+   prose-substring assertion is REMOVED; structured `history_row_filter_on_pha_applied` field
+   handles the decision-row semantics per NIT-D / A20.
 
 **Verification:**
-- `source .venv/bin/activate && poetry run ruff check src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
-- `source .venv/bin/activate && poetry run mypy src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
+- `grep -E "ph\.details_timeUTC\s*<\s*target\.started_at" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ONLY the named constant `STRICT_LT_FILTER_ROADMAP_RAW`'s declaration line.
+- `grep -E "mfc\.is_cross_region_fragmented" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns 0 hits.
+- `grep -E "mfc\.match_id|mfc\.player_id" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns 0 hits.
+- `grep -E "'sc2egset::' \|\| mfc\.replay_id" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit.
+- `grep -E "WHERE NOT ph\.is_cross_region_fragmented|FILTER \(WHERE history_is_xr" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit.
+- `grep -E "ph\.toon_id IN \(\s*SELECT DISTINCT toon_id\s+FROM player_history_all\s+WHERE is_cross_region_fragmented = TRUE" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit (round-3 NIT-C BINDING probe).
+- `grep -E "INNER JOIN cross_region_nicks crn ON LOWER\(ph\.nickname\) = crn\.nick" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit (round-3 NIT-C EQUIVALENCE probe).
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (updated)
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
 
 **Read scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb` (read-only via `duckdb.connect(read_only=True)`)
 - `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml`
 - `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml`
 - `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/04_cleaning/01_04_05_cross_region_annotation.md`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/05_temporal_panel_eda/cross_region_history_impact_sc2egset.md` (verify §3.3 line 398 32,031 anchor + SQL 3 nickname-anchored idiom)
+- `reports/specs/02_02_feature_engineering_plan.md`
 
-### T03 — Adjudicator module: per-Q falsifiers (Q4, Q5, Q6, Q7), POST-GAME rejection, tracker rejection, strict-< canonical-form falsifier
+### T03 — Adjudicator module: halting falsifier helpers (31 helpers total)
 
-**Objective:** Implement falsifiers for cold-start (Q4), cross-region (Q5),
-rating (Q6 with N-X3-strengthened evidence gate), IN_GAME_HISTORICAL (Q7),
-plus universal leakage falsifiers (B-X1-scoped forbidden-token rejection,
-tracker source rejection, and the B-X2 canonical-form `strict_lt_filter_divergence`
-falsifier).
+**Objective:** Implement every `_check_*` helper named in `HELPER_TO_FALSIFIER_KEY`. Each helper
+is a pure function returning a value the public entrypoint consumes; halting is the
+entrypoint's responsibility (helpers never raise).
 
-**Instructions:**
-1. Implement `_check_q4_cold_start_gates_complete(decision_row, registry_rows) -> tuple[bool, str]` — Q4's `cold_start_policy` field must encode a policy for every gate in {G-CS-2, G-CS-3, G-CS-4, G-CS-5}; G-CS-6 (the materialization-time fold-aware fit gate per ROADMAP lines 2334-2338) is documented but explicitly distinguished from registry-time gates (PR #241 validator N2 precedent).
-2. Implement `_check_q4_no_leakage_in_cold_start(decision_row) -> tuple[bool, str]` — Q4 must explicitly state that the cold-start support set uses ONLY `match_time < T` evidence per Invariant I3 (`.claude/ml-protocol.md` rolling-aggregate failure mode 1).
-3. Implement `_check_q5_cross_region_three_options_enumerated(decision_row) -> tuple[bool, str]` — Q5 must enumerate the three CROSS-02-02 §6.2 row 5 options (strict-exclusion / dual-feature-path / sensitivity-indicator-co-registration) and either select one (verdict `bind_now`) with retention-measurement evidence or defer (verdict `deferred_blocker`) with rationale.
-4. **N-X3 strengthened.** Implement `_check_q6_rating_default_deferred(decision_row) -> tuple[bool, str]` — **N3 + N-X3 falsifier**. Q6 evidence sufficiency gate:
-   - If `rating_policy == "deferred_blocker"`: PASSES iff `evidence_paths != ""` AND notes contain explicit deferred-blocker rationale matching the substring `"deferred_blocker because:"` (case-sensitive token-search).
-   - If `rating_policy IN {"elo", "glicko", "glicko2", "trueskill", "rolling_winrate_baseline"}`: HALTS unless ALL of:
-     (a) `evidence_paths` contains at least 1 line whose value matches `^(src/|reports/|sandbox/|thesis/|tests/|docs/|\.claude/)` (a repo path) AND at least 1 line whose value matches `^@\w+|\\cite\{|^[A-Z][a-z]+\d{4}` or contains parenthetical year (e.g., `Glickman (2012)`) signaling a primary-source citation; the falsifier splits `evidence_paths` on newline and counts.
-     (b) Notes contain explicit forward-only constraint wording per `_check_q6_rating_forward_only` companion check (`"no target-match outcome"`, `"no future results"`, `"no global batch fit"`).
-     (c) Notes contain explicit cold-start / missingness handling wording (e.g., the substring `"cold-start handled by"` AND `"missingness handled by"`).
-   - The plan's overall recommendation (T05 Q6) stays `deferred_blocker` for this Layer-2 PR.
-5. Implement `_check_q6_rating_forward_only(decision_row) -> tuple[bool, str]` — Q6 must explicitly forbid future results / target-match outcome / global batch fit. The falsifier rejects the row if the rationale `notes` field omits the forward-only constraint (substring match of all three required phrases: `"no target-match outcome"`, `"no future results"`, `"no global batch fit"`). Per B-X1 exempt-fields rule, these negated-prose tokens are ALLOWED in `notes` (the rationale-bearing field is exempt from the universal POST-GAME token scan).
-6. Implement `_check_q7_in_game_historical_columns_in_scope(decision_row) -> tuple[bool, str]` — **N1 falsifier**. Q7's `in_game_historical_columns_in_scope` field must equal the deterministic pipe-separated `APM|SQ|supplyCappedPercent|header_elapsedGameLoops`. The falsifier rejects on any drift (alphabetical reorder counts as drift unless the policy is updated to declare alphabetical canonical order).
-7. Implement `_check_q7_no_target_match_tracker(decision_row) -> tuple[bool, str]` — Q7 must explicitly state that IN_GAME_HISTORICAL columns are consumed ONLY from prior matches (`history_time < target_time`), never from the target match. The falsifier rejects on missing or contradicting wording.
-8. **B-X1: renamed + scoped forbidden-token falsifier.** Implement `_check_forbidden_post_game_feature_tokens(decisions) -> tuple[bool, str]` — renamed from `_check_universal_no_post_game_token`. Scans only the fields in `POST_GAME_TOKEN_SCOPED_FIELDS` for any token in `POST_GAME_TOKENS`. EXPLICITLY exempts every field in `POST_GAME_TOKEN_EXEMPT_FIELDS` — `notes`, `evidence_paths`, `falsifiers`, `decision_name`, `rationale`, `source_layer_divergence_reason`, `history_source_extension_reason`. Negated prose (`"no target-match outcome"`, `"no future results"`, `"no global batch fit"`, `"forbid result"`, `"reject winner field"`) is ALLOWED in any exempt field. The falsifier message names the offending field and token when it fires.
-9. Implement `_check_universal_no_tracker_source(decisions) -> tuple[bool, str]` — universal falsifier rejecting any `selected_source_layer`, `selected_target_source_layer`, or `selected_history_source_layer` containing `tracker_events_raw` (Invariant I3; Amendment 2 of PR #208).
-10. Implement `_check_pr241_sha256_match(decision_rows) -> tuple[bool, str]` — **N4 falsifier**. Every decision row's `pr241_scaffold_validator_module_sha256` must equal `EXPECTED_PR241_VALIDATOR_SHA256` (64-char lowercase hex `b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904`). Reject `NOT_FOUND` / empty / wrong-length / wrong-case / mismatched values.
-11. Implement `_check_q1_single_row_per_n5(decisions) -> tuple[bool, str]` — **N5 falsifier**. Q1 must be exactly ONE row with subfields `selected_target_source_layer`, `selected_history_source_layer`, `target_history_asymmetry`, `source_layer_divergence_reason`, `history_source_extension_reason` populated (the last two are N-X4 additions). Reject any split into Q1a / Q1b / Q1c.
-12. **B-X2 new falsifier.** Implement `_check_strict_lt_filter_divergence(decisions, smoke_probe_sql, q3_bound_expression, q7_bound_expression) -> tuple[bool, str]` — fires if ANY of these three sites — (a) the `STRICT_LT_HISTORY_FILTER` constant, (b) the T02 step 5 smoke probe SQL string, (c) the T05 Q3/Q7 bound expression strings — deviates from the canonical form
-   ```
-   TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at
-   ```
-   modulo allowed whitespace (the falsifier normalizes runs of whitespace
-   to a single space before comparison). Specifically rejects:
-   - bare `CAST` (without `TRY_`)
-   - missing cast altogether (lex-only `ph.details_timeUTC < target.started_at`)
-   - wrong alias (e.g., `mhm.started_at` instead of `target.started_at`)
-   - capitalization variants (e.g., `try_cast`)
-   When firing, the message names the offending site and quotes the divergent text.
+**The 31-entry mapping and 31-entry priority chain are authoritative. See module-import
+verification at T01 step 6.** Every falsifier in the priority chain has:
 
-### T03b — HELPER_TO_FALSIFIER_KEY mapping table (N-X1)
+1. A helper implementation in this T03 (or a documented inline check in T04);
+2. A mapping entry in `HELPER_TO_FALSIFIER_KEY`;
+3. At least one positive or negative test in T06 (unless explicitly marked non-testable with
+   justification in the helper docstring).
 
-**Objective:** Declare an explicit literal mapping from helper-function names
-to the falsifier keys they report, so the priority chain and tests can refer
-to a single source of truth.
+**Instructions — the complete 31-helper enumeration (post-B4 + NIT-B + NIT-C + NIT-D, per
+A21 arithmetic 25 + 4 + 2 = 31):**
 
-**Instructions:** Declare a module-level `HELPER_TO_FALSIFIER_KEY: dict[str, str]` constant with the following literal contents (asserted by `TestHelperToFalsifierKeyMappingIsComplete`):
+1. `_check_parent_pr242_csv_sha256(csv_path: Path) -> str | None` — halting key `parent_pr242_csv_sha256_mismatch`.
+2. `_check_parent_pr242_md_sha256(md_path: Path) -> str | None` — key `parent_pr242_md_sha256_mismatch`.
+3. `_check_pr241_validator_sha256(validator_path: Path) -> str | None` — key `pr241_sha256_mismatch`.
+4. `_check_01_05_10_evidence_sha256_md(md_path: Path) -> str | None` — key `cross_region_01_05_10_md_sha256_mismatch`.
+5. `_check_01_05_10_evidence_sha256_json(json_path: Path) -> str | None` — key `cross_region_01_05_10_json_sha256_mismatch`.
+6. **(NEW round-3 NIT-B)** `_check_player_history_all_yaml_sha256(yaml_path: Path) -> str | None` — re-computes `shasum -a 256` on `player_history_all.yaml`; returns None on match against `EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256`, else returns observed digest; key `player_history_all_yaml_sha256_mismatch`. Rationale: round-2 B1/A15 binding rationale hinges on PHA's line-214 column declaration + lines 220-226 NOTES; silent drift would invalidate the binding.
+7. **(NEW round-3 NIT-B)** `_check_step_01_04_05_md_sha256(md_path: Path) -> str | None` — key `step_01_04_05_md_sha256_mismatch`. Rationale: round-2 B3 binding rationale hinges on §7 strategy 1 wording at lines 203-208; silent drift would invalidate the binding.
+8. **(NEW round-3 NIT-B)** `_check_matches_flat_clean_yaml_sha256(yaml_path: Path) -> str | None` — key `matches_flat_clean_yaml_sha256_mismatch`. Rationale: round-2 B1 binding rationale hinges on MFC's 30-col schema + absence of `is_cross_region_fragmented`; silent drift would invalidate the binding.
+9. **(NEW round-3 NIT-B)** `_check_cross_02_02_spec_sha256(md_path: Path) -> str | None` — key `cross_02_02_spec_sha256_mismatch`. Rationale: round-2 B3 binding rationale hinges on §6.2 row 5 line 242 Source/Constraint columns; silent drift would invalidate the binding.
+10. `_check_no_mfc_cross_region_column_reference(module_path: Path) -> tuple[str, ...]` — byte-scans the module for `mfc.is_cross_region_fragmented`; key `mfc_cross_region_column_referenced` (round-2 B1).
+11. `_check_cross_region_toonid_anchor_count_drift(con: duckdb.DuckDBPyConnection) -> int` (round-3 NIT-C BINDING probe) — runs `_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY`; halts if count differs from `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT`; key `cross_region_toon_id_anchor_count_drift`.
+12. `_check_cross_region_nickname_anchor_count_drift(con: duckdb.DuckDBPyConnection) -> tuple[int, int, int]` (round-3 NIT-C EQUIVALENCE probe) — runs `_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY`; asserts the 246/1923/32031 anchor counts; key `cross_region_nickname_anchor_count_drift`. **32,031 is bound here only.**
+13. `_check_strict_lt_filter_divergence(module_path: Path) -> tuple[str, ...]` — byte-scans for bare `ph.details_timeUTC < target.started_at` outside `STRICT_LT_FILTER_ROADMAP_RAW`; key `strict_lt_filter_divergence`.
+14. **(NEW round-3 B4 — promoted from chain-only to mapping)** `_check_decision_count(decisions: tuple[CrossRegionAdjudicationDecision, ...]) -> int` — asserts `len(decisions) == 5`; key `decision_count_drift`.
+15. `_check_q5_three_options_enumerated(decisions: tuple[...]) -> tuple[str, ...]` — asserts the three per-option rows are exactly `Q5_OPTION_NAMES` (no fourth option, explicitly no `mfc_target_row_drop` per A4); key `q5_three_options_not_enumerated`.
+16. `_check_strict_exclusion_history_filter_retention_smoke(con: duckdb.DuckDBPyConnection) -> tuple[tuple[str, int, int], ...]` — runs `_STRICT_EXCLUSION_HISTORY_FILTER_RETENTION_QUERY` per family; returns triples; key `strict_exclusion_history_filter_retention_smoke_failed` (round-2 B3 + U9).
+17. `_check_dual_feature_path_branches_nondegenerate(con: duckdb.DuckDBPyConnection) -> tuple[str, ...]` — key `dual_feature_path_branch_degenerate`.
+18. `_check_sensitivity_indicator_flag_nondegenerate(con: duckdb.DuckDBPyConnection) -> tuple[int, int]` — key `sensitivity_indicator_flag_degenerate`.
+19. `_check_sensitivity_indicator_anchor_target_time(decision_row: CrossRegionAdjudicationDecision) -> bool` — asserts the sensitivity-indicator row notes contain `"anchored at target.started_at"` and do NOT contain any POST_GAME_TOKEN in `POST_GAME_TOKEN_SCOPED_FIELDS`; key `sensitivity_indicator_post_game_token_in_scoped_field`.
+20. `_check_q5_evidence_sufficiency(decisions: tuple[...]) -> tuple[str, ...]` — for `bind_now`/`narrow_with_evidence` rows asserts `evidence_paths` has ≥3 paths matching `^(src/|reports/|sandbox/|thesis/|tests/|docs/|\.claude/)`; for `deferred_blocker` asserts `notes` contains `"deferred_blocker because:"`; key `q5_evidence_sufficiency_violated`.
+21. `_check_q5_no_post_game_token_in_scoped_fields(decisions: tuple[...]) -> tuple[tuple[str, str], ...]` — scans scoped fields for POST_GAME_TOKENS; key `q5_post_game_token_in_scoped_field`. `POST_GAME_TOKEN_EXEMPT_FIELDS` exempted.
+22. `_check_q5_no_direct_target_match_outcome(decisions: tuple[...]) -> bool` — asserts no decision row's scoped fields reference target-match `result`/`winner`/`won`/`outcome`/`final_state`; key `q5_direct_target_match_outcome_referenced`.
+23. `_check_q5_no_future_match_leakage(decisions: tuple[...]) -> bool` — key `q5_future_match_leakage_referenced`.
+24. `_check_q5_no_global_batch_fit(decisions: tuple[...]) -> bool` — key `q5_global_batch_fit_referenced`.
+25. `_check_q5_no_phase_03_baseline_creep(decisions: tuple[...]) -> bool` — key `q5_phase_03_baseline_creep`.
+26. **(NEW round-3 B4 — promoted from chain-only to mapping)** `_check_materialization_creep(decisions: tuple[...]) -> bool` — asserts every decision row's `materialized_output_paths == ""`; key `materialization_creep`.
+27. `_check_no_status_yaml_change(repo_root: Path) -> bool` — key `status_yaml_drift`.
+28. `_check_no_research_log_change(repo_root: Path) -> bool` — key `research_log_drift`.
+29. `_check_no_q6_artifact_change(decisions: tuple[...]) -> bool` — asserts no decision row's `parent_decision_id == "Q6_rating_policy"` AND no Q6 wording outside the one-line disclaimer; key `q6_scope_creep`.
+30. **(NEW round-3 NIT-D — replaces the R2 vacuous text-presence falsifier)** `_check_history_row_filter_on_pha_field_valid(decisions: tuple[...]) -> tuple[str, ...]` — TWO assertions per decision row:
+    - the `history_row_filter_on_pha_applied` value is in `ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED`;
+    - the value is consistent with `selected_policy`:
+      - if `selected_policy == "strict_exclusion"` then required `"yes"`
+      - if `selected_policy == "dual_feature_path"` then required `"yes"`
+      - if `selected_policy == "sensitivity_indicator_co_registration"` then required `"no"` (the planner BINDS `"no"` for Q5C; the spec also allows `"not_applicable"` but the planner-mandated value is `"no"`)
+      - if `selected_policy == ""` and `decision_id == "Q5_per_family_impact_summary"` then required `"not_applicable"`
+      - for the Q5_selected_policy row, the value must match whichever policy is chosen (derived consistency)
+    - key `history_row_filter_on_pha_field_invalid`.
+31. **(NEW round-3 NIT-D — the SQL byte-scan portion KEPT from R2 falsifier #24)** `_check_q5_filter_target_is_pha_history_sql(module_path: Path) -> tuple[str, ...]` — byte-scans the module for any `WHERE.*is_cross_region_fragmented` predicate and ensures it is anchored on `ph.` alias (NOT on `mfc.`); key `q5_filter_target_is_pha_history_violated_sql`. The OLD R2 prose-substring assertion is REMOVED (superseded by helper #30's structured-field check).
 
-| Helper function | Falsifier key |
-|---|---|
-| `_check_q1_source_layer_evidence_consistent` | `q1_source_layer_evidence_inconsistent` |
-| `_check_q1_single_row_per_n5` | `q1_single_row_violation` |
-| `_check_q2_target_anchor_type_match` | `q2_target_anchor_type_mismatch` |
-| `_check_q3_history_time_column_dtype` | `q3_history_time_column_invalid` |
-| `_check_q3_monotonicity_smoke` | `q3_strict_lt_smoke_failed` |
-| `_check_q4_cold_start_gates_complete` | `q4_cold_start_gates_incomplete` |
-| `_check_q4_no_leakage_in_cold_start` | `q4_cold_start_leakage` |
-| `_check_q5_cross_region_three_options_enumerated` | `q5_cross_region_three_options_not_enumerated` |
-| `_check_q6_rating_default_deferred` | `q6_rating_default_deferred_violated` |
-| `_check_q6_rating_forward_only` | `q6_rating_forward_only_missing` |
-| `_check_q7_in_game_historical_columns_in_scope` | `q7_in_game_historical_columns_drift` |
-| `_check_q7_no_target_match_tracker` | `q7_no_target_match_tracker_missing` |
-| `_check_in_game_historical_strict_lt` | `in_game_historical_strict_lt_violated` |
-| `_check_q8_mhm_documented` | `q8_mhm_documentation_missing` |
-| `_check_forbidden_post_game_feature_tokens` | `universal_post_game_token_in_scoped_field` |
-| `_check_universal_no_tracker_source` | `universal_tracker_source_in_history` |
-| `_check_pr241_sha256_match` | `pr241_sha256_mismatch` |
-| `_check_strict_lt_filter_divergence` | `strict_lt_filter_divergence` |
-| `_check_materialization_creep` | `materialization_creep` |
-| `_check_decision_count` | `decision_count_mismatch` |
-
-**Verification:**
-- `source .venv/bin/activate && poetry run python -c "from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer import HELPER_TO_FALSIFIER_KEY; assert len(HELPER_TO_FALSIFIER_KEY) == 20 and HELPER_TO_FALSIFIER_KEY['_check_strict_lt_filter_divergence'] == 'strict_lt_filter_divergence' and HELPER_TO_FALSIFIER_KEY['_check_forbidden_post_game_feature_tokens'] == 'universal_post_game_token_in_scoped_field'"` exit 0.
+**Verification:** `python -c "from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention import HELPER_TO_FALSIFIER_KEY, FALSIFIER_PRIORITY_CHAIN; assert len(HELPER_TO_FALSIFIER_KEY) == 31; assert len(FALSIFIER_PRIORITY_CHAIN) == 31; assert set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values()); assert len(set(FALSIFIER_PRIORITY_CHAIN)) == len(FALSIFIER_PRIORITY_CHAIN)"` runs without exception. (Note: per T01 step 6 the same invariants are also enforced at module-import time, so any drift fails BEFORE this verification command runs.)
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (updated)
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
 
-### T04 — Adjudicator module: writers (CSV + MD); public entrypoint; falsifier priority
+### T04 — Adjudicator module: public entrypoint + 31-entry priority chain
 
-**Objective:** Implement `_write_csv`, `_write_md`, and the public entrypoint
-`adjudicate_history_enriched_pre_game_source_layer(...)`. Falsifier priority
-ordering is explicit and structural-before-content. Bytes-deterministic output
-modulo allowed provenance fields.
+**Objective:** Wire the helpers into the public entrypoint, in deterministic priority order;
+halt on first failure with the human-readable falsifier key from `HELPER_TO_FALSIFIER_KEY`.
 
 **Instructions:**
-1. Implement `_write_csv(decisions, csv_path) -> None` writing the 8 rows in `Q_DECISION_IDS` order with the **27-column** schema from T01 step 3 (26 dataclass fields + `notes` = 27). CSV must use `\n` line endings and ASCII (UTF-8 NFC) with no BOM; rows sorted by `decision_id` (which equals `Q_DECISION_IDS` order). Field order matches the dataclass field declaration order (deterministic).
-2. Implement `_write_md(decisions, md_path, evidence_blob) -> None` writing the MD with sections:
-   - `§1 Non-Overclaim Disclaimer` (verbatim non-materialization disclaimer).
-   - `§2 — §9` — one section per Q-decision (Q1 through Q8) with verdict / binding_level / rationale / SQL evidence (verbatim from `evidence_blob` per Invariant I6). All strict-`<` SQL quoted in MD uses the canonical B-X2 TRY_CAST form.
-   - `§10 Falsifier Roll-Call` (every falsifier listed with `did_fire` / `did_not_fire` status; mirror PR #234 §5 precedent; entries iterate `HELPER_TO_FALSIFIER_KEY.values()` for completeness).
-   - `§11 Lineage Position` (artifact #N in the lineage chain for Step 02_01_03 readiness, with explicit PR # placeholders).
-   - `§12 Explicit Non-Substitution Statement` — does NOT replace PR #229 §10 audit, PR #230 vacuous CROSS-02-01 audit, PR #234 tranche-1 adjudication, PR #236 tranche-1 materialization+audit, PR #237 tranche-1 closure, PR #241 scaffold + validator, nor the FUTURE materialization + post-materialization CROSS-02-01 audit (which do not yet exist).
-   - `§13 Materialization Blocked Until Deferred-Blocker Resolved` — explicit statement: if any decision row carries `verdict == "deferred_blocker"`, the future Layer-3 materialization PR must NOT proceed until that decision is upgraded to `bind_now` / `ratify_with_evidence` / `extend_with_evidence` / `narrow_with_evidence` in a successor adjudication PR.
-   - `§14 No Step Closure Claim` — explicit statement that Step 02_01_03 remains OPEN; this PR does NOT add `02_01_03: complete` to `STEP_STATUS.yaml`.
-3. Implement `adjudicate_history_enriched_pre_game_source_layer(duckdb_path, registry_csv_path, pr234_binding_csv_path, csv_path, md_path, audit_pr, audit_date) -> HistoryEnrichedAdjudicationResult`:
-   - Open DuckDB read-only.
-   - Run T02 + T03 evidence probes.
-   - Construct 8 `HistoryEnrichedAdjudicationDecision` instances based on probe outcomes plus the adjudication policy spelled out in this plan's §"Required adjudication-decision rows (Q1-Q8)" mirror in T05 below.
-   - Run every falsifier in priority order (structural before per-row; see below).
-   - If any falsifier fires, set `halting_falsifier` and abort BEFORE writing CSV/MD (halt-before-artifact per `.claude/rules/data-analysis-lineage.md`).
-   - Otherwise write CSV + MD, populate `HistoryEnrichedAdjudicationResult`, return.
-4. **Falsifier priority chain (structural before content; first to fire halts).** All entries reference the `HELPER_TO_FALSIFIER_KEY` mapping (N-X1):
-   - `pr241_sha256_mismatch` (N4) — every decision row must carry the correct SHA-256.
-   - `decision_count_mismatch` — exactly 8 decisions, no more no fewer.
-   - `q1_single_row_violation` (N5) — Q1 must be one row with subfields (including the 2 N-X4 subfields).
-   - `q1_source_layer_evidence_inconsistent` — Q1 must reconcile with PR #234 binding.
-   - **`strict_lt_filter_divergence` (B-X2 NEW)** — constant + T02 smoke SQL + T05 Q3/Q7 bound expressions must all use the canonical TRY_CAST form. Runs structurally BEFORE Q2/Q3 type checks because divergence here invalidates downstream Q3/Q7 evidence.
-   - `q2_target_anchor_type_mismatch` — Q2 must verify `started_at` TIMESTAMP type.
-   - `q3_history_time_column_invalid` — Q3 must verify `ph.details_timeUTC` dtype.
-   - `q3_strict_lt_smoke_failed` — Q3 smoke must show strict-`<` semantics yields 0 self-rows AND TRY_CAST returns 0 NULLs on 1000-row sample.
-   - `q4_cold_start_gates_incomplete` — Q4 must cover G-CS-2..5 (G-CS-6 distinguished).
-   - `q4_cold_start_leakage` — Q4 must explicitly state `match_time < T` only.
-   - `q5_cross_region_three_options_not_enumerated` — Q5 must enumerate 3 options.
-   - `q6_rating_default_deferred_violated` (N3 + N-X3) — Q6 verdict default `deferred_blocker` unless evidence-bound per strengthened gate.
-   - `q6_rating_forward_only_missing` — Q6 must forbid future / target-match / global batch fit.
-   - `q7_in_game_historical_columns_drift` (N1) — Q7 columns must equal `APM|SQ|supplyCappedPercent|header_elapsedGameLoops`.
-   - `q7_no_target_match_tracker_missing` — Q7 must forbid target-match tracker consumption.
-   - `in_game_historical_strict_lt_violated` (N2) — Q7-specific strict-`<` falsifier (NOT generic `_check_strict_lt_policy`).
-   - `q8_mhm_documentation_missing` — Q8 must document both MHM purposes per PR #239 nit.
-   - **`universal_post_game_token_in_scoped_field` (B-X1 RENAMED + SCOPED)** — no decision-row scoped field contains a POST-GAME token; rationale-bearing exempt fields explicitly allowed to carry negated prose.
-   - `universal_tracker_source_in_history` — no `selected_source_layer` / `selected_target_source_layer` / `selected_history_source_layer` contains `tracker_events_raw`.
-   - `materialization_creep` — no decision row has `materialized_output_paths != ""`.
-5. Use `LOGGER = logging.getLogger(__name__)`; emit one DEBUG line per probe.
+
+1. Implement `adjudicate_history_cross_region_retention(registry_csv_path: Path, parent_pr242_csv_path: Path, parent_pr242_md_path: Path, pr241_validator_path: Path, evidence_md_path: Path, evidence_json_path: Path, player_history_all_yaml_path: Path, step_01_04_05_md_path: Path, matches_flat_clean_yaml_path: Path, cross_02_02_spec_path: Path, duckdb_path: Path, csv_output_path: Path, md_output_path: Path, provenance_git_sha: str) -> CrossRegionAdjudicationResult`. Note the four added NIT-B path arguments.
+
+2. Define `FALSIFIER_PRIORITY_CHAIN` ordering (module-level constant; never in-function; per PR #242 round-3 N-R3-C precedent; **31 entries total** per A21):
+   1. `parent_pr242_csv_sha256_mismatch`
+   2. `parent_pr242_md_sha256_mismatch`
+   3. `pr241_sha256_mismatch`
+   4. `cross_region_01_05_10_md_sha256_mismatch`
+   5. `cross_region_01_05_10_json_sha256_mismatch`
+   6. **(NEW round-3 NIT-B)** `player_history_all_yaml_sha256_mismatch`
+   7. **(NEW round-3 NIT-B)** `step_01_04_05_md_sha256_mismatch`
+   8. **(NEW round-3 NIT-B)** `matches_flat_clean_yaml_sha256_mismatch`
+   9. **(NEW round-3 NIT-B)** `cross_02_02_spec_sha256_mismatch`
+   10. `mfc_cross_region_column_referenced` (round-2 B1 — earliest module-byte-scan)
+   11. `cross_region_toon_id_anchor_count_drift` (round-3 NIT-C BINDING probe)
+   12. `cross_region_nickname_anchor_count_drift` (round-3 NIT-C EQUIVALENCE probe)
+   13. `strict_lt_filter_divergence`
+   14. **(NEW round-3 B4 — promoted)** `decision_count_drift`
+   15. `q5_three_options_not_enumerated`
+   16. `strict_exclusion_history_filter_retention_smoke_failed`
+   17. `dual_feature_path_branch_degenerate`
+   18. `sensitivity_indicator_flag_degenerate`
+   19. `sensitivity_indicator_post_game_token_in_scoped_field`
+   20. `q5_evidence_sufficiency_violated`
+   21. `q5_post_game_token_in_scoped_field`
+   22. `q5_direct_target_match_outcome_referenced`
+   23. `q5_future_match_leakage_referenced`
+   24. `q5_global_batch_fit_referenced`
+   25. `q5_phase_03_baseline_creep`
+   26. **(NEW round-3 NIT-D structured-field check)** `history_row_filter_on_pha_field_invalid`
+   27. **(NEW round-3 NIT-D SQL byte-scan; round-2 B3 inherited)** `q5_filter_target_is_pha_history_violated_sql`
+   28. **(NEW round-3 B4 — promoted)** `materialization_creep`
+   29. `status_yaml_drift`
+   30. `research_log_drift`
+   31. `q6_scope_creep`
+
+3. Helpers run strictly in `FALSIFIER_PRIORITY_CHAIN` order; on first non-pass, the entrypoint
+   raises `Q5AdjudicationFalsifierError` with `falsifier_key` + `observed` + `expected`.
+
+4. Helpers 1-13 run before any decision-row assembly (module-level byte scans + SHA verifications
+   + DuckDB anchor probes). Helpers 14-31 run after decision-row assembly but before
+   write-to-disk.
+
+5. CSV is written via `_write_csv` (csv module; quoting=QUOTE_MINIMAL; deterministic field
+   order = dataclass field order). MD is written via `_write_md` (jinja-free f-strings; every
+   SQL probe + numeric result quoted verbatim per Invariant I6).
+
+6. The entrypoint resolves `provenance_git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"])` at call time if the caller does not pass it.
 
 **Verification:**
-- `source .venv/bin/activate && poetry run ruff check src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
-- `source .venv/bin/activate && poetry run mypy src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
+- running the entrypoint against synthetic fixtures (per T06) produces a 5-row CSV with `wc -l == 6`;
+- `len(FALSIFIER_PRIORITY_CHAIN) == 31` and `len(HELPER_TO_FALSIFIER_KEY) == 31`;
+- `set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values())`;
+- `len(set(FALSIFIER_PRIORITY_CHAIN)) == len(FALSIFIER_PRIORITY_CHAIN)` (no duplicate chain entries).
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (updated)
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
+
+### T05 — Per-decision binding (the substantive Q5 content)
+
+**Objective:** Pre-author the decision rows the entrypoint must produce, verbatim, with
+**provisional** recommended verdicts. **Round-2 N3 binding: the verdict EMERGES from the
+per-family retention table — the executor MUST report the table BEFORE selecting any policy
+and MUST escalate to the planner if the table contradicts the provisional recommendation.**
+
+**Instructions for the executor:**
+
+1. **Q5A_strict_exclusion_retention** — evaluation row for option (a):
+   - `verdict = "deferred_recommendation"`
+   - `binding_level = "recommendation_only"`
+   - `scope = "sc2egset.history_enriched_pre_game.cross_region_fragmentation_handling"`
+   - `selected_policy = ""`
+   - `cross_region_policy = "strict_exclusion"`
+   - `cross_region_anchor_semantics = "toon_id_based"` (round-3 NIT-C / A19)
+   - `history_row_filter_on_pha_applied = "yes"` (round-3 NIT-D / A20)
+   - `cross_region_retention_counts` populated from `_STRICT_EXCLUSION_HISTORY_FILTER_RETENTION_QUERY` execution (round-2 B3: counts measure PHA HISTORY rows kept/dropped under `WHERE NOT ph.is_cross_region_fragmented` applied BEFORE aggregation)
+   - `cross_region_affected_players` = DuckDB-returned distinct PHA `toon_id` count
+   - `cross_region_affected_matches` = DuckDB-returned distinct MHM `match_id` count
+   - `retention_measurement_summary` = "Strict exclusion (`WHERE NOT ph.is_cross_region_fragmented` applied to PHA HISTORY rows BEFORE aggregation, per round-2 B3 binding) drops X PHA history rows / Y players / Z target matches at the aggregation layer; retention pct per family: {focal_player_history: A%, opponent_player_history: B%, ...}." (X/Y/Z/A%/B% are TODOs at the Layer-1 plan stage; Layer-2 executor fills them from real DuckDB output)
+   - `notes` includes:
+     - **VERBATIM CROSS-02-02 §6.2 row 5 line 242 Source-column quote** (round-3 NIT-A — exact on-disk wording): `` `player_history_all.is_cross_region_fragmented` (CROSS-02-00 §5.4) `` — anchors the column source to PHA;
+     - **VERBATIM CROSS-02-02 §6.2 row 5 line 242 Constraint-column quote** (round-3 NIT-A): "Phase 02 must implement one of: (a) strict-exclusion sensitivity arm, (b) dual feature paths (with vs without filter), or (c) sensitivity indicator co-registered alongside the history features."
+     - **VERBATIM 01_04_05 §7 strategy 1 lines 203-208 quote** (round-3 NIT-A — exact on-disk wording): "Safe-subset filter: `WHERE NOT is_cross_region_fragmented` — restricts history to non-fragmented players; cleanest rolling-window estimates but reduces the training population to 7,716 / 44,817 rows = 17.2% of the corpus..."
+     - **VERBATIM PHA YAML NOTES lines 220-226 quote** (round-3 NIT-A — the only on-disk source of the consolidated paraphrase): "Phase 02 rolling features over `player_id_worldwide` should apply `WHERE NOT is_cross_region_fragmented` as safe-subset filter, OR use dual feature paths, OR use as sensitivity indicator..."
+     - rationale comparing retention loss against 01_05_10 W=30 noise-floor √30 ≈ 5.5 (Hollander & Wolfe 1999 §11.2);
+     - explicit per-family count attribution;
+     - explicit statement "no target-match outcome read; no future matches read; no global batch fit; deterministic SQL probe via `_STRICT_EXCLUSION_HISTORY_FILTER_RETENTION_QUERY`";
+     - explicit reference to RISK-20 in `risk_register_sc2egset.md` (SC-R01 row) and to the
+       `methodology_risk_register.md` path-discrepancy note (OQ2);
+     - explicit non-substitution language: "this row replaces the empirical part of PR #242 Q5 only; the binding policy is the Q5_selected_policy row".
+
+2. **Q5B_dual_feature_path_retention** — evaluation row for option (b):
+   - symmetric to Q5A but with per-family `xr_branch_count` / `nonxr_branch_count` counts measured over PHA history rows
+   - `cross_region_anchor_semantics = "toon_id_based"`
+   - `history_row_filter_on_pha_applied = "yes"` (both arms filter, with within-region and cross-region splits)
+   - `retention_measurement_summary` notes that history-row retention is 100% but per-branch sparsity may produce degenerate sub-features
+
+3. **Q5C_sensitivity_indicator_retention** — evaluation row for option (c):
+   - history-row retention is 100% (no PHA rows dropped); measurement adds a single `is_cross_region_fragmented` flag co-registered alongside the 6 history feature columns, projected from PHA at the target-time anchor per `STRICT_LT_HISTORY_FILTER`.
+   - `cross_region_retention_counts` is `{"all_six_families": {"history_rows_kept": <pha_count>, "history_rows_dropped": 0, "retention_pct": 100.0}}`
+   - `cross_region_anchor_semantics = "toon_id_based"`
+   - `history_row_filter_on_pha_applied = "no"` (round-3 NIT-D / A20 — no filter applied; co-registration only)
+   - `retention_measurement_summary` describes co-registration semantics without using the round-2 vacuous substring (NIT-D replaces it with the structured field above)
+
+4. **Q5_selected_policy** — the binding row:
+   - `verdict` = ONE of `"bind_now"` / `"narrow_with_evidence"` / `"deferred_recommendation"` / `"deferred_blocker"` — chosen by the executor AFTER running probes and reporting the per-family retention table per A14. **The planner's recommended verdict is provisional `narrow_with_evidence`** with `selected_policy = "sensitivity_indicator_co_registration"` (option (c)), `rejected_options = "strict_exclusion\ndual_feature_path"`, and provisional rationale: option (c) preserves full history-row retention while honoring the 01_05_10 FAIL verdict by providing the sensitivity-arm input the Phase 03 model can use to stratify; option (a) discards `history_rows_dropped` PHA rows whose cardinality the probe will quantify; option (b) introduces per-branch PHA sparsity that defeats the smoothing motivation of `matchup_history_aggregate` (G-CS-3).
+   - **Round-2 N3 binding: this recommendation is PROVISIONAL. The Layer-2 executor MUST:**
+     - **report the per-family retention table FIRST (from the three per-option probes) in the notebook output;**
+     - **the verdict is computed from the table, not pre-bound from this plan;**
+     - **if the probe shows option (c) introduces a `> 0` retention loss, the executor MUST downgrade to `deferred_blocker` and halt before write;**
+     - **if the probe shows option (a) introduces a retention loss within (e.g.) 1× the W=30 noise-floor √30 ≈ 5.5, the executor MUST re-evaluate the provisional recommendation and MAY escalate to the planner;**
+     - **the executor CANNOT silently rubber-stamp the provisional recommendation.**
+   - `binding_level = "binding_for_materialization"` if `verdict == "bind_now"`; `"recommendation_only"` if `narrow_with_evidence`; `"deferred_blocker"` if `deferred_blocker`.
+   - `selected_policy = <one of Q5_OPTION_NAMES>` or `""` for deferred verdicts.
+   - `cross_region_anchor_semantics = "toon_id_based"`
+   - `history_row_filter_on_pha_applied` = mirror of chosen `selected_policy`'s field value (or `"not_applicable"` if `verdict in {"deferred_recommendation", "deferred_blocker"}`)
+   - `notes` includes:
+     - per-option rejection rationale citing the per-family retention table verbatim;
+     - explicit "MATERIALIZATION GATE" statement;
+     - **explicit "VERDICT EMERGED FROM TABLE" attestation per A14;**
+     - explicit acknowledgment that the MFC-target-row drop alternative is OUT OF SCOPE per A4 + A17.
+   - `evidence_paths` includes (≥3): the 01_05_10 MD, 01_05_10 JSON, 01_04_05 cross-region annotation MD, risk register MD, CROSS-02-02 spec, parent PR #242 CSV, and **the 4 round-3 NIT-B source files** (PHA YAML, 01_04_05 MD, MFC YAML, CROSS-02-02 spec).
+
+5. **Q5_per_family_impact_summary** — derived summary row:
+   - `verdict = "ratify_with_evidence"`
+   - `binding_level = "binding_for_materialization"`
+   - `scope = "all_six_history_enriched_pre_game_families"`
+   - `cross_region_anchor_semantics = "both"` (carries data from both probes)
+   - `history_row_filter_on_pha_applied = "not_applicable"` (round-3 NIT-D / A20)
+   - `cross_region_retention_counts` carries the JSON payload combining the three per-option probes per family. Round-2 B3: all retention counts in this JSON are over PHA HISTORY ROWS.
+
+**Verification:**
+- the 5 row IDs match `Q5_DECISION_IDS` exactly;
+- the SQL probe results in `cross_region_retention_counts` match the values reproduced verbatim in the MD §evidence;
+- the chosen `verdict` in `Q5_selected_policy` is one of `ALLOWED_Q5_VERDICTS`;
+- every per-option row's `cross_region_anchor_semantics` is in `ALLOWED_CROSS_REGION_ANCHOR_SEMANTICS` (asserted by NIT-C);
+- every per-option row's `history_row_filter_on_pha_applied` is in `ALLOWED_HISTORY_ROW_FILTER_ON_PHA_APPLIED` AND consistent with `selected_policy` (asserted by helper #30 / NIT-D);
+- the MD §rationale contains the FOUR verbatim quotes per NIT-A re-attribution (CROSS-02-02 line 242 Source column + CROSS-02-02 line 242 Constraint column + 01_04_05 §7 strategy 1 lines 203-208 + PHA YAML NOTES lines 220-226).
+
+**File scope:**
+- (decision content authored at execution time; substrate is the adjudicator module + SQL probes from T01-T04)
 
 **Read scope:**
-- (no new file reads)
+- All PR #242 / 01_05_10 / 01_04_05 / spec / PHA YAML / MFC YAML paths in `source_artifacts`
 
-### T05 — Adjudicator module: bind the 8 Q-decisions per this plan
+### T06 — Mirrored test file
 
-**Objective:** Hard-bind the 8 Q-decision content (verdicts, binding levels,
-rationales, evidence paths, falsifier roll-call) inside the adjudicator
-module so the Layer-2 executor produces a deterministic CSV+MD pair when the
-falsifier chain passes. The decisions are RECOMMENDED below; the Layer-2
-executor MUST audit them against fresh DuckDB / Parquet / spec evidence
-before binding and revise any decision whose falsifier fires.
+**Objective:** Achieve ≥95% line coverage on the adjudicator module with synthetic `tmp_path`
+fixtures + optional real-DB `skipif` smoke tests; test every falsifier branch.
 
 **Instructions:**
 
-For each Q-decision below, the Layer-2 executor MUST:
-(a) load probe evidence (T02);
-(b) run per-Q falsifiers (T03 + T03b mapping);
-(c) bind the verdict only if falsifiers do not fire;
-(d) on any falsifier hit, halt and revise the decision per the
-    fix-forward rule.
+1. Create `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py`.
 
-**Q1 — Source layer (one row per N5; N-X4 subfields populated).**
+2. Synthetic fixture column-name constants (round-2 B1+B2 binding):
+   - `MFC_COLUMNS` = 30 columns; NO `is_cross_region_fragmented`, NO `match_id`, NO `player_id`.
+   - `PHA_COLUMNS` = 38 columns, INCLUDING `is_cross_region_fragmented` at the same projected position as the live YAML.
+   - `MHM_COLUMNS` = including `match_id` (prefixed `sc2egset::<32-char-hex>`) and `player_id` (= `toon_id`).
 
-- `decision_id = "Q1_source_layer"`.
-- `decision_name = "History-enriched pre_game source layer (target row + history row + asymmetry; divergence + extension annotated)"`.
-- `feature_family_id_or_scope = "all_six_history_enriched_pre_game_families"`.
-- Recommended `verdict = "extend_with_evidence"`; `binding_level = "binding_for_materialization"`.
-- `selected_target_source_layer` = `"matches_flat_clean"` (RATIFY tranche-1 PR #234 Q1 binding; cleaned-raw, 1v1-scoped, 44,418 rows).
-- `selected_history_source_layer` = `"player_history_all"` (per ROADMAP line 2367 `inputs.duckdb_tables`; row count 44,817 per PR #234 probe §2; per CROSS-02-02 §6.2 rows 1-4 + 6 all explicitly source from `player_history_all`).
-- **`target_history_asymmetry = "asymmetric"`** with `binding_level = "binding_for_materialization"`.
+3. Test classes (per PR #234/#241/#242 precedent + round-3 NIT-A/B/C/D additions):
+   - `TestParentPR242SHAVerification` — 2 pass + 2 mismatch
+   - `TestPR241SHAVerification` — 1 pass + 1 mismatch
+   - `TestCrossRegion0105_10Verification` — 2 pass + 2 mismatch
+   - **(NEW round-3 NIT-B)** `TestPlayerHistoryAllYamlSHAVerification` — 1 pass (live file SHA matches `EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256`) + 1 mismatch (tampered fixture halts)
+   - **(NEW round-3 NIT-B)** `TestStep0104_05MdSHAVerification` — 1 pass + 1 mismatch
+   - **(NEW round-3 NIT-B)** `TestMatchesFlatCleanYamlSHAVerification` — 1 pass + 1 mismatch
+   - **(NEW round-3 NIT-B)** `TestCross0202SpecSHAVerification` — 1 pass + 1 mismatch
+   - **(NEW round-3 NIT-C)** `TestCrossRegionToonIdAnchorCountDrift` — 1 pass + 1 drift (BINDING probe)
+   - **(NEW round-3 NIT-C)** `TestCrossRegionNicknameAnchorCountDrift` — 1 pass (asserts 246/1923/32031) + 1 drift (EQUIVALENCE probe) + 1 explicit semantic-binding test (assert `EXPECTED_CROSS_REGION_PLAYER_MATCH_PAIR_COUNT_NICKNAME_ANCHORED == 32031` AND the toon_id-membership BINDING probe's expected count is a separate constant)
+   - `TestStrictLtFilterDivergence` — 1 pass + 1 drift
+   - `TestExactFiveDecisionsPresent` — 1 pass + 1 halt (only 4 rows)
+   - `TestQ5ThreeOptionsEnumerated` — 1 pass + 1 halt (only 2 options) + 1 halt (fourth option `mfc_target_row_drop` injected per A4)
+   - `TestStrictExclusionHistoryFilterRetentionSmoke` — 1 pass + 1 halt
+   - `TestDualFeaturePathBranchesNondegenerate` — 1 pass + 1 halt
+   - `TestSensitivityIndicatorFlagNondegenerate` — 1 pass + 1 (TRUE=0 on PHA) + 1 (FALSE=0 on PHA)
+   - `TestSensitivityIndicatorAnchorTargetTime` — 1 pass + 1 halt
+   - `TestQ5EvidenceSufficiency` — 4 cases
+   - `TestQ5PostGameTokenInScopedField` — 3 cases
+   - `TestQ5NoDirectTargetMatchOutcome` — 1 pass + 1 halt
+   - `TestQ5NoFutureMatchLeakage` — 1 pass + 1 halt
+   - `TestQ5NoGlobalBatchFit` — 1 pass + 1 halt
+   - `TestQ5NoPhase03BaselineCreep` — 1 pass + 1 halt
+   - `TestNoMaterializedOutputPath` — 1 pass + 1 halt (key `materialization_creep` per B4 promotion)
+   - **(NEW round-3 B4)** `TestDecisionCountDrift` — 1 pass + 1 halt (key `decision_count_drift` per B4 promotion)
+   - `TestNoStatusYamlChange` — 1 pass + 1 halt
+   - `TestNoResearchLogChange` — 1 pass + 1 halt
+   - `TestNoQ6ArtifactChange` — 3 cases
+   - `TestNoMfcCrossRegionColumnReference` — 1 pass + 2 halt variants (round-2 B1)
+   - **(NEW round-3 NIT-D — structured-field replacement)** `TestHistoryRowFilterFieldStructured`:
+     - 1 pass — valid value `"yes"` with consistent `selected_policy == "strict_exclusion"`;
+     - 1 pass — valid value `"no"` with consistent `selected_policy == "sensitivity_indicator_co_registration"`;
+     - 1 pass — valid value `"not_applicable"` with `decision_id == "Q5_per_family_impact_summary"`;
+     - 1 halt — invalid value `"foo"` (not in ALLOWED set);
+     - 1 halt — inconsistent combo: Q5A (`selected_policy == "strict_exclusion"`) with `history_row_filter_on_pha_applied == "no"`;
+     - 1 halt — inconsistent combo: Q5C (`selected_policy == "sensitivity_indicator_co_registration"`) with `history_row_filter_on_pha_applied == "yes"`;
+     - 1 pass — Q5_selected_policy row's value matches the bound policy.
+   - **(NEW round-3 NIT-D — SQL byte-scan KEPT)** `TestQ5FilterTargetIsPhaHistorySql`:
+     - 1 pass (every WHERE-clause predicate on `is_cross_region_fragmented` is anchored on `ph.` alias);
+     - 1 halt (synthetic module with `WHERE NOT mfc.is_cross_region_fragmented` injected).
+   - `TestVerdictEmergedFromTableAttestation` — 2 cases (round-2 N3)
+   - **(round-4 B4 — asserts 31 invariants)** `TestHelperToFalsifierKeyMappingExactCount` — asserts `len(HELPER_TO_FALSIFIER_KEY) == 31` AND `len(FALSIFIER_PRIORITY_CHAIN) == 31` AND `len(set(FALSIFIER_PRIORITY_CHAIN)) == 31` AND `set(FALSIFIER_PRIORITY_CHAIN) <= set(HELPER_TO_FALSIFIER_KEY.values())`.
+   - **(round-4 B4 rewritten)** `TestPriorityChainReferencesMapping`:
+     ```python
+     def test_chain_subset_of_mapping_values() -> None:
+         assert set(FALSIFIER_PRIORITY_CHAIN) <= set(HELPER_TO_FALSIFIER_KEY.values())
+     def test_chain_no_duplicates() -> None:
+         assert len(FALSIFIER_PRIORITY_CHAIN) == len(set(FALSIFIER_PRIORITY_CHAIN))
+     def test_mapping_and_chain_set_equality() -> None:
+         assert set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values())
+     def test_exact_count_31() -> None:
+         assert len(HELPER_TO_FALSIFIER_KEY) == 31
+         assert len(FALSIFIER_PRIORITY_CHAIN) == 31
+         assert len(set(FALSIFIER_PRIORITY_CHAIN)) == 31
+     ```
+   - `TestForbiddenTokensExemptFieldsList` — 1 case
+   - `TestDeterministicCsvSchema` — asserts CSV header = exactly **29 columns** (28 dataclass fields + `notes`, post-NIT-B+C+D field additions), row count = 5, byte-identical across runs.
+   - `TestParentDecisionIdIsSchemaExtension` (round-2 N1) — 2 cases
+   - `TestRealDBSmoke` — `@pytest.mark.skipif(not DUCKDB_AT_DEFAULT_PATH)` real-DB smoke; runs entrypoint against `data/db/db.duckdb` and asserts: 3 nickname-anchored anchor counts (246/1923/32031), the toon_id-membership BINDING count matches its (Layer-2-pinned) constant, per-family retention plausibility, MFC column-name set does NOT include `is_cross_region_fragmented`, all 4 NIT-B source-file SHAs match their pinned constants.
 
-  **N-X2 Option A (RECOMMENDED, BINDING) — verbatim spec evidence below.**
+4. Real-DB smoke fixture: read-only `duckdb.connect(str(DUCKDB_PATH), read_only=True)`.
 
-  - **Verbatim spec passage 1** (`reports/specs/02_02_feature_engineering_plan.md` §6.2 row 1, `focal_player_history`):
-    > "rolling/expanding aggregates over `player_history_all` rows for the focal `toon_id`: prior match count, prior win rate, time since prior match, race-conditional win rate, map-conditional win rate, matchup-conditional win rate"
-  - **Verbatim spec passage 2** (`reports/specs/02_02_feature_engineering_plan.md` §6.2 row 4, `reconstructed_rating`):
-    > "derived from `player_history_all.result` filtered by I3 anchor"
-  - **Verbatim spec passage 3** (`reports/specs/02_02_feature_engineering_plan.md` §6.2 row 6, `in_game_history_aggregate`):
-    > "`player_history_all.APM` / `SQ` / `supplyCappedPercent` / `header_elapsedGameLoops` (IN_GAME_HISTORICAL classification per CROSS-02-00 §5.4)"
-  - **Verbatim spec passage 4** (`reports/specs/02_00_feature_input_contract.md` §2.1 sc2egset row 2):
-    > Row grain | 1 row per player per match (all game types; no 1v1 filter)
-  - **Verbatim view-schema passage** (`src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml` `provenance.scope`):
-    > "All replays (no 1v1/decisive filter). Includes non-1v1 and indecisive replays excluded from matches_flat_clean."
-
-  - **Alternative A (RECOMMENDED, BINDING):** asymmetric — target = `matches_flat_clean` (1v1-scoped, 44,418 rows; cleaning per PR #234 §3), history = `player_history_all` (all-game-types; 44,817 rows; per CROSS-02-02 §6.2 rows 1-4 + 6 all source from `player_history_all`; per CROSS-02-00 §2.1 the row grain note "1 row per player per match (all game types; no 1v1 filter)" makes the all-game-types property authoritative). **Rationale (quoted spec):** every history-side row of §6.2 binds to `player_history_all`; the row-grain note is explicit; the view-schema scope note is explicit.
-
-  - **Alternative B (REJECTED):** symmetric — target and history both filtered to 1v1-only (e.g., both via `matches_flat_clean` or both via a hypothetical `player_history_1v1_only` view). **Rationale why rejected (evidence-cited):** the spec §6.2 row 1 binds history to `player_history_all`, not a 1v1-filtered subset; restricting history to 1v1-only would truncate the player's prior-skill signal in the regime where MMR-missing density is 83.95%, leaving cold-start gates G-CS-2/G-CS-3 with near-empty support sets for newcomers; CROSS-02-02 §6.2 retains multi-game-type history precisely to mitigate this support-set sparsity, and the `player_history_all.yaml` `provenance.scope` note explicitly retains non-1v1 and indecisive replays for this purpose. Rejecting Alternative B would also contradict the verbatim CROSS-02-02 §6.2 rows 4 and 6 (`reconstructed_rating` and `in_game_history_aggregate` both source from `player_history_all`).
-
-- `source_layer_divergence_reason` (N-X4) = `"matches_flat_clean (operationally) vs matches_flat (registry); cleaned-view chosen for 1v1-scoping + 44,418-row deterministic count per PR #234 §3 binding (selected_source_layer = matches_flat_clean was BINDING in tranche-1)"`.
-- `history_source_extension_reason` (N-X4) = `"tranche-1 (5 pre_game families) had no history-side source; tranche-2 (6 history-enriched families) adds player_history_all as the history-side source per ROADMAP line 2367 inputs.duckdb_tables and CROSS-02-02 §6.2 rows 1-4 + 6 verbatim source bindings"`.
-- The Q1 `verdict = "extend_with_evidence"` now unambiguously refers to the **history-side extension** (adding `player_history_all`); the source-layer divergence (registry-recorded `matches_flat` vs operationally-used `matches_flat_clean`) is documented separately in `source_layer_divergence_reason` as RATIFY-with-divergence-noted (N-X4 disambiguation).
-- Evidence paths: PR #234 binding CSV + MD; CROSS-02-00 §2.1; CROSS-02-02 §6.2 rows 1, 4, 6; ROADMAP lines 2363-2367; `player_history_all.yaml` `provenance.scope`.
-- Falsifiers: `q1_source_layer_evidence_inconsistent`, `q1_single_row_violation` (N5).
-- Notes: cites PR #234 evidence; explicit asymmetry rationale per Option A verbatim quotes above; mentions Alternative B and its rejection. **Per B-X1 the notes field is EXEMPT** from POST-GAME token scanning, so the phrase "indecisive replays" quoted from the schema is allowed here.
-
-**Q2 — Target temporal anchor.**
-
-- `decision_id = "Q2_target_anchor"`.
-- `decision_name = "Target match temporal anchor for the strict-< history filter"`.
-- `feature_family_id_or_scope = "all_six_history_enriched_pre_game_families"`.
-- Recommended `verdict = "ratify_with_evidence"`; `binding_level = "binding_for_materialization"`.
-- `target_anchor = "matches_history_minimal.started_at TIMESTAMP"` (RATIFY tranche-1 PR #234 Q2(a) BINDING; per CROSS-02-00 §3.1 canonical cross-dataset dtype).
-- Evidence: PR #234 §3 SQL probe results (DESCRIBE TIMESTAMP type, 0 nulls, 0 cross-row inconsistency).
-- Falsifiers: `q2_target_anchor_type_mismatch`.
-- Notes: ratifies tranche-1 Phase-02 row-identity anchor; Phase-03 hold-out anchor (Q2(b) per PR #234) remains RECOMMENDATION ONLY.
-
-**Q3 — Historical row time column (B-X2 canonical form binding).**
-
-- `decision_id = "Q3_history_time_column"`.
-- `decision_name = "Historical row time column for strict-< filter (canonical TRY_CAST form)"`.
-- `feature_family_id_or_scope = "all_six_history_enriched_pre_game_families"`.
-- Recommended `verdict = "bind_now"`; `binding_level = "binding_for_materialization"`.
-- `history_time_column = "player_history_all.details_timeUTC (TRY_CAST AS TIMESTAMP for comparison with target.started_at)"`.
-- **Strict-`<` filter expression (CANONICAL per B-X2):**
-  ```
-  TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at
-  ```
-  This is exactly `STRICT_LT_HISTORY_FILTER`. The ROADMAP §02_01_03 raw form
-  `ph.details_timeUTC < target.started_at` is recorded for provenance ONLY
-  (as `STRICT_LT_FILTER_ROADMAP_RAW`); this plan explicitly NORMALIZES that
-  raw form to the canonical TRY_CAST expression for chronological fidelity
-  per `matches_history_minimal.yaml` (which notes 7 observed length variants
-  22-28 chars in upstream VARCHAR; lex comparison is NOT chronologically
-  faithful). Any executable site adopting the bare form is rejected by
-  `strict_lt_filter_divergence`.
-- Evidence: T02 step 5 strict-`<` smoke probe (expect 0 self-rows; canonical SQL); spec §5.4 sc2egset PH `details_timeUTC` row (CONTEXT, VARCHAR, "I3 anchor"); `matches_history_minimal.yaml` schema metadata note on TRY_CAST.
-- Falsifiers: `q3_history_time_column_invalid`, `q3_strict_lt_smoke_failed`, `strict_lt_filter_divergence` (B-X2 NEW).
-- Notes: VARCHAR-to-TIMESTAMP TRY_CAST assumption recorded; deterministic ordering via `(player_id_worldwide, TRY_CAST(ph.details_timeUTC AS TIMESTAMP), ph.replay_id)`; 1000-row TRY_CAST NULL-rate sanity probe required (`q3_strict_lt_smoke_failed` halts if any NULL).
-
-**Q4 — Cold-start policy.**
-
-- `decision_id = "Q4_cold_start_policy"`.
-- `decision_name = "Cold-start policy per family (G-CS-2/3/4/5; G-CS-6 distinguished as materialization-time gate)"`.
-- `feature_family_id_or_scope = "all_six_history_enriched_pre_game_families"` with per-family annotation in `cold_start_policy`.
-- Recommended `verdict = "extend_with_evidence"`; `binding_level = "binding_for_materialization"`.
-- `cold_start_policy = "G-CS-2:scaffold_registry_gate_for_focal_player_history+opponent_player_history+in_game_history_aggregate|G-CS-3:scaffold_registry_gate_for_matchup_history_aggregate|G-CS-4:scaffold_registry_gate_for_reconstructed_rating|G-CS-5:scaffold_registry_gate_for_cross_region_fragmentation_handling|G-CS-6:materialization_time_fold_aware_fit_gate_per_invariant_I3_and_CROSS-02-02_section_9"`.
-- Distinguish: scaffold registry gates G-CS-2/3/4/5 (registry-time; bound here); G-CS-6 (materialization-time fold-aware fit gate per ROADMAP lines 2334-2338; DEFERRED to materialization PR); model-training Phase-03 cold-start handling (DEFERRED to Phase 03 planning).
-- Evidence: registry CSV rows 7-12; CROSS-02-02 §9 G-CS-2..6; ROADMAP lines 2334-2338.
-- Falsifiers: `q4_cold_start_gates_incomplete`, `q4_cold_start_leakage`.
-- Notes: ML-protocol three failure modes (rolling, h2h, co-occurring matches) explicitly forbidden; only `match_time < T` evidence used. Per B-X1 notes field exempt from POST-GAME scan.
-
-**Q5 — Cross-region fragmentation policy.**
-
-- `decision_id = "Q5_cross_region_policy"`.
-- `decision_name = "Cross-region fragmentation operationalization (RISK-20)"`.
-- `feature_family_id_or_scope = "sc2egset.history_enriched_pre_game.cross_region_fragmentation_handling"`.
-- Recommended `verdict = "deferred_blocker"`; `binding_level = "deferred_blocker"`.
-- `cross_region_policy = "deferred_blocker"`.
-- Rationale: CROSS-02-02 §6.2 row 5 enumerates three options (strict-exclusion / dual-feature-path / sensitivity-indicator-co-registration). The retention impact of each option is empirically conditional (a separate measurement study is required) and binding here without that measurement would pin a numeric without evidence (Invariant I7 violation). The PR #241 scaffold validator correctly accepts the `allowed_with_caveat` status without pinning; the adjudication preserves that deferral as an explicit BINDING gate against materialization.
-- Evidence: CROSS-02-02 §6.2 row 5; `risk_register_sc2egset.md` RISK-20; PR #241 validator `_check_cross_region_caveat`.
-- Falsifiers: `q5_cross_region_three_options_not_enumerated`.
-- Notes: MATERIALIZATION BLOCKED until Q5 upgraded to `bind_now` in a successor adjudication PR with retention-measurement evidence.
-
-**Q6 — Rating reconstruction model family (per N3 default `deferred_blocker`; N-X3 strengthened evidence gate).**
-
-- `decision_id = "Q6_rating_policy"`.
-- `decision_name = "Rating reconstruction model family for reconstructed_rating (G-CS-4)"`.
-- `feature_family_id_or_scope = "sc2egset.history_enriched_pre_game.reconstructed_rating"`.
-- Recommended `verdict = "deferred_blocker"`; `binding_level = "deferred_blocker"`.
-- `rating_policy = "deferred_blocker"`.
-- `evidence_paths` MUST be non-empty even when `deferred_blocker` is chosen (N-X3 strengthened gate); recommended `evidence_paths` value:
-  ```
-  src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv
-  reports/specs/02_02_feature_engineering_plan.md (§6.2 row 4; §9 G-CS-4)
-  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md (is_mmr_missing density 83.95%)
-  Elo (1978)
-  Glickman (1999)
-  Glickman (2012)
-  Herbrich, Minka, Graepel (2006)
-  ```
-  (3 repo paths + 4 primary-source citations; satisfies N-X3 minimum "at least 1 repo + at least 1 citation" easily).
-- Rationale (`notes`): **MUST contain the substring `"deferred_blocker because:"`** (N-X3 strengthened). Recommended notes verbatim:
-  > "deferred_blocker because: per N3, ~83.95% MMR-missing density (verified in the dataset research log; consistent with the registry CSV `is_mmr_missing_flag` family) makes algorithm choice first-order. Pinning Elo / Glicko / Glicko-2 / TrueSkill / a rolling-winrate baseline without empirical evidence of which family handles the unrated / no-rating-history regime best would violate Invariant I7. Four candidate citations exist (Elo 1978; Glickman 1999; Glickman 2012; Herbrich, Minka, Graepel 2006) but binding one over the others requires repo evidence not yet generated. Forward-only constraint explicit: no target-match outcome; no future results; no global batch fit; per-game forward update only. Cold-start handled by initializing rating = literature-prior for new players (DEFERRED to materialization PR's training-fold-fit step); missingness handled by retaining `is_mmr_missing` as a separate companion feature (DEFERRED to materialization PR)."
-  Notes contain (a) explicit "deferred_blocker because:" rationale, (b) the three forward-only phrases, (c) "cold-start handled by" + "missingness handled by" phrasing. Per B-X1 the `notes` field is EXEMPT from POST-GAME token scanning, so negated-prose terms ("no target-match outcome", "no future results", "no global batch fit") are ALLOWED here.
-- Evidence: registry CSV row 10; ROADMAP lines 2334-2338 G-CS-4; CROSS-02-02 §6.2 row 4; `thesis/references.bib` citations.
-- Falsifiers: `q6_rating_default_deferred_violated` (N3 + N-X3), `q6_rating_forward_only_missing`.
-- Notes: MATERIALIZATION BLOCKED until Q6 upgraded to `bind_now` in a successor adjudication PR with rating-family empirical evaluation evidence satisfying the N-X3 strengthened gate (≥1 repo path + ≥1 citation + forward-only wording + cold-start/missingness wording).
-
-**Q7 — IN_GAME_HISTORICAL prior-match aggregation (per N1 + N2; canonical strict-< per B-X2).**
-
-- `decision_id = "Q7_in_game_historical_policy"`.
-- `decision_name = "IN_GAME_HISTORICAL prior-match aggregation policy for in_game_history_aggregate"`.
-- `feature_family_id_or_scope = "sc2egset.history_enriched_pre_game.in_game_history_aggregate"`.
-- Recommended `verdict = "bind_now"`; `binding_level = "binding_for_materialization"`.
-- `in_game_historical_policy = "prior_match_only_strict_lt"`.
-- `in_game_historical_columns_in_scope = "APM|SQ|supplyCappedPercent|header_elapsedGameLoops"` (N1 deterministic).
-- **Strict-`<` filter (CANONICAL per B-X2):** same as Q3 — `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at`.
-- Rationale: CROSS-02-00 §5.4 Concern 8 / T15 record retains these 4 columns in scope for prior-match aggregation ONLY; never as direct game-T pre-game features. Forbid target-match tracker / target-match game-state consumption (those are `in_game_snapshot`, deferred to Step 02_01_04). The source is `player_history_all` (per ROADMAP line 2367 + CROSS-02-02 §6.2 row 6).
-- Evidence: spec §5.4 sc2egset PH IN_GAME_HISTORICAL rows; CROSS-02-00 §5.4 Concern 8 / T15 record; registry CSV row 12.
-- Falsifiers: `q7_in_game_historical_columns_drift` (N1), `q7_no_target_match_tracker_missing`, `in_game_historical_strict_lt_violated` (N2 — Q7-specific, not generic), `strict_lt_filter_divergence` (B-X2 — applies to Q7's bound expression).
-- Notes: distinct from `in_game_snapshot` tranche; aggregation pseudocount / window-size constants DEFERRED to materialization PR. Per B-X1 notes exempt from POST-GAME scan.
-
-**Q8 — `matches_history_minimal` consumption (PR #239 ROADMAP-nit promoted to adjudication row).**
-
-- `decision_id = "Q8_matches_history_minimal_consumption"`.
-- `decision_name = "What matches_history_minimal is consumed for in the history-enriched pre_game tranche"`.
-- `feature_family_id_or_scope = "NOT_A_FEATURE_SOURCE_unless_explicitly_justified"`.
-- Recommended `verdict = "ratify_with_evidence"`; `binding_level = "binding_for_materialization"`.
-- Rationale: MHM is consumed for (1) target row identity / `started_at` TIMESTAMP anchor per PR #234 Q2(a) BINDING (the canonical source of `started_at` joined back onto MFC); (2) cold-start enumeration G-CS-2/3/4/5 (the support set of `(focal_player, target.started_at)` target rows over which prior history is counted). MHM is NOT a feature source — no MHM column becomes a feature column in the materialized output unless this adjudication row is updated in a successor PR with explicit justification.
-- Evidence: PR #241 scaffold notebook cell "What matches_history_minimal is consumed for"; ROADMAP `inputs.duckdb_tables` line 2366; spec §5.1 sc2egset MHM column table.
-- Falsifiers: `q8_mhm_documentation_missing`.
-- Notes: MHM column-level provenance recorded for examiner clarity; no MHM PRE_GAME column elevated to feature without successor-PR adjudication. Per B-X1 notes exempt from POST-GAME scan.
-
-**Verification:**
-- `source .venv/bin/activate && poetry run ruff check src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
-- `source .venv/bin/activate && poetry run mypy src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` exit 0.
+**Verification:** `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py -v --cov=rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention --cov-report=term-missing` reports ≥95% line coverage; all tests pass.
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (updated)
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py`
 
 **Read scope:**
-- (no new file reads)
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py`
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml`
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml`
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_history_minimal.yaml`
 
-### T06 — Test file: synthetic fixtures + test classes covering every Q + every falsifier + B-X1/B-X2/N-X1/N-X2/N-X3/N-X4
+### T07 — Sandbox notebook pair
 
-**Objective:** Create the mirrored test file with synthetic CSV/Parquet
-fixtures and ≥40 tests across ≥30 test classes (one class per Q-decision
-plus one per falsifier plus dedicated classes for B-X1 scope, B-X2
-canonical-form cross-site, N-X1 mapping completeness, N-X2 Q1 evidence,
-N-X3 Q6 evidence-sufficiency branches, N-X4 Q1 subfield disambiguation).
-Coverage ≥95% on the adjudicator module.
+**Objective:** Produce the jupytext-paired `.py` + `.ipynb` driver notebook that calls the
+adjudicator module's public entrypoint against the real DuckDB and writes the CSV+MD artifacts.
 
 **Instructions:**
-1. Create `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py`.
-2. Resolve `_TESTS_ROOT = Path(__file__).resolve().parents[6]` (mirror tranche-1 pattern).
-3. Declare paths: real registry CSV; real PR #234 binding CSV; real DuckDB; expected SHA-256 constant; canonical strict-`<` expression constant.
-4. Implement test classes (one per falsifier + Q + revision-finding class):
-   - `TestExactEightDecisionsPresent` — happy path: all 8 Q-decisions returned.
-   - `TestPr241Sha256Match` (N4) — fixture row with wrong / NOT_FOUND / 63-char SHA → halting `pr241_sha256_mismatch`.
-   - `TestQ1SingleRowPerN5` (N5) — fixture splitting Q1 into Q1a/Q1b → halting `q1_single_row_violation`.
-   - `TestQ1SourceLayerEvidenceConsistent` — fixture with Q1 selected source = `replay_players_raw` → halting `q1_source_layer_evidence_inconsistent`.
-   - **`TestQ1SubfieldDisambiguation` (N-X4 NEW)** — assert Q1 row carries:
-     - `selected_target_source_layer == "matches_flat_clean"`
-     - `selected_history_source_layer == "player_history_all"`
-     - `target_history_asymmetry == "asymmetric"`
-     - `source_layer_divergence_reason` non-empty and contains `"matches_flat_clean (operationally) vs matches_flat (registry)"`
-     - `history_source_extension_reason` non-empty and contains `"player_history_all"` and `"tranche-2"`
-     Fixture omitting either N-X4 subfield → halting `q1_single_row_violation`.
-   - `TestQ2TargetAnchorTypeMatch` — fixture asserting non-TIMESTAMP anchor → halting `q2_target_anchor_type_mismatch`.
-   - `TestQ3HistoryTimeColumnInvalid` — fixture with missing PH `details_timeUTC` → halting `q3_history_time_column_invalid`.
-   - `TestQ3StrictLtSmokeFailed` — fixture mocking probe to return `>0` self-rows OR TRY_CAST NULL on sample → halting `q3_strict_lt_smoke_failed`.
-   - `TestQ4ColdStartGatesIncomplete` — fixture missing G-CS-3 in Q4 cold_start_policy → halting `q4_cold_start_gates_incomplete`.
-   - `TestQ4ColdStartLeakage` — fixture Q4 notes omits `match_time < T` wording → halting `q4_cold_start_leakage`.
-   - `TestQ5CrossRegionThreeOptions` — fixture Q5 enumerates only 2 options → halting `q5_cross_region_three_options_not_enumerated`.
-   - **`TestQ6RatingEvidenceSufficiency` (N3 + N-X3 NEW; rename of `TestQ6RatingDefaultDeferred`)** — 4 fixture branches:
-     - **deferred-pass:** `rating_policy="deferred_blocker"`, `evidence_paths` non-empty (3 repo paths + 4 citations), notes contain `"deferred_blocker because:"` → PASSES.
-     - **deferred-fail-no-rationale:** `rating_policy="deferred_blocker"`, `evidence_paths` non-empty, but notes lack `"deferred_blocker because:"` → HALTING `q6_rating_default_deferred_violated`.
-     - **bind-pass-with-full-evidence:** `rating_policy="glicko2"`, `evidence_paths` contains 2 repo paths + 1 citation, notes contain forward-only phrases AND `"cold-start handled by"` AND `"missingness handled by"` → PASSES.
-     - **bind-fail-with-only-1-repo-path:** `rating_policy="glicko2"`, `evidence_paths` contains 1 repo path and 0 citations → HALTING `q6_rating_default_deferred_violated`.
-   - `TestQ6RatingForwardOnlyMissing` — fixture Q6 notes omits any of the three forward-only phrases → halting `q6_rating_forward_only_missing`.
-   - `TestQ7InGameHistoricalColumnsDrift` (N1) — fixture Q7 columns = `APM|SQ` → halting `q7_in_game_historical_columns_drift`. Companion: with full 4 columns → passes.
-   - `TestQ7NoTargetMatchTrackerMissing` — fixture Q7 notes omits prior-match-only wording → halting `q7_no_target_match_tracker_missing`.
-   - `TestQ7InGameHistoricalStrictLt` (N2) — fixture Q7 `cold_start_policy` / `in_game_historical_policy` omitting strict-`<` → halting `in_game_historical_strict_lt_violated`. Distinct from any generic `_check_strict_lt_policy`.
-   - `TestQ8MhmDocumentationMissing` — fixture Q8 missing both purposes → halting `q8_mhm_documentation_missing`.
-   - **`TestUniversalPostGameToken` (B-X1 RE-SCOPED)** — re-scope to `POST_GAME_TOKEN_SCOPED_FIELDS`; parametrized over the 10 tokens. For each (token, scoped_field) pair: injecting the token into `selected_source_layer` / `feature_family_id_or_scope` / `materialized_output_paths` (in turn) → halting `universal_post_game_token_in_scoped_field`. Assert explicit "exempt fields" list assertion: the test asserts `POST_GAME_TOKEN_EXEMPT_FIELDS == ("notes", "evidence_paths", "falsifiers", "decision_name", "rationale", "source_layer_divergence_reason", "history_source_extension_reason")`.
-   - **`TestNegativeRationaleAllowedInNotes` (B-X1 NEW POSITIVE COMPANION)** — fixture: Q6 notes contains the exact wording `"no target-match outcome; no future results; no global batch fit"`; assert the adjudication PASSES (does NOT halt). Additionally fixtures inject `"forbid result"` and `"reject winner field"` into notes → PASSES. Independent fixture: inject `"deferred_blocker because: avoid winner-side leakage"` into Q6 notes → PASSES (negated rationale in exempt field).
-   - **`TestForbiddenTokensExemptFieldsList` (B-X1 NEW)** — assert that every field name in `POST_GAME_TOKEN_EXEMPT_FIELDS` is a valid dataclass field (`assert name in {f.name for f in fields(HistoryEnrichedAdjudicationDecision)}`) AND no field name appears in both `POST_GAME_TOKEN_SCOPED_FIELDS` and `POST_GAME_TOKEN_EXEMPT_FIELDS` (disjoint sets).
-   - `TestUniversalTrackerSourceInHistory` — fixture Q1 `selected_history_source_layer = tracker_events_raw.PlayerStats` → halting `universal_tracker_source_in_history`.
-   - **`TestStrictLtFilterCanonicalAcrossSites` (B-X2 NEW)** — assert the `STRICT_LT_HISTORY_FILTER` constant, the T02 smoke probe SQL string, and the Q3 + Q7 bound `history_time_column` / strict-`<` expression strings ALL use the canonical TRY_CAST form (specifically: contain `"TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"` modulo whitespace). Parametrized over 4 divergence cases (each MUST halt `strict_lt_filter_divergence`):
-     - constant changed to `"CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"` (bare CAST)
-     - constant changed to `"ph.details_timeUTC < target.started_at"` (no cast)
-     - constant changed to `"TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < mhm.started_at"` (wrong alias)
-     - constant changed to `"try_cast(ph.details_timeUTC as timestamp) < target.started_at"` (lowercase)
-   - **`TestRoadmapRawFormNotPropagated` (B-X2 NEW)** — assert `STRICT_LT_FILTER_ROADMAP_RAW` exists, has value `"ph.details_timeUTC < target.started_at"`, and is NOT used anywhere in the T02 smoke SQL or T05 Q3/Q7 bound expressions (greps the module source for the bare form and asserts it appears only inside the `STRICT_LT_FILTER_ROADMAP_RAW` constant declaration and inside the matching falsifier-message format string).
-   - `TestMaterializationCreepRejected` — fixture any row with `materialized_output_paths != ""` → halting `materialization_creep`.
-   - `TestNoFilesWrittenOnHaltingFalsifier` — assert no CSV/MD written when a falsifier fires (halt-before-artifact).
-   - `TestDeterministicCsvSchema` — assert the **27-column** CSV header is byte-identical across two runs.
-   - `TestCsvFieldsPopulated` — assert `in_game_historical_columns_in_scope` populated on Q7 (not empty); assert `pr241_scaffold_validator_module_sha256` populated and 64-char lowercase hex on every row; assert `source_layer_divergence_reason` + `history_source_extension_reason` populated on Q1 and empty on Q2-Q8.
-   - `TestNoArtifactPathDrift` — assert CSV and MD paths exactly match `ADJUDICATION_CSV_REL` and `ADJUDICATION_MD_REL` constants.
-   - `TestNoMaterializedOutputPath` — assert every row's `materialized_output_paths == ""`.
-   - `TestNoStatusYamlChange` — assert no `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` write attempted (`monkeypatch.setattr` on `Path.write_text` to record writes; assert none target status paths).
-   - `TestNoFeatureMaterialization` — assert no Parquet written under `reports/artifacts/02_01_03/`.
-   - `TestStrictLtPolicyRepresented` — assert Q3 + Q7 both encode strict-`<` semantics using canonical TRY_CAST form.
-   - **`TestDirectTargetMatchOutcomeRejected` (B-X1 RE-SCOPED)** — fixture injects forbidden tokens (`"target_match_outcome"`, `"winner"`, `"is_decisive"`) into `selected_source_layer` / `feature_family_id_or_scope` / `materialized_output_paths` (NOT into notes). Halting `universal_post_game_token_in_scoped_field`. Companion: same tokens in `notes` → PASSES.
-   - `TestTrackerTargetMatchInGameRejected` — fixture Q7 `selected_source_layer` contains `tracker_events_raw` → halting on `universal_tracker_source_in_history`.
-   - `TestCrossRegionDeferredOrSelectedPolicyRepresented` — assert Q5 verdict is one of the 4 allowed values (3 options + deferred_blocker).
-   - `TestRatingPolicyRepresentedAndLeakageGuarded` — assert Q6 verdict is one of {elo, glicko, glicko2, trueskill, rolling_winrate_baseline, deferred_blocker} AND (per N-X3) notes forbid future / target / global-batch AND notes contain cold-start + missingness wording when verdict is a model family.
-   - `TestMhmConsumptionDocumented` — assert Q8 notes cite both MHM purposes (anchor + cold-start enumeration).
-   - **`TestHelperToFalsifierKeyMappingIsComplete` (N-X1 NEW)** — assert `HELPER_TO_FALSIFIER_KEY` contains exactly 20 entries; every key is a real callable in the adjudicator module; every value is a unique string; the mapping is exactly equal to the literal table in T03b (loaded from a frozen reference dict declared inside the test).
-   - **`TestPriorityChainReferencesMapping` (N-X1 NEW)** — assert every falsifier name in the T04 falsifier priority chain (read by parsing the constant or list-of-names in the module) appears in `HELPER_TO_FALSIFIER_KEY.values()`.
-   - `TestRealRegistryCsvSmoke` (`@pytest.mark.skipif(not REGISTRY_CSV_PATH.exists(), ...)`) — assert real-registry happy path: 8 decisions, 0 halting falsifiers, CSV+MD written to `tmp_path` (NOT the real artifact path).
-   - `TestRealDuckDbReadOnlySmoke` (`@pytest.mark.skipif(not DUCKDB_PATH.exists(), ...)`) — assert read-only DuckDB probe succeeds (T02 step 3 view row counts match expected).
-   - `TestByteDeterminismModuloProvenance` — assert two runs of the writer produce byte-identical CSV+MD except for `provenance_git_sha` and `audit_pr` fields (and any timestamp fields). Tests the determinism gate.
-5. Synthetic-CSV / synthetic-DuckDB fixtures use `tmp_path`; real-DB tests use `skipif`.
-6. Target ≥40 tests, ≥30 test classes. Coverage ≥95% on the adjudicator module per Invariant convention.
 
-**Verification:**
-- `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py -v` ≥40 passed, 0 failed.
-- `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py --cov=rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer --cov-report=term-missing` ≥95% line coverage.
+1. Create `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.py` (jupytext `py:percent` canonical).
+
+2. Banner cell declares hypothesis + falsifier per `feedback_notebook_iterative_testing.md`:
+   - H1 (Q5A): strict-exclusion drops a measurable fraction of PHA HISTORY ROWS; F1: anchor drift → halt.
+   - H2 (Q5B): dual-feature-path branches are non-degenerate; F2: degenerate branch → halt.
+   - H3 (Q5C): sensitivity-indicator flag is non-degenerate; F3: degenerate flag → halt.
+   - H4 (round-2 B1+B3): live MFC has 30 cols and lacks `is_cross_region_fragmented`; PHA has 38 cols with it; F4: any DESCRIBE on MFC returning `is_cross_region_fragmented` → halt.
+   - H5 (round-2 N3): per-family retention table appears in notebook output BEFORE verdict cell; F5: verdict cell runs first → halt.
+   - **H6 (round-3 NIT-B): all 4 source-file SHAs match the pinned constants; F6: any drift → halt + re-pin instructions.**
+   - **H7 (round-3 NIT-C): the toon_id-membership BINDING probe's count and the nickname-anchored EQUIVALENCE probe's 32,031 count are both reported; F7: either probe's count drifts from its independent pinned constant → halt with separate diagnostic messages.**
+
+3. Cell 2: open DuckDB read-only at `data/db/db.duckdb`; **run the 4 NIT-B SHA verifications first** (`shasum -a 256` on each of the 4 source files, assert against pinned constants); on any drift, print the new hex + re-pin instructions and halt.
+
+4. Cell 3: `DESCRIBE matches_flat_clean` and assert 30 columns AND `is_cross_region_fragmented` NOT in it; `DESCRIBE player_history_all` and assert 38 columns AND `is_cross_region_fragmented` IS in it (F4).
+
+5. **(round-3 NIT-C)** Cell 4: run the EQUIVALENCE probe (`_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY`); print and assert the 246/1923/32031 anchor counts.
+
+6. **(NEW round-3 NIT-C)** Cell 5: run the BINDING probe (`_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY`); print the toon_id-membership count; on FIRST run, print "PINNING — record this value as `EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT` in the adjudicator module and re-run"; on SUBSEQUENT runs, assert against the pinned constant.
+
+7. (round-2 N3) Cell 6: run the three per-option probes (Q5A/Q5B/Q5C); `print()` the per-family retention table BEFORE any verdict cell.
+
+8. Cell 7: import `adjudicate_history_cross_region_retention`; call it with all required paths (including the 4 NIT-B source-file paths added to the entrypoint signature per T04 step 1).
+
+9. Cell 8: print the returned `CrossRegionAdjudicationResult.decisions` table; print `provenance_git_sha`; print the populated structured fields `cross_region_anchor_semantics` and `history_row_filter_on_pha_applied` per row to verify NIT-C and NIT-D bindings.
+
+10. Cell 9: assert the written CSV has `wc -l == 6` (1 header + 5 rows) and 29 columns; assert MD contains §non-substitution disclaimer + §13 materialization-blocked-or-unblocked statement + §14 no-step-closure claim + 4 verbatim spec quotes per NIT-A.
+
+11. No `def` / `class` / `lambda` in cells; `print()` only for read-only exploration.
+
+12. Generate the paired `.ipynb` via `jupytext --to ipynb` after the `.py` is finalized.
+
+**Verification:** `source .venv/bin/activate && poetry run jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.ipynb` completes without exception; the 2 generated artifacts (CSV+MD) appear at the declared paths; both have non-zero size.
 
 **File scope:**
-- `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py`
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.py`
+- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.ipynb`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md`
 
 **Read scope:**
-- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_history_enriched_pre_game_materialization.py` (PR #241 test precedent)
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (target module)
+- All PR #242 / 01_05_10 / 01_04_05 / risk-register / spec / schema-YAML paths
 
-### T07 — Adjudication notebook pair (jupytext .py + .ipynb)
+### T08 — Manifest housekeeping (CHANGELOG, pyproject, INDEX)
 
-**Objective:** Create the jupytext-paired adjudication notebook under the
-sandbox tree. No `def` / `class` / lambda in cells. All logic imported from
-the adjudicator module. Each cell declares hypothesis + falsifier inline per
-`feedback_notebook_iterative_testing.md`.
+**Objective:** Produce the 3 housekeeping edits the Layer-2 PR requires for merge.
 
 **Instructions:**
-1. Create `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.py` with `formats: ipynb,py:percent` header (mirror PR #234 notebook pair).
-2. Add cells:
-   - Title cell: `# Step 02_01_03 — History-enriched source/anchor/cold-start ADJUDICATION: sc2egset`.
-   - Lineage cell: artifact #3 of N for Step 02_01_03 readiness (PR #239 stub → PR #240 scaffold plan → PR #241 scaffold + validator → THIS adjudication → future materialization plan → materialization + post-mat audit → closure).
-   - Non-materialization banner (verbatim from PR #234 §1 disclaimer + this plan's §Scope).
-   - Imports cell: `from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer import adjudicate_history_enriched_pre_game_source_layer, EXPECTED_PR241_VALIDATOR_SHA256, IN_GAME_HISTORICAL_AGGREGATED_COLUMNS, STRICT_LT_HISTORY_FILTER, POST_GAME_TOKEN_SCOPED_FIELDS, POST_GAME_TOKEN_EXEMPT_FIELDS, HELPER_TO_FALSIFIER_KEY`.
-   - Per-Q markdown + execution cells (one per Q1-Q8): each cell starts with `# Hypothesis: <one sentence>` and `# Falsifier: <name>` per `feedback_notebook_iterative_testing.md`. Q1 cell explicitly documents the N-X4 subfield disambiguation (target/history asymmetry + divergence reason + extension reason). Q3 + Q7 cells explicitly show the canonical TRY_CAST form (B-X2).
-   - Adjudication-call cell: invokes `adjudicate_history_enriched_pre_game_source_layer(...)` with real DuckDB + registry CSV + PR #234 binding CSV; asserts `result.passed is True`, `len(result.decisions) == 8`, `result.halting_falsifier is None`.
-   - Closing cell: artifact #3 of N persisted; NO materialization; NO status flip; NO research_log entry; explicit list of deferred items (Q5 cross-region, Q6 rating, materialization SQL, post-mat audit, closure).
-3. Generate paired `.ipynb` via `source .venv/bin/activate && poetry run jupytext --sync <path>.py`.
-4. Clear all outputs in `.ipynb` before staging.
 
-**Verification:**
-- `source .venv/bin/activate && poetry run jupytext --check-metadata <path>.py` succeeds.
-- `git diff --stat` shows both `.py` and `.ipynb` present.
-- Manually inspect `.ipynb` cells: all outputs empty.
+1. Append to `CHANGELOG.md` `[Unreleased]` block under `Added`:
+   - "feat(sc2egset): Q5 cross-region retention-measurement successor adjudication (Layer-2; resolves PR #242 Q5_cross_region_policy `deferred_blocker` row)."
+   - "Adjudicator module + mirrored test file (≥95% coverage) + jupytext notebook pair + 5-row 29-column successor adjudication CSV + §1-§14 successor MD."
+   - "Falsifier priority chain: 31 entries (round-3 B4 promoted `materialization_creep` + `decision_count_drift` from chain-only to mapping; round-3 NIT-B added 4 SHA helpers for `player_history_all.yaml` + `01_04_05_cross_region_annotation.md` + `matches_flat_clean.yaml` + `02_02_feature_engineering_plan.md`; round-3 NIT-C added 2 base probes — toon_id-membership BINDING + nickname-anchored EQUIVALENCE; round-3 NIT-D added structured `history_row_filter_on_pha_applied` field + split R2 falsifier #24 into structured-field + SQL-byte-scan; round-4 added module-import-time assertions of the 31/31/31/subset invariants); HELPER_TO_FALSIFIER_KEY mapping has 31 entries; B-X2 canonical TRY_CAST + B-X1 scoped POST_GAME token inherited from PR #242."
+   - "Column-location discipline: `is_cross_region_fragmented` is sourced from `player_history_all` (38-col PHA) only; MFC has 30 columns and does NOT carry the column (round-2 B1 binding)."
+   - "Filter-semantics discipline: `WHERE NOT ph.is_cross_region_fragmented` is applied to PHA HISTORY rows BEFORE aggregation per CROSS-02-02 §6.2 row 5 + 01_04_05 §7 strategy 1 + PHA YAML NOTES lines 220-226; MFC-target-row filtering is OUT OF SCOPE (round-2 B3 binding)."
+   - "Quote-attribution discipline (round-3 NIT-A): the consolidated paraphrase prescribing `WHERE NOT is_cross_region_fragmented` as safe-subset filter / dual feature paths / sensitivity indicator is sourced from `player_history_all.yaml` NOTES lines 220-226 ONLY; 01_04_05 §7 contains a 3-strategy enumeration with distinct on-disk wording at lines 200-216; CROSS-02-02 §6.2 row 5 Constraint column contains the 3-option enumeration at line 242 with distinct on-disk wording."
+   - "Probe-semantics discipline (round-3 NIT-C): BINDING probe = toon_id-membership (`WHERE ph.toon_id IN (SELECT DISTINCT toon_id WHERE is_cross_region_fragmented = TRUE)`); EQUIVALENCE probe = nickname-anchored (replicates 01_05_10 SQL 3 idiom, yields 32,031). Each probe has its own independent expected count. `cross_region_anchor_semantics` field disambiguates per row."
+   - "Filter-applied discipline (round-3 NIT-D): `history_row_filter_on_pha_applied: str ∈ {'yes', 'no', 'not_applicable'}` is a structured machine-readable field; the R2 vacuous prose-substring check is REMOVED; the SQL byte-scan portion is KEPT."
+   - "MATERIALIZATION still BLOCKED: PR #242 Q6_rating_policy remains `deferred_blocker`; this PR resolves only Q5."
+   - "Version-bump rationale (round-2 N2 acceptance from reviewer-adversarial round 1): minor 3.73.0 → 3.74.0 — feat-family per git-workflow.md — adds a new adjudicator module + new successor adjudication artifact pair; no materialized feature data."
 
-**File scope:**
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.py`
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.ipynb`
+2. Bump `pyproject.toml` version `3.73.0 → 3.74.0` (minor; feat-family per git-workflow.md).
 
-**Read scope:**
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_feature_materialization.py` (PR #234 adjudication-notebook precedent).
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (the module being driven).
+3. Move `[Unreleased]` block contents into a new `[3.74.0] — 2026-MM-DD (PR #<successor-PR>: feat/sc2egset-02-01-03-history-cross-region-adjudication)` block in `CHANGELOG.md`; leave `[Unreleased]` empty with Added/Changed/Fixed/Removed headers.
 
-### T08 — Execute the notebook → emit the adjudication CSV+MD; housekeeping (INDEX, CHANGELOG, pyproject)
+4. Update `planning/INDEX.md`:
+   - Move the current Active row (PR #242 Layer-2) into the Archive table.
+   - Add a new Active row for THIS Layer-2 PR.
 
-**Objective:** Run the adjudication notebook against the real DuckDB +
-registry CSV + PR #234 binding CSV; emit the **27-column** CSV + multi-section
-MD at the declared paths; update `planning/INDEX.md`, `CHANGELOG.md`, and
-`pyproject.toml`.
+5. Verify `wc -l` of the successor CSV = 6 (1 header + 5 rows); verify `wc -c` of every SHA-256 field is exactly 64; verify no `NOT_FOUND` token appears in any CSV cell.
 
-**Instructions:**
-1. Activate venv: `source .venv/bin/activate`.
-2. Execute the notebook to write
-   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv`
-   and `.md`. Halt if any falsifier fires (the notebook's assertion cell
-   will raise).
-3. Update `planning/INDEX.md`: archive whichever Active row precedes this
-   PR (currently PR #241); promote
-   `feat/sc2egset-02-01-03-history-source-anchor-coldstart-adjudication` to
-   Active.
-4. Update `CHANGELOG.md`: move `[Unreleased]` into a new
-   `[3.73.0] — <date> (PR #<number>: feat/sc2egset-02-01-03-history-source-anchor-coldstart-adjudication)`
-   section with Added entries for adjudicator module, mirrored tests,
-   adjudication CSV+MD pair, notebook pair; Changed entries for INDEX +
-   pyproject.
-5. Bump `pyproject.toml` `version = "3.72.0"` → `"3.73.0"` (minor; feat-family
-   per `.claude/rules/git-workflow.md`).
-6. Spot-check: `ls reports/artifacts/02_01_03/ 2>/dev/null` returns nothing
-   (no leakage audit dir created); `ls reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/` shows the new adjudication CSV + MD only.
-
-**Verification:**
-- `source .venv/bin/activate && poetry version` reports `3.73.0`.
-- Adjudication CSV exists at the declared path; has 8 data rows + 1 header row (`wc -l` returns `9`); 27 columns; SHA-256 stable across runs (modulo provenance fields).
-- Adjudication MD exists at the declared path with §1–§14 sections.
-- `git diff --stat` shows exactly the 9 deliverable execution files (the 2 inherited planning files are unchanged on the branch).
+**Verification:** `git diff --stat` shows exactly 9 deliverable files + 2 inherited planning files; `grep -c '^[a-f0-9]\{64\}$'` on the successor CSV returns the expected count.
 
 **File scope:**
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md`
-- `planning/INDEX.md`
 - `CHANGELOG.md`
 - `pyproject.toml`
+- `planning/INDEX.md`
 
-**Read scope:**
-- (no new file reads beyond T07)
+### T09 — Layer-2 final-gate dispatch
 
-### T09 — Pre-commit + final-gate routing for the Layer-2 PR
-
-**Objective:** Confirm ruff, mypy, pytest, coverage pass; dispatch reviewer
-agents per `.claude/rules/data-analysis-lineage.md`.
+**Objective:** Dispatch reviewer-adversarial as the Layer-2 final gate before the PR is marked
+ready-for-review.
 
 **Instructions:**
-1. Run `source .venv/bin/activate && poetry run ruff check src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py`.
-2. Run `source .venv/bin/activate && poetry run mypy src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py`.
-3. Run `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py -v --cov=rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer --cov-report=term-missing` ≥95% coverage.
-4. Run `source .venv/bin/activate && poetry run pre-commit run --files <staged-files>`.
-5. Layer-2 commit message: `feat(sc2egset): Step 02_01_03 source/anchor/cold-start adjudication`.
-6. On Layer-2 PR open, dispatch `@reviewer-deep` for structural correctness, spec compliance, invariant tracing.
-7. Because this Layer-2 PR is **methodology-sensitive** (rating-algorithm deferral, cross-region policy deferral, IN_GAME_HISTORICAL aggregation discipline, B-X1 forbidden-token scope, B-X2 canonical strict-`<` form), ALSO dispatch `@reviewer-adversarial` for the methodology defensibility gate per `.claude/rules/data-analysis-lineage.md` ("before Phase 03+ methodology-sensitive work" — applies to Phase-02 adjudication that locks downstream materialization policy).
-8. Final gate verdict from BOTH reviewers must be APPROVE (with or without nits) before merge.
-9. User explicitly approves merge in chat.
 
-**Verification:**
-- ruff + mypy + pytest exit 0.
-- Coverage ≥95%.
-- Reviewer-deep report exists on the PR with APPROVE verdict.
-- Reviewer-adversarial report exists on the PR with APPROVE (or APPROVE-WITH-NITS) verdict.
-- User has explicitly approved the merge in chat.
+1. Compute the base ref: master HEAD at the moment the Layer-2 PR is opened.
+2. Dispatch reviewer-adversarial with arguments:
+   - `plan_path = planning/current_plan.md`
+   - `base_ref = <Layer-2 base HEAD>`
+   - `head_ref = HEAD`
+3. Reviewer-adversarial reads the plan + the full diff (base..HEAD), verifies every hard-stop, returns APPROVE / APPROVE-WITH-NITS / HOLD.
+4. If HOLD with blockers, the Layer-2 executor applies the requested edits and re-dispatches (3-round adversarial cap on execution side; per `feedback_adversarial_cap_execution.md`).
+5. If APPROVE / APPROVE-WITH-NITS with 0 blockers, the Layer-2 PR may be marked ready-for-review.
+6. The Layer-2 PR does NOT auto-merge.
 
-**File scope:** (none — runs commands and routes reviewers)
+**Verification:** reviewer-adversarial returns one of `APPROVE` / `APPROVE-WITH-NITS` / `HOLD`.
+
+**File scope:** none (process-only step).
 
 ## File Manifest
 
-### This Layer-1 planning PR (exactly 2 files)
-- `planning/current_plan.md` (created — this document)
-- `planning/current_plan.critique.md` (created by reviewer-adversarial in a separate dispatch)
+**This Layer-1 planning PR — exactly 2 files:**
 
-### Future Layer-2 adjudication execution PR = 11 final tracked files
+1. `planning/current_plan.md` (this document)
+2. `planning/current_plan.critique.md` (produced by reviewer-adversarial in a separate dispatch)
 
-**9 deliverable/execution files:**
-1. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.py` (created by T07)
-2. `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.ipynb` (created by T07)
-3. `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_enriched_pre_game_source_layer.py` (created by T01-T05)
-4. `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_enriched_pre_game_source_layer.py` (created by T06)
-5. `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv` (created by T08; 27 columns; 8 rows + 1 header)
-6. `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md` (created by T08; §1-§14)
-7. `planning/INDEX.md` (updated by T08)
-8. `CHANGELOG.md` (updated by T08)
-9. `pyproject.toml` (updated by T08)
+**Future Layer-2 successor adjudication execution PR — 11 final tracked files (9 deliverable + 2 inherited planning):**
 
-**+ 2 inherited planning files already in the branch (byte-unchanged on Layer-2):**
-10. `planning/current_plan.md` (inherited from this Layer-1 PR)
-11. `planning/current_plan.critique.md` (inherited from this Layer-1 PR)
+| # | Path | Action |
+|---|------|--------|
+| 1 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.py` | create |
+| 2 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.ipynb` | create |
+| 3 | `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` | create |
+| 4 | `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py` | create |
+| 5 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv` | create |
+| 6 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md` | create |
+| 7 | `planning/INDEX.md` | edit (archive Active → add new Active) |
+| 8 | `CHANGELOG.md` | edit (append [Unreleased] entries, move to [3.74.0]) |
+| 9 | `pyproject.toml` | edit (3.73.0 → 3.74.0) |
+| 10 | `planning/current_plan.md` | inherited (this Layer-1 PR) |
+| 11 | `planning/current_plan.critique.md` | inherited (this Layer-1 PR) |
 
-The notebook pair `.py` + `.ipynb` (deliverables #1 and #2) counts as **two
-distinct deliverables** per the PR #234 precedent. The total is exactly
-**11 = 9 + 2**.
+**Files explicitly NOT touched by the future Layer-2 PR (every byte unchanged):**
 
-### Files explicitly NOT touched at either layer
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (no `02_01_03: complete` added; closure deferred per U6).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (frozen).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` (frozen; Phase 02 = in_progress, Phase 03 = not_started).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (frozen; 02_01_03 block at lines 2274-2523 unchanged).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md` (frozen).
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (frozen; closure PR will append).
-- `reports/research_log.md` (frozen; no CROSS entry needed).
-- Any file under `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/` (no leakage audit; no Parquet).
-- Any Parquet under `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/` (only the existing `02_01_02_pre_game_features.parquet` remains; no `02_01_03_*.parquet`).
-- Any file under `reports/specs/` (no spec patch).
-- Any cleaning-layer YAML.
-- Any file under `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/`.
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py` (PR #241 byte-unchanged; SHA re-asserted).
-- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_history_enriched_pre_game_materialization.py` (PR #241 byte-unchanged).
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.{py,ipynb}` (PR #241 byte-unchanged).
-- Any file under `src/rts_predict/games/aoe2/`.
-- Any file under `thesis/`.
-- Any file under `docs/` or `.claude/`.
-- Any file under `data/` (raw / staging / db).
+- All PR #242 artifacts: `02_01_03_history_source_anchor_coldstart_adjudication.{csv,md}`,
+  `adjudicate_history_enriched_pre_game_source_layer.py`,
+  `test_adjudicate_history_enriched_pre_game_source_layer.py`,
+  `02_01_03_history_enriched_pre_game_feature_materialization.{py,ipynb}` (PR #241 scaffold notebook).
+- PR #241 validator module: `validate_history_enriched_pre_game_materialization.py`.
+- All `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` rows.
+- Per-dataset `research_log.md` (no new entry).
+- Root `reports/research_log.md`.
+- `ROADMAP.md` (Step 02_01_03 block byte-unchanged).
+- `INVARIANTS.md`.
+- All spec files in `reports/specs/` (including `02_02_feature_engineering_plan.md` — its
+  SHA is asserted by the new NIT-B helper, not edited).
+- All cleaning-layer schema YAMLs in `data/db/schemas/` (including `player_history_all.yaml`
+  and `matches_flat_clean.yaml` — their SHAs are asserted by new NIT-B helpers, not edited).
+- All `thesis/`, `docs/`, `.claude/`, `data/`, AoE2 paths.
 
 ## Gate Condition
 
-The future Layer-2 adjudication execution PR passes its final gate iff ALL
-of the following hold:
+The future Layer-2 PR may be marked ready-for-review only when ALL of the following hold:
 
-1. **Exact file scope.** `git diff --name-only master..HEAD` shows exactly
-   the **11 tracked files** (9 deliverable + 2 inherited planning). No
-   extras. Notebook pair `.py` + `.ipynb` counts as two distinct files.
-
-2. **Adjudicator runs on real DuckDB + registry + PR #234 binding.**
-   ```
-   source .venv/bin/activate && poetry run python -c "from pathlib import Path; from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_enriched_pre_game_source_layer import adjudicate_history_enriched_pre_game_source_layer; r = adjudicate_history_enriched_pre_game_source_layer(duckdb_path=Path('src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb'), registry_csv_path=Path('src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv'), pr234_binding_csv_path=Path('src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv'), csv_path=Path('src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv'), md_path=Path('src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md'), audit_pr='PR #<number>', audit_date='2026-05-24'); assert r.passed and len(r.decisions) == 8 and r.halting_falsifier is None"
-   ```
-   returns exit 0.
-
-3. **Adjudication CSV present.** `wc -l <csv>` returns `9` (1 header + 8 rows). Every row carries the **27 columns** (26 dataclass fields + `notes`); `in_game_historical_columns_in_scope` is populated on Q7 exactly as `APM|SQ|supplyCappedPercent|header_elapsedGameLoops`; `pr241_scaffold_validator_module_sha256` is `b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904` on every row; `source_layer_divergence_reason` (N-X4) populated on Q1 and empty on Q2-Q8; `history_source_extension_reason` (N-X4) populated on Q1 and empty on Q2-Q8; no row has `NOT_FOUND` in any SHA field; no row has a non-empty `materialized_output_paths`; **the strict-`<` expression text in `history_time_column` on Q3 contains the canonical `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at` (B-X2); no scoped field on any row contains any POST-GAME token (B-X1)**.
-
-4. **Adjudication MD present.** §1–§14 all present including: §1 non-overclaim disclaimer; §2-§9 Q1-Q8 decisions with verbatim SQL (Invariant I6) — all strict-`<` SQL uses canonical TRY_CAST form (B-X2); §10 falsifier roll-call iterating `HELPER_TO_FALSIFIER_KEY.values()`; §11 lineage; §12 explicit non-substitution; §13 materialization-blocked-until-deferred-resolved; §14 no-Step-closure-claim.
-
-5. **Tests pass with coverage.** `pytest -v` ≥40 passed, 0 failed; coverage ≥95% on adjudicator module. `TestStrictLtFilterCanonicalAcrossSites` (B-X2), `TestRoadmapRawFormNotPropagated` (B-X2), `TestUniversalPostGameToken` re-scoped (B-X1), `TestNegativeRationaleAllowedInNotes` (B-X1), `TestForbiddenTokensExemptFieldsList` (B-X1), `TestHelperToFalsifierKeyMappingIsComplete` (N-X1), `TestPriorityChainReferencesMapping` (N-X1), `TestQ1SubfieldDisambiguation` (N-X4), `TestQ6RatingEvidenceSufficiency` (N3 + N-X3) all PASS.
-
-6. **Lint and type checks clean.** `ruff check` and `mypy` exit 0.
-
-7. **No notebook outputs committed.** Every cell output in the `.ipynb` is empty.
-
-8. **No status YAML / research_log / spec / cleaning-layer / ROADMAP change.** `git diff master..HEAD -- src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md reports/research_log.md reports/specs/ src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/` reports nothing.
-
-9. **No materialization or audit dir.** `ls src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/ 2>/dev/null` returns "No such file or directory"; no Parquet under `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_*.parquet`.
-
-10. **PR #241 byte-unchanged.** `git diff master..HEAD -- src/rts_predict/games/sc2/datasets/sc2egset/validate_history_enriched_pre_game_materialization.py tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_history_enriched_pre_game_materialization.py sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.py sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.ipynb` reports nothing.
-
-11. **Reviewer-deep APPROVE.** Report on PR with verdict APPROVE (with or without nits).
-
-12. **Reviewer-adversarial APPROVE (methodology-sensitive Phase-02 adjudication; mandatory per T09 step 7).** Report on PR with verdict APPROVE (with or without nits).
-
-13. **No merge without user approval.** User explicitly approves merge in chat after reading both reviewer reports.
-
-If any of conditions 1-13 fail, the PR is BLOCKED. Fix-forward is the rule
-(per `.claude/rules/data-analysis-lineage.md` — do not amend; create a NEW
-commit).
-
-## Out of scope
-
-- Materialization SQL execution (DuckDB queries that project the 6 history
-  families into a Parquet table). DEFERRED to a future Layer-3
-  materialization-execution plan + materialization-execution PR pair.
-- Parquet feature artifact (`02_01_03_history_enriched_pre_game_features.parquet`). DEFERRED.
-- Non-vacuous CROSS-02-01-v1.0.1 leakage audit JSON/MD over the 6 history
-  families' materialized columns. DEFERRED.
-- Re-executed CROSS-02-03-v1.0.1 §10 verdict audit over rows 7-12. DEFERRED
-  per ROADMAP `continue_predicate`.
-- Cross-region fragmentation policy numeric choice (Q5). EXPLICITLY DEFERRED
-  to a successor adjudication PR with retention-measurement evidence.
-- Rating reconstruction algorithm choice (Q6). EXPLICITLY DEFERRED to a
-  successor adjudication PR with rating-family empirical evaluation
-  evidence satisfying N-X3 strengthened gate (≥1 repo + ≥1 citation +
-  forward-only + cold-start + missingness wording).
-- Empirical derivation of cold-start constants (K, m, α). DEFERRED to the
-  materialization PR (must be fit on training folds only per G-CS-6 /
-  Invariant I3 normalization discipline).
-- Phase 03 splitting + baselines (Phase 02 has 7 remaining Pipeline
-  Sections out of 8; Phase 03 gate not met).
-- Step 02_01_04 (in_game_snapshot tranche).
-- Closure of Step 02_01_03 in `STEP_STATUS.yaml`. DEFERRED to a separate
-  closure PR per the PR #237 tranche-1 closure precedent.
-- Append to dataset `research_log.md`. DEFERRED to the closure PR.
-- AoE2 work.
-- Any cleaning-layer YAML patch.
-- Any spec patch (CROSS-02-00, CROSS-02-01, CROSS-02-02, CROSS-02-03).
-- Any thesis chapter prose.
-- Any `.claude/` or `docs/` edit.
-- Any data file edit (raw / staging / db).
-- Re-edit of PR #241 scaffold notebook or validator module (byte-unchanged
-  anchors; SHA-256 re-asserted as N4 binding).
-- ROADMAP body edit (frozen at PR #239's merged block lines 2274-2523).
-- Ready-for-review on the Layer-2 PR draft; the user explicitly approves the
-  merge in chat after reading reviewer reports.
+1. The 9 deliverable files exist at the declared paths.
+2. `wc -l` of `02_01_03_history_cross_region_adjudication.csv` equals 6 (1 header + 5 rows).
+3. CSV has exactly **29 columns** (28 dataclass fields + `notes`; updated from R2's 23 columns due to NIT-B's 4 SHA columns + NIT-C's `cross_region_anchor_semantics` field + NIT-D's `history_row_filter_on_pha_applied` field).
+4. Every CSV SHA-256 cell is 64-char lowercase hex; no `NOT_FOUND` token in any cell.
+5. `materialized_output_paths` is empty in every CSV row.
+6. The MD contains: §1 non-substitution disclaimer; §2-§6 per-decision rows (5 rows); §7 parent PR #242 lineage; §8 SQL-probe verbatim block (Invariant I6) including verbatim `WHERE NOT ph.is_cross_region_fragmented` history-row filter showing PHA anchoring per round-2 B3 AND verbatim `_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY` + `_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY` per round-3 NIT-C; §9 per-family retention table; §10 evidence-paths block; §11 falsifier roll-call listing all 31 entries; §12 explicit non-substitution statement; §13 materialization-blocked-or-unblocked statement; §14 no-step-closure claim; ZERO Phase-03 claim; ZERO Step 02_01_04 reference; **§rationale contains the FOUR verbatim quotes per round-3 NIT-A re-attribution: (a) CROSS-02-02 §6.2 row 5 line 242 Source column, (b) CROSS-02-02 §6.2 row 5 line 242 Constraint column, (c) 01_04_05 §7 strategy 1 lines 203-208, (d) PHA YAML NOTES lines 220-226**.
+7. `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py -v --cov=rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_cross_region_retention --cov-report=term-missing` returns ≥95% line coverage; all tests pass.
+8. `source .venv/bin/activate && poetry run ruff check src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_cross_region_retention.py` passes.
+9. `source .venv/bin/activate && poetry run mypy src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` passes.
+10. The full project test suite plus pre-commit hooks pass on the final Layer-2 commit.
+11. `git diff master --stat` for the Layer-2 branch shows exactly the 11 files in the manifest.
+12. Reviewer-adversarial round-N returns 0 blockers (within the 3-round cap).
+13. No status YAML change; no `research_log.md` change; no ROADMAP change.
+14. PR #242 artifacts, PR #241 scaffold validator, and all spec/schema/cleaning-layer files are byte-unchanged.
+15. `grep -E "mfc\.is_cross_region_fragmented" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns 0 hits.
+16. `grep -E "mfc\.match_id|mfc\.player_id" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns 0 hits; `grep -E "'sc2egset::' \|\| mfc\.replay_id" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit.
+17. `grep -E "WHERE NOT ph\.is_cross_region_fragmented" src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_cross_region_retention.py` returns ≥ 1 hit; the MD §rationale contains the FOUR verbatim spec quotes per item 6.
+18. The notebook output and the MD §evidence section both contain the per-family retention table BEFORE the verdict is recorded; the `Q5_selected_policy` row's `notes` field contains the literal "VERDICT EMERGED FROM TABLE" attestation phrase.
+19. `parent_decision_id` is labelled in the MD §schema-extension-disclosure as a NEW field introduced by this successor PR; `grep -c parent_decision_id <PR #242 CSV>` returns 0.
+20. **(round-3 B4 / round-4 mechanical fix)** `len(HELPER_TO_FALSIFIER_KEY) == 31 AND len(FALSIFIER_PRIORITY_CHAIN) == 31 AND set(FALSIFIER_PRIORITY_CHAIN) == set(HELPER_TO_FALSIFIER_KEY.values()) AND len(set(FALSIFIER_PRIORITY_CHAIN)) == len(FALSIFIER_PRIORITY_CHAIN)`. These four invariants are ALSO enforced at module-import time via top-level `assert` statements (per T01 step 6) so any drift fails BEFORE any test runs.
+21. **(NEW round-3 NIT-A)** The MD §rationale contains the FOUR verbatim spec quotes attributed to their actual on-disk locations: CROSS-02-02 §6.2 row 5 line 242 Source column + line 242 Constraint column + 01_04_05 §7 strategy 1 lines 203-208 + PHA YAML NOTES lines 220-226. No quote is mis-attributed across files.
+22. **(NEW round-3 NIT-B)** `shasum -a 256` on each of the 4 source files (`player_history_all.yaml`, `01_04_05_cross_region_annotation.md`, `matches_flat_clean.yaml`, `02_02_feature_engineering_plan.md`) matches the pinned `EXPECTED_*_SHA256` constants in the adjudicator module; the 4 NEW CSV provenance columns (`player_history_all_yaml_sha256`, `step_01_04_05_md_sha256`, `matches_flat_clean_yaml_sha256`, `cross_02_02_spec_sha256`) are present on every CSV row and contain 64-char lowercase hex strings matching the pinned constants. No `NOT_FOUND` value in any of the 4 new columns.
+23. **(NEW round-3 NIT-C)** The adjudicator module contains BOTH `_CROSS_REGION_TOONID_MEMBERSHIP_BASE_PROBE_QUERY` (BINDING) and `_CROSS_REGION_NICKNAME_ANCHOR_PROBE_QUERY` (EQUIVALENCE) as separate module-level constants. Each has its own helper, its own expected-count constant (`EXPECTED_PHA_CROSS_REGION_TOONID_MEMBERSHIP_COUNT` for BINDING, the 246/1923/32031 triple for EQUIVALENCE), its own falsifier key (`cross_region_toon_id_anchor_count_drift` vs `cross_region_nickname_anchor_count_drift`), its own test class. The 32,031 expectation appears ONLY in the EQUIVALENCE probe context. Every per-option CSV row carries `cross_region_anchor_semantics ∈ {"toon_id_based", "nickname_based", "both"}`.
+24. **(NEW round-3 NIT-D)** Every per-option CSV row carries `history_row_filter_on_pha_applied ∈ {"yes", "no", "not_applicable"}` with values consistent with `selected_policy` (Q5A = "yes", Q5B = "yes", Q5C = "no", Q5_selected_policy = mirror of chosen policy, Q5_per_family_impact_summary = "not_applicable"). The R2 vacuous prose-substring check is REMOVED from the adjudicator module; the SQL byte-scan check is KEPT as a separate helper (helper #31 / key `q5_filter_target_is_pha_history_violated_sql`).
 
 ## Open Questions
 
-These questions are for the reviewer-adversarial round-3 pass on this
-Layer-1 planning PR. They are NOT blockers for the Layer-2 execution PR;
-the adjudicator's 20-falsifier priority chain (per N-X1 mapping table) is
-non-vacuous regardless of the answers.
+OQ1. **Q6 rating-family adjudication — separate future planning round.** Q6 remains `deferred_blocker`. Next planning round evaluates 5 candidate families (no-rating / rolling baseline / Elo / Glicko / Glicko-2 / TrueSkill) against the N-X3 strengthened gate. Should NOT begin until this Q5 successor PR is merged.
 
-1. **Q5 retention measurement now vs deferred.** Recommendation here is
-   `deferred_blocker` because retention measurement (how many `(focal, opp)`
-   pairs are dropped under each of the 3 options) is itself an empirical
-   measurement study not yet executed. Alternative: include a Q5 retention
-   measurement probe in T02 (e.g., compute the row-count delta for each of
-   the 3 options) and use the result to bind. Recommendation: keep deferred
-   — pre-empting the measurement here violates the non-batching rule
-   (sequence step 3 is adjudication, not Step 02_01_06-style empirical
-   measurement).
+OQ2. **`methodology_risk_register.md` path mismatch.** PR #242 frontmatter and the ROADMAP reference `methodology_risk_register.md`; on-disk path is `06_decision_gates/risk_register_sc2egset.md`. Documentation-only; future cosmetic chore.
 
-2. **Q6 rating-family empirical evaluation now vs deferred.** Recommendation
-   here is `deferred_blocker` per N3 + N-X3. Alternative: run a small
-   offline rating-family comparison study at this adjudication layer (Elo
-   vs Glicko-2 vs rolling-winrate baseline on a tiny holdout).
-   Recommendation: keep deferred — comparison study is Phase-03 work and
-   would violate non-batching.
+OQ3. **CHANGELOG `20 entries` vs actual 21 inconsistency in PR #242.** Future cosmetic chore.
 
-3. **Should Q5 and Q6 share a single `deferred_blocker_with_retention_evidence`
-   verdict / `deferred_blocker_with_rating_evidence` verdict, or stay with
-   the simple `deferred_blocker`?** Recommendation: simple `deferred_blocker`
-   for both; rationale text in `notes` distinguishes them; binding evidence
-   is recorded at the successor-PR binding time, not embedded in the
-   current verdict label.
+OQ4. **Q5 verdict — `bind_now` vs `narrow_with_evidence` vs continued `deferred_blocker`.** Planner's PROVISIONAL recommended verdict is `narrow_with_evidence` with `selected_policy = "sensitivity_indicator_co_registration"`. Per A14, the recommendation is PROVISIONAL and executor MUST report the per-family retention table BEFORE selecting any policy.
 
-4. **N-X3 evidence-count thresholds (1 repo + 1 citation).** The strengthened
-   gate requires at least 1 repo path AND at least 1 primary-source
-   citation when verdict is a model family. Should the threshold be ≥3 repo
-   + ≥1 citation? Recommendation: keep the minimum at 1+1 — the successor
-   PR's own reviewer-adversarial pass will gate evidence depth; pre-pinning
-   a higher count without precedent violates Invariant I7 (no magic
-   numbers). The pattern-match regexes for "repo path" and "citation" are
-   themselves caveat-free conservative defaults.
+OQ5. **Phase-03 sensitivity-arm reservation.** If Q5 binds option (c), the Phase 03 sensitivity-arm protocol is RECORDED in `Q5_per_family_impact_summary` row but not executed.
 
-5. **Q8 `feature_family_id_or_scope` text.** This plan uses
-   `"NOT_A_FEATURE_SOURCE_unless_explicitly_justified"`. Alternative: leave
-   as `""` with the notes field bearing the qualification. Recommendation:
-   keep explicit `NOT_A_FEATURE_SOURCE_*` token in scope field — examiner-
-   clarity benefit; matches the PR #234 §6 row binding-style. Note B-X1
-   scope is field-aware; the `feature_family_id_or_scope` field is SCOPED
-   (not exempt), so the falsifier scans it — but `NOT_A_FEATURE_SOURCE`
-   itself is not a POST-GAME token, so no false positive.
+OQ6. **`parent_decision_id` back-fill into PR #242 CSV — future cosmetic chore.** Verified `grep -c parent_decision_id <PR #242 CSV>` = 0.
 
-6. **B-X1 reserve-fields rule.** `POST_GAME_TOKEN_SCOPED_FIELDS` includes
-   the two reserve names `proposed_feature_columns` and `designed_column_names`
-   even though they aren't in the current 26-field dataclass. Alternative:
-   add them only when a successor PR introduces them. Recommendation: keep
-   reserved (cost-free defensive declaration; ensures any successor PR
-   adding either field falls under POST-GAME scanning automatically without
-   silent regression). T06 `TestForbiddenTokensExemptFieldsList` documents
-   the reserve-name design and ensures no overlap with the exempt set.
+OQ7. **(NEW round-3 NIT-C) Equivalence between toon_id-membership and nickname-anchored counts.** The two probes may yield slightly different counts (e.g., if any cross-region toon_id has a PHA row whose `LOWER(nickname)` is not in `cross_region_nicks`, or vice versa due to nickname-case drift between `replay_players_raw` and `player_history_all`). The Layer-2 executor must report both counts and document any divergence in the MD §evidence. If divergence > 0, the executor must flag it as a sub-finding (not a blocker — both probes are honest measurements; the toon_id-membership form is BINDING per A19).
 
-7. **B-X2 whitespace-normalization rule for `strict_lt_filter_divergence`.**
-   The falsifier normalizes runs of whitespace to a single space before
-   comparison. Alternative: byte-exact comparison. Recommendation: keep
-   whitespace-normalized — SQL string formatting (e.g., line breaks in
-   multi-line strings, indentation) should not trigger false positives;
-   the canonical form's semantic content is what matters. The four
-   parametrized divergence cases in `TestStrictLtFilterCanonicalAcrossSites`
-   all fail BECAUSE of semantic divergence (wrong CAST kind, missing CAST,
-   wrong alias, capitalization), not whitespace.
+OQ8. **(NEW round-3 NIT-D) Q5C `history_row_filter_on_pha_applied` value — `"no"` vs `"not_applicable"`.** Both values are semantically defensible for the sensitivity-indicator option: `"no"` says "the option does not apply a filter"; `"not_applicable"` says "the concept of filter does not apply to this option". The planner BINDS `"no"` for Q5C as more informative. If the executor or reviewer-adversarial round 3 prefers `"not_applicable"`, the helper #30 consistency rule is one-line edit.
 
-8. **Reviewer-adversarial mandatory or conditional for the Layer-2 PR.** T09
-   step 7 makes it MANDATORY because the PR locks downstream materialization
-   policy. Alternative: keep conditional per the PR #241 scaffold pattern.
-   Recommendation: mandatory — adjudication binds rating + cross-region
-   policy choices that materialization will rely on; adversarial methodology
-   review is needed pre-materialization.
+## Out of scope
 
-9. **Real-DB read-only probe scope.** T02 probes 4 row counts + 1 strict-`<`
-   smoke (canonical TRY_CAST form per B-X2) + DESCRIBE on 2 anchor candidates
-   + MHM column list + 1000-row TRY_CAST NULL-rate sample. Alternative:
-   expand to include `_probe_cross_region_retention_pilot` for Q5
-   evidence-gathering. Recommendation: keep minimal — expanding scope risks
-   premature Q5 binding (see OQ1).
+- Q6 rating-family adjudication (see OQ1).
+- Q5/Q6 materialization.
+- Any ROADMAP edit.
+- Any status YAML flip.
+- Any `research_log.md` entry.
+- Any spec / cleaning-layer YAML / `INVARIANTS.md` edit.
+- Any Phase 03 work.
+- Any Step 02_01_04 work.
+- Any AoE2 / `thesis/` / `docs/` / `.claude/` / `data/` edit.
+- The CHANGELOG `20-vs-21` off-by-one fix (OQ3).
+- The `methodology_risk_register.md` path-discrepancy fix (OQ2).
+- The `parent_decision_id` back-fill into PR #242 CSV (OQ6).
+- The MFC-target-row filter alternative `WHERE NOT mfc.is_cross_region_fragmented` (round-2 B3).
+- Re-deriving the 4 NIT-B source files (their SHAs are PINNED at planner-time; if any source file changes between Layer-1 merge and Layer-2 execution, the Layer-2 executor halts via the new NIT-B helpers and the planner re-issues).
+- Adopting any count other than 31 for `HELPER_TO_FALSIFIER_KEY` / `FALSIFIER_PRIORITY_CHAIN` (round-4 B4 mechanical fix; the 25 + 4 + 2 = 31 arithmetic per A21 is authoritative and is enforced at module-import time).
 
-10. **N-X2 Option A vs Option B chosen as A.** The planner's defensible
-    call: Option A (asymmetric, `binding_for_materialization`) is
-    selected because CROSS-02-02 §6.2 rows 1, 4, 6 ALL source verbatim from
-    `player_history_all`; CROSS-02-00 §2.1 row-grain note ("all game types;
-    no 1v1 filter") is verbatim; `player_history_all.yaml`
-    `provenance.scope` explicitly retains non-1v1 + indecisive replays;
-    the WP-3 cross-region retention argument cited in `player_history_all.yaml`
-    is supporting evidence. Alternative B (symmetric 1v1-only) would
-    contradict three independent verbatim spec passages and reduce the
-    cold-start support set under exactly the conditions G-CS-2/3 are
-    designed to mitigate. Reviewer-adversarial may rebut by quoting an
-    overriding verbatim spec passage; absent such, Option A binds.
+## Critique instruction
 
-## Self-check against B-X1, B-X2, N-X1, N-X2, N-X3, N-X4 + preserved B1 + N1-N5
+**For Category A, adversarial critique is required before execution. Dispatch
+reviewer-adversarial to produce `planning/current_plan.critique.md`. This is round 4 of 4 on
+the plan side, run under explicit user-authorized one-round override of the standard 3-round
+cap for a mechanical B4-only fix on top of the R3 plan. Round 1 returned HOLD with 3 BLOCKERS
+(B1/B2/B3) + 4 NITS (N1/N2/N3/N4); all resolved in round 2. Round 2 returned HOLD with 1
+BLOCKER (B4) + 4 NITS (NIT-A/B/C/D); all resolved in round 3 (verdict-narrative). Round 3
+returned HOLD with B4-recurrence (count contradiction between 29 sites and 31 sites in the
+same plan) + 3 NITS (X1/X2/X3 — all the same internal count contradiction); this round-4
+revision is a strict mechanical fix that adopts 31 EVERYWHERE, deletes the planner
+reconciliation monologue at the former T03 lines 899-924, adds module-import mechanical
+verification (T01 step 6), and adds 31-asserting test scaffolding (T06). NO methodology
+change; NO new falsifier; NO SQL probe change; NO scope change. If reviewer-adversarial R4
+returns HOLD, planning STOPS permanently for this attempt.**
 
-**B-X1 — POST_GAME-token falsifier must not self-trip on required negative Q6 rationale.**
-APPLIED. T01 step 2 declares `POST_GAME_TOKEN_SCOPED_FIELDS` (9 fields:
-`selected_source_layer`, `selected_target_source_layer`,
-`selected_history_source_layer`, `target_anchor`, `history_time_column`,
-`feature_family_id_or_scope`, `materialized_output_paths`, plus reserved
-`proposed_feature_columns`, `designed_column_names`) and
-`POST_GAME_TOKEN_EXEMPT_FIELDS` (7 fields: `notes`, `evidence_paths`,
-`falsifiers`, `decision_name`, `rationale`, `source_layer_divergence_reason`,
-`history_source_extension_reason`). T03 step 8 RENAMES
-`_check_universal_no_post_game_token` to
-`_check_forbidden_post_game_feature_tokens`, scoped to only the scoped
-fields, with rationale fields EXPLICITLY exempted. T04 priority chain
-entry 18 uses the new name + key `universal_post_game_token_in_scoped_field`.
-T06 `TestUniversalPostGameToken` re-scoped (parametrized over 10 tokens ×
-3 scoped fields = halting in each); `TestNegativeRationaleAllowedInNotes`
-NEW positive companion (negated wording in `notes` passes; "deferred_blocker
-because: avoid winner-side leakage" passes; "forbid result" + "reject
-winner field" pass); `TestForbiddenTokensExemptFieldsList` NEW asserts
-exempt fields are valid dataclass field names and scoped+exempt sets are
-disjoint; `TestDirectTargetMatchOutcomeRejected` re-scoped (forbidden
-tokens in scoped fields halt; same tokens in notes pass). T05 Q1-Q8 notes
-sections explicitly state "Per B-X1 notes exempt from POST-GAME scan"
-where negated prose is used. Q6 notes verbatim contains "no target-match
-outcome; no future results; no global batch fit; per-game forward update
-only" without tripping the falsifier.
+## Self-check against R4 B4-only mechanical fix
 
-**B-X2 — one canonical strict-`<` expression everywhere.**
-APPLIED. T01 step 2 `STRICT_LT_HISTORY_FILTER = "TRY_CAST(ph.details_timeUTC
-AS TIMESTAMP) < target.started_at"` (TRY_CAST, not bare CAST; `target`
-alias, not `mhm`; matches `matches_history_minimal.yaml` guidance). T01
-step 2 also declares `STRICT_LT_FILTER_ROADMAP_RAW =
-"ph.details_timeUTC < target.started_at"` for ROADMAP provenance ONLY
-(non-executable). T02 step 5 smoke probe SQL rewritten:
-```sql
-SELECT COUNT(*) FROM player_history_all ph
-JOIN matches_history_minimal target ON ph.toon_id = target.player_id
-WHERE TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at
-  AND ph.replay_id = REPLACE(target.match_id, 'sc2egset::', '')
-```
-uses canonical form + `target` alias. T05 Q3 `history_time_column =
-"player_history_all.details_timeUTC (TRY_CAST AS TIMESTAMP for comparison
-with target.started_at)"`; strict-`<` expression = canonical constant. T05
-Q7 strict-`<` filter = canonical form. T03 step 12 adds NEW falsifier
-`_check_strict_lt_filter_divergence` (mapped to key `strict_lt_filter_divergence`
-per T03b N-X1 mapping); rejects bare CAST, no cast, wrong alias,
-capitalization variants. T04 priority chain inserts
-`strict_lt_filter_divergence` after `q1_source_layer_evidence_inconsistent`
-and BEFORE Q2/Q3 type checks (structural-before-content). T06
-`TestStrictLtFilterCanonicalAcrossSites` (B-X2) parametrized over 4
-divergence cases asserts halt; `TestRoadmapRawFormNotPropagated` (B-X2)
-asserts ROADMAP raw form appears only in the named constant + falsifier
-message. Where the plan quotes the ROADMAP raw text, it is explicitly
-labeled as "ROADMAP §02_01_03 raw form (normalized by this adjudication
-plan to the canonical TRY_CAST form for chronological fidelity per
-`matches_history_minimal.yaml`)" (A11 assumption + T01 step 2
-`STRICT_LT_FILTER_ROADMAP_RAW` doc + T05 Q3 binding section).
+- Every count claim about `HELPER_TO_FALSIFIER_KEY` / `FALSIFIER_PRIORITY_CHAIN` says 31 (frontmatter `round3_blocker_resolution` rewritten; frontmatter `round3_nit_resolutions` NIT-B bullet rewritten; T01 step 6 — 31 + assert block; T01 step 7 — exactly 31 entries; T01 step 7 narrative; T01 Verification — 4 assertions added; T03 heading — 31 helpers total; T03 lead-in paragraph — 31-entry mapping authoritative; T03 helper-enumeration prelude — 31-helper enumeration; T03 final Verification — 31; T04 step 2 — 31; T04 Verification — 31; T06 `TestHelperToFalsifierKeyMappingExactCount` + `TestPriorityChainReferencesMapping` — 31; Gate Condition #20 — 31; CHANGELOG bullet — 31).
+- Reconciliation monologue at T03 (former lines 899-924 in the R3 file containing "Wait — that's 31 enumerated helpers but I claimed 29", "Let me reconcile", "if reviewer-adversarial round 3 prefers collapsing", "The plan defaults to the two-helper / 31-entry form for maximum dispatchability", "the Layer-2 executor collapses to 30") DELETED in its entirety; replaced with the decisive lead-in paragraph "The 31-entry mapping and 31-entry priority chain are authoritative. See module-import verification at T01 step 6." The plan no longer asks the reviewer to choose a count.
+- Module-import mechanical verification added at T01 step 6 (four top-level `assert` statements asserting `len(HELPER_TO_FALSIFIER_KEY) == 31`, `len(FALSIFIER_PRIORITY_CHAIN) == 31`, `len(set(FALSIFIER_PRIORITY_CHAIN)) == 31`, `set(FALSIFIER_PRIORITY_CHAIN) <= set(HELPER_TO_FALSIFIER_KEY.values())`, placed at module-load scope per the `POST_GAME_TOKEN_SCOPED_FIELDS.isdisjoint(POST_GAME_TOKEN_EXEMPT_FIELDS)` precedent) so drift fails BEFORE any test runs. T01 step 6 also notes the import-time enforcement explicitly.
+- T03 lead-in paragraph adds the explicit invariant: every falsifier in the priority chain has (1) a helper implementation or documented inline check, (2) a mapping entry in `HELPER_TO_FALSIFIER_KEY`, (3) at least one positive or negative test in T06.
+- T06 updated: `TestHelperToFalsifierKeyMappingExactCount` asserts `== 31` for both `len(HELPER_TO_FALSIFIER_KEY)` and `len(FALSIFIER_PRIORITY_CHAIN)` (no `29`); `TestPriorityChainReferencesMapping` includes the 4 set/length assertions including `test_exact_count_31` that asserts the 31 invariant.
+- Gate Condition #20 already says 31; verified and preserved; cross-reference to T01 step 6 module-import verification added.
+- CHANGELOG bullet in T08 step 1 already says "Falsifier priority chain: 31 entries"; extended with one-line round-4 acknowledgment of the module-import-time assertion of the 31/31/31/subset invariants.
+- 29 references at lines 632, 1148, 1197, 1222, 1317 (now in their new positions in this revised plan) are CSV column counts (28 dataclass fields + `notes`), NOT helper/chain counts — they correctly stay at 29 per NIT-B + NIT-C + NIT-D field additions.
+- Frontmatter `gate_reviewer` field updated to acknowledge round 4 of 4 with user-authorized one-round override; A13 updated; new `round4_blocker_resolution` block added documenting the R4 mechanical fix and explicitly stating no methodology change.
+- New A21 in §Assumptions codifies the authoritative 31 counts and the module-import-time enforcement.
+- §Out of scope gains a final bullet forbidding any count other than 31 for `HELPER_TO_FALSIFIER_KEY` / `FALSIFIER_PRIORITY_CHAIN`.
+- All R3 NIT-A/B/C/D content preserved without regression: NIT-A four verbatim quotes intact (Literature Context + T05 step 1 + Gate Condition #21); NIT-B 4 pinned SHA constants (A18 / T01 step 3 / T03 helpers 6-9 / T06 tests / Gate Condition #22) intact; NIT-C two-probe split (A19 / T01 step 3 / T02 steps 1-2 / T03 helpers 11-12 / T06 / OQ7 / Gate Condition #23) intact; NIT-D structured field (A20 / T01 step 3 / T01 step 4 / T03 helpers 30-31 / T06 / OQ8 / Gate Condition #24) intact.
+- All R1 (B1/B2/B3) + R2 (N1/N3) fixes preserved without regression: B1 (A15 / Gate #15) intact; B2 (A16 / Gate #16) intact; B3 (A17 / T03 helper 31 / Gate #17) intact; N1 (T01 step 4 / OQ6 / Gate #19) intact; N3 (A14 / T05 step 4 / OQ4 / Gate #18) intact.
 
-**N-X1 — helper/falsifier-key mapping table.**
-APPLIED. T03b declares the full `HELPER_TO_FALSIFIER_KEY` literal mapping
-table with all 20 entries (mirrors the table in the round-3 dispatch
-prompt). T04 falsifier priority chain (item 4 and downstream) references
-the mapping; T04 step 2 §10 falsifier roll-call iterates
-`HELPER_TO_FALSIFIER_KEY.values()`; T06 `TestHelperToFalsifierKeyMappingIsComplete`
-asserts the table has exactly 20 entries, all keys are real callables in
-the module, all values are unique; `TestPriorityChainReferencesMapping`
-asserts every priority-chain entry appears in `HELPER_TO_FALSIFIER_KEY.values()`.
-
-**N-X2 — Q1 `target_history_asymmetry` over-binding without evidence.**
-APPLIED. **Option A chosen (RECOMMENDED, BINDING)** with `binding_level =
-"binding_for_materialization"`. T05 Q1 binding section quotes 5 verbatim
-spec/schema passages:
-- CROSS-02-02 §6.2 row 1 (`focal_player_history` sources from `player_history_all`)
-- CROSS-02-02 §6.2 row 4 (`reconstructed_rating` derived from `player_history_all.result`)
-- CROSS-02-02 §6.2 row 6 (`in_game_history_aggregate` from `player_history_all.APM/SQ/supplyCappedPercent/header_elapsedGameLoops`)
-- CROSS-02-00 §2.1 sc2egset row 2 (Row grain = "1 row per player per match (all game types; no 1v1 filter)")
-- `player_history_all.yaml` `provenance.scope` ("All replays (no 1v1/decisive filter). Includes non-1v1 and indecisive replays excluded from matches_flat_clean.")
-Alternative A (RECOMMENDED) and Alternative B (REJECTED) both
-explicitly enumerated with evidence-cited rationale. Rejection of
-Alternative B explicitly cites cold-start support-set sparsity argument
-under 83.95% MMR-missing density regime. Option B fallback (demoting to
-`recommendation_only` / `deferred_blocker`) NOT triggered — verbatim spec
-evidence is sufficient.
-
-**N-X3 — N3 rating-evidence falsifier strength.**
-APPLIED. T03 step 4 strengthens `_check_q6_rating_default_deferred`:
-- `deferred_blocker` branch: PASSES iff `evidence_paths != ""` AND notes
-  contain `"deferred_blocker because:"`.
-- model-family branch: HALTS unless (a) `evidence_paths` contains ≥1 repo
-  path AND ≥1 primary-source citation (newline-split count), (b) notes
-  contain all three forward-only phrases, (c) notes contain `"cold-start
-  handled by"` AND `"missingness handled by"`.
-T05 Q6 binding includes recommended `evidence_paths` (3 repo paths + 4
-primary-source citations) and verbatim recommended `notes` containing
-"deferred_blocker because:", the three forward-only phrases, and the
-"cold-start handled by" + "missingness handled by" wording. T06
-`TestQ6RatingEvidenceSufficiency` (rename of `TestQ6RatingDefaultDeferred`)
-exercises all 4 fixture branches: deferred-pass, deferred-fail-no-rationale,
-bind-pass-with-full-evidence, bind-fail-with-only-1-repo-path. The plan's
-overall recommendation: Q6 default = `deferred_blocker`.
-
-**N-X4 — Q1 EXTEND disambiguation.**
-APPLIED. T01 step 3 adds 2 NEW subfields to the dataclass
-(`source_layer_divergence_reason: str`, `history_source_extension_reason:
-str`); both Q1-only ("" otherwise). T05 Q1 binding populates both
-verbatim:
-- `source_layer_divergence_reason = "matches_flat_clean (operationally) vs matches_flat (registry); cleaned-view chosen for 1v1-scoping + 44,418-row deterministic count per PR #234 §3 binding (selected_source_layer = matches_flat_clean was BINDING in tranche-1)"`
-- `history_source_extension_reason = "tranche-1 (5 pre_game families) had no history-side source; tranche-2 (6 history-enriched families) adds player_history_all as the history-side source per ROADMAP line 2367 inputs.duckdb_tables and CROSS-02-02 §6.2 rows 1-4 + 6 verbatim source bindings"`.
-Q1 `verdict = "extend_with_evidence"` explicitly refers to the
-history-side extension; source-layer divergence is documented separately
-in its own subfield (RATIFY-with-divergence-noted). Dataclass field count
-grows from 24 → 26; total CSV columns = 27 (with `notes`). §Gate
-Condition condition 3 updated: 27 columns; `source_layer_divergence_reason`
-populated on Q1 + empty on Q2-Q8; `history_source_extension_reason`
-populated on Q1 + empty on Q2-Q8. T06 `TestQ1SubfieldDisambiguation` (N-X4
-NEW) asserts both new subfields populated on Q1 with the recommended
-content; fixture omitting either → halting `q1_single_row_violation`.
-T08 instructions reflect 27-column CSV; `wc -l` still `9`.
-
-**B1 — 11-file = 9 deliverable + 2 inherited planning contract (PRESERVED).**
-PRESERVED. Frontmatter `future_execution_pr_scope` literal block unchanged
-(11 entries). §Scope: "11-file final tracked diff — 9 deliverable
-files… plus the 2 inherited planning files." §File Manifest: explicit
-"9 deliverable/execution files" enumeration (#1-#9) + "2 inherited planning
-files" (#10-#11) + closing sentence "Total is exactly 11 = 9 + 2." §Gate
-Condition condition 1: "exactly the 11 tracked files (9 deliverable + 2
-inherited planning). Notebook pair `.py` + `.ipynb` counts as two distinct
-files." No occurrence anywhere in the plan of "10 files", "8 deliverable",
-or "notebook pair counts as one file".
-
-**N1 — CSV field `in_game_historical_columns_in_scope` (PRESERVED).**
-PRESERVED. T01 step 3 declares the field in the 26+1-column schema (same
-schema as round 2, plus 2 N-X4 subfields). T03 step 6 declares the
-`_check_q7_in_game_historical_columns_in_scope` falsifier (key
-`q7_in_game_historical_columns_drift` per N-X1 mapping). T05 Q7 binds the
-exact pipe-separated value `APM|SQ|supplyCappedPercent|header_elapsedGameLoops`.
-T06 declares `TestQ7InGameHistoricalColumnsDrift` test class. §Gate
-Condition condition 3 asserts the populated value on Q7 verbatim.
-
-**N2 — Q7-specific `_check_in_game_historical_strict_lt` falsifier (PRESERVED).**
-PRESERVED. T02 step 7 lists the helper signature with explicit "Distinct
-from any generic `_check_strict_lt_policy`" language. T04 falsifier
-priority chain item 16 names `in_game_historical_strict_lt_violated`
-(per N-X1 mapping) with the parenthetical "Q7-specific strict-`<`
-falsifier (NOT generic `_check_strict_lt_policy`)". T06 test class
-`TestQ7InGameHistoricalStrictLt` (N2) explicitly notes the distinction.
-
-**N3 — Q6 rating recommendation `deferred_blocker` default (PRESERVED + STRENGTHENED per N-X3).**
-PRESERVED + STRENGTHENED. T03 step 4 declares the strengthened
-`_check_q6_rating_default_deferred` (N3 + N-X3) falsifier with both
-branches. T05 Q6 binds `rating_policy = "deferred_blocker"` with
-83.95%-MMR-missing-density rationale + the N-X3-required wording; no
-premature pin of Elo / Glicko / Glicko-2 / TrueSkill / rolling baseline.
-§Assumptions A10 states explicit RATIFY/EXTEND/NARROW/DEFER discipline.
-§Unknowns U3 reproduces the N3 + N-X3 rationale verbatim. §Literature
-Context states the four citations exist but are NOT bound at this layer.
-T06 `TestQ6RatingEvidenceSufficiency` (N3 + N-X3) tests all 4 branches.
-
-**N4 — `pr241_scaffold_validator_module_sha256` field (PRESERVED).**
-PRESERVED. T01 step 3 declares the field in the 26+1-column schema with "(N4;
-64-char lowercase hex)" annotation. T01 step 2 declares
-`EXPECTED_PR241_VALIDATOR_SHA256 = "b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904"`
-(the actual 64-char hex computed via `shasum -a 256` on the PR #241
-validator). T03 step 10 declares the `_check_pr241_sha256_match` (N4)
-falsifier rejecting `NOT_FOUND` / empty / wrong-length / wrong-case /
-mismatched values. §Gate Condition condition 3 asserts populated on every
-row, exact value match, no `NOT_FOUND`. T06 `TestPr241Sha256Match` (N4)
-test class.
-
-**N5 — Q1 single row with subfields (not split into Q1a/Q1b) (PRESERVED + EXTENDED per N-X4).**
-PRESERVED + EXTENDED. T01 step 3 declares the three original N5 subfields
-(`selected_target_source_layer`, `selected_history_source_layer`,
-`target_history_asymmetry`) PLUS the two N-X4 subfields
-(`source_layer_divergence_reason`, `history_source_extension_reason`) — all
-on a single Q1 row. T03 step 11 declares the `_check_q1_single_row_per_n5`
-(N5) falsifier explicitly rejecting any split into Q1a/Q1b/Q1c AND requiring
-the N-X4 subfields populated. T05 Q1 binds all five subfields in one row
-with explicit "(one row per N5; N-X4 subfields populated)" header. T06
-`TestQ1SingleRowPerN5` (N5) + `TestQ1SubfieldDisambiguation` (N-X4) test
-classes.
-
-**Frontmatter, all 8 required `##` sections, and the bonus `## Out of scope`
-+ `## Self-check` sections (PRESERVED).**
-PRESERVED. Frontmatter has `category: A`, branch, base_ref, dataset,
-predecessors, etc. (with `gate_reviewer` updated to round-3 framing). All
-8 required `##` sections present in order: `## Scope`, `## Problem Statement`,
-`## Assumptions & Unknowns`, `## Literature Context`, `## Execution Steps`,
-`## File Manifest`, `## Gate Condition`, `## Open Questions`. Bonus
-`## Out of scope` + `## Self-check` sections present.
-
----
-
-**For Category A, adversarial critique is required before execution.
-Dispatch reviewer-adversarial round 3 to produce
-`planning/current_plan.critique.md`. The Layer-1 PR opens only after
-reviewer-adversarial round 3 returns zero blockers (per the user
-instruction in this prompt: "The parent will materialize it to disk only
-if reviewer-adversarial round 3 returns zero blockers"). This is the LAST
-round in the 3-round adversarial cap.**
