@@ -1,793 +1,430 @@
+---
+plan_role: planner-science
+plan_model: claude-opus-4-7[1m]
+plan_date: 2026-05-25
+date: 2026-05-25
+plan_layer: 1 (planning-only; 2-file diff)
+chosen_outcome: A
+branch: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey
+future_layer2_version_bump: 3.75.0 -> 3.76.0
+planning_pr_version_bump: none (planning-only; matches PR #240 / #244 precedent)
+this_planning_pr_category: A
+category: A
+parent_planning_pr: 244 (merged 2026-05-25; Q6 Layer-1 plan)
+parent_execution_pr: 245 (merged 2026-05-25; Q6 Layer-2 execution; verdict deferred_blocker; materialization blocked_pending_algorithm_survey_pr)
+parent_q5_pr: 243 (merged; Q5_selected_policy = sensitivity_indicator_co_registration; verdict narrow_with_evidence; BINDING)
+parent_q1_q4_q7_q8_pr: 242 (merged; RATIFIED)
+base_ref: ee15d3625eee60688776219f533d4a5ceefb4b76
+phase_status_at_plan_time: Phase 02 in_progress; Phase 03 not_started
+step_status_at_plan_time: 02_01_01 complete; 02_01_02 complete; 02_01_03 in_progress (deferred-blocker chain Q1..Q8 satisfied except Q6 which is itself a deferred_blocker_with_algorithm_survey_required verdict)
+non_batching_compliance: this Layer-1 plan does not author any Q6F survey module, validator, notebook, artifact, status YAML, or research_log; the Layer-2 PR is a separate dispatch
+adversarial_round_cap: 3 (symmetric per feedback_adversarial_cap_execution.md)
+---
+
 ## Scope
 
-**Chosen outcome: A — Q6-only rating-reconstruction successor adjudication planning PR.**
+This is the **Layer-1 planning-only PR** for the next atomic unit in SC2EGSet Step 02_01_03 after PR #245 merged. The outcome under planning is **A — Q6F rating-algorithm survey PR**.
 
-This is a Layer-1 planning-only PR. It authors exactly 2 files — `planning/current_plan.md` (this document) and `planning/current_plan.critique.md` (stub) — under the new branch `feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication`. No code, no notebook, no data probe, no adjudication artifact, no status YAML mutation, no ROADMAP edit, no research_log entry are produced by this PR.
+The Layer-2 execution PR (named in the Future-Layer-2 manifest) will:
 
-The future Layer-2 execution PR that this plan authorises will produce **one and only one** adjudication artifact pair (CSV + MD) at:
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv`
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md`
+1. Survey the **4 included rating candidates** (`rolling_win_rate_or_bayesian_smoothed_baseline`, `elo`, `glicko_or_glicko_2`, `trueskill_or_trueskill_like`) by computing forward-only per-game predicted probabilities on the `player_history_all` (PHA) chronological stream, scored against actual decisive PHA results.
+2. Carry-forward **2 reference candidates** (`omit_reconstructed_rating`, `deferred_blocker_with_algorithm_survey_required`) as reference rows that do not have an algorithm to evaluate but must remain in the row set so the Q6F decision can re-affirm them.
+3. Persist **one (1) artifact pair** under `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/`:
+   - `02_01_03_q6f_rating_algorithm_survey.csv` (≥36 columns, 8 rows: 4 included + 2 carry-forward + 1 Q6F_selected_policy + 1 Q6F_per_family_impact_summary)
+   - `02_01_03_q6f_rating_algorithm_survey.md` (≥17 sections)
+4. Emit `Q6F_selected_policy` as an emergent row whose value is one of:
+   - `bind_now` -> materialization permitted for all 6 families WITH pinned algorithm + pinned hyperparameters in a future Layer-3 materialization PR;
+   - `narrow_with_evidence` / `recommendation_only` -> materialization permitted but blocked pending an algorithm-implementation-proof PR;
+   - `deferred_blocker` -> blocked_pending_<named_reason>; the survey itself produced no winner and the orchestrator must trigger a different unblock (e.g., a wider candidate set, a richer evidence column);
+   - `omit_reconstructed_rating_and_unblock_other_five` -> 5-family Layer-3 materialization permitted **without** `reconstructed_rating`; the rating column is permanently absent from sc2egset Step 02_01_03.
 
-That future PR will upgrade the PR #242 Q6 `deferred_blocker` row by recording a binding / recommendation / re-deferral verdict over a complete `Q6_RATING_POLICY_CANDIDATES` set (omit / rolling-baseline / Elo / Glicko-or-Glicko-2 / TrueSkill-or-TrueSkill-like / deferred-with-survey). **Materialization remains blocked in both PRs.** The Layer-3 materialization PR is a separate downstream artifact and is not authored here.
+This planning PR records:
 
-**Branch:** `feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication` (mirrors the PR #243 successor branch convention, swapping `cross-region` → `rating-reconstruction`).
+- **2 files only**: `planning/current_plan.md` (this content) + `planning/current_plan.critique.md` (reviewer-adversarial Round 1 stub).
+- **NO version bump** in this PR (matches PR #240 / PR #244 planning-only precedent).
+- **NO survey code**, **NO survey artifact**, **NO status YAML mutation**, **NO research_log entry**, **NO ROADMAP edit**, **NO Parquet output**, **NO CROSS-02-01 audit file**.
 
-**Category:** A — Phase 02 successor adjudication artifact (not materialization, not closure).
-
-**Version bump:** `3.74.0 → 3.75.0` (minor; Cat A with a new public adjudicator module + 11 future files including a new artifact pair). The planning-only PR itself does not bump (per the planning-only precedent of PR #240 and PR #243's planning sibling); the Layer-2 execution PR bumps.
-
-**Outcomes considered and rejected** (per orchestrator prompt):
-
-- **B (direct materialization).** REJECTED. Q6 remains `deferred_blocker` per PR #242 §2 row Q6. The PR #242 §13 binding gate states: "the future Layer-3 materialization PR must NOT proceed until that decision is upgraded to `bind_now` / `ratify_with_evidence` / `extend_with_evidence` / `narrow_with_evidence`." Materialization without Q6 upgrade would violate that gate and Invariant I7 (no magic number for `K`, rating period, or prior).
-- **C (combined Q6 adjudication + materialization in one PR).** REJECTED. Violates the data-analysis-lineage rule's *Non-batching rule for empirical work* ("Do not batch ROADMAP + notebook + artifact + next Step in one execution") and PR #242 §13's "successor adjudication PR" wording (singular adjudication first, then a separately reviewed materialization PR). The PR #243 precedent split Q5 adjudication from materialization for the same reason.
-- **D (hygiene-only first).** REJECTED. No real blocker is open: pre-commit hooks pass on master (the recent merges of #242 and #243 were clean), `STEP_STATUS` / `PIPELINE_SECTION_STATUS` / `PHASE_STATUS` are consistent and accurately reflect the deferred state, `planning/INDEX.md` correctly lists PR #243 as Active, and version 3.74.0 in `pyproject.toml` matches CHANGELOG `[3.74.0]`. There is no drift to fix before Q6.
-- **E (Phase 03 baselines).** REJECTED. PHASE_STATUS.yaml shows Phase 03 = `not_started`; ml-protocol §4 superseded `create_temporal_split()` is barred from any thesis experiment; the active Phase is 02; Phase 03 cannot start until Phase 02 has at least one pre_game tranche fully closed *and* the history-enriched tranche has either materialized or been formally rejected. Starting Phase 03 here would violate the CLAUDE.md rule "NEVER begin a new phase until all prior phase artifacts exist on disk."
-- **F (hold).** REJECTED. State is consistent and Q6 is the unique remaining `deferred_blocker` after PR #243 resolved Q5. Holding would leave Step 02_01_03 indefinitely blocked with no methodology gain.
-
-**Outcome A is uniquely justified** by: (i) PR #242 §13 explicitly names "successor adjudication PR" for each deferred blocker; (ii) PR #243 just resolved Q5 in the same pattern (model template available); (iii) Q6 is the *only* remaining `deferred_blocker` row; (iv) the planning/execution split is mandated by data-analysis-lineage and by CLAUDE.md "Plan / Execute Workflow."
-
----
+Branch: `feat/sc2egset-02-01-03-q6f-rating-algorithm-survey`.
 
 ## Problem Statement
 
-**The Q6 question (verbatim binding from PR #242 §2 row Q6):**
+The Q6F target question:
 
-> Can `reconstructed_rating` (the `history_enriched_pre_game` family bound by §6.2 row 4 of `reports/specs/02_02_feature_engineering_plan.md`) be materialized safely now, and if yes, with which rating-model family?
+> Which rating reconstruction policy, if any, can be justified for later materialization under forward-only, cold-start (G-CS-4), deterministic, and deployable constraints?
 
-The PR #242 Q6 row is currently `verdict = deferred_blocker`, `binding_level = deferred_blocker`, `rating_policy = deferred_blocker`. Its rationale text (verbatim from `02_01_03_history_source_anchor_coldstart_adjudication.md` §2-§9 Q6 block):
+This question was emitted by PR #245 verbatim:
 
-> deferred_blocker because: per N3, ~83.95% MMR-missing density (verified in the dataset research log; consistent with the registry CSV `is_mmr_missing_flag` family) makes algorithm choice first-order. Pinning Elo / Glicko / Glicko-2 / TrueSkill / a rolling-winrate baseline without empirical evidence of which family handles the unrated / no-rating-history regime best would violate Invariant I7. Four candidate citations exist (Elo 1978; Glickman 1999; Glickman 2012; Herbrich, Minka, Graepel 2006) but binding one over the others requires repo evidence not yet generated. Forward-only constraint explicit: no target-match outcome; no future results; no global batch fit; per-game forward update only. Cold-start handled by initializing rating = literature-prior for new players (DEFERRED to materialization PR's training-fold-fit step); missingness handled by retaining `is_mmr_missing` as a separate companion feature (DEFERRED to materialization PR).
+> Q6_selected_policy = `deferred_blocker_with_algorithm_survey_required` because the comparative back-testing evidence among Elo / Glicko-2 / TrueSkill / rolling-baseline does not exist in any prior artifact and binding a winner would violate Invariant I7 ("no magic numbers").
 
-**Binding context the future Q6 artifact must honour (inherited, not re-litigated):**
+The Q6F survey is the **direct unblock condition** for Step 02_01_03. It is **not** the only-possible unblock: the Q6F verdict may also be `omit_reconstructed_rating_and_unblock_other_five`, which unblocks the other 5 families' materialization without producing a `reconstructed_rating` column at all.
 
-- **§6.2 row 4 binding** (`reports/specs/02_02_feature_engineering_plan.md` line 241): `reconstructed_rating (Glicko-2 or analogous)` — source `derived from player_history_all.result filtered by I3 anchor`; cutoff `details_timeUTC`; rule `history_time < target_time` (strict); rating state computed strictly from prior decisive results. "Only if temporally disciplined. No global / batch fit; ratings must be reconstructed forward in time. Battle.net MMR is not used as the rating source for this corpus because it is structurally absent for 83.95% of rows; the reconstructed rating is the principled substitute." The §6.2 row 4 wording uses "Glicko-2 *or analogous*" — the policy choice is open within "analogous," not fixed at Glicko-2.
-- **§9 G-CS-4 cold-start gate** (line 422): "Missing history must be encoded explicitly. The first-match row for any `(player_id, dataset_tag)` (or per-leaderboard partition where applicable) must not be silently dropped. Missingness must be encoded as a `is_first_match` flag, an imputed value with explicit imputation rule, or a separate cold-start branch."
-- **§10 G-L-4 leakage gate** (line 455): "No `pre_game` or `history_enriched_pre_game` feature may read game T's post-game rating delta or rating-after value. A feature reads `new_rating` (aoestats) or any post-match rating field for game T."
-- **MMR-missingness density** (research_log line 1135 + line 106): `is_mmr_missing` distribution = `(False=7128, True=37290)` = 83.95% TRUE in `matches_flat_clean`; 83.65% in `player_history_all`. This is not an outlier; it is structural (unrated professional corpus).
-- **Q1-Q4 + Q7-Q8 BINDING (from PR #242):** target = `matches_flat_clean` (44,418 rows); history = `player_history_all` (44,817 rows); target anchor = `matches_history_minimal.started_at TIMESTAMP`; history time column = `player_history_all.details_timeUTC` (`TRY_CAST AS TIMESTAMP`); strict filter = `STRICT_LT_HISTORY_FILTER = "TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"`; cold-start gates G-CS-2..G-CS-6 declared.
-- **Q5 BINDING (from PR #243):** `Q5_selected_policy = sensitivity_indicator_co_registration`; verdict `narrow_with_evidence`. Q6's artifact is *strictly forbidden* from re-adjudicating Q5.
+Four distinct downstream artifacts must not be confused:
 
-**Distinguish three downstream artifacts that this plan does NOT author:**
+1. **The Q6F survey output (THIS planning's future Layer-2 PR).** Authors the per-candidate metrics CSV+MD; picks a winner OR re-defers OR allows omit-and-unblock-other-five. This PR does NOT materialize features. This PR does NOT train Phase-03 baselines. The metrics computed during the survey are **evaluation traces** of forward-only rating predictions on the PHA stream — they are Q6F-internal artifacts ONLY and are NOT Phase-03 baseline results.
+2. **The Layer-3 `reconstructed_rating` feature materialization PR.** Actually computes per-target-match rating values, writes the 6-family Parquet, runs CROSS-02-01 audit. **OUT OF SCOPE** for the Q6F survey.
+3. **The Layer-3 materialization of the OTHER 5 families if Q6F selects `omit_reconstructed_rating_and_unblock_other_five`.** Separate PR scope; recorded as recommendation only.
+4. **Phase 03 baseline / model-training cold-start (G-CS-6).** OUT OF SCOPE. Phase 03 remains barred per `PHASE_STATUS.yaml` (Phase 03 = `not_started`) and per `.claude/ml-protocol.md` §4 (`create_temporal_split()` superseded).
 
-1. **The Q6 adjudication output (the future Layer-2 PR's CSV + MD pair).** Selects, recommends, or re-defers a rating policy from a complete candidate set. Records the choice with falsifier discipline. Does not run rating reconstruction. Does not materialize a feature value.
-2. **The Layer-3 rating-reconstruction materialization PR (downstream of the Q6 PR).** Actually runs the forward rating updates over `player_history_all.result` filtered by the strict-< rule, produces a Parquet column, and runs the CROSS-02-01-v1.0.1 leakage audit. Out of scope here; depends on Q6's selected policy.
-3. **The Phase 03 model-training cold-start handling.** Tied to G-CS-6 (fold-aware fit gate). Out of scope here; depends on Phase 03 splitting design.
+The Q6F survey is the cleanest minimum unit that unblocks Step 02_01_03 without violating Invariant I7 (the existing PR #245 Q6 verdict explicitly cites I7 as the binding obstacle to a winner-pin).
 
-**Why this PR matters now:** Q6 is the *only* remaining `deferred_blocker` on Step 02_01_03. Once Q6 is upgraded (whether to `bind_now`, `narrow_with_evidence`, `recommendation_only`, or even back to `deferred_with_survey` for a more rigorous reason), the Step 02_01_03 materialization gate becomes open (for the 5 other families if Q6 selects omission, or for all 6 families if Q6 selects an algorithmic policy). Holding Q6 in its current state freezes Phase 02 progress.
+### Why outcomes B-F are rejected
 
----
+- **B — direct materialization (Layer-3 reconstructed_rating Parquet now).** REJECTED: Q6 verdict is still `deferred_blocker_with_algorithm_survey_required`; materialization_permission is `blocked_pending_algorithm_survey_pr`. Proceeding to Layer-3 materialization would silently bind a rating algorithm without evidence, violating I7.
+- **C — direct survey execution without a planning PR.** REJECTED: violates `data-analysis-lineage.md` non-batching rule ("Do not batch ROADMAP + notebook + artifact + next Step in one execution"). Each empirical Step must follow the 9-step sequence; the survey is empirical (computes per-candidate AUC / log-loss / Brier), so the Layer-1 plan stage cannot be elided.
+- **D — Phase 03 baselines first.** REJECTED: Phase 03 is barred until the rating-reconstruction question resolves (the spec §6.2 row 4 lists `reconstructed_rating` as part of the pre-game feature set; bypassing it to start Phase 03 would mean Phase 03 trains on a feature universe the spec disowns).
+- **E — hygiene-only PR first (e.g., addressing PR #245 NIT-B and NIT-C cosmetics).** REJECTED: PR #245 reviewer-adversarial verdict was APPROVE-WITH-NITS, 0 blockers; NIT-B (filename-relative paths in evidence_paths) and NIT-C (decimal-places formatting in MMR-missingness summary) are cosmetic and were explicitly accepted in PR #245's merge. No real blocker exists; doing a hygiene PR now would delay Q6F without removing any obstacle.
+- **F — hold (no PR; await user direction).** REJECTED: the repo state is consistent (master clean; STEP_STATUS in sync; PHASE_STATUS in sync; no competing open PR; PR #245's Q6 verdict explicitly names the next required step as "algorithm survey PR"). The user has standing direction (project_pending_temp_commit indicates the pre-existing temp/ triage is the only other open task, not Q6F). Holding would forfeit a known-required step.
 
 ## Assumptions & Unknowns
 
-### Assumptions (BINDING for the future Layer-2 PR)
+### Assumptions (BINDING for the future Layer-2 execution PR)
 
-The future Q6 execution PR MUST honour every assumption below; the planning PR records them so the executor and reviewer-adversarial can verify them without re-deriving.
+The 18 assumptions below are BINDING. The Layer-2 executor must honour them verbatim; deviation requires a fresh planning round.
 
-1. **Parent provenance — PR #242 (Q1-Q8 except Q5/Q6) is final and not re-litigated.** The future Q6 adjudicator module will pin:
-   - `EXPECTED_PR242_CSV_SHA256 = "f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b"`
-   - `EXPECTED_PR242_MD_SHA256  = "fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d"`
-2. **Parent provenance — PR #243 (Q5) is final and not re-litigated.** The future Q6 adjudicator module will pin:
-   - `EXPECTED_PR243_CSV_SHA256 = "29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424"`
-   - `EXPECTED_PR243_MD_SHA256  = "026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719"`
-3. **Q5_selected_policy is BINDING and is NOT re-adjudicated.** The Q6 artifact may reference `Q5_selected_policy = sensitivity_indicator_co_registration` in its evidence_paths but MUST NOT emit any row that contradicts, narrows, extends, or supersedes it. The `q6_q5_re_adjudication_drift` falsifier halts if any Q6 row carries a `cross_region_policy` field, mentions strict_exclusion or dual_feature_path in a verdict-bearing field, or attempts to alter Q5's binding.
-4. **Source layer = PHA.** `player_history_all` is the history source; `player_history_all.result` is the rating-update signal (per PR #242 Q1 binding + §6.2 row 4 spec language).
-5. **Target anchor = `matches_history_minimal.started_at` TIMESTAMP.** Inherited from PR #234 Q2(a) → PR #242 Q2 RATIFY.
-6. **Strict filter = `STRICT_LT_HISTORY_FILTER`.** Verbatim: `"TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"`. Inherited from PR #242 Q3 BIND_NOW.
-7. **Cross-region policy = `sensitivity_indicator_co_registration`.** Inherited from PR #243 Q5_selected_policy. Q6 must treat this as an external fact; rating reconstruction over PHA history occurs without dropping cross-region rows (per Q5C semantics).
-8. **Row counts are fixed:** `matches_flat_clean = 44,418`; `matches_history_minimal = 44,418`; `player_history_all = 44,817`; `matches_flat_clean_distinct_replay_id = 22,209`. These are not re-measured for Q6; they are inherited from PR #242 §10.
-9. **MMR-missingness reaffirmation:** the Q6 artifact will re-assert the 83.95% / 83.65% figures (in MD §7) but will NOT re-probe them; the citation is to research_log lines 106 / 1135 / 1546 / 1597-1599 + registry CSV `is_mmr_missing_flag` family.
-10. **The 6 history-enriched pre_game families list is fixed:** `focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `reconstructed_rating`, `in_game_history_aggregate`, `cross_region_fragmentation_handling`. Q6 strictly only affects `reconstructed_rating` (1 family); the per-family impact summary row (Q6_per_family_impact_summary) broadcasts the policy decision across the 6 family slots so the artifact downstream-consumer interface mirrors PR #243's Q5 artifact.
-11. **`Q6_RATING_POLICY_CANDIDATES` is a closed enumerated set with exactly 6 members:**
-    - `Q6A_omit_reconstructed_rating` — drop the family entirely; rely on `is_mmr_missing` + rolling-winrate features only.
-    - `Q6B_rolling_win_rate_or_bayesian_smoothed_baseline` — Bayesian-smoothed forward-only win rate as a rating proxy (no opponent strength; no draws).
-    - `Q6C_elo` — Elo (Elo 1978) with `K`, prior, and tie-policy deferred.
-    - `Q6D_glicko_or_glicko_2` — Glicko (Glickman 1999) or Glicko-2 (Glickman 2012) with `RD`, volatility, rating-period, and prior deferred. §6.2 row 4's "Glicko-2 or analogous" language already favours this branch.
-    - `Q6E_trueskill_or_trueskill_like` — TrueSkill (Herbrich, Minka, Graepel 2006) with prior, β, τ, draw-margin, and rating-period deferred.
-    - `Q6F_deferred_with_algorithm_survey_required` — re-deferred with an explicit algorithm-survey pre-requirement; the survey is itself authored as a separate Step before any selection is bound.
-12. **Verdict universe:** `{bind_now, ratify_with_evidence, extend_with_evidence, narrow_with_evidence, recommendation_only, deferred_blocker}`. The planning PR does NOT pre-commit a winner; the Layer-2 PR's substantive Q6 reasoning produces the verdict.
-13. **Artifact-pair atomicity:** the Q6 output is exactly one CSV (with ≥30 columns, ≥8 rows) and one MD (with ≥17 §sections). No second artifact pair, no Parquet, no JSON audit, no SQL view.
-14. **Read-only DuckDB usage:** the Q6 adjudicator may invoke `_probe_*` helpers for *evidence-availability* counts (e.g., does PHA contain a non-degenerate `result` distribution? does PHA contain a non-degenerate `details_timeUTC` distribution?) but must NOT compute any rating value. Probes are sanity, not algorithm runs.
-15. **Materialization permission:** every Q6 row's `materialization_permission` field encodes the consequence of that row's `selected_policy`:
-    - For Q6A (omit) selected: `materialization_permission = "permitted_for_other_5_families_without_reconstructed_rating"`.
-    - For Q6B-Q6E selected: `materialization_permission = "permitted_for_all_6_families_with_<algorithm>_per_pinned_hyperparameters_in_separate_proof_PR"`.
-    - For Q6F selected: `materialization_permission = "blocked_pending_algorithm_survey_PR"`.
-16. **No materialized output paths:** `materialized_output_paths` is `""` on every row by construction (mirrors PR #243's pattern).
-17. **No status YAML / no ROADMAP / no research_log mutation.** Q6 adjudication does not close Step 02_01_03. Closure is deferred per PR #237 tranche-1 closure precedent.
-18. **External citation discipline:** if a Q6 row binds a non-omit, non-deferred policy (B/C/D/E), it MUST cite at least one primary source per the N-X3 strengthened gate from PR #242 (≥1 repo path + ≥1 algorithm citation + forward-only wording + cold-start/missingness wording). External primary sources allowed: Elo (1978), Glickman (1999), Glickman (2012), Herbrich/Minka/Graepel (2006). These are already in PR #242 Q6 row evidence_paths; the Q6 PR may re-pin them by author/year string (no DOI required).
+1. **Parent provenance.** The 6 parent SHAs are pinned (PR #242 CSV/MD, PR #243 CSV/MD, PR #245 CSV/MD). The Layer-2 module must hard-code these as constants:
+   - `parent_pr242_csv_sha256 = "f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b"`
+   - `parent_pr242_md_sha256  = "fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d"`
+   - `parent_pr243_csv_sha256 = "29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424"`
+   - `parent_pr243_md_sha256  = "026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719"`
+   - `parent_pr245_csv_sha256 = "703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0"`
+   - `parent_pr245_md_sha256  = "7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419"`
+
+2. **Q5 BINDING.** `Q5_selected_policy = sensitivity_indicator_co_registration`, verdict `narrow_with_evidence`. The survey honours Q5: cross-region history rows are NOT dropped from the survey input; the `is_cross_region_fragmented` flag is a co-registered evidence dimension on each survey row's `cross_region_policy` field, not a filter applied to the input stream. The `q6f_q5_re_adjudication_drift` falsifier halts the entrypoint if any survey row carries a Q5-verdict-bearing token in a verdict-bearing field.
+
+3. **Q1-Q4 / Q6 / Q7 / Q8 BINDING.** All ratified by PR #242. Q6's `deferred_blocker_with_algorithm_survey_required` verdict (PR #245) is the trigger for THIS survey. The survey does NOT re-adjudicate Q1-Q4 / Q5 / Q7 / Q8 and does NOT re-adjudicate Q6's "an algorithm survey is required" framing; it only emits a Q6F selected_policy in its own right.
+
+4. **Source layer.** PHA (`player_history_all`) is the rating-update signal source. PHA already restricts to decisive results per PR #242 Q1. `player_history_all.result` is the per-game label; PHA is the only allowed source for the rating-update sequence.
+
+5. **Target anchor for evaluation.** `matches_history_minimal.started_at TIMESTAMP` per PR #242 Q2 BIND_NOW. The survey's per-match predicted probability is computed at this anchor; the rating state used is strictly the rating from PHA records with `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at`.
+
+6. **Strict-`<` filter inherited verbatim.** `STRICT_LT_HISTORY_FILTER = "TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"` per PR #242 Q3 BIND_NOW. Every rating engine the survey runs must honour this filter; no rating engine may read a PHA record dated at or after the target match's `started_at`.
+
+7. **Q6F candidate set.** EXACTLY 4 included candidates + 2 carry-forward references:
+   - **INCLUDED** (4):
+     - `rolling_win_rate_or_bayesian_smoothed_baseline` — rating proxy without opponent strength; baseline.
+     - `elo` — Elo 1978; logistic expectation; constant K.
+     - `glicko_or_glicko_2` — Glickman 1999 / 2012; RD-with-inactivity; §6.2 row 4 spec-favoured candidate.
+     - `trueskill_or_trueskill_like` — Herbrich / Minka / Graepel 2006; 1v1 degenerates to Glicko-like.
+   - **CARRY-FORWARD** (2; not surveyed because no algorithm to evaluate):
+     - `omit_reconstructed_rating` — included as a reference row; the eventual `omit_reconstructed_rating_and_unblock_other_five` Q6F verdict (if selected) is its emergent re-affirmation.
+     - `deferred_blocker_with_algorithm_survey_required` — included as a reference row; this row's verdict was set by PR #245 and the Q6F survey's Q6F_selected_policy row is conceptually a successor adjudication of it.
+
+8. **N-1 carry-forward (BTL family explicit rejection).** `aligulac_style_btl`, `bradley_terry`, `neural_btl` are listed in dataset `research_log.md` lines 733-734 + 961 as part of the substrate's intended backtesting universe but EXCLUDED from this survey's candidate set with explicit rejection paragraph in MD §X (same rationale as PR #245 N-1: BTL collapses to Elo-with-race-prior in 1v1; Neural BTL needs its own model-training pipeline). The rejection MUST be re-stated verbatim in every row's `excluded_methods_considered` field. The Layer-2 executor MAY extend the included candidate set to BTL methods IF AND ONLY IF the executor produces its own substantive case with citations + test fixtures; otherwise the rejection stands.
+
+9. **N-2 carry-forward (raw MMR hybrid rejection).** `raw_mmr_where_present_plus_is_mmr_missing` REJECTED unchanged (PR #245 N-2 rationale): violates Invariant I5 symmetric-treatment; rated/unrated partition correlated with skill; partition-as-feature would leak corpus structure. The rejection MUST be re-stated verbatim in every row's `raw_mmr_hybrid_rejection` field.
+
+10. **Hyperparameter policy.** DEFAULT = **fixed literature defaults**:
+    - Elo: `K=20` (chess-conservative) OR `K=32` (chess-default); the Layer-2 plan must pick ONE and pin it; planner recommends `K=24` as the midpoint commonly used by aoe2-tournament Elo deployments.
+    - Glicko-2: `mu=1500, RD=350, sigma=0.06, tau=0.5` (Glickman 2012 reference defaults).
+    - TrueSkill: `mu=25, sigma=25/3, beta=25/6, tau=25/300, draw_margin=0` (Herbrich et al. 2006 defaults; draw_margin=0 because PHA is decisive-only per PR #242 Q1).
+    - Rolling baseline: `alpha=beta=1` (Laplace prior); window = expanding (all prior PHA rows for that toon_id); the Layer-2 plan may add a finite-window variant for sensitivity but must pin the primary as expanding.
+    
+    NO tuned variants in this survey. If the executor needs tuned hyperparameters to break a tie, it must add an OQ to a follow-up PR (e.g., "Q6G tuned-hyperparameter sensitivity") rather than tune inside Q6F. Tuning inside Q6F is barred because (a) leakage-safe nested protocols are complex enough to deserve their own Step, and (b) Q6F is a Layer-2 evidence-only step; binding a tuned hyperparameter is Layer-3 work.
+
+11. **Player identity grouping key.** `toon_id` is the canonical PHA grouping key per PR #245 (PHA does not carry a `player_id_worldwide` column; verified at module-author time in PR #245's adjudicator). The survey MUST use `toon_id` as the rating-engine player key. The Layer-2 module must include a one-sentence comment citing PR #245 §9 confirming this choice.
+
+12. **Survey output rows.** EXACTLY 8 rows (mirroring PR #245's 8-row shape):
+    - Row 1: `Q6F_A_omit_reconstructed_rating` (carry-forward; no algorithm; emits zero-metrics)
+    - Row 2: `Q6F_B_rolling_win_rate_or_bayesian_smoothed_baseline` (included; metrics computed)
+    - Row 3: `Q6F_C_elo` (included; metrics computed)
+    - Row 4: `Q6F_D_glicko_or_glicko_2` (included; metrics computed)
+    - Row 5: `Q6F_E_trueskill_or_trueskill_like` (included; metrics computed)
+    - Row 6: `Q6F_F_deferred_blocker_with_algorithm_survey_required` (carry-forward; this row's verdict represents the Q6 parent's deferral and is re-affirmed if Q6F itself defers)
+    - Row 7: `Q6F_selected_policy` (BINDING; verdict emerges from the per-candidate metrics)
+    - Row 8: `Q6F_per_family_impact_summary` (derived; broadcasts the Q6F decision over the 6 history-enriched pre_game families)
+
+13. **Materialization permission outcome matrix.**
+    - if `Q6F_selected_policy.verdict == bind_now`:
+      `materialization_permission = "permitted_for_all_6_families_with_pinned_<algorithm>_hyperparameters_in_next_materialization_pr"`
+      where `<algorithm>` is replaced with the selected candidate name verbatim.
+    - if `Q6F_selected_policy.verdict in {narrow_with_evidence, recommendation_only}`:
+      `materialization_permission = "recommendation_only_blocked_pending_implementation_proof_pr"`
+    - if `Q6F_selected_policy.verdict == deferred_blocker`:
+      `materialization_permission = "blocked_pending_<reason>"` (the survey MUST name the reason; "more data needed" is not acceptable; acceptable reasons include "no candidate clears the pinned AUC > 0.55 floor", "all candidates have AUC within bootstrap-CI of 0.5", "a wider candidate set is required").
+    - if `Q6F_selected_policy.verdict == omit_reconstructed_rating_and_unblock_other_five`:
+      `materialization_permission = "permitted_for_other_5_families_without_reconstructed_rating"`
+
+14. **`materialized_output_paths` MUST be empty on every row.** No row of the survey CSV may reference any Parquet path. The survey is an adjudication-class artifact; it never produces a feature column.
+
+15. **No status YAML / research_log / ROADMAP mutation.** Per PR #242 / PR #243 / PR #245 precedent for non-closure adjudication PRs. Closure of Step 02_01_03 is reserved for the future Layer-3 materialization PR (or a separate closure PR if `omit_reconstructed_rating_and_unblock_other_five` is selected).
+
+16. **Test target.** ≥150 tests; ≥95% branch coverage on the survey module. This matches the PR #245 test target (315 tests at 99.54% coverage) at the lower bound. The Layer-2 executor may overshoot.
+
+17. **Read-only against DuckDB.** The survey module opens DuckDB in read-only mode. The ONLY writes are the CSV+MD artifact pair plus the test-fixture writes (under `pytest tmp_path`). No DuckDB table is created, dropped, or altered.
+
+18. **Evaluation traces are EPHEMERAL.** The per-game rating-history dictionaries computed during a survey run (e.g., `dict[toon_id, list[(timestamp, rating_state)]]`) live only in process memory during the survey run; they are NOT persisted to Parquet, NOT persisted to JSON, NOT persisted to any disk file other than via the aggregate metrics on each survey row. The Layer-2 module MUST not write any `.parquet` / `.json` / `.npz` / `.pkl` other than the CSV+MD pair. A falsifier (`q6f_rating_trace_persistence_violation`) checks the post-execution directory listing for any unexpected file and halts if it finds one.
 
 ### Unknowns (DEFERRED with explicit gating)
 
-These are open at planning time and resolved during the Layer-2 execution PR.
-
-1. **Q6 row count.** PR #243 used 5 rows (3 options + selected_policy + per_family_impact_summary). Q6 has 6 candidates → 8 rows (6 candidates + selected_policy + per_family_impact_summary). The future planner may add a candidate-comparison row if it strengthens the artifact; the *minimum* is 8.
-2. **Which candidate Q6_selected_policy selects.** The plan does not pre-commit a winner. The Q6 execution PR's substantive reasoning produces the choice. Plausible outcomes include `Q6A_omit` (most conservative; preserves G-CS-4 trivially by encoding `is_mmr_missing` + omitting `reconstructed_rating`), `Q6B_rolling_baseline` (low-complexity; Bayesian-smoothed forward-only winrate), `Q6D_glicko_or_glicko_2` (the §6.2 row 4 spec-favoured path), or `Q6F_deferred_with_survey` (if the artifact concludes that even a comparative algorithm survey requires its own Step).
-3. **K-factor / rating-period / volatility / RD / prior / draw-margin / β / τ.** All algorithm-specific hyperparameters are DEFERRED to a separate algorithm-implementation-proof PR (OQ2). The Q6 artifact records *which algorithm family* is selected, not the algorithmic constants.
-4. **Whether materialization can proceed for the 5 other families when Q6 selects omit (OQ1).** Provisional answer: yes — omission means the `reconstructed_rating` slot is left empty in the projected feature matrix; the other 5 families' materialization is unblocked by the Q6 omit verdict. But this provisional answer is recorded as an Open Question for reviewer decision, not as a binding here.
-5. **Whether external WebFetch citations are required (OQ3).** Provisional answer: no — the four primary sources (Elo 1978, Glickman 1999, Glickman 2012, Herbrich-Minka-Graepel 2006) are already in PR #242 Q6 row evidence_paths verbatim and cited in §6.2 row 4. The Q6 artifact may re-cite by author/year string. WebFetch is permitted only if the future executor finds an in-repo citation insufficient for a specific algorithmic claim.
-6. **Whether an empirical MMR-missingness re-probe is needed (OQ4).** Provisional answer: no — research_log line 106 already cites the 83.95% figure with the exact DuckDB query that produced it; the registry CSV `is_mmr_missing_flag` row is the canonical reference. The Q6 artifact may reference research_log lines 106 / 1135 / 1546 by line number.
-7. **Whether the per-family impact summary row should broadcast over all 6 families (OQ5).** Provisional answer: yes (for downstream-consumer interface uniformity with PR #243's Q5 artifact). Q6 strictly only affects `reconstructed_rating`, so the other 5 families' rows carry `affected_by_q6 = "no"` / `selected_policy = "not_applicable"`. NIT-D-style structured enum.
-8. **Whether the Q6 execution PR should pre-emptively author the Layer-3 materialization plan (OQ6).** Provisional answer: no — one-atomic-unit policy; the Layer-3 materialization plan is authored in a separate planning PR after Q6 merges.
-
----
+- **U1 — Final selected policy.** The executor's substantive reasoning over the survey metrics decides the verdict. The plan does NOT pre-commit a winner.
+- **U2 — Exact AUC / log-loss / Brier values.** Computed during execution from the actual PHA stream.
+- **U3 — Whether `omit_reconstructed_rating_and_unblock_other_five` is selected.** Depends on whether any included candidate clears the pinned AUC floor (see OQ1).
+- **U4 — Whether external WebFetch is required.** DEFAULT: in-repo citations (the 4 author/year strings already pinned in PR #245's module) are sufficient. The Layer-2 executor may invoke WebFetch only for algorithmic implementation details (e.g., Glicko-2 rating-period update formula), not for the citation strings themselves.
+- **U5 — Whether the `trueskill` PyPI package is added as a dependency.** OQ3 below; default is hand-coded TrueSkill 1v1 specialisation.
 
 ## Literature Context
 
-**In-repo first (mandatory citations for the future Q6 artifact):**
+### Internal (BINDING; read before authoring Layer-2 module)
 
-1. **`reports/specs/02_02_feature_engineering_plan.md` §6.2 row 4** (line 241): the canonical `reconstructed_rating` binding. Source: `player_history_all.result` filtered by I3 anchor; cutoff `details_timeUTC`; rule `history_time < target_time` (strict). Quote: "Glicko-2 or analogous… No global / batch fit; ratings must be reconstructed forward in time. Battle.net MMR is not used as the rating source for this corpus because it is structurally absent for 83.95% of rows; the reconstructed rating is the principled substitute." This binds the family and favours Glicko-2 *or analogous* but does not fix the algorithm; it explicitly admits an open candidate set.
-2. **`reports/specs/02_02_feature_engineering_plan.md` §9 G-CS-4** (line 422): "Missing history must be encoded explicitly. The first-match row for any `(player_id, dataset_tag)` (or per-leaderboard partition where applicable) must not be silently dropped. Missingness must be encoded as a `is_first_match` flag, an imputed value with explicit imputation rule, or a separate cold-start branch."
-3. **`reports/specs/02_02_feature_engineering_plan.md` §10 G-L-4** (line 455): "No `pre_game` or `history_enriched_pre_game` feature may read game T's post-game rating delta or rating-after value."
-4. **`reports/specs/02_02_feature_engineering_plan.md` §6.2 (aoe2 rows 4-5 + aoestats rows 4-5)** (lines 334, 384): `reconstructed_rating (Elo / Glicko-2)` appears in both AoE2 dataset specs — confirms cross-game commitment to forward-only reconstruction. (Citation-only; the Q6 artifact is sc2egset-scoped.)
-5. **PR #242 Q6 row notes** (`02_01_03_history_source_anchor_coldstart_adjudication.md` lines 122-136): the four candidate citations (Elo 1978, Glickman 1999, Glickman 2012, Herbrich-Minka-Graepel 2006) and the "Pinning … without empirical evidence … would violate Invariant I7" rationale.
-6. **Dataset research_log line 733-734** (`research_log.md`): "per-player-history key for Phase 02 rating-system backtesting (Elo, Glicko, Glicko-2, TrueSkill, Aligulac-style BTL)" — establishes the dataset is sized for rating-method backtesting.
-7. **Dataset research_log line 961** (`research_log.md`): "Cross-dataset-harmonized substrate for Phase 02+ rating-system backtesting (Elo, Glicko, Glicko-2, TrueSkill, Aligulac race-conditioned, Bradley–Terry, Neural BTL)" — confirms `matches_history_minimal` was designed for this exact use.
-8. **Dataset research_log line 106 + line 1135 + line 1546** (`research_log.md`): the 83.95% MMR-missing density evidence (sentinel = 0; mechanism = unrated professional). Cited verbatim with its derivation SQL by research_log.
-9. **Dataset research_log line 1576-1626** (`research_log.md`): the MMR-vs-in-game multivariate analysis showing MMR is decorrelated when the zero-sentinel is included but correlates with APM (ρ=0.206) and SQ (ρ=0.159) when restricted to rated players — directly motivates why a *reconstructed* rating may unlock signal that the raw MMR cannot.
-10. **PR #242 Q4 row** (cold-start gate enumeration): G-CS-4 is explicitly assigned to `reconstructed_rating` in the bound cold-start policy string.
+- `reports/specs/02_02_feature_engineering_plan.md`
+  - §6.2 row 4 line 241: "`reconstructed_rating (Glicko-2 or analogous)` — derived from `player_history_all.result` filtered by I3 anchor — `history_time < target_time` (strict)". This is the spec-favoured framing.
+  - §9 G-CS-4 line 422: cold-start gate. "The first-match row for any `(player_id, dataset_tag)` (or per-leaderboard partition where applicable) must not be silently dropped. Missingness must be encoded as a `is_first_match` flag, an imputed value with explicit imputation rule, or a separate cold-start branch."
+  - §10 G-L-4 line 455: "No `pre_game` or `history_enriched_pre_game` feature may read game T's post-game rating delta or rating-after value."
+- PR #245 Q6_selected_policy row's notes verbatim (quoted above in Problem Statement).
+- PR #245 Q6D row: "CROSS-02-02 §6.2 row 4 line 241 names 'Glicko-2 or analogous' first — this is the spec-favoured path." This survey honours that as a prior, not a binding.
+- PR #245 module CITATION_* constants (4 author/year strings; the Layer-2 module may import them rather than re-author).
+- Dataset `research_log.md`:
+  - lines 733-734: rating-system backtesting universe (Elo, Glicko, Glicko-2, TrueSkill, Aligulac-style BTL)
+  - line 961: cross-dataset-harmonized substrate (Elo, Glicko, Glicko-2, TrueSkill, Aligulac race-conditioned, Bradley-Terry, Neural BTL)
+  - line 106 + 1135: 83.95% MFC MMR-missingness / 83.65% PHA MMR-missingness (this is the corpus's structural framing for "why a reconstructed rating is preferable to raw MMR")
 
-**External primary sources (already in PR #242 Q6 row evidence_paths; re-cited by author/year only):**
+### External (CITATION-ONLY; the Layer-2 module pins these as constants)
 
-- **Elo (1978)** — *The Rating of Chessplayers, Past and Present*. Original Elo formulation: forward-only update; pairwise outcome; logistic expectation; constant `K`.
-- **Glickman (1999)** — "Parameter estimation in large dynamic paired comparison experiments." Glicko-1: extends Elo with rating deviation (RD) that grows with inactivity; rating period as fundamental unit.
-- **Glickman (2012)** — "Example of the Glicko-2 system" / "The Glicko-2 system for rating players" (the modern formulation). Adds rating volatility σ tracking; superior to Glicko-1 for high-variance regimes; the §6.2 row 4 spec-favoured candidate.
-- **Herbrich, Minka, Graepel (2006)** — "TrueSkill: A Bayesian Skill Rating System." NIPS 2006. Gaussian skill prior; factor-graph message passing; handles multi-player FFA (degenerates to Elo-like for 1v1); explicit draw-margin parameter.
+- **Elo (1978)** — *The Rating of Chessplayers, Past and Present*. New York: Arco. Pinned constant `CITATION_ELO_1978` (verbatim from PR #245 module).
+- **Glickman (1999)** — "Parameter estimation in large dynamic paired comparison experiments." *Applied Statistics*, 48: 377-394. Pinned constant `CITATION_GLICKMAN_1999`.
+- **Glickman (2012)** — "Example of the Glicko-2 system" (Boston University technical note). Pinned constant `CITATION_GLICKMAN_2012`.
+- **Herbrich, Minka, Graepel (2006)** — "TrueSkill™: A Bayesian Skill Rating System." *NIPS 2006*: 569-576. Pinned constant `CITATION_HERBRICH_MINKA_GRAEPEL_2006`.
 
-**External-citation discipline for the future Q6 artifact:**
+### When WebFetch is permitted
 
-- Algorithm primary sources are CITATION-ONLY (author + year string in `notes` and in evidence_paths). The Q6 PR does NOT execute, benchmark, or implement any rating algorithm; it adjudicates the *choice* among candidate families. Algorithm implementation is a separate downstream PR.
-- WebFetch is permitted only if the future executor finds in-repo citations insufficient for a specific algorithmic claim. Default = use in-repo references.
-- The "no magic numbers" Invariant I7 means: if a non-omit, non-deferred policy is selected, the Q6 row's `rating_hyperparameter_policy` field must record "deferred to algorithm-implementation-proof PR" with the constants enumerated (e.g., for Glicko-2: `μ_prior, RD_prior, σ_prior, τ, rating_period_days`).
-
-**Cross-game comparability note (Invariant I8):** Q6 binds `reconstructed_rating` semantics for sc2egset *only*. The aoe2companion and aoestats datasets' analogous adjudications are out of scope here but will be authored in their own dataset-scoped Q6 successor PRs (per Phase scope rule in docs/PHASES.md). The future Q6 artifact may note this cross-game implication in MD §17 ("forward implications") but must not bind anything for aoe2.
-
----
+- For algorithmic implementation details (e.g., Glicko-2 §3 step-by-step update equations; TrueSkill §2 Gaussian factor-graph approximation). The Layer-2 executor may WebFetch these as references for the engine implementations. The plan does NOT pre-bind a Python package choice; OQ3 surfaces this.
+- NOT for the citation strings themselves (already pinned in PR #245's module).
+- NOT for "best K-factor for SC2" or any tuning-style query (per Assumption 10, hyperparameters are fixed literature defaults).
 
 ## Execution Steps
 
-The future Layer-2 execution PR will execute the steps below in order. Each step lists: title, files (allowed / forbidden), function signatures or constants, validation report, stop condition, and whether Sonnet executor suffices or Opus is required.
-
-The non-batching rule applies: T01-T04 may be batched as scaffolding; T05 (substantive Q6 content) MUST be a separate review checkpoint before T06-T09; T05 requires Opus.
-
-### T01 — Adjudicator module: dataclasses, constants, schema constants
-
-**File (create):** `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py`
-
-**Forbidden files:** any 02_01_03 Parquet, any leakage_audit_sc2egset.{json,md}, any status YAML, any spec file, any cleaning-layer YAML, any thesis/docs/.claude/data/AoE2 path.
-
-**Stop condition:** module imports cleanly under `python -c "import rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_rating_reconstruction"`; module-import-time invariant asserts (set equality between `HELPER_TO_FALSIFIER_KEY.values()` and `FALSIFIER_PRIORITY_CHAIN`) all pass.
-
-**Executor:** Sonnet (mechanical scaffolding; the substantive choices are deferred to T05).
-
-**Module contents:**
-
-```python
-# Frozen dataclasses
-@dataclass(frozen=True)
-class RatingReconstructionAdjudicationDecision:
-    decision_id: str               # one of Q6_DECISION_IDS
-    parent_decision_id: str        # "Q6_rating_policy" for all rows
-    decision_name: str
-    verdict: str                   # one of ALLOWED_VERDICTS
-    binding_level: str             # one of ALLOWED_BINDING_LEVELS
-    scope: str
-    candidate_policy: str          # one of Q6_RATING_POLICY_CANDIDATES
-    selected_policy: str           # blank for per-candidate rows; populated on selected_policy row
-    rejected_options: str          # JSON list string; blank on per-candidate rows
-    rating_model_family: str
-    rating_forward_only_constraints: str
-    rating_cold_start_policy: str
-    rating_tie_policy: str
-    rating_hyperparameter_policy: str
-    rating_evidence_level: str     # NIT-D structured enum
-    mmr_missingness_summary: str   # references research_log lines 106/1135 verbatim
-    feature_availability_summary: str
-    complexity_deployability_score: str    # NIT-D structured enum
-    leakage_risk_score: str                # NIT-D structured enum
-    materialization_permission: str        # NIT-D structured enum (see Assumption 15)
-    evidence_paths: str             # newline-joined; ≥1 repo path required for non-omit
-    falsifiers: str                 # JSON list of falsifier keys that fired (empty = pass)
-    audit_pr: str                   # "PR #N"
-    parent_pr242_csv_sha256: str
-    parent_pr242_md_sha256: str
-    parent_pr243_csv_sha256: str
-    parent_pr243_md_sha256: str
-    pr241_scaffold_validator_module_sha256: str
-    cross_02_02_spec_sha256: str
-    feature_family_registry_csv_sha256: str
-    dataset_research_log_sha256: str
-    player_history_all_yaml_sha256: str
-    matches_flat_clean_yaml_sha256: str
-    matches_history_minimal_yaml_sha256: str
-    materialized_output_paths: str  # always "" by construction
-    notes: str
-
-@dataclass(frozen=True)
-class RatingReconstructionAdjudicationResult:
-    decisions: tuple[RatingReconstructionAdjudicationDecision, ...]
-    halting_falsifier: str | None
-    passed: bool
-
-# Constants (UPPER_SNAKE per Invariant I7)
-Q6_RATING_POLICY_CANDIDATES = (
-    "omit_reconstructed_rating",
-    "rolling_win_rate_or_bayesian_smoothed_baseline",
-    "elo",
-    "glicko_or_glicko_2",
-    "trueskill_or_trueskill_like",
-    "deferred_blocker_with_algorithm_survey_required",
-)
-
-Q6_DECISION_IDS = (
-    "Q6A_omit_reconstructed_rating",
-    "Q6B_rolling_win_rate_or_bayesian_smoothed_baseline",
-    "Q6C_elo",
-    "Q6D_glicko_or_glicko_2",
-    "Q6E_trueskill_or_trueskill_like",
-    "Q6F_deferred_with_algorithm_survey",
-    "Q6_selected_policy",
-    "Q6_per_family_impact_summary",
-)  # 8 rows total
-
-ALLOWED_VERDICTS = (
-    "bind_now",
-    "ratify_with_evidence",
-    "extend_with_evidence",
-    "narrow_with_evidence",
-    "recommendation_only",
-    "deferred_blocker",
-)
-
-ALLOWED_BINDING_LEVELS = (
-    "binding_for_materialization",
-    "recommendation_only",
-    "deferred_blocker",
-)
-
-ALLOWED_RATING_EVIDENCE_LEVELS = (
-    "in_repo_only",          # ≥1 repo path; no external citation needed
-    "in_repo_plus_citation", # ≥1 repo path + ≥1 algorithm primary citation
-    "deferred",              # for Q6F or Q6_per_family_impact_summary rows
-)
-
-ALLOWED_COMPLEXITY_DEPLOYABILITY = (
-    "low", "medium", "high", "not_applicable",
-)
-
-ALLOWED_LEAKAGE_RISK = (
-    "low_if_forward_only_enforced",
-    "medium_if_forward_only_enforced",
-    "high_if_global_fit_used",
-    "not_applicable",
-)
-
-ALLOWED_MATERIALIZATION_PERMISSION = (
-    "permitted_for_other_5_families_without_reconstructed_rating",   # Q6A
-    "permitted_for_all_6_families_with_pinned_hyperparameters_pr",   # Q6B-E
-    "blocked_pending_algorithm_survey_pr",                            # Q6F
-    "not_applicable",                                                 # per-family rows
-)
-
-# Parent provenance SHAs (BINDING; mismatch halts)
-EXPECTED_PR242_CSV_SHA256 = "f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b"
-EXPECTED_PR242_MD_SHA256  = "fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d"
-EXPECTED_PR243_CSV_SHA256 = "29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424"
-EXPECTED_PR243_MD_SHA256  = "026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719"
-EXPECTED_PR241_VALIDATOR_SHA256 = "b9df4ccfd6bee46d8c6e3ef55d3b9498dcd5b10615064eb2618e93ad9f208904"
-# Source-file SHAs (NIT-B; pinned at planning time; mismatch halts)
-EXPECTED_CROSS_02_02_SPEC_SHA256 = "<resolve at Layer-2 plan time>"
-EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256 = "<resolve at Layer-2 plan time>"
-EXPECTED_DATASET_RESEARCH_LOG_SHA256 = "<resolve at Layer-2 plan time>"
-EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256 = "<resolve at Layer-2 plan time>"
-EXPECTED_MATCHES_FLAT_CLEAN_YAML_SHA256 = "<resolve at Layer-2 plan time>"
-EXPECTED_MATCHES_HISTORY_MINIMAL_YAML_SHA256 = "<resolve at Layer-2 plan time>"
-
-# Inherited from PR #242 (referenced; NOT re-derived)
-TARGET_SOURCE_TABLE = "matches_flat_clean"
-HISTORY_SOURCE_TABLE = "player_history_all"
-TARGET_ANCHOR_COLUMN = "matches_history_minimal.started_at"   # TIMESTAMP
-HISTORY_TIME_COLUMN = "player_history_all.details_timeUTC"
-STRICT_LT_HISTORY_FILTER = "TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at"
-EXPECTED_MFC_ROW_COUNT = 44418
-EXPECTED_MHM_ROW_COUNT = 44418
-EXPECTED_PHA_ROW_COUNT = 44817
-EXPECTED_MFC_DISTINCT_REPLAY_ID_COUNT = 22209
-EXPECTED_MMR_MISSING_DENSITY_MFC_PCT = 83.95   # research_log line 106
-EXPECTED_MMR_MISSING_DENSITY_PHA_PCT = 83.65   # research_log line 1135
-
-# Inherited from PR #243 (referenced; NOT re-litigated)
-Q5_SELECTED_POLICY = "sensitivity_indicator_co_registration"
-Q5_SELECTED_POLICY_VERDICT = "narrow_with_evidence"
-
-# Algorithm primary-source citations (author/year strings; per N-X3 strengthened gate)
-CITATION_ELO_1978 = "Elo (1978) — The Rating of Chessplayers, Past and Present"
-CITATION_GLICKMAN_1999 = "Glickman (1999) — Parameter estimation in large dynamic paired comparison experiments"
-CITATION_GLICKMAN_2012 = "Glickman (2012) — The Glicko-2 system for rating players"
-CITATION_HERBRICH_MINKA_GRAEPEL_2006 = "Herbrich, Minka, Graepel (2006) — TrueSkill: A Bayesian Skill Rating System"
-
-# 6 history-enriched pre_game family IDs (FIXED; for per_family_impact_summary)
-HISTORY_ENRICHED_PRE_GAME_FAMILY_IDS = (
-    "focal_player_history",
-    "opponent_player_history",
-    "matchup_history_aggregate",
-    "reconstructed_rating",       # the ONE family Q6 affects
-    "in_game_history_aggregate",
-    "cross_region_fragmentation_handling",
-)
-
-# 5 non-rating families (the materialization permission target if Q6A selected)
-NON_RATING_HISTORY_FAMILIES = tuple(
-    f for f in HISTORY_ENRICHED_PRE_GAME_FAMILY_IDS if f != "reconstructed_rating"
-)  # 5-tuple
-```
-
-**Validation report (T01 stop condition):** import succeeds; `len(HELPER_TO_FALSIFIER_KEY) == len(FALSIFIER_PRIORITY_CHAIN)` (B4 invariant); `set(HELPER_TO_FALSIFIER_KEY.values()) == set(FALSIFIER_PRIORITY_CHAIN)`; `len(Q6_RATING_POLICY_CANDIDATES) == 6`; `len(Q6_DECISION_IDS) == 8`; `len(HISTORY_ENRICHED_PRE_GAME_FAMILY_IDS) == 6`; `len(NON_RATING_HISTORY_FAMILIES) == 5`.
-
----
-
-### T02 — Adjudicator module: SQL probe constants (evidence-availability, not rating runs)
-
-**File (extend):** `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py`
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** the SQL constants compile under DuckDB's parser; the SQL strings contain no POST-GAME tokens scanned by the universal scanner (Q6 falsifier set); the probes do NOT compute Elo/Glicko/TrueSkill ratings; the probes do NOT read target-match outcomes for prediction rows.
-
-**Executor:** Sonnet.
-
-**Probes (read-only DuckDB; sanity / evidence-availability ONLY):**
-
-```python
-# Probe 1: PHA result distribution (1000-row LIMIT smoke; verify non-degenerate)
-PROBE_PHA_RESULT_DISTRIBUTION_SQL = """
-SELECT result, COUNT(*) AS n
-FROM (SELECT result FROM player_history_all LIMIT 1000) sub
-GROUP BY result
-ORDER BY n DESC
-"""
-# expected: at least 2 distinct non-null values (decisive game results exist)
-
-# Probe 2: PHA details_timeUTC strict-< ordering smoke (1000-row LIMIT)
-PROBE_PHA_DETAILS_TIMEUTC_TRY_CAST_NULL_RATE_SQL = """
-SELECT COUNT(*) AS total,
-       COUNT(*) FILTER (WHERE TRY_CAST(details_timeUTC AS TIMESTAMP) IS NULL) AS null_after_cast
-FROM (SELECT details_timeUTC FROM player_history_all LIMIT 1000) sub
-"""
-# expected: null_after_cast == 0 (inherited from PR #242 Q3 BIND_NOW; re-asserted)
-
-# Probe 3: MMR-missingness re-affirmation against matches_flat_clean
-PROBE_MFC_MMR_MISSING_DENSITY_SQL = """
-SELECT COUNT(*) AS total,
-       COUNT(*) FILTER (WHERE MMR = 0) AS mmr_zero
-FROM matches_flat_clean
-"""
-# expected: total == EXPECTED_MFC_ROW_COUNT (44418); mmr_zero == 37290; ratio == 83.95%
-
-# Probe 4: MMR-missingness re-affirmation against player_history_all
-PROBE_PHA_MMR_MISSING_DENSITY_SQL = """
-SELECT COUNT(*) AS total,
-       COUNT(*) FILTER (WHERE MMR = 0) AS mmr_zero
-FROM player_history_all
-"""
-# expected: total == 44817 (or near; research_log shows 37489/44817 ≈ 83.65%)
-
-# Probe 5: PHA per-player history depth distribution (evidence for cold-start prevalence)
-PROBE_PHA_PER_PLAYER_HISTORY_DEPTH_SQL = """
-SELECT cnt_bucket, COUNT(*) AS n_players
-FROM (
-    SELECT CASE
-        WHEN n = 1 THEN '1'
-        WHEN n BETWEEN 2 AND 4 THEN '2-4'
-        WHEN n BETWEEN 5 AND 9 THEN '5-9'
-        WHEN n BETWEEN 10 AND 24 THEN '10-24'
-        ELSE '25+'
-    END AS cnt_bucket
-    FROM (
-        SELECT toon_id, COUNT(*) AS n FROM player_history_all GROUP BY toon_id
-    ) sub
-) bucketed
-GROUP BY cnt_bucket
-ORDER BY cnt_bucket
-"""
-# expected: non-degenerate distribution; the '1' bucket cardinality directly motivates
-# the G-CS-4 cold-start gate (first-match rows that cannot have a reconstructed rating)
-# NOTE: this is evidence-availability for the cold-start branch, not rating computation.
-
-# Probe 6: PHA result vs MMR-presence cross-tab (evidence for whether rating
-# reconstruction can run over the unrated regime)
-PROBE_PHA_RESULT_VS_MMR_PRESENCE_SQL = """
-SELECT
-    CASE WHEN MMR = 0 THEN 'unrated' ELSE 'rated' END AS rating_regime,
-    result,
-    COUNT(*) AS n
-FROM player_history_all
-GROUP BY 1, 2
-ORDER BY 1, 2
-"""
-# expected: 'unrated' regime contains non-degenerate result distribution
-# (i.e., unrated games are decisive; reconstruction CAN run on them)
-```
-
-**Validation report:** each probe runs against `data/db/db.duckdb` and returns a non-degenerate non-error result; the smoke counts match the EXPECTED_* anchors; no probe reads `result` for any target row (probes operate over `player_history_all` only, never the target slice).
-
-**Q6 substantive use of probes (T05):** the probes establish that rating reconstruction has sufficient input signal (decisive results exist), can run over the unrated regime (the regime where MMR is absent), and faces a real cold-start tail (per-player depth distribution). They do NOT establish *which* algorithm is best; that adjudication is content of T05.
-
----
-
-### T03 — Adjudicator module: halting falsifier helpers
-
-**File (extend):** `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py`
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** every helper is callable with the entrypoint's signature; `HELPER_TO_FALSIFIER_KEY` maps every helper to a unique falsifier key; `FALSIFIER_PRIORITY_CHAIN` contains every value of `HELPER_TO_FALSIFIER_KEY` exactly once; the universal POST-GAME token scanner does not flag any constant in the module.
-
-**Executor:** Sonnet (mechanical, mirrors PR #242 / PR #243 helper patterns).
-
-**Falsifier helpers (≥ 30, mirroring PR #243's 31-helper pattern):**
-
-| # | Helper | Falsifier key | Halt reason |
-|---|--------|---------------|-------------|
-| 1 | `_check_parent_pr242_csv_sha256` | `parent_pr242_csv_sha256_mismatch` | PR #242 CSV byte-drifted |
-| 2 | `_check_parent_pr242_md_sha256` | `parent_pr242_md_sha256_mismatch` | PR #242 MD byte-drifted |
-| 3 | `_check_parent_pr243_csv_sha256` | `parent_pr243_csv_sha256_mismatch` | PR #243 CSV byte-drifted |
-| 4 | `_check_parent_pr243_md_sha256` | `parent_pr243_md_sha256_mismatch` | PR #243 MD byte-drifted |
-| 5 | `_check_pr241_validator_sha256` | `pr241_sha256_mismatch` | PR #241 validator drifted |
-| 6 | `_check_cross_02_02_spec_sha256` | `cross_02_02_spec_sha256_mismatch` | spec drifted |
-| 7 | `_check_feature_family_registry_csv_sha256` | `feature_family_registry_csv_sha256_mismatch` | registry CSV drifted |
-| 8 | `_check_dataset_research_log_sha256` | `dataset_research_log_sha256_mismatch` | research_log drifted |
-| 9 | `_check_player_history_all_yaml_sha256` | `player_history_all_yaml_sha256_mismatch` | PHA YAML drifted |
-| 10 | `_check_matches_flat_clean_yaml_sha256` | `matches_flat_clean_yaml_sha256_mismatch` | MFC YAML drifted |
-| 11 | `_check_matches_history_minimal_yaml_sha256` | `matches_history_minimal_yaml_sha256_mismatch` | MHM YAML drifted |
-| 12 | `_check_q6_candidate_set_complete` | `q6_candidate_set_incomplete` | `Q6_RATING_POLICY_CANDIDATES` missing required candidate |
-| 13 | `_check_q6_omit_candidate_present` | `q6_omit_candidate_missing` | `omit_reconstructed_rating` row absent |
-| 14 | `_check_q6_deferred_candidate_present` | `q6_deferred_blocker_candidate_missing` | `deferred_blocker_with_algorithm_survey_required` row absent |
-| 15 | `_check_decision_count` | `decision_count_mismatch` | `len(decisions) != 8` |
-| 16 | `_check_decision_ids_canonical_order` | `decision_id_order_mismatch` | decisions not in `Q6_DECISION_IDS` order |
-| 17 | `_check_no_post_game_token_in_scoped_fields` | `q6_post_game_token_in_scoped_field` | POST-GAME token in `selected_policy` / `rating_model_family` / `evidence_paths` / non-exempt fields |
-| 18 | `_check_no_direct_target_match_outcome_reference` | `q6_direct_target_match_outcome_referenced` | scoped field references target.result / target.winner / target.outcome |
-| 19 | `_check_no_future_match_reference` | `q6_future_match_leakage_referenced` | scoped field references `history_time > target_time` or similar |
-| 20 | `_check_no_global_batch_fit_reference` | `q6_global_batch_fit_referenced` | scoped field permits a global/batch rating fit (verbatim: 'global fit' / 'batch fit' / 'fit on full corpus') |
-| 21 | `_check_no_phase_03_baseline_creep` | `q6_phase_03_baseline_creep` | scoped field references Phase 03 baseline modeling |
-| 22 | `_check_forward_only_constraint_present_when_non_omit` | `q6_forward_only_constraint_missing_for_non_omit_candidate` | non-omit candidate row missing forward-only wording in `rating_forward_only_constraints` |
-| 23 | `_check_cold_start_policy_present_when_non_omit` | `q6_cold_start_policy_missing_for_non_omit_candidate` | non-omit row missing G-CS-4 wording in `rating_cold_start_policy` |
-| 24 | `_check_tie_policy_present_when_non_omit` | `q6_tie_policy_missing_for_non_omit_candidate` | non-omit row missing tie/draw wording in `rating_tie_policy` |
-| 25 | `_check_hyperparameter_policy_present_when_non_omit` | `q6_hyperparameter_policy_missing_for_non_omit_candidate` | non-omit row missing 'deferred to algorithm-implementation-proof PR' wording |
-| 26 | `_check_evidence_level_valid` | `q6_evidence_level_field_invalid` | `rating_evidence_level not in ALLOWED_RATING_EVIDENCE_LEVELS` |
-| 27 | `_check_complexity_deployability_valid` | `q6_complexity_deployability_invalid` | enum invalid |
-| 28 | `_check_leakage_risk_valid` | `q6_leakage_risk_invalid` | enum invalid |
-| 29 | `_check_materialization_permission_valid` | `q6_materialization_permission_invalid` | enum invalid for the selected_policy |
-| 30 | `_check_external_citation_present_when_non_omit_non_deferred` | `q6_external_citation_missing_when_non_omit_selected` | `selected_policy` in {elo, glicko_*, trueskill_*} but evidence_paths lacks the corresponding citation string |
-| 31 | `_check_mmr_missingness_summary_present` | `q6_mmr_missingness_summary_missing` | `mmr_missingness_summary` empty or missing the 83.95% / 83.65% figures |
-| 32 | `_check_materialization_permission_consistent_with_verdict` | `q6_materialization_permission_drift` | e.g., `verdict = deferred_blocker` but `materialization_permission != blocked_*` |
-| 33 | `_check_q5_not_re_adjudicated` | `q6_q5_re_adjudication_drift` | any row carries a `cross_region_policy` field or attempts to re-bind Q5 |
-| 34 | `_check_no_status_yaml_path_referenced` | `q6_status_yaml_drift` | scoped field references STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS path |
-| 35 | `_check_no_research_log_mutation_implied` | `q6_research_log_drift` | scoped field implies a research_log append |
-| 36 | `_check_no_roadmap_path_modified` | `q6_roadmap_drift` | scoped field implies a ROADMAP edit |
-| 37 | `_check_no_materialized_output_paths_populated` | `q6_materialization_creep` | any row's `materialized_output_paths != ""` |
-| 38 | `_check_universal_tracker_source_in_history` | `universal_tracker_source_in_history` | tracker-events source name in any scoped field |
-| 39 | `_check_per_family_impact_summary_row_present` | `q6_per_family_impact_summary_missing` | the Q6_per_family_impact_summary row absent |
-| 40 | `_check_selected_policy_row_present` | `q6_selected_policy_row_missing` | the Q6_selected_policy row absent |
-| 41 | `_check_selected_policy_in_candidate_set` | `q6_selected_policy_not_in_candidate_set` | `selected_policy` value not in `Q6_RATING_POLICY_CANDIDATES` |
-| 42 | `_check_selected_policy_verdict_consistent` | `q6_selected_policy_verdict_invalid` | selected_policy row's verdict not in ALLOWED_VERDICTS |
-| 43 | `_check_per_family_impact_broadcasts_all_6_families` | `q6_per_family_impact_broadcast_incomplete` | per_family_impact_summary row doesn't reference all 6 family IDs |
-
-Final count target: **≥ 30 helpers** (43 above is comfortably above the floor; pruning permitted at Layer-2 execution time if a check is genuinely redundant, but the candidate-set / external-citation / Q5-no-re-adjudication / no-status-yaml-drift / no-roadmap-drift / no-materialization-creep helpers are non-negotiable).
-
-**B4 invariant (set equality):**
-
-```python
-assert set(HELPER_TO_FALSIFIER_KEY.values()) == set(FALSIFIER_PRIORITY_CHAIN), (
-    "B4 invariant violation: HELPER_TO_FALSIFIER_KEY values do not match FALSIFIER_PRIORITY_CHAIN"
-)
-assert len(FALSIFIER_PRIORITY_CHAIN) == len(set(FALSIFIER_PRIORITY_CHAIN)), (
-    "B4 invariant violation: FALSIFIER_PRIORITY_CHAIN contains duplicates"
-)
-```
-
----
-
-### T04 — Adjudicator module: public entrypoint with priority chain
-
-**File (extend):** `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py`
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** entrypoint signature matches the call pattern in T07 notebook; priority-chain execution returns `(result, halting_falsifier or None)`; CSV / MD writes are gated on `result.passed`.
-
-**Executor:** Opus (entrypoint orchestrates the falsifier discipline + the substantive Q6 row content from T05; Sonnet may scaffold the priority loop but Opus reviews).
-
-```python
-def adjudicate_history_rating_reconstruction(
-    *,
-    duckdb_path: Path,
-    parent_pr242_csv_path: Path,
-    parent_pr242_md_path: Path,
-    parent_pr243_csv_path: Path,
-    parent_pr243_md_path: Path,
-    pr241_validator_module_path: Path,
-    cross_02_02_spec_path: Path,
-    feature_family_registry_csv_path: Path,
-    dataset_research_log_path: Path,
-    player_history_all_yaml_path: Path,
-    matches_flat_clean_yaml_path: Path,
-    matches_history_minimal_yaml_path: Path,
-    csv_out_path: Path,
-    md_out_path: Path,
-    audit_pr: str,        # "PR #N" once N is known at Layer-2 time
-    audit_date: str,      # "YYYY-MM-DD"
-) -> RatingReconstructionAdjudicationResult:
-    ...
-    # 1. SHA pin checks (helpers 1-11)
-    # 2. Probe DuckDB for evidence-availability (probes 1-6); abort if any probe degenerate
-    # 3. Build the 8 RatingReconstructionAdjudicationDecision rows (T05 substantive content)
-    # 4. Run helpers 12-43 against the row set in FALSIFIER_PRIORITY_CHAIN order
-    # 5. If any falsifier fires: return (result, falsifier_key); DO NOT write CSV/MD
-    # 6. If all pass: byte-deterministically write CSV (one row per Q6_DECISION_IDS in canonical order)
-    # 7. Byte-deterministically write MD (sections per File Manifest)
-    # 8. Return result with passed=True, halting_falsifier=None
-```
-
----
-
-### T05 — Per-decision binding (the substantive Q6 content)
-
-**File (extend):** `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py` (the row constructors are module-level functions returning `RatingReconstructionAdjudicationDecision` instances).
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** all 8 rows constructible; each row's `notes` field is exempt from POST-GAME token scanning (per B-X1 carry-over); each row's `evidence_paths` contains at least one real on-disk path; non-omit non-deferred rows contain at least one of the 4 algorithm citation strings.
-
-**Executor:** **Opus REQUIRED.** This is the only substantive-methodology step; it requires reasoning about tradeoffs, leakage protection per algorithm family, cold-start support, and the verdict-emergence discipline. A Sonnet executor must not author T05.
-
-**Row-by-row substantive content (the Q6 PR author fills in verdicts; this plan records the row skeletons):**
-
-**Row Q6A — `Q6A_omit_reconstructed_rating`** (candidate row):
-- `verdict` ∈ ALLOWED_VERDICTS; `binding_level` typically `recommendation_only` (a candidate, not the chosen).
-- `candidate_policy = "omit_reconstructed_rating"`.
-- `rating_model_family = "none"`.
-- `rating_forward_only_constraints = "not_applicable_omitted"`.
-- `rating_cold_start_policy = "G-CS-4_trivially_satisfied_by_omission_plus_is_mmr_missing_flag"`.
-- `rating_tie_policy = "not_applicable_omitted"`.
-- `rating_hyperparameter_policy = "not_applicable_omitted"`.
-- `rating_evidence_level = "in_repo_only"` (no algorithm citation needed for omission).
-- `complexity_deployability_score = "low"`.
-- `leakage_risk_score = "not_applicable"`.
-- `mmr_missingness_summary` = "MMR missing in 83.95% of matches_flat_clean rows / 83.65% of player_history_all rows; is_mmr_missing flag co-registered per §6.2 row 'is_mmr_missing (PRE_GAME flag)' (line 228) remains the primary skill-signal proxy."
-- `feature_availability_summary` = "5 of 6 history-enriched pre_game families remain available for materialization (focal_player_history, opponent_player_history, matchup_history_aggregate, in_game_history_aggregate, cross_region_fragmentation_handling). The reconstructed_rating slot is empty."
-- `notes` includes the rationale that omission is the strongest cold-start posture (no synthetic rating fabricated for first-match rows) but loses cross-player skill comparability.
-
-**Row Q6B — `Q6B_rolling_win_rate_or_bayesian_smoothed_baseline`** (candidate row):
-- `candidate_policy = "rolling_win_rate_or_bayesian_smoothed_baseline"`.
-- `rating_model_family = "bayesian_smoothed_rolling_win_rate"`.
-- `rating_forward_only_constraints = "strict_lt_history_filter_per_PR_242_Q3_BIND_NOW_then_running_beta_binomial_or_empirical_bayes_update"`.
-- `rating_cold_start_policy = "G-CS-4_via_global_prior_alpha_beta_with_is_first_match_flag_co_registered"`.
-- `rating_tie_policy = "not_applicable_decisive_only_per_PR_242_Q1_history_filter"` (PHA already restricted to decisive results).
-- `rating_hyperparameter_policy = "alpha_prior_beta_prior_window_length_deferred_to_algorithm_implementation_proof_PR"`.
-- `rating_evidence_level = "in_repo_only"` (no opponent-strength model; no external citation needed; rolling winrate is in CROSS-02-02 §6.2 row 1 verbatim).
-- `complexity_deployability_score = "low"`.
-- `leakage_risk_score = "low_if_forward_only_enforced"`.
-- `notes` notes this is a *baseline* not a true rating: it does not model opponent strength, so it cannot distinguish a 50% winrate against weak opponents from a 50% winrate against strong ones. Worth recording as a candidate because its leakage surface is the smallest.
-
-**Row Q6C — `Q6C_elo`** (candidate row):
-- `candidate_policy = "elo"`.
-- `rating_model_family = "elo_per_player_id_worldwide_grouped"`.
-- `rating_forward_only_constraints = "STRICT_LT_HISTORY_FILTER_then_per_pair_forward_update_chronologically_ordered_by_TRY_CAST_details_timeUTC_AS_TIMESTAMP_with_replay_id_tiebreaker"`.
-- `rating_cold_start_policy = "G-CS-4_via_literature_prior_1500_for_first_match_with_is_first_match_flag_co_registered"`.
-- `rating_tie_policy = "PHA_history_already_decisive_per_PR_242_Q1_no_explicit_draw_handling"`.
-- `rating_hyperparameter_policy = "K_factor_and_initial_rating_deferred_to_algorithm_implementation_proof_PR"`.
-- `rating_evidence_level = "in_repo_plus_citation"`.
-- `evidence_paths` includes `CITATION_ELO_1978` + `reports/specs/02_02_feature_engineering_plan.md (§6.2 row 4; §9 G-CS-4)` + the dataset research_log lines 733-734 / 961 / 792 / 837.
-- `complexity_deployability_score = "low"` (simplest principled rating).
-- `leakage_risk_score = "low_if_forward_only_enforced"`.
-- `notes` weighs Elo's lack of inactivity decay (vs Glicko-RD).
-
-**Row Q6D — `Q6D_glicko_or_glicko_2`** (candidate row):
-- `candidate_policy = "glicko_or_glicko_2"`.
-- `rating_model_family = "glicko_or_glicko_2_per_player_id_worldwide_grouped"` (the PR may sub-specify).
-- `rating_forward_only_constraints` = same as Q6C with the addition of "per-rating-period batched update internally; the rating period itself is a hyperparameter (deferred)".
-- `rating_cold_start_policy = "G-CS-4_via_literature_prior_mu_1500_RD_350_sigma_0.06_for_first_match_with_is_first_match_flag_co_registered"` (Glicko-2 defaults; final values deferred).
-- `rating_tie_policy = "PHA_history_already_decisive_per_PR_242_Q1_draw_score_0.5_not_used"`.
-- `rating_hyperparameter_policy = "mu_prior_RD_prior_sigma_prior_tau_rating_period_days_deferred_to_algorithm_implementation_proof_PR"`.
-- `rating_evidence_level = "in_repo_plus_citation"`.
-- `evidence_paths` includes `CITATION_GLICKMAN_1999` + `CITATION_GLICKMAN_2012` + the §6.2 row 4 spec quote ("Glicko-2 or analogous").
-- `complexity_deployability_score = "medium"`.
-- `leakage_risk_score = "medium_if_forward_only_enforced"` (rating-period batching is a within-period micro-leakage surface that must be carefully bounded; recorded honestly).
-- `notes` makes the spec-favoured-path case explicit: §6.2 row 4 names Glicko-2 first. RD's inactivity decay matches the dataset's tournament rhythm.
-
-**Row Q6E — `Q6E_trueskill_or_trueskill_like`** (candidate row):
-- `candidate_policy = "trueskill_or_trueskill_like"`.
-- `rating_model_family = "trueskill_2006_1v1_subset_or_trueskill_through_time_per_player_id_worldwide_grouped"`.
-- `rating_forward_only_constraints` = same as Q6D; with extra wording on Gaussian message-passing posterior update being forward-only.
-- `rating_cold_start_policy = "G-CS-4_via_literature_prior_mu_25_sigma_25_over_3_for_first_match_with_is_first_match_flag_co_registered"`.
-- `rating_tie_policy = "PHA_history_already_decisive_per_PR_242_Q1_draw_margin_zero_or_minimal"`.
-- `rating_hyperparameter_policy = "mu_prior_sigma_prior_beta_tau_draw_margin_deferred_to_algorithm_implementation_proof_PR"`.
-- `rating_evidence_level = "in_repo_plus_citation"`.
-- `evidence_paths` includes `CITATION_HERBRICH_MINKA_GRAEPEL_2006`.
-- `complexity_deployability_score = "high"` (Bayesian factor-graph implementation cost; mature libraries exist but more complex than Glicko-2).
-- `leakage_risk_score = "medium_if_forward_only_enforced"`.
-- `notes` notes the 1v1 special-case of TrueSkill degenerates to a Glicko-like update; the marginal expressiveness gain for 1v1 may not justify the complexity.
-
-**Row Q6F — `Q6F_deferred_with_algorithm_survey`** (candidate row):
-- `candidate_policy = "deferred_blocker_with_algorithm_survey_required"`.
-- `verdict = "deferred_blocker"` (this is the "punt with rigour" option).
-- `rating_model_family = "to_be_determined_after_algorithm_survey_step"`.
-- `rating_forward_only_constraints = "binding_in_advance_no_global_batch_fit_no_target_match_outcome_no_future_match_read_for_all_candidates_survey_step_must_honour"`.
-- `rating_cold_start_policy = "G-CS-4_binding_in_advance"`.
-- `rating_hyperparameter_policy = "deferred_pending_algorithm_survey_step"`.
-- `rating_evidence_level = "deferred"`.
-- `complexity_deployability_score = "not_applicable"`.
-- `leakage_risk_score = "not_applicable"`.
-- `materialization_permission = "blocked_pending_algorithm_survey_pr"`.
-- `notes` records why a survey is needed: e.g., the comparative empirical evidence (back-testing AUC / log-loss on the unrated regime) does not exist in any prior artifact and would require its own Step.
-
-**Row Q6_selected_policy** (BINDING row; verdict emerges from the candidate table per A14 pattern from PR #243):
-- `decision_id = "Q6_selected_policy"`.
-- `parent_decision_id = "Q6_rating_policy"`.
-- `selected_policy = <one of the 6 candidates>` — chosen by the Q6 executor based on the per-candidate table.
-- `verdict` ∈ {`bind_now`, `narrow_with_evidence`, `recommendation_only`, `deferred_blocker`} (the Q6 plan does NOT pre-commit which).
-- `rejected_options` = JSON list of the 5 unselected candidates with brief per-candidate rejection rationale.
-- `materialization_permission` derived from `selected_policy` per Assumption 15.
-- `evidence_paths` cumulates the per-candidate rows' evidence paths.
-- `notes` documents the verdict-emergence chain explicitly (which candidates were inferior and why, per the complexity/leakage/evidence-level table).
-
-**Row Q6_per_family_impact_summary** (derived row):
-- `decision_id = "Q6_per_family_impact_summary"`.
-- `parent_decision_id = "Q6_rating_policy"`.
-- `verdict = "narrow_with_evidence"` (informational broadcast).
-- `binding_level = "recommendation_only"`.
-- `candidate_policy = "not_applicable"`.
-- `selected_policy` = mirrors the Q6_selected_policy row's value.
-- `rating_*` fields all `"not_applicable_per_family_summary_row"`.
-- `feature_availability_summary` enumerates the 6 family IDs and for each: `affected_by_q6 = "yes"` for `reconstructed_rating`, `affected_by_q6 = "no"` for the other 5.
-- `materialization_permission` derived from the selected policy per Assumption 15.
-- `notes` notes this row exists for downstream-consumer interface uniformity with PR #243's `Q5_per_family_impact_summary`.
-
-**Stop-and-halt-before-artifact rule:** if T05 produces a row that triggers ANY falsifier from T03, the Q6 PR halts and writes no artifact. The Q6 executor must re-author the offending row or escalate to the planner with the surprise finding (per data-analysis-lineage rule §"Stop conditions" and §"Non-batching rule"). Surprises are reported as observations, not silently fixed.
-
----
-
-### T06 — Mirrored test file
-
-**File (create):** `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_rating_reconstruction.py`
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** ≥ 150 tests pass; coverage on `adjudicate_history_rating_reconstruction.py` ≥ 95% (project-wide `fail_under = 95` per pyproject); pytest finishes without warnings; no test reads the real DuckDB at module-import time.
-
-**Executor:** Sonnet (mechanical mirroring of PR #243's test patterns; the assertion content is mechanical given T01-T05 are settled).
-
-**Test categories (mirror PR #243's 194-test pattern, scaled):**
-
-- **Schema tests** (~20): every required column present in CSV header; column order canonical; SHA fields are 64-char lowercase hex; `materialized_output_paths == ""` on every row; `audit_pr` populated.
-- **Decision-row tests** (~30): 8 rows in canonical `Q6_DECISION_IDS` order; one row per ID; per-row enum-field validation against `ALLOWED_*` constants.
-- **Falsifier roll-call tests** (~45): one positive + one negative test per helper from T03's 43 helpers (i.e., the helper is invoked and asserted both ways). Includes synthetic inputs that *should* fire the falsifier and a sanity assertion that the entrypoint halts and writes no artifact when it does.
-- **SHA pinning tests** (~10): mismatch of any pinned SHA halts the entrypoint; mismatch of any pinned source-file SHA halts the entrypoint.
-- **Candidate-completeness tests** (~10): missing any of the 6 candidates halts; extra candidate halts; duplicate candidate halts; selected_policy value outside the candidate set halts.
-- **POST-GAME-token rejection tests** (~10): synthetic rows containing forbidden tokens halt; the `notes` field is exempt per B-X1 carry-over.
-- **MMR-missingness re-affirmation tests** (~5): the entrypoint asserts the 83.95% / 83.65% figures appear in the `mmr_missingness_summary` field of every candidate row.
-- **Q5-non-re-adjudication tests** (~5): any row carrying a `cross_region_policy` field-name or `strict_exclusion` / `dual_feature_path` token in a verdict-bearing field halts.
-- **Status-YAML / research_log / ROADMAP drift tests** (~5): reference to any of these paths in a scoped field halts.
-- **Materialization-creep tests** (~5): any non-empty `materialized_output_paths` halts; the entrypoint never writes a Parquet.
-- **B4 invariant tests** (~3): set equality + no duplicates + count equality on `HELPER_TO_FALSIFIER_KEY` vs `FALSIFIER_PRIORITY_CHAIN`.
-- **Determinism tests** (~5): two consecutive runs over the same DuckDB produce byte-identical CSV and byte-identical MD.
-
-Total: ~150-160 tests.
-
-**Validation report:** `source .venv/bin/activate && poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_rating_reconstruction.py -v --cov=src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction --cov-report=term-missing` returns ≥ 95% coverage with all tests passing.
-
----
-
-### T07 — Sandbox notebook pair (jupytext)
-
-**Files (create):**
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.py` (jupytext py:percent source)
-- `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.ipynb` (paired notebook)
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** notebook runs end-to-end against `data/db/db.duckdb`; jupytext pair stays in sync; no `def` / `class` / `lambda` in any cell (all logic imported from the adjudicator module); the adjudication-call cell asserts `result.passed and result.halting_falsifier is None and len(result.decisions) == 8`.
-
-**Executor:** Sonnet.
-
-**Cell skeleton (per sandbox/README.md):**
-
-1. **Markdown:** Title, hypothesis (the Q6 question verbatim from Problem Statement), falsifier list (citing T03 by key), scope (Q6-only; Q5 not re-adjudicated; no materialization).
-2. **Code:** imports from `rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_rating_reconstruction`; pin paths via `rts_predict.common.notebook_helpers`.
-3. **Markdown:** per-candidate hypothesis cells (Q6A through Q6F), each stating: assumption, measurement claim, sanity check, falsifier, expected artifact, lineage source, downstream decision. Per data-analysis-lineage §"Required structure for every empirical analysis".
-4. **Code:** invoke `adjudicate_history_rating_reconstruction(...)` against the real DuckDB + PR #242 CSV/MD + PR #243 CSV/MD + the 6 source-file paths; assert `passed`, `len(decisions) == 8`, `halting_falsifier is None`; per-row NIT-B SHA binding assertion.
-5. **Markdown:** Q5 deferral preservation statement; Q6 outcome statement; materialization permission statement; no Step closure claim.
-
----
-
-### T08 — Manifest housekeeping
-
-**Files (edit):**
-- `CHANGELOG.md` — append `## [3.75.0] — YYYY-MM-DD (PR #N: feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication)` block following the PR #243 entry format; enumerate every file added/changed; record verdict outcome string.
-- `pyproject.toml` — bump `version = "3.74.0"` → `version = "3.75.0"`.
-- `planning/INDEX.md` — archive the current Active row (PR #243); promote `feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication` to the new Active row with the future PR #'s description.
-
-**Forbidden files:** same as T01.
-
-**Stop condition:** pre-commit hook passes on all three files; CHANGELOG follows Keep a Changelog format; `planning/INDEX.md` Active row points at the Q6 PR; the archived PR #243 row records the correct merged-master SHA (resolved at PR-merge time, not at planning time).
-
-**Executor:** Sonnet.
-
----
-
-### T09 — Layer-2 final-gate dispatch
-
-**Files:** none (no file edit; dispatch only).
-
-**Stop condition:** reviewer-adversarial returns APPROVE or APPROVE-WITH-NITS with 0 blockers.
-
-**Executor:** parent session dispatches `@reviewer-adversarial` (NOT `@reviewer-deep`) because the Q6 artifact is methodology-sensitive: it binds a rating-model family that will appear as a thesis-citable claim, and the adjudication choice will be defended at examination. Per `.claude/rules/data-analysis-lineage.md` agent-routing discipline, reviewer-adversarial is the correct final gate for any Q6 outcome other than `Q6A_omit` or `Q6F_deferred_with_survey` — and even those benefit from adversarial review because the omission / re-deferral verdict has thesis implications.
-
-If reviewer-adversarial raises BLOCKERS, the Q6 PR halts; the executor fixes blockers and re-runs the gate. The 3-round adversarial cap applies (per feedback memory `feedback_adversarial_cap_execution.md`).
-
----
+The future Layer-2 execution PR runs T01-T09 in order. Each step lists files, function signatures (where load-bearing), validation report, stop condition, and Sonnet/Opus routing.
+
+The non-batching rule (`data-analysis-lineage.md` §"Non-batching rule for empirical work") REQUIRES that the Layer-2 PR itself respect a per-step sequence (scaffold → validation module → executor checkpoint → artifacts → status update). The Layer-2 PR is permitted to bundle T01-T09 in a single PR ONLY because every prior step (T01-T08) leaves the survey artifacts ungenerated; the artifacts are generated only at T06, after the rating engines (T03), metrics (T04), and per-candidate decision binding (T05) have been validated.
+
+### T01 — Survey module shell (constants + dataclasses + schema)
+
+- File: `src/rts_predict/games/sc2/datasets/sc2egset/survey_history_rating_algorithms.py`
+- Mirror PR #245 module's dataclass + constant structure verbatim. Specifically:
+  - `Q6F_RATING_ALGORITHM_CANDIDATES: tuple[str, ...]` — the 4 included + 2 carry-forward canonical strings.
+  - `Q6F_CANDIDATE_INCLUSION: dict[str, bool]` — maps each candidate to True (included in numeric survey) or False (carry-forward reference).
+  - `Q6F_HYPERPARAMETER_DEFAULTS: dict[str, dict[str, float]]` — pinned defaults per Assumption 10.
+  - `STRICT_LT_HISTORY_FILTER: str` — imported from PR #245's module verbatim (not re-authored).
+  - `CITATION_*` constants — imported from PR #245's module verbatim.
+  - `Q6F_SURVEY_SCHEMA: tuple[str, ...]` — 36 column names (see File Manifest).
+  - `RatingAlgorithmSurveyDecision` dataclass (1 instance per survey row; 36 fields matching schema).
+  - `RatingAlgorithmSurveyResult` dataclass (top-level container).
+  - `FALSIFIER_PRIORITY_CHAIN: tuple[str, ...]` — ≥35 falsifier keys covering parent-SHA mismatch (×6), candidate completeness, byte-determinism, materialization creep, Q5 re-adjudication drift, status drift, research_log drift, ROADMAP drift, no_post_game_token, no_target_match_outcome_read, no_future_match_read, no_global_batch_fit, no_phase_03_baseline_creep, forward-only present per non-omit candidate, cold-start present per non-omit candidate, tie-policy present per non-omit candidate, hyperparameter present per non-omit candidate, evaluation-trace persistence violation, AUC-floor-not-pinned, rating-trace-persistence-violation, q6f_selected_policy_row_missing, q6f_per_family_impact_summary_missing, q6f_decision_count_mismatch (must == 8), q6f_decision_id_order_mismatch.
+- Sonnet sufficient (mechanical scaffolding; schema is fully specified in the plan).
+- Validation report: dataclass field count matches schema column count; `Q6F_RATING_ALGORITHM_CANDIDATES` length == 6; `Q6F_CANDIDATE_INCLUSION` keys match `Q6F_RATING_ALGORITHM_CANDIDATES`; assert-blocks at module load (mirroring PR #245's `assert len(HELPER_TO_FALSIFIER_KEY) == len(FALSIFIER_PRIORITY_CHAIN)` pattern).
+- Stop condition: module imports cleanly; `python -c "import rts_predict.games.sc2.datasets.sc2egset.survey_history_rating_algorithms"` returns 0; T02 may begin only after T01 checkpoint commit.
+
+### T02 — Read-only PHA chronological loader
+
+- File: same module; function `_load_pha_history_chronological(db_path: Path) -> pd.DataFrame`.
+- Returns the full PHA stream sorted by `(toon_id, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id)` — the deterministic ordering inherited from PR #245.
+- Read-only DuckDB connection (`duckdb.connect(str(db_path), read_only=True)`).
+- Single SQL query: `SELECT toon_id, replay_id, details_timeUTC, result, mmr FROM player_history_all WHERE result IN ('Win', 'Loss') ORDER BY toon_id, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id`. (PHA already decisive per PR #242 Q1; the `WHERE result IN (...)` is defensive belt-and-braces.)
+- Returns a DataFrame; downstream rating engines consume it row-by-row.
+- Sonnet sufficient.
+- Validation report: row count printed; assert row count > 0; assert no NULL `details_timeUTC` after `TRY_CAST`; assert per-toon chronological monotonicity (each `toon_id` group's `details_timeUTC` is non-decreasing).
+- Stop condition: validation report shows monotonicity holds; T03 may begin only after T02 checkpoint commit.
+
+### T03 — Per-algorithm rating engines (4 engines + 1 shared cold-start scaffold)
+
+- File: same module; 4 functions:
+  - `_run_rolling_baseline_survey(stream: pd.DataFrame) -> dict[str, Any]`
+  - `_run_elo_survey(stream: pd.DataFrame, k_factor: float = 24.0) -> dict[str, Any]`
+  - `_run_glicko2_survey(stream: pd.DataFrame, mu: float = 1500, rd: float = 350, sigma: float = 0.06, tau: float = 0.5, rating_period_days: int = 30) -> dict[str, Any]`
+  - `_run_trueskill_survey(stream: pd.DataFrame, mu: float = 25, sigma: float = 25/3, beta: float = 25/6, tau: float = 25/300, draw_margin: float = 0) -> dict[str, Any]`
+- Each returns a dict with:
+  - `"predicted_probabilities": np.ndarray` — one per PHA row (the ex-ante predicted P(focal wins) at the time of that row, using rating state from STRICTLY PRIOR rows; `np.nan` for any row where the focal player had no prior history).
+  - `"actuals": np.ndarray` — the actual decisive outcome (1.0 for `Win`, 0.0 for `Loss`).
+  - `"is_cold_start": np.ndarray` — boolean; True if the focal player's `toon_id` had no PHA row strictly prior to this one.
+  - `"rating_state_at_end": dict[str, dict]` — final per-toon rating state (kept in memory for inspection during execution; NOT persisted; falsifier q6f_rating_trace_persistence_violation checks this).
+  - `"runtime_ms": float` — wall-clock for the engine run.
+- Each engine implements **deterministic forward-only updates**:
+  - The stream is sorted chronologically; the engine processes each row in order.
+  - Before processing row R, the predicted probability is computed using ONLY the rating state accumulated from rows with strictly-earlier `(toon_id, timestamp, replay_id)` per the strict-`<` filter.
+  - After scoring row R, the rating state is updated using R's actual outcome (which becomes input to FUTURE rows' predictions but NEVER to R's own prediction).
+  - This is the canonical forward-only rating protocol; it is leakage-safe iff the strict-`<` ordering is maintained.
+- Fixed literature defaults per Assumption 10.
+- **Opus REQUIRED for T03.** Subtle reasoning required: (a) forward-only semantics — the prediction MUST be computed BEFORE the rating update; reversing the order is a silent leak; (b) cold-start handling per candidate — each engine has a different initial-rating policy; (c) per-pair update — in 1v1 PHA, each PHA row represents one focal player's view of a game; the opponent's `toon_id` is required to update both ratings; the engine must look up (or join in) the opponent's prior rating; (d) Glicko-2 rating-period batching — within a period, all matches are batched, but BETWEEN periods, the state is updated forward; the period boundary must NOT cross the target match.
+- Validation report: per engine, print first 10 rows' (`toon_id`, `predicted_probability`, `actual`, `is_cold_start`); assert predicted_probability NaN iff is_cold_start True (or, for engines where the cold-start prior is used to predict, predicted_probability == prior-implied probability and is_cold_start is True separately); assert no row's prediction reads the row's own `result`.
+- Stop condition: per-engine validation report shows forward-only invariant holds for all 4 engines; T04 may begin only after T03 checkpoint commit.
+
+### T04 — Metric computation
+
+- File: same module; function `_compute_survey_metrics(engine_output: dict[str, Any]) -> dict[str, float]`.
+- Computes per-candidate:
+  - `metric_auc` — sklearn `roc_auc_score(actuals[~cold_start], predicted_probabilities[~cold_start])`.
+  - `metric_log_loss` — sklearn `log_loss(actuals[~cold_start], predicted_probabilities[~cold_start], labels=[0, 1])`.
+  - `metric_brier_or_calibration` — `brier_score_loss(actuals[~cold_start], predicted_probabilities[~cold_start])`.
+  - `coverage_rate` — fraction of PHA rows with a non-NaN prediction (i.e., `1 - is_cold_start.mean()` after the cold-start mask is applied).
+  - `cold_start_rate` — `is_cold_start.mean()`.
+  - `runtime_summary` — formatted "<runtime_ms> ms over <row_count> rows".
+- Sonnet sufficient (mechanical; sklearn metrics).
+- Validation report: per candidate, print the 3 numeric metrics + 2 rates; assert AUC in [0, 1]; assert log_loss > 0; assert Brier in [0, 0.25]; assert coverage_rate + cold_start_rate ~= 1 (sum within 1e-9).
+- **Forward-only sanity**: the metric is computed against future actuals, but the rating INPUT for each prediction never sees the future actual. This is the per-row contract from T03. The metric layer enforces nothing additional; it merely reports the score.
+- Stop condition: 4 candidates' metrics tables printed and inspected; T05 may begin only after T04 checkpoint commit.
+
+### T05 — Per-candidate decision rows + emergent Q6F_selected_policy
+
+- File: same module; function `_build_survey_decisions(metrics_by_candidate: dict[str, dict[str, float]], ...) -> tuple[RatingAlgorithmSurveyDecision, ...]`.
+- Returns 8 decisions in canonical order (per Assumption 12). For the 4 included candidates, each decision's metric fields are populated from T04. For the 2 carry-forward references, metric fields are populated with sentinel values:
+  - `omit_reconstructed_rating`: AUC=0.5 (no-skill baseline; the omission case predicts nothing); log_loss = NaN; Brier = NaN; coverage_rate = 0.0; cold_start_rate = 1.0; runtime_summary = "not_applicable_carry_forward".
+  - `deferred_blocker_with_algorithm_survey_required`: all 5 metric fields = "not_applicable_carry_forward" (string sentinel).
+- The Q6F_selected_policy row's `selected_policy` value is derived per the following decision rule (this rule MUST be inlined verbatim in the module as a constant `Q6F_SELECTION_DECISION_RULE: str`):
+
+  ```text
+  Let M be the set of 4 included candidates with metric_auc populated.
+  Let AUC_FLOOR = 0.55 (pinned per OQ1 default; rationale: 0.55 is a 5%-above-no-skill floor commonly used in calibration literature; any lower value is indistinguishable from no-skill within reasonable bootstrap CI).
+  Let AUC_BIND_THRESHOLD = 0.60 (pinned default; rationale: 0.60 is a defensible "this algorithm provides genuine forward-only skill signal" floor for a sample of ~22K decisive matches).
+  
+  IF max(M.metric_auc) < AUC_FLOOR:
+    selected_policy = "omit_reconstructed_rating_and_unblock_other_five"
+    verdict = "omit_reconstructed_rating_and_unblock_other_five"
+    materialization_permission = "permitted_for_other_5_families_without_reconstructed_rating"
+    rationale = "No included candidate cleared the AUC floor of 0.55; rating reconstruction provides no detectable forward-only skill signal on the sc2egset PHA corpus; recommended to omit the reconstructed_rating family and proceed with the other 5 history-enriched pre_game families."
+  ELIF max(M.metric_auc) >= AUC_BIND_THRESHOLD:
+    best = argmax(M.metric_auc)
+    selected_policy = "bind_now"
+    verdict = "bind_now"
+    materialization_permission = f"permitted_for_all_6_families_with_pinned_{best}_hyperparameters_in_next_materialization_pr"
+    rationale = f"Candidate {best} achieved the highest AUC ({M[best].metric_auc:.4f}) and cleared the AUC bind threshold of 0.60; bind for materialization with the pinned literature-default hyperparameters."
+  ELSE:
+    # AUC_FLOOR <= max(M.metric_auc) < AUC_BIND_THRESHOLD
+    best = argmax(M.metric_auc)
+    selected_policy = "narrow_with_evidence"
+    verdict = "narrow_with_evidence"
+    materialization_permission = "recommendation_only_blocked_pending_implementation_proof_pr"
+    rationale = f"Candidate {best} achieved AUC {M[best].metric_auc:.4f}, above the AUC floor (0.55) but below the bind threshold (0.60); recommendation only; an implementation-proof PR is required before Layer-3 materialization."
+  ```
+
+- **Opus REQUIRED for T05.** Substantive reasoning: (a) the decision rule above is the planner's default; the executor must re-examine it against actual numbers and may propose an alternative rule in the Layer-2 PR if the actuals reveal a pathology (e.g., all 4 AUCs are bunched within 0.001 of each other); any alternative rule must be justified in the PR description and the Layer-2 reviewer-adversarial must approve it; (b) the per-candidate rejection rationales (one per row of the per-candidate decision table) must be authored substantively — not boilerplate; (c) the Q6F_per_family_impact_summary row's `feature_availability_summary` JSON must broadcast the Q6F selected_policy decision across all 6 families correctly (it differs between `bind_now` ["all 6 unblocked"], `narrow_with_evidence` ["recommendation only; all 6 still blocked at implementation-proof"], `omit_reconstructed_rating_and_unblock_other_five` ["5 unblocked, reconstructed_rating permanently absent"], `deferred_blocker` ["all 6 blocked pending <named reason>"]).
+- Validation report: 8 decisions emitted; Q6F_selected_policy row's verdict is one of the 4 allowed; per-candidate metric fields populated.
+- Stop condition: 8 decisions reviewed; T06 may begin only after T05 checkpoint commit.
+
+### T06 — Survey CSV + MD writer
+
+- File: same module; function `write_q6f_survey_artifacts(result: RatingAlgorithmSurveyResult, csv_path: Path, md_path: Path) -> None`.
+- CSV writer: byte-deterministic (sort decisions by `decision_id`; use canonical CSV dialect; explicit `lineterminator="\n"`; explicit `quoting=csv.QUOTE_MINIMAL`).
+- MD writer: ≥17 sections per the MD outline in File Manifest. Mirror PR #245's MD shape but with Q6F-specific section titles.
+- Sonnet sufficient.
+- Validation report: byte-stability check — run the writer twice, assert the two outputs hash-identical; CSV column count == 36; CSV row count == 9 (1 header + 8 decisions); MD section count >= 17 (assert via `grep -c "^## "`).
+- Stop condition: byte-stability holds; T07 may begin only after T06 checkpoint commit.
+
+### T07 — Sandbox jupytext notebook pair
+
+- Files:
+  - `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.py` (jupytext-paired Python source).
+  - `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.ipynb` (notebook).
+- All logic imported from the survey module; the notebook cells call the public entrypoint and print outputs (per `feedback_notebook_print_vs_logger` — print() for data exploration, logger only for diagnostics).
+- No `def`/`class`/`lambda` in cells (per sandbox README contract).
+- Outputs cleared before commit (no embedded `outputs` field in `.ipynb`).
+- Sonnet sufficient.
+- Validation report: notebook executes top-to-bottom without error; final cell prints the Q6F_selected_policy.
+- Stop condition: notebook runs cleanly; T08 may begin only after T07 checkpoint commit.
+
+### T08 — Mirrored test file
+
+- File: `tests/rts_predict/games/sc2/datasets/sc2egset/test_survey_history_rating_algorithms.py`.
+- Test target: ≥150 tests; ≥95% branch coverage on the survey module.
+- Test classes:
+  - `TestModuleConstants` — verify `Q6F_RATING_ALGORITHM_CANDIDATES`, `Q6F_CANDIDATE_INCLUSION`, `Q6F_HYPERPARAMETER_DEFAULTS`, `Q6F_SURVEY_SCHEMA`, citation constants, schema-column count, decision-count.
+  - `TestParentSHAs` — verify the 6 pinned parent SHAs against the canonical strings; failure case (mismatch) triggers `RatingAlgorithmSurveyError` with the correct falsifier key.
+  - `TestRollingBaselineEngine` — synthetic 2-player, 4-row PHA fixture; assert forward-only invariant; assert cold-start handling.
+  - `TestEloEngine` — synthetic fixture; assert K=24 default; assert symmetric rating updates.
+  - `TestGlicko2Engine` — synthetic fixture; assert mu/RD/sigma defaults; assert rating-period batching does not leak across target.
+  - `TestTrueSkillEngine` — synthetic fixture; assert 1v1-decisive degenerates to Gaussian update.
+  - `TestMetricComputation` — golden-numbers fixture (predictions [0.6, 0.4, 0.5, 0.7], actuals [1, 0, 1, 1]); assert AUC, log_loss, Brier match hand-computed values within 1e-9.
+  - `TestSelectionDecisionRule` — assert each of the 4 outcome branches fires correctly under synthesised metric tables.
+  - `TestArtifactWriter` — byte-stability via dual-write hash comparison; CSV column count; MD section count.
+  - `TestFalsifierChain` — for each falsifier in `FALSIFIER_PRIORITY_CHAIN`, construct a failing fixture and assert the matching helper raises with the correct `falsifier_key` field.
+  - `TestNoMaterializationCreep` — assert `materialized_output_paths` is empty on every decision row; assert no `.parquet` is written anywhere under `tmp_path` after a full survey run.
+  - `TestForwardOnlyInvariant` — synthetic fixture where the same player has 3 sequential rows; assert that the prediction for row 2 uses row 1's rating state and NOT row 2's own outcome; assert that the prediction for row 3 uses row 2's POST-UPDATE rating state.
+- Sonnet sufficient (mechanically specified given T01-T05 are settled).
+- Validation report: `poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_survey_history_rating_algorithms.py -v --cov=rts_predict.games.sc2.datasets.sc2egset.survey_history_rating_algorithms --cov-branch --cov-report=term-missing`; assert ≥150 tests pass; assert ≥95% branch coverage.
+- Stop condition: test suite green; T09 may begin only after T08 checkpoint commit.
+
+### T09 — Release tail
+
+- Files:
+  - `pyproject.toml` — version `3.75.0 -> 3.76.0`.
+  - `CHANGELOG.md` — new `## [3.76.0] - YYYY-MM-DD (PR #N: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey)` block enumerating every file added; verdict outcome string; per Layer-2 reviewer-adversarial verdict.
+  - `planning/INDEX.md` — archive PR #245 into the Archive table; new Active entry pointing to the Q6F-survey Layer-2 PR.
+- Sonnet sufficient.
+- Validation report: pre-commit hooks pass (ruff, mypy, plan-section-check); `git status` shows only the expected files modified.
+- Stop condition: PR ready for `@reviewer-adversarial` final gate.
+
+### Adversarial gate
+
+The Layer-2 PR's final gate is `@reviewer-adversarial` (NOT `@reviewer-deep`) because the survey produces methodology-bearing quantitative findings that will inform thesis chapters. The 3-round adversarial cap resets for Layer-2 (per `feedback_adversarial_cap_execution.md` symmetric application).
 
 ## File Manifest
 
 ### Planning files (created in THIS Layer-1 planning-only PR — 2 files)
 
-| Path | Action | Purpose |
+| Path | Purpose |
+|---|---|
+| `planning/current_plan.md` | This plan content (Layer-1; Q6F survey planning) |
+| `planning/current_plan.critique.md` | Reviewer-adversarial Round 1 stub (populated by @reviewer-adversarial after this planning round; placeholder in this PR) |
+
+### Future Layer-2 execution files (created in the FUTURE Q6F survey PR — 9 files; NOT this PR)
+
+| # | Path | Purpose |
 |---|---|---|
-| `planning/current_plan.md` | overwrite | this plan document |
-| `planning/current_plan.critique.md` | overwrite | critique placeholder for reviewer-adversarial |
+| 1 | `src/rts_predict/games/sc2/datasets/sc2egset/survey_history_rating_algorithms.py` | Survey module (constants, dataclasses, engines, metrics, writer) |
+| 2 | `tests/rts_predict/games/sc2/datasets/sc2egset/test_survey_history_rating_algorithms.py` | Mirrored test file (≥150 tests, ≥95% branch coverage) |
+| 3 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.py` | jupytext-paired notebook source |
+| 4 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.ipynb` | jupytext-paired notebook |
+| 5 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv` | Survey CSV (36 cols × 9 rows incl. header) |
+| 6 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md` | Survey MD (≥17 sections) |
+| 7 | `planning/INDEX.md` | Archive PR #245; new Active entry for Q6F survey Layer-2 PR |
+| 8 | `CHANGELOG.md` | New `[3.76.0]` block |
+| 9 | `pyproject.toml` | Version bump 3.75.0 -> 3.76.0 |
 
-**No other files are edited in this PR.** No CHANGELOG entry, no pyproject bump, no INDEX archive, no notebook, no module, no artifact, no test, no status YAML, no research_log, no ROADMAP, no spec, no thesis chapter, no .claude rule.
+### Forbidden files (zero-diff for both this Layer-1 PR and the future Layer-2 PR)
 
-### Future Layer-2 execution files (created in the FUTURE Q6 PR — 11 files; NOT this PR)
+| Path / pattern | Reason |
+|---|---|
+| Any `*.parquet` under any `reports/artifacts/` path | No feature materialization in Q6F |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` | No CROSS-02-01 audit until Layer-3 materialization |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` | No Step closure until Layer-3 materialization (or omit-and-unblock follow-up PR) |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` | Derived from STEP_STATUS; no closure here |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` | Phase 03 stays not_started |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` | Per PR #242/#243/#245 precedent for non-closure adjudication artifacts |
+| `reports/research_log.md` | No CROSS entry; sc2egset-internal |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` | ROADMAP stub for 02_01_03 already exists (PR #239); no edit |
+| `reports/specs/02_*.md` | Spec edits are CROSS-02-XX-only; Q6F does not amend specs |
+| `data/db/schemas/views/*.yaml` | No cleaning-layer/view changes |
+| `thesis/**`, `docs/**`, `.claude/**` | Out of scope |
+| `data/**` | Out of scope |
+| `src/rts_predict/games/aoe2/**`, `tests/rts_predict/games/aoe2/**` | Out of scope (AoE2) |
+| `planning/current_plan*.md` in the FUTURE Layer-2 PR | The next planning round overwrites these; Layer-2 inherits, does not edit |
+| `sandbox/jupytext.toml` | Existing config; no edit |
 
-| # | Path | Action | Purpose |
-|---|---|---|---|
-| 1 | `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py` | create | Q6 adjudicator module (T01-T05) |
-| 2 | `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_rating_reconstruction.py` | create | mirrored test file (T06; ≥150 tests; ≥95% coverage) |
-| 3 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.py` | create | jupytext py:percent source (T07) |
-| 4 | `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.ipynb` | create | paired notebook (T07) |
-| 5 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv` | create | Q6 adjudication CSV (≥30 cols × 8 rows + header) |
-| 6 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md` | create | Q6 adjudication MD (≥17 sections) |
-| 7 | `planning/INDEX.md` | edit | archive PR #243 row; promote new Active (T08) |
-| 8 | `CHANGELOG.md` | edit | append `[3.75.0]` block (T08) |
-| 9 | `pyproject.toml` | edit | bump 3.74.0 → 3.75.0 (T08) |
-| 10 | `planning/current_plan.md` | overwrite | replaced post-merge by the next planner's Layer-3 plan |
-| 11 | `planning/current_plan.critique.md` | overwrite | replaced post-merge |
-
-### Forbidden files (MUST NOT be touched in either this PR or the future Layer-2 PR)
-
-- Any Parquet under `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/`.
-- Any `leakage_audit_sc2egset.{json,md}` under any subdirectory.
-- Any of: `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`.
-- Any `research_log.md` (root or per-dataset). **Default: no entry.** Confirmed by PR #242 + PR #243 precedent — neither adjudication PR wrote a research_log entry; both deferred to a closure PR per PR #237 tranche-1 closure precedent.
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`.
-- Any file under `reports/specs/` (CROSS-02-00, CROSS-02-01, CROSS-02-02, CROSS-02-03).
-- Any cleaning-layer YAML under `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/` or any sister dataset's schemas.
-- Any file under `thesis/`, `docs/`, `.claude/`, `data/`.
-- Any file under `src/rts_predict/games/aoe2/` (cross-game scope discipline).
-- `sandbox/jupytext.toml` (project-canonical location per memory).
-
-### Q6 CSV schema (canonical column order; ≥ 30 columns)
+### Q6F survey CSV schema (canonical column order; 36 columns)
 
 ```
 decision_id
 parent_decision_id
-decision_name
-verdict
-binding_level
-scope
 candidate_policy
-selected_policy
-rejected_options
-rating_model_family
-rating_forward_only_constraints
-rating_cold_start_policy
-rating_tie_policy
-rating_hyperparameter_policy
-rating_evidence_level
-mmr_missingness_summary
-feature_availability_summary
+algorithm_family
+included_in_survey
+inclusion_or_rejection_reason
+initialization_policy
+hyperparameter_policy
+cold_start_policy
+tie_policy
+player_identity_policy
+cross_region_policy
+forward_only_constraints
+metric_auc
+metric_log_loss
+metric_brier_or_calibration
+coverage_rate
+cold_start_rate
+runtime_summary
 complexity_deployability_score
 leakage_risk_score
+selected_policy
+survey_verdict
 materialization_permission
 evidence_paths
 falsifiers
@@ -796,174 +433,171 @@ parent_pr242_csv_sha256
 parent_pr242_md_sha256
 parent_pr243_csv_sha256
 parent_pr243_md_sha256
-pr241_scaffold_validator_module_sha256
-cross_02_02_spec_sha256
-feature_family_registry_csv_sha256
-dataset_research_log_sha256
-player_history_all_yaml_sha256
-matches_flat_clean_yaml_sha256
-matches_history_minimal_yaml_sha256
+parent_pr245_csv_sha256
+parent_pr245_md_sha256
 materialized_output_paths
 notes
+excluded_methods_considered
 ```
 
-Total: 36 columns. All SHA fields: 64-char lowercase hex; `materialized_output_paths == ""` on every row by construction; `audit_pr == "PR #N"` on every row; no `NOT_FOUND` token allowed.
+(36 columns. `excluded_methods_considered` is column 36; it carries the JSON list of N-1 carry-forward methods per Assumption 8. `notes` (column 35) carries the per-row substantive rationale plus the N-2 raw-MMR-hybrid rejection string per Assumption 9.)
 
-### Q6 MD outline (canonical section order; ≥ 17 sections)
+### Q6F survey MD outline (canonical section order; ≥17 sections)
 
-1. §1 Non-Materialization Disclaimer.
-2. §2 Parent PR #242 Lineage (Q6 row SHA citation; verbatim Q6 row text quote).
-3. §3 Parent PR #243 Lineage (Q5_selected_policy reaffirmed; non-re-adjudication statement).
-4. §4 Q6-Only Scope Statement (the question being adjudicated; what is out of scope).
-5. §5 Per-Candidate Decision Table (Q6A through Q6F in a 6-row markdown table).
-6. §6 Candidate Policy Comparison (deployability / complexity / leakage-risk / evidence-level — 4-axis table).
-7. §7 MMR-Missingness Reaffirmation (83.95% / 83.65% with research_log line citations).
-8. §8 Rating-Method Literature Context (Elo 1978 / Glickman 1999 / Glickman 2012 / Herbrich-Minka-Graepel 2006 — citation-only).
-9. §9 Forward-Only Update Semantics (per candidate; deterministic ordering by `(player_id_worldwide, TRY_CAST(ph.details_timeUTC AS TIMESTAMP), ph.replay_id)`; tie-handling).
-10. §10 Cold-Start Policy per Candidate (G-CS-4 honoured per candidate).
-11. §11 Leakage Constraints per Candidate (G-L-4 honoured; no global batch fit; no future-match read; no target-match outcome read).
-12. §12 Q6 Selected Policy Binding Row (the chosen candidate + verdict + rejection rationale for the other 5).
-13. §13 Materialization Permission Statement (per Assumption 15).
-14. §14 Non-Substitution Statement (does NOT replace PR #229/230/234/236/237/239/240/241/242/243; does NOT alter Q5).
-15. §15 Falsifier Roll-Call (every key from `HELPER_TO_FALSIFIER_KEY.values()` with `did_not_fire` per PR #242 / #243 precedent).
-16. §16 SHA Provenance (every pinned SHA verbatim).
-17. §17 No Step 02_01_03 Closure / No Phase 03 Start (per PR #237 closure-deferral precedent).
+1. **§1 Non-Materialization Disclaimer** — verbatim mirroring PR #245 §1 with Q6F substitutions; explicitly state "no Parquet, no CROSS-02-01 audit, no Step closure, no Phase 03".
+2. **§2 Parent PR #242 Lineage** — verbatim 2 SHAs.
+3. **§3 Parent PR #243 Lineage (Q5 Preserved)** — verbatim 2 SHAs; explicit re-affirmation that Q5_selected_policy is preserved.
+4. **§4 Parent PR #245 Lineage (Q6 deferred_blocker → this survey)** — verbatim 2 SHAs; quote PR #245's Q6_selected_policy notes verbatim.
+5. **§5 Q6F-Only Scope** — explicit declaration that this is NOT Phase 03 modelling; the metrics are evaluation traces, not features. The Q6F survey output is an adjudication-class artifact, not a feature artifact. Explicit list of what Q6F is NOT.
+6. **§6 Candidate Set + N-1 Rejection (BTL family)** — verbatim Assumption 8 rejection rationale.
+7. **§7 Candidate Set + N-2 Rejection (raw MMR hybrid)** — verbatim Assumption 9 rejection rationale.
+8. **§8 Algorithm Specifications per Candidate** — for each of the 4 included candidates, declare: initialization policy, hyperparameter policy (with pinned defaults), cold-start policy (G-CS-4), tie policy (decisive-only), player identity policy (toon_id per PR #245 §9).
+9. **§9 Forward-Only Update Semantics** — declare the prediction-before-update protocol; cite PR #245's `STRICT_LT_HISTORY_FILTER` verbatim; declare the deterministic ordering `(toon_id, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id)`.
+10. **§10 Metric Definitions** — AUC, log_loss, Brier, coverage_rate, cold_start_rate, runtime_summary; cite scikit-learn API version.
+11. **§11 Per-Candidate Metric Table** — 4 rows (1 per included candidate); 6 columns (the metrics).
+12. **§12 Q6F Selected Policy Binding Row** — quote the Q6F_selected_policy row's rationale verbatim from the CSV; include the rejection rationale for the 3 unselected candidates plus the 2 carry-forward references.
+13. **§13 Materialization Permission Statement** — verbatim per Assumption 13 outcome matrix branch; explicit statement of which families are unblocked / blocked.
+14. **§14 Non-Substitution Statement** — does NOT replace PR #229..#245.
+15. **§15 Falsifier Roll-Call** — every key from `FALSIFIER_PRIORITY_CHAIN` with status (did_not_fire / fired); mirror PR #245 §15.
+16. **§16 SHA Provenance** — the 6 parent SHAs plus the survey's own `pyproject_version_sha256` for self-audit.
+17. **§17 No Step 02_01_03 Closure / No Phase 03 Start** — verbatim mirroring PR #245 §17.
 
----
+Optional §18 if the executor judges it useful: per-candidate detailed paragraphs (1 per row), mirroring PR #245 §18 shape.
 
 ## Gate Condition
 
-**Mergeability gate for this Layer-1 planning-only PR:**
+### This Layer-1 planning PR is mergeable when ALL of the following hold:
 
-- Exactly 2 files in the diff: `planning/current_plan.md` and `planning/current_plan.critique.md`. No other file.
-- `planning/current_plan.md` contains all 8 required `##` sections per the pre-commit hook (Scope / Problem Statement / Assumptions & Unknowns / Literature Context / Execution Steps / File Manifest / Gate Condition / Open Questions). The hook rejects plans without these named sections per feedback memory `feedback_plan_required_sections.md`.
-- `planning/current_plan.critique.md` is a stub (one-line placeholder); reviewer-adversarial populates it before the Layer-2 PR runs.
-- Branch name = `feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication`. No other branch.
-- PR is DRAFT (per planning-only convention).
-- Reviewer-adversarial returns APPROVE or APPROVE-WITH-NITS with 0 blockers. Nits may be inlined into the plan or carried forward as Layer-2 execution guidance.
+1. Diff contains exactly 2 files: `planning/current_plan.md` (this content) + `planning/current_plan.critique.md` (reviewer-adversarial Round 1 transcript).
+2. No file outside the 2 planning paths is touched.
+3. Pre-commit hooks pass (ruff, mypy, plan-section-check — verifies the 8 mandatory `##` sections + `## Out of scope` + `## Adversarial-Review Adjustments (Round 1)` are present).
+4. `@reviewer-adversarial` Round 1 verdict is APPROVE or APPROVE-WITH-NITS with 0 blockers.
+5. PR is in DRAFT state.
+6. Branch is `feat/sc2egset-02-01-03-q6f-rating-algorithm-survey`.
+7. Base ref is `ee15d3625eee60688776219f533d4a5ceefb4b76` (master HEAD at plan time).
 
-**Mergeability gate for the future Layer-2 execution PR (recorded here for the executor's reference, NOT enforced now):**
+### The future Layer-2 execution PR is mergeable when ALL of the following hold:
 
-- All 43 falsifiers from T03 fire as `did_not_fire` on the produced row set.
-- CSV is byte-deterministic (two consecutive runs over the same DuckDB produce byte-identical output).
-- MD contains all 17 §sections in canonical order.
-- All 4 pinned parent-artifact SHAs match the verified state SHAs (PR #242 CSV `f2a169ec…`; PR #242 MD `fdaa7d6d…`; PR #243 CSV `29d39522…`; PR #243 MD `026deda3…`).
-- All 6 source-file SHAs (pinned at Layer-2 plan-time) match.
-- `Q6_RATING_POLICY_CANDIDATES` contains all 6 candidates exactly once.
-- `Q6_selected_policy.verdict` ∈ ALLOWED_VERDICTS.
-- `Q6_selected_policy.materialization_permission` is consistent with the selected_policy (per Assumption 15 mapping).
-- No status YAML edit; no research_log entry; no ROADMAP edit; no Parquet; no leakage_audit file; no spec edit; no cleaning-layer YAML edit; no Phase 03 reference in any scoped field.
-- ≥ 150 tests in the test file; ≥ 95% coverage on the adjudicator module.
-- Pre-commit hooks (ruff + mypy + plan-required-sections) pass.
-- Reviewer-adversarial returns APPROVE or APPROVE-WITH-NITS with 0 blockers, ≤ 3 rounds (per `feedback_adversarial_cap_execution.md`).
-- `pyproject.toml` bumped `3.74.0 → 3.75.0`.
-- CHANGELOG `[3.75.0]` block follows the PR #243 format.
-- `planning/INDEX.md` archived PR #243; promoted the Q6 PR to Active.
-
----
+1. Diff contains exactly the 9 future-execution files in the manifest.
+2. No forbidden file is touched (per the Forbidden table).
+3. All 6 parent SHAs match pinned values; SHA-mismatch falsifiers all report `did_not_fire`.
+4. All 35+ falsifiers in `FALSIFIER_PRIORITY_CHAIN` report `did_not_fire`.
+5. CSV is byte-deterministic (dual-write hash check passes).
+6. MD has ≥17 sections.
+7. CSV row count == 9 (1 header + 8 decisions); CSV column count == 36.
+8. Q6F_selected_policy row exists; its `verdict` is one of `{bind_now, narrow_with_evidence, recommendation_only, deferred_blocker, omit_reconstructed_rating_and_unblock_other_five}`.
+9. Q6F_selected_policy row's `materialization_permission` matches the outcome matrix branch for the verdict.
+10. Q6F_per_family_impact_summary row exists; its `feature_availability_summary` JSON correctly broadcasts the Q6F decision across all 6 families.
+11. `materialized_output_paths` is empty on every row (falsifier `q6f_materialization_creep` did_not_fire).
+12. No status YAML / research_log / ROADMAP / Parquet / leakage_audit edit.
+13. No Phase 03 reference anywhere in the diff (falsifier `q6f_phase_03_baseline_creep` did_not_fire).
+14. ≥150 tests at ≥95% branch coverage on the survey module.
+15. Pre-commit hooks pass.
+16. Sandbox notebook executes top-to-bottom without error; outputs cleared in committed `.ipynb`.
+17. `@reviewer-adversarial` final verdict is APPROVE or APPROVE-WITH-NITS with 0 blockers.
+18. PR is ready for merge (not DRAFT) at gate review time.
 
 ## Open Questions
 
-Surfaced for user / reviewer-adversarial decision before the Layer-2 execution PR runs. Each is a real ambiguity that the planner does not unilaterally resolve.
+7 real ambiguities surfaced for user / reviewer-adversarial decision:
 
-**OQ1 — Does Q6A (omit) unblock the other 5 history-enriched families?**
+- **OQ1 — AUC floor for omit-and-unblock vs. deferred_blocker.** The plan pins AUC_FLOOR = 0.55 and AUC_BIND_THRESHOLD = 0.60 in T05's selection decision rule. Provisional answer: 0.55 (5% above no-skill) is a defensible floor; 0.60 is a defensible bind threshold. Open: should the floor be raised (e.g., to 0.58, citing the calibration literature's "weak-signal" threshold), or should both thresholds be replaced by a bootstrap-CI-based test (e.g., "lower bound of bootstrap-CI on AUC > 0.5 at α=0.05")? The bootstrap-CI variant is more rigorous but adds implementation complexity. Default for Layer-2: keep the pinned thresholds; surface a follow-up PR ("Q6F-sensitivity") if Layer-2 reveals the result is bunched within bootstrap-CI of the threshold.
 
-If the Q6 executor selects `Q6A_omit_reconstructed_rating`, may the future Layer-3 materialization PR proceed for the other 5 families (`focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `in_game_history_aggregate`, `cross_region_fragmentation_handling`)? The PR #242 §13 binding gate text is ambiguous on this — it says "the future Layer-3 materialization PR must NOT proceed until that decision is upgraded" but does not specify whether upgrading Q6 by *removing the family from scope* counts as upgrading. **Provisional planner answer: yes.** Materialization proceeds for the 5 surviving families with `reconstructed_rating` permanently absent from the projected feature matrix. The Q6_selected_policy row's `materialization_permission` field encodes this as `permitted_for_other_5_families_without_reconstructed_rating`. **Decision needed:** confirm this interpretation OR require a separate scope-narrowing PR before Layer-3.
+- **OQ2 — Hyperparameter tuning in-scope vs. out-of-scope.** Default per Assumption 10: fixed literature defaults; no tuning. Open: if Layer-2 reveals all 4 included candidates' AUCs are bunched at ~0.51 with fixed defaults, should the survey expand scope to tune (a) K-factor for Elo, (b) tau for Glicko-2, (c) beta for TrueSkill? Tuning would require a leakage-safe nested historical-only protocol (e.g., split PHA into a tuning prefix + an evaluation suffix; tune on the prefix; evaluate on the suffix; this respects the strict-`<` filter at the partition boundary). Default for Layer-2: NO tuning; defer to a "Q6G_hyperparameter_tuning" follow-up Step if metrics are bunched.
 
-**OQ2 — Algorithm-implementation-proof PR as a hard prerequisite?**
+- **OQ3 — TrueSkill Python package vs. hand-coded.** The `trueskill` PyPI package (Sublee, 2012) is mature, ~150 lines, but adds a dependency. Hand-coded TrueSkill 1v1 specialisation is ~50 lines (Gaussian update; well-documented in §2 of the Herbrich et al. paper). Default for Layer-2: hand-coded (fewer dependencies, full transparency for the thesis defense). If the executor finds the hand-coded version diverges from the published reference, fall back to the PyPI package and document the discrepancy.
 
-If the Q6 executor selects a non-trivial rating policy (`Q6C_elo`, `Q6D_glicko_or_glicko_2`, `Q6E_trueskill_or_trueskill_like`), is a separate algorithm-implementation-proof PR required before the Layer-3 materialization PR runs? Such a PR would pin `K` / `μ` / `RD` / `σ` / `τ` / rating-period / `β` / draw-margin and demonstrate forward-only update mechanics on a synthetic mini-corpus. **Provisional planner answer: yes** — Invariant I7 ("no magic numbers") requires those constants to be justified either empirically or by literature precedent; the Q6 adjudication itself does NOT justify them. **Decision needed:** confirm OR allow the Layer-3 materialization PR to pin its own hyperparameters in-line with a citation to the algorithm's published default values.
+- **OQ4 — Cold-start rate threshold for "deployable".** What fraction of cold-start rows is acceptable? Provisional answer: the sc2egset PHA stream has ~22,209 distinct replays and ~22,209 distinct toon_ids on the focal-player side; the first match per toon_id is necessarily cold-start, giving cold_start_rate >= 1/2 (one row per match per side). Realistic cold_start_rate is ~50% if the per-toon trajectory is short, lower if it's long. The metric should be reported but not used as a binding gate.
 
-**OQ3 — External WebFetch citations required?**
+- **OQ5 — If `bind_now` achieved, does Layer-3 still need an implementation-proof PR?** Default per PR #245 Q6 row pattern (`permitted_for_all_6_families_with_pinned_..._hyperparameters_in_next_materialization_pr`): no — the survey's pinned algorithm + pinned hyperparameters suffice to authorise Layer-3 materialization directly. Open: should there be a separate Layer-2.5 "implementation-proof" PR that runs the chosen algorithm against a small held-out fixture (e.g., the first 100 PHA rows) and shows byte-stable rating outputs before Layer-3 batches the full corpus? Conservative default: no — Layer-3's own validation suite covers this.
 
-Are external WebFetch citations to Elo (1978), Glickman (1999), Glickman (2012), Herbrich-Minka-Graepel (2006) required in the Q6 MD, or are the in-repo references in `02_02_feature_engineering_plan.md` §6.2 row 4 + PR #242 Q6 row evidence_paths sufficient? **Provisional planner answer: in-repo sufficient.** WebFetch permitted only if a specific algorithmic claim cannot be sourced from the repo. **Decision needed:** confirm OR direct the Q6 executor to fetch all 4 primary sources as part of T05.
+- **OQ6 — Calibration plot vs. numeric calibration metric only.** Brier score is a numeric calibration proxy. A calibration plot (predicted vs. actual probability, binned) is visual evidence. The plot would be a 1-figure addition to the MD §11; the MD shape supports it. Default for Layer-2: numeric Brier only (matches PR #245's no-figure precedent); add the plot if the Layer-2 reviewer-adversarial requests it.
 
-**OQ4 — Empirical MMR-missingness re-probe?**
-
-Should the Q6 artifact include an empirical MMR-missingness re-probe (PROBE 3 + PROBE 4 from T02) against `data/db/db.duckdb`, or trust the dataset research_log's 83.95% / 83.65% figures by citation? **Provisional planner answer: include the probes** (they are read-only, cheap, and the artifact then re-grounds the literature claim in the current data state). The probes do not compute ratings; they only count MMR-zero rows. **Decision needed:** confirm OR allow citation-only.
-
-**OQ5 — Should `Q6_per_family_impact_summary` broadcast over all 6 families?**
-
-Q6 strictly only affects `reconstructed_rating` (1 family). PR #243's `Q5_per_family_impact_summary` row broadcast over the 6 families for downstream-consumer interface uniformity. **Provisional planner answer: yes, broadcast** — interface uniformity with PR #243 supports a one-shape downstream consumer. The other 5 families' entries carry `affected_by_q6 = "no"`. **Decision needed:** confirm OR collapse the row to only `reconstructed_rating` (saves a row but breaks the per-family pattern established by PR #243).
-
-**OQ6 — Should the Q6 PR pre-emptively author the Layer-3 materialization plan?**
-
-After Q6 merges, the next planner authors a Layer-3 materialization plan. May the Q6 PR pre-emptively include a stub of that plan to avoid a separate planning round? **Provisional planner answer: no** — one-atomic-unit policy per data-analysis-lineage; the Layer-3 plan is a separate planning artifact authored after Q6 is reviewed. The Q6 PR's MD §17 "forward implications" may *describe* what the Layer-3 plan will need to address, but does not author it. **Decision needed:** confirm OR allow Layer-3 plan stub inclusion.
-
----
+- **OQ7 — Provisional verdict guidance if metrics are inconclusive.** If the AUCs of the 4 included candidates are within 0.005 of each other, the planner recommends `narrow_with_evidence` with the spec-favoured candidate (`glicko_or_glicko_2` per §6.2 row 4) as the rationale-cited "winner on prior" rather than on metrics. This honours both Invariant I7 (no magic numbers; we have at least the spec citation as evidence) and the substantive reality (no candidate has earned a `bind_now` verdict). The Layer-2 executor may override.
 
 ## Out of scope
 
-The Q6 Layer-2 execution PR authorised by this plan does **not** do any of the following. Each item is explicitly forbidden so the executor cannot drift into adjacent work mid-execution.
+The future Layer-2 execution PR must NOT do any of the following. Each is enforced by an explicit falsifier on the `FALSIFIER_PRIORITY_CHAIN`.
 
-- **No `reconstructed_rating` feature value materialised.** The Q6 PR adjudicates *which rating-model family* is bound; it does not produce a Parquet column carrying rating values. That belongs to the Layer-3 materialisation PR (separate planning round).
-- **No Layer-3 materialisation plan authored in the same PR.** The Q6 PR's MD §17 ("forward implications") may describe what the next planner must address, but does not author the Layer-3 plan.
-- **No algorithm benchmark.** The Q6 artifact does not run, time, accuracy-benchmark, or AUC-test any rating algorithm. If the Q6 executor concludes that comparative empirical evidence is required to bind a winner, the correct verdict is `Q6F_deferred_with_algorithm_survey` (the survey itself is a separate Step).
-- **No race-conditioned rating / Bradley-Terry / Neural BTL.** These methods are listed in the dataset's research_log (lines 733-734 and 961) as the substrate's intended backtesting universe, but they are out-of-scope for the Q6 rating-family selection. See N-1 in the Adversarial-Review Adjustments section for the binding executor guidance that addresses why.
-- **No raw MMR-where-present hybrid feature.** Per §6.2 row 4 spec language, raw MMR is rejected as a skill feature because of the 83.95% sentinel density. The "use raw MMR for the 16.05% rated subset only" hybrid is also out of scope; see N-2 for the binding executor guidance.
-- **No Q5 re-adjudication.** Q5_selected_policy = `sensitivity_indicator_co_registration` (PR #243) is BINDING and may not be touched by Q6.
-- **No Q1-Q4 / Q7 / Q8 re-adjudication.** All other PR #242 decisions are RATIFIED and may not be touched by Q6.
-- **No Step 02_01_03 closure.** Closure flips `STEP_STATUS.yaml` to `02_01_03: complete` only after Layer-3 materialisation + the CROSS-02-01-v1.0.1 post-materialisation audit + the closure PR's research_log entry. None of this happens in the Q6 PR.
-- **No Step 02_01_04 start.** The next 02_01 sub-step is `in_game_snapshot` family materialisation; barred until 02_01_03 is closed.
-- **No Phase 03 work.** No splitting, no baseline modelling, no `ml_protocol` step execution. Phase 03 = `not_started` and must remain so.
-- **No cross-dataset (aoe2, aoestats, aoe2companion) work.** Q6 is sc2egset-scoped. The analogous adjudications for the other datasets are separate future Steps.
-- **No spec edits.** `reports/specs/02_00_feature_input_contract.md`, `02_01_leakage_audit_protocol.md`, `02_02_feature_engineering_plan.md`, `02_03_temporal_feature_audit_protocol.md` are READ-ONLY.
-- **No cleaning-layer YAML edits.** All `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/*.yaml` are READ-ONLY.
-- **No `.claude/` rule edits.** Scientific invariants, ML protocol, and data-analysis-lineage rules are READ-ONLY in this PR.
-- **No thesis chapter / docs / WRITING_STATUS edits.** Q6 is a Phase 02 artifact, not a thesis chapter.
-- **No `.github/` workflow edits.**
-- **No `sandbox/jupytext.toml` edit.** Project-canonical location per user-approved deviation.
+- Materialise the `reconstructed_rating` feature column to Parquet (falsifier `q6f_materialization_creep`).
+- Persist evaluation traces (per-game rating histories) to disk in any format (falsifier `q6f_rating_trace_persistence_violation`).
+- Run any Phase 03 baseline or model-training step (falsifier `q6f_phase_03_baseline_creep`). The metrics computed in T04 are evaluation traces of forward-only rating predictions, NOT Phase-03 baselines; baselines per Phase 03 §7-§8 use a different definition (cross-validated model performance with `create_temporal_split()`'s successor) and are barred. This is the most subtle hard stop.
+- Run any train/test split / temporal CV / k-fold (falsifier `q6f_train_test_split_referenced`).
+- Touch `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`, ROADMAP, research_log, specs, cleaning-layer YAMLs (falsifiers per file: `q6f_status_yaml_drift`, `q6f_research_log_drift`, `q6f_roadmap_drift`, `q6f_spec_drift`, `q6f_cleaning_layer_drift`).
+- Re-adjudicate Q5 / Q1-Q4 / Q6 / Q7 / Q8 (falsifier `q6f_q5_re_adjudication_drift` for Q5; analogous helpers for Q1-Q4 / Q6 / Q7 / Q8).
+- Start Step 02_01_04 or Phase 03 (falsifier `q6f_step_02_01_04_creep`; falsifier `q6f_phase_03_baseline_creep`).
+- Include BTL / Bradley-Terry / Neural BTL as included candidates unless the executor proves a substantive case (N-1 carry-forward; default is rejection paragraph).
+- Include raw-MMR-where-present hybrid as a candidate (N-2 carry-forward; rejected unchanged).
+- Edit `thesis/**`, `docs/**`, `.claude/**`, `data/**`, AoE2 paths (forbidden-files table).
+- Read game T's outcome as a feature INPUT for any rating-update step (it is the survey's evaluation TARGET; falsifier `q6f_target_match_outcome_read_as_input`).
+- Read any future-match (`details_timeUTC >= target.started_at`) for rating computation (falsifier `q6f_future_match_leakage_referenced`).
+- Run any global / batch fit over future data (falsifier `q6f_global_batch_fit_referenced`).
+- Persist any algorithm-specific Python object (e.g., a `glicko2.Rating` instance, a `trueskill.Rating` instance) to disk via pickle / npz / etc. (falsifier `q6f_rating_object_persistence_violation`).
+- Modify `pyproject.toml` in this planning PR (only bumped in the future Layer-2 PR; falsifier `q6f_planning_pr_version_bump_violation` on the planning PR).
+- Modify `CHANGELOG.md` in this planning PR (only modified in the future Layer-2 PR).
+- Modify `planning/INDEX.md` in this planning PR (only modified in the future Layer-2 PR after merge).
 
 ## Adversarial-Review Adjustments (Round 1)
 
-`@reviewer-adversarial` Round 1 verdict: **APPROVE-WITH-NITS** (0 blockers; 10 nits). Below, the 4 highest-priority nits (N-1 through N-4) are BINDING for the Layer-2 executor; N-5 through N-10 are SOFT guidance. The full reviewer text is captured in `planning/current_plan.critique.md`.
+`@reviewer-adversarial` Round 1 verdict: **APPROVE-WITH-NITS** (0 blockers; 4 cosmetic nits). All 11 challenge questions PASS. The most subtle risk (Q6F survey drifting into Phase 03 baseline modelling) is enforced by 4 independent falsifiers (`q6f_phase_03_baseline_creep`, `q6f_train_test_split_referenced`, `q6f_global_batch_fit_referenced`, `q6f_target_match_outcome_read_as_input`) plus the T03 prediction-before-update protocol. The evaluation-trace-vs-feature distinction is repeated at 5 locations and Assumption 18's "EPHEMERAL" framing is correct. Full reviewer text captured in `planning/current_plan.critique.md`. Round 1 of 3 adversarial cap consumed.
 
-### Binding nits (Layer-2 executor MUST apply)
+### Layer-2 executor binding adjustments (must apply)
 
-**N-1 — Acknowledge omitted rating methods from the dataset's intended backtesting universe.**
+None of the 4 nits rise to "must-apply binding" — all are cosmetic / wording refinements. However, **NIT-1 and NIT-3 are STRONGLY RECOMMENDED** (the Layer-2 executor SHOULD address them or document why not).
 
-The 6-candidate set in Assumption 11 (`omit / rolling-baseline / Elo / Glicko-or-Glicko-2 / TrueSkill / deferred-with-survey`) omits methods explicitly listed in dataset `research_log.md` lines 733-734 ("rating-system backtesting (Elo, Glicko, Glicko-2, TrueSkill, Aligulac-style BTL)") and line 961 ("Elo, Glicko, Glicko-2, TrueSkill, Aligulac race-conditioned, Bradley-Terry, Neural BTL"). The Q6 executor MUST either:
+### Layer-2 executor soft adjustments (recommended)
 
-- (a) **Extend** `Q6_RATING_POLICY_CANDIDATES` to include `aligulac_race_conditioned_btl` and `bradley_terry_or_neural_btl` as new explicit candidates (with their own `Q6G_*` / `Q6H_*` decision rows), bringing the total decision row count to ≥10; OR
-- (b) **Author** an explicit rejection paragraph in MD §5 (Per-Candidate Decision Table) and in the per-candidate row notes that names these methods and justifies their omission for sc2egset's 1v1-decisive PHA scope. Acceptable rationale shape: "BTL / race-conditioned BTL collapse to Elo-with-race-prior in 1v1; Neural BTL requires its own training/eval pipeline that exceeds Q6 successor-adjudication scope; deferred to the algorithm survey if Q6F is selected."
+**N-1 — Schema/prose alignment for `raw_mmr_hybrid_rejection`.**
 
-(a) is preferred for honest examination defensibility; (b) is acceptable if the executor's substantive reasoning shows the methods are dominated by the existing 6 candidates within sc2egset's 1v1 PHA regime.
+Assumption 9 (under `## Assumptions & Unknowns`) references a "`raw_mmr_hybrid_rejection` field" but the canonical 36-column `Q6F_SURVEY_SCHEMA` carries the N-2 rejection token in the `notes` column (column 35), not in a dedicated `raw_mmr_hybrid_rejection` field. This is consistent with PR #245's pattern (which DID have a `raw_mmr_hybrid_rejection` field as a dedicated column). The Layer-2 executor should choose one path:
 
-**N-2 — Acknowledge the "raw MMR-where-present" hybrid candidate.**
+- (a) **Preferred:** Add `raw_mmr_hybrid_rejection` as column 37 of `Q6F_SURVEY_SCHEMA`, bringing the schema to 37 columns. Mirrors PR #245's dedicated-column pattern exactly. Update Gate Condition row-count and all schema tests accordingly.
+- (b) **Alternative:** Reword Assumption 9 in the future MD §7 to say "the raw-MMR-hybrid rejection token is carried in the `notes` column per row." Keep the schema at 36 columns. Less mirroring of PR #245 but valid.
 
-The plan's §6.2-row-4-quote rejection of raw MMR ("structurally absent for 83.95% of rows") does NOT cover the *hybrid* candidate "use raw MMR for the 16.05% rated subset + cold-start the rest." The Q6 executor MUST add a Q6 row (either a new `Q6G_raw_mmr_where_present_hybrid` candidate row, OR an explicit rejection paragraph in MD §5) that enumerates this candidate and justifies its rejection. Acceptable rejection rationale shape: "Violates Invariant I5 symmetric-treatment because rated-vs-unrated rows would be fed asymmetric features; the rated/unrated partition is correlated with skill (tournament players over-represented in the rated 16.05%); the partition-as-feature would leak corpus structure into the model. Use `is_mmr_missing` flag co-registration plus a reconstructed rating instead."
+Document the choice in the Layer-2 PR body. The reviewer's mild preference is (a) for PR #245 parity.
 
-**N-3 — Probe 5 must group by `player_id_worldwide`, not `toon_id`.**
+**N-2 — Trivial column-count consistency.**
 
-`PROBE_PHA_PER_PLAYER_HISTORY_DEPTH_SQL` (T02 Probe 5) in the plan text groups by `toon_id`. PR #243 established the canonical player-grouping key as `player_id_worldwide` (full `R-S2-G-P` toon with cross-region co-registration; Invariant I2 branch iii). Grouping by `toon_id` under-counts per-player history depth for cross-region players (their parallel-region trajectories appear as separate keys), breaking the cold-start prevalence evidence. The Layer-2 executor MUST replace `GROUP BY toon_id` with `GROUP BY player_id_worldwide` (or the canonical PHA column name resolved at Layer-2 plan time) and add a comment explicitly noting the choice and citing PR #243's player_id_worldwide binding.
+`## Scope` line says "≥36 columns" — should say "exactly 36 columns" to match the canonical schema declaration. One-word edit.
 
-**N-4 — Probes 1 & 2 LIMIT 1000 is non-deterministic without ORDER BY.**
+**N-3 — AUC threshold rationale citation.**
 
-`PROBE_PHA_RESULT_DISTRIBUTION_SQL` and `PROBE_PHA_DETAILS_TIMEUTC_TRY_CAST_NULL_RATE_SQL` (T02 Probes 1 & 2) use `LIMIT 1000` with no `ORDER BY`, leaving row selection implementation-defined and non-deterministic across runs / pages / parallelism. This breaks the T06 / Gate Condition byte-determinism guarantee. The Layer-2 executor MUST either:
+T05's `AUC_FLOOR=0.55` and `AUC_BIND_THRESHOLD=0.60` are pinned with informal rationales ("5% above no-skill ... commonly used in calibration literature" and "defensible 'genuine forward-only skill signal' floor for ~22K decisive matches"). These are borderline Invariant I7 (no magic numbers — every threshold traced to data or citation). The Layer-2 executor should choose one path:
 
-- (a) Add a deterministic `ORDER BY` (e.g., `ORDER BY replay_id`) before the LIMIT clause; OR
-- (b) Drop the LIMIT and probe the full `player_history_all` table (44,817 rows is trivially cheap; the determinism guarantee is preserved at zero cost).
+- (a) **Preferred:** Cite a primary source for the floor (e.g., Steyerberg 2009 §5.4 on AUC interpretation; Hosmer-Lemeshow 2013 on weak-discrimination floors); pin the citation as a module-level constant.
+- (b) **Alternative:** Compute bootstrap CIs on each candidate's AUC and use the lower-CI-bound > 0.5 test instead of pinning a numeric floor. Avoids the magic-number issue entirely.
 
-(b) is preferred unless the executor finds a probe whose semantics genuinely require sampling.
+OQ1 (in `## Open Questions`) already surfaces this; OQ7 provides a tie-breaking fallback. The plan's default (keep pinned thresholds, surface follow-up PR if metrics are bunched) is defensible but not maximally rigorous.
 
-### Soft guidance (recommended; not strictly binding)
+**N-4 — TrueSkill `tau` justification.**
 
-**N-5 — Surface that Q6 probes are single-table by design.** Add one sentence to T02 explicitly stating that Q6 probes are single-table `COUNT FILTER` operations on PHA + MFC (no JOIN, no LEFT JOIN, no NULL-from-JOIN semantics), so PR #243's Dispatch-3 LEFT-JOIN-NULL trap is structurally inapplicable.
+Assumption 10 sets TrueSkill `tau=25/300` without justification (the `draw_margin=0` rationale at "PHA is decisive-only per PR #242 Q1" IS justified). The Layer-2 executor should add an inline citation to Herbrich-Minka-Graepel (2006) §4 for the default `tau` value, or document the choice as "literature default." Trivial.
 
-**N-6 — Justify the 36-column schema delta vs PR #243's 30-column template.** Add a one-paragraph note (in File Manifest or T05) enumerating which 6 columns are net-new vs PR #243 (`candidate_policy`, `rating_model_family`, `rating_forward_only_constraints`, `rating_cold_start_policy`, `rating_tie_policy`, `rating_hyperparameter_policy`, `rating_evidence_level`, `mmr_missingness_summary`, `feature_availability_summary`, `complexity_deployability_score`, `leakage_risk_score`, `materialization_permission` — the count exceeds 6 because Q6 carries rating-discipline-specific fields PR #243's cross-region adjudication did not need) and why each is required for rating-family adjudication.
+### Non-issues considered and dismissed by Round 1
 
-**N-7 — Add an "Out of scope" plan section.** **Inlined above** as `## Out of scope`. The Layer-2 executor inherits the same scope discipline.
-
-**N-8 — Pin the verbatim N-X3 strengthened-gate quote from PR #242.** Add to Assumption 18 the exact N-X3 quote from `02_01_03_history_source_anchor_coldstart_adjudication.md` line 125: "MATERIALIZATION BLOCKED until Q6 is upgraded to bind_now in a successor adjudication PR with rating-family empirical evaluation evidence satisfying the N-X3 strengthened gate (≥1 repo path + ≥1 citation + forward-only wording + cold-start/missingness wording)." This prevents the Layer-2 executor from drifting the gate language.
-
-**N-9 — Reuse the universal `POST_GAME_TOKEN_SET` from prior adjudicators.** Helper 17 (`_check_no_post_game_token_in_scoped_fields`) MUST import the existing POST-GAME token set from `adjudicate_history_enriched_pre_game_source_layer.py` (PR #242) rather than redefining the set. This guarantees the Q6 scanner is identical to PR #242 / PR #243 and prevents silent set-drift.
-
-**N-10 — MD §5 must mark Q6F as a legitimate verdict.** Add explicit wording to MD §5 (Per-Candidate Decision Table) that "selecting `Q6F_deferred_with_algorithm_survey` is a legitimate Q6 verdict, not a planning failure — it preserves Invariant I7 ('no magic numbers') when comparative empirical evidence is genuinely insufficient." This prevents the Layer-2 executor from feeling pressured to bind a winner under thin evidence.
+- **Q6F-as-next-atomic-step.** Airtight. Lines 73-79 reject B-F outcomes with cited reasons; the omit-and-unblock-other-five path is correctly subsumed under Q6F itself, not bypassed.
+- **Materialization barred.** 5-layer enforcement (Assumption 14, Assumption 18, falsifier `q6f_materialization_creep`, falsifier `q6f_rating_trace_persistence_violation`, falsifier `q6f_rating_object_persistence_violation`).
+- **Survey vs Phase 03 baseline.** Clean. 4 falsifiers + T03/T04 protocol enforce.
+- **AUC/log-loss/Brier as evaluation targets only.** Clean. T03 "prediction-before-update" protocol explicit; 2 falsifiers enforce.
+- **Candidate completeness.** 4 included + 2 carry-forward, justified.
+- **BTL / Bradley-Terry / Neural BTL inclusion.** Correctly carried-forward as N-1 rejection from PR #245; executor permitted to expand IFF substantive case + citations + fixtures.
+- **Raw MMR hybrid rejection.** Correctly carried-forward as N-2 rejection from PR #245.
+- **Q5 binding preserved.** Falsifier `q6f_q5_re_adjudication_drift` enforces.
+- **Schema sufficiency and determinism.** 36 columns with proper SHA typing; `materialized_output_paths` gated empty.
+- **No status / no research_log / no ROADMAP / no Phase 03 creep.** `## Out of scope` lists 14 forbidden mutations with named falsifiers.
+- **Plan-required `##` sections.** All 10 present (8 required + Out of scope + Adversarial-Review Adjustments).
+- **Hyperparameter discipline.** Fixed-defaults-only declaration is defensible vs the orchestrator's nested-protocol concern; OQ2 defers tuning to a hypothetical Q6G follow-up Step.
+- **Cold-start floor.** Reported but not gated, which is correct given I7.
+- **PR-number normalisation workflow.** Standard PR #244/#245 precedent.
+- **Branch naming.** Consistent with PR #242/#243/#245 prefix scheme.
+- **N-3 player_id_worldwide handling.** PHA grouping key correctly carried forward as `toon_id` per PR #245 §9 (empirical schema constraint).
+- **Critique stub format.** Matches PR #244/#245 precedent.
 
 ### Round-1 audit trail
 
 - Round 1 of 3 adversarial cap consumed.
-- Verdict: APPROVE-WITH-NITS, 0 blockers, 10 nits.
+- Verdict: APPROVE-WITH-NITS, 0 blockers, 4 cosmetic nits.
 - Reviewer: `@reviewer-adversarial`, 2026-05-25.
 - Full reviewer transcript: `planning/current_plan.critique.md`.
-- Round-2 / Round-3 adversarial cap held in reserve for the Layer-2 execution PR's own final gate; the planning-only PR does not consume additional rounds unless the user requests a revision.
+- Round-2 / Round-3 adversarial cap held in reserve for the Layer-2 execution PR's own final gate.
+
