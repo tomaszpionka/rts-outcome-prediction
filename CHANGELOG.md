@@ -19,6 +19,32 @@ merged to `master`.
 
 ### Removed
 
+## [3.76.0] — 2026-05-25 (PR #<TBD>: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey)
+
+### Added
+- Q6F rating-algorithm SURVEY (Layer-2 execution) for SC2EGSet Step `02_01_03`. Authorises a future Layer-3 materialization PR based on the emitted Q6F verdict.
+- New survey module `src/rts_predict/games/sc2/datasets/sc2egset/survey_history_rating_algorithms.py` (38 falsifier keys; 44-column `Q6F_SURVEY_SCHEMA`; deterministic CSV + MD output via `run_q6f_rating_algorithm_survey()`).
+- Q6F survey artifact pair at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.{csv,md}` (8 decision rows in `Q6F_DECISION_IDS` order: Q6F_A omit / Q6F_B rolling baseline / Q6F_C Elo / Q6F_D Glicko-2 / Q6F_E TrueSkill / Q6F_F deferred + `Q6F_selected_policy` + `Q6F_per_family_impact_summary`; MD has 18 §sections).
+- 4 forward-only rating engines implemented in-module with no new runtime dependency: rolling-win-rate Bayesian baseline (Laplace prior α=β=1), Elo 1978 (K=24), Glicko-2 (Glickman 2012; mu=1500, RD=350, sigma=0.06, tau=0.5; event-by-event simplification), TrueSkill (Herbrich-Minka-Graepel 2006; mu=25, sigma=25/3, beta=25/6, tau=25/300, draw_margin=0). Prediction strictly precedes update on every row (forward-only contract).
+- Deterministic block-bootstrap CIs on log-loss, Brier, AUC (BOOTSTRAP_BLOCK_COUNT=200, BOOTSTRAP_RANDOM_SEED=42). Proper scoring rules bind candidates; AUC alone cannot bind (NIT-3 / OQ1).
+- Mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_survey_history_rating_algorithms.py` — 242 tests, 99.67% branch coverage on the survey module (exceeds the 95% project threshold).
+- Sandbox jupytext-paired notebook at `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.{py,ipynb}` (py:percent canonical; outputs cleared; all logic imported from the survey module).
+- Binding adversarial-review nits NIT-1 through NIT-4 from PR #246 Round 1 implemented: NIT-1 (BTL family acknowledged via `excluded_methods_considered` column and MD §6 rejection paragraph; raw-MMR-hybrid via `raw_mmr_hybrid_rejection` column and MD §7; both as dedicated 44-column schema entries); NIT-2 (schema column count standardised to exactly 44 — not "≥36" — across module assertion, CSV header, MD prose, CHANGELOG, PR body, and tests); NIT-3 (AUC threshold replaced with CI-based proper-score binding rule citing Steyerberg 2009 and Hosmer-Lemeshow 2013; AUC reported with CI but cannot bind a candidate alone); NIT-4 (TrueSkill tau=25/300 cited as literature default from Herbrich-Minka-Graepel 2006 §4 in MD §8 and module docstring).
+
+### Provenance / lineage
+- Parent PR #242 (`f2a169ec...` CSV, `fdaa7d6d...` MD), PR #243 (`29d39522...` CSV, `026deda3...` MD), and PR #245 (`703c9153...` CSV, `7efea247...` MD) byte-stable; SHAs pinned on every Q6F decision row.
+- Q5_selected_policy = `sensitivity_indicator_co_registration` (PR #243) is BINDING and NOT re-adjudicated; `q6f_q5_re_adjudication_drift` falsifier enforces.
+- Q6_selected_policy = `deferred_blocker_with_algorithm_survey_required` (PR #245) was the deferral; this Q6F survey is its direct unblock condition.
+
+### Not in this PR (preserved hard stops; future Layer-3 PRs)
+- NO feature value materialised, NO Parquet output, NO `reconstructed_rating` feature column.
+- NO CROSS-02-01 post-materialization audit, NO `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` file.
+- NO status YAML mutation (`STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml`).
+- NO `research_log.md` entry (per PR #242 / PR #243 / PR #245 adjudication-artifact precedent).
+- NO `ROADMAP.md` edit, NO spec edits, NO cleaning-layer YAML edits.
+- NO Step 02_01_04 start, NO Phase 03 start, NO baseline modelling.
+- NO thesis / docs / .claude / data / AoE2 edits.
+
 ## [3.75.0] — 2026-05-25 (PR #245: feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication)
 
 ### Added

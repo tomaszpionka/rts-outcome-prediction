@@ -1,0 +1,429 @@
+decision_id,parent_decision_id,candidate_policy,algorithm_family,included_in_survey,inclusion_or_rejection_reason,initialization_policy,hyperparameter_policy,cold_start_policy,tie_policy,player_identity_policy,cross_region_policy,forward_only_constraints,auc,auc_ci_low,auc_ci_high,log_loss,log_loss_ci_low,log_loss_ci_high,brier,brier_ci_low,brier_ci_high,calibration_error,coverage_rate,cold_start_rate,runtime_summary,complexity_deployability_score,leakage_risk_score,selected_policy,survey_verdict,materialization_permission,excluded_methods_considered,raw_mmr_hybrid_rejection,evidence_paths,falsifiers,audit_pr,parent_pr242_csv_sha256,parent_pr242_md_sha256,parent_pr243_csv_sha256,parent_pr243_md_sha256,parent_pr245_csv_sha256,parent_pr245_md_sha256,materialized_output_paths,notes
+Q6F_A_omit_reconstructed_rating,Q6_rating_policy_deferred_blocker,omit_reconstructed_rating,none_omission_carry_forward,False,Carry-forward reference: included as the omit-option row whose verdict is re-affirmed if Q6F_selected_policy = omit_reconstructed_rating_and_unblock_other_five.,not_applicable_carry_forward,not_applicable_carry_forward,Trivially satisfied: omission of the reconstructed_rating feature obviates cold-start (G-CS-4) for this family. is_mmr_missing co-registration is preserved per CROSS-02-02 §6.2.,not_applicable_carry_forward,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,low_no_runtime_state,low_omitted_feature,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate omit_reconstructed_rating; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations."
+Q6F_B_rolling_win_rate_or_bayesian_smoothed_baseline,Q6_rating_policy_deferred_blocker,rolling_win_rate_or_bayesian_smoothed_baseline,win_rate_baseline_laplace_prior,True,Included as the no-opponent-strength reference; tests whether any opponent-strength rating system beats the marginal win-rate proxy.,Laplace prior: alpha=1.0 wins + beta=1.0 losses; prior-implied P(focal wins) = 0.5 at cold-start.,"alpha=1.0, beta=1.0 (literature default; Laplace 1814 rule-of-succession). Expanding window over all strictly-prior PHA rows for the focal toon_id; no finite-window variant in this survey.",G-CS-4: first match per focal toon_id is cold-start; prior-implied probability 0.5 is emitted; is_cold_start=True is flagged for downstream coverage_rate.,"Decisive-only (Win/Loss) per PR #242 Q1; same-timestamp ties broken by deterministic sort key (focal_toon, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id).",toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",Prediction uses only strictly-prior PHA rows for the focal toon_id per STRICT_LT_HISTORY_FILTER. Rating state updated AFTER scoring; outcome never read as feature input for its own match.,0.589979,0.584476,0.594970,0.699266,0.696358,0.702650,0.251183,0.249829,0.252680,0.074435,0.944621,0.055379,deterministic_forward_only_single_pass,low_o1_update_no_opponent_strength,low_no_opponent_state_no_global_fit,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate rolling_win_rate_or_bayesian_smoothed_baseline; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations.
+Forward-only metrics: log_loss=0.699266 (CI 0.696358--0.702650); brier=0.251183 (CI 0.249829--0.252680); auc=0.589979 (CI 0.584476--0.594970); calibration_error=0.074435."
+Q6F_C_elo,Q6_rating_policy_deferred_blocker,elo,elo_1978,True,Included as the canonical 1v1 rating algorithm (Elo 1978); minimal hyperparameter surface; full literature provenance.,Initial rating R0=1500 (Elo 1978 chess convention); applied to every previously-unseen toon_id.,K-factor=24.0 (mid-point between chess-conservative K=20 and chess-default K=32; commonly used in aoe2-tournament Elo deployments). No tuning in this survey per Layer-1 Assumption 10.,G-CS-4: first match per focal toon_id uses initial rating 1500; is_cold_start=True is flagged for downstream coverage_rate; predicted probability at cold-start is the expected-score function evaluated at the symmetric rating diff.,Decisive-only (Win/Loss) per PR #242 Q1; same-timestamp ties broken by deterministic sort key.,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",Prediction uses focal and opponent ratings as of strictly-prior PHA rows per STRICT_LT_HISTORY_FILTER. Both players' ratings updated AFTER scoring; outcome never read as feature input for its own match.,0.680862,0.675523,0.685553,0.643117,0.640935,0.645770,0.226158,0.225154,0.227391,0.029962,0.944621,0.055379,deterministic_forward_only_single_pass,low_o1_update_per_match,low_if_forward_only_enforced,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate elo; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations.
+Forward-only metrics: log_loss=0.643117 (CI 0.640935--0.645770); brier=0.226158 (CI 0.225154--0.227391); auc=0.680862 (CI 0.675523--0.685553); calibration_error=0.029962."
+Q6F_D_glicko_or_glicko_2,Q6_rating_policy_deferred_blocker,glicko_or_glicko_2,glicko_2_glickman_2012,True,Included as the §6.2 row 4 spec-favoured candidate (reconstructed_rating noted as 'Glicko-2 or analogous'); tests the prior toward the spec-favoured path.,"Initial mu=1500 (Glicko scale), RD=350, sigma=0.06 (Glickman 2012 reference defaults). Mapped to Glicko-2 internal scale by (mu - 1500) / 173.7178.","mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults). Event-by-event simplification: each match treated as a single-observation rating period. Sigma held constant in this simplification; the full batched volatility update is deferred to a future Q6G PR.","G-CS-4: first match per focal toon_id uses prior mu=1500, RD=350; is_cold_start=True is flagged for downstream coverage_rate; predicted probability at cold-start is the symmetric E function evaluated at zero mu diff.",Decisive-only (Win/Loss) per PR #242 Q1; same-timestamp ties broken by deterministic sort key.,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.","Prediction uses focal and opponent (mu, RD) states as of strictly-prior PHA rows per STRICT_LT_HISTORY_FILTER. Both players' states updated AFTER scoring; outcome never read as feature input for its own match.",0.710528,0.705395,0.715312,0.625522,0.621595,0.630180,0.217711,0.216023,0.219650,0.034911,0.944621,0.055379,deterministic_forward_only_single_pass,medium_state_per_player_includes_rd,low_if_forward_only_enforced,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate glicko_or_glicko_2; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations.
+Forward-only metrics: log_loss=0.625522 (CI 0.621595--0.630180); brier=0.217711 (CI 0.216023--0.219650); auc=0.710528 (CI 0.705395--0.715312); calibration_error=0.034911."
+Q6F_E_trueskill_or_trueskill_like,Q6_rating_policy_deferred_blocker,trueskill_or_trueskill_like,trueskill_herbrich_minka_graepel_2006,True,"Included as the Gaussian-factor-graph rating system (Herbrich, Minka, Graepel 2006); 1v1 specialisation; full literature provenance.","Initial mu=25, sigma=25/3 (Herbrich, Minka, Graepel 2006 defaults; also Xbox Live deployment defaults).","mu=25, sigma=25/3, beta=25/6, tau=25/300 (Herbrich, Minka, Graepel 2006 §4; literature default; cited in MD §8 per NIT-4), draw_margin=0 (PHA is decisive-only per PR #242 Q1).","G-CS-4: first match per focal toon_id uses prior mu=25, sigma=25/3; is_cold_start=True is flagged for downstream coverage_rate; predicted probability at cold-start is the symmetric normal CDF evaluated at zero mu diff.",Decisive-only (Win/Loss) per PR #242 Q1; draw_margin=0; same-timestamp ties broken by deterministic sort key.,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.","Prediction uses focal and opponent (mu, sigma) states as of strictly-prior PHA rows per STRICT_LT_HISTORY_FILTER. Both players' states updated AFTER scoring; outcome never read as feature input for its own match. Dynamic factor tau is applied to pre-match variances each game.",0.710912,0.706001,0.715896,0.629127,0.624552,0.634190,0.218548,0.216681,0.220542,0.043567,0.944621,0.055379,deterministic_forward_only_single_pass,medium_gaussian_factor_graph,low_if_forward_only_enforced,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate trueskill_or_trueskill_like; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations.
+Forward-only metrics: log_loss=0.629127 (CI 0.624552--0.634190); brier=0.218548 (CI 0.216681--0.220542); auc=0.710912 (CI 0.706001--0.715896); calibration_error=0.043567."
+Q6F_F_deferred_blocker_with_algorithm_survey_required,Q6_rating_policy_deferred_blocker,deferred_blocker_with_algorithm_survey_required,none_deferred_carry_forward,False,Carry-forward reference: represents PR #245's Q6 deferred verdict; the Q6F_selected_policy row is conceptually a successor adjudication of this row.,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,,not_applicable_carry_forward,not_applicable_carry_forward,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F survey row for candidate deferred_blocker_with_algorithm_survey_required; Q5 BINDING preserved (sensitivity_indicator_co_registration); PR #242/#243/#245 lineage SHA-pinned.
+raw_mmr_hybrid_rejection: raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.
+BTL family (aligulac_style_btl, bradley_terry, neural_btl) acknowledged from dataset research_log lines 733-734 and 961 but EXCLUDED from this Q6F survey's executable candidate set per Layer-1 Assumption 8: in 1v1 decisive matches BTL collapses to Elo-with-race-prior (Elo already in the survey); Neural BTL requires a full model-training pipeline (Phase-03 scope; out of scope here). The Layer-2 executor may extend the candidate set in a follow-up survey PR with explicit substantive justification and citations."
+Q6F_selected_policy,Q6_rating_policy_deferred_blocker,,derived_summary_row,False,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,narrow_with_evidence,narrow_with_evidence,recommendation_only_blocked_pending_implementation_proof_pr,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Q6F SELECTED POLICY = narrow_with_evidence
+VERDICT = narrow_with_evidence
+MATERIALIZATION PERMISSION = recommendation_only_blocked_pending_implementation_proof_pr
+RATIONALE: Candidate glicko_or_glicko_2 achieved log-loss 0.625522 (CI upper bound 0.630180) strictly below the baseline CI lower bound (0.696358); however the other included opponent-strength candidates' CIs overlap with glicko_or_glicko_2's CI. Recording narrow_with_evidence: an implementation-proof PR is required before Layer-3 materialization to demonstrate byte-stable forward-only rating outputs and re-evaluate the inter-candidate ordering with a larger bootstrap.
+DECISION RULE (verbatim): NIT-3 / OQ1 proper-score CI binding; AUC alone CANNOT bind a candidate.
+Q5 BINDING preserved (sensitivity_indicator_co_registration); raw_mmr_hybrid_rejection re-affirmed; BTL family acknowledgement re-affirmed."
+Q6F_per_family_impact_summary,Q6_rating_policy_deferred_blocker,,derived_summary_row,False,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,toon_id (PHA grouping key per PR #245 §9; PHA has no player_id_worldwide column on this dataset),"Q5 BINDING preserved: Q5_selected_policy=sensitivity_indicator_co_registration, verdict=narrow_with_evidence; is_cross_region_fragmented is a co-registered evidence dimension, not a filter applied to the survey input stream.",not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,not_applicable_carry_forward,narrow_with_evidence,narrow_with_evidence,recommendation_only_blocked_pending_implementation_proof_pr,"aligulac_style_btl,bradley_terry,neural_btl","raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2. The rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR; unrated games predominantly are leaderboard-absent practice / custom games), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment). The Q6F survey does not re-open this rejection.","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
+citation::Elo (1978) -- The Rating of Chessplayers, Past and Present. Arco Publishing, New York.
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Herbrich, Minka, Graepel (2006) -- TrueSkill: A Bayesian Skill Rating System. NIPS 2006: 569-576.
+citation::Steyerberg (2009) -- Clinical Prediction Models. Springer, Chapter 15 on discrimination and calibration.
+citation::Hosmer, Lemeshow, Sturdivant (2013) -- Applied Logistic Regression, 3rd ed., Wiley, Chapter 5 on assessment of fit.","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+q6f_candidate_set_incomplete:did_not_fire
+q6f_decision_count_mismatch:did_not_fire
+q6f_decision_id_order_mismatch:did_not_fire
+q6f_csv_byte_determinism_violation:did_not_fire
+q6f_materialization_creep:did_not_fire
+q6f_rating_trace_persistence_violation:did_not_fire
+q6f_rating_object_persistence_violation:did_not_fire
+q6f_parquet_emitted:did_not_fire
+q6f_q5_re_adjudication_drift:did_not_fire
+q6f_status_yaml_drift:did_not_fire
+q6f_research_log_drift:did_not_fire
+q6f_roadmap_drift:did_not_fire
+q6f_spec_drift:did_not_fire
+q6f_cleaning_layer_drift:did_not_fire
+q6f_target_match_outcome_read_as_input:did_not_fire
+q6f_future_match_leakage_referenced:did_not_fire
+q6f_global_batch_fit_referenced:did_not_fire
+q6f_phase_03_baseline_creep:did_not_fire
+q6f_step_02_01_04_creep:did_not_fire
+q6f_forward_only_constraint_missing_for_non_omit_candidate:did_not_fire
+q6f_cold_start_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_tie_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_hyperparameter_policy_missing_for_non_omit_candidate:did_not_fire
+q6f_selected_policy_row_missing:did_not_fire
+q6f_selected_policy_verdict_invalid:did_not_fire
+q6f_per_family_impact_summary_missing:did_not_fire
+q6f_per_family_impact_broadcast_incomplete:did_not_fire
+q6f_excluded_methods_considered_incomplete:did_not_fire
+q6f_raw_mmr_hybrid_rejection_missing:did_not_fire
+q6f_btl_family_acknowledgement_missing:did_not_fire
+q6f_auc_alone_binding_violation:did_not_fire
+q6f_trueskill_tau_unjustified:did_not_fire",PR #<TBD>,f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b,fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d,29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424,026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719,703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0,7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419,,"Per-family broadcast of Q6F selected policy (narrow_with_evidence):
+focal_player_history: recommendation_only_blocked_pending_implementation_proof_pr
+opponent_player_history: recommendation_only_blocked_pending_implementation_proof_pr
+matchup_history_aggregate: recommendation_only_blocked_pending_implementation_proof_pr
+reconstructed_rating: recommendation_only_blocked_pending_implementation_proof_pr
+in_game_history_aggregate: recommendation_only_blocked_pending_implementation_proof_pr
+cross_region_fragmentation_handling: recommendation_only_blocked_pending_implementation_proof_pr
+All 6 history-enriched pre_game families covered; no Step 02_01_03 closure claim; no Phase 03 baseline claim; no feature materialization claim."
