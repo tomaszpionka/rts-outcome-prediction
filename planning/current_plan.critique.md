@@ -6,8 +6,8 @@ plan_base_ref: ee15d3625eee60688776219f533d4a5ceefb4b76
 plan_file: planning/current_plan.md
 chosen_outcome: A
 branch: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey
-planning_pr_number: TBD
-planning_pr_url: TBD
+planning_pr_number: 246
+planning_pr_url: https://github.com/tomaszpionka/rts-outcome-prediction/pull/246
 planning_pr_state: draft
 verdict: APPROVE-WITH-NITS
 blockers: 0
