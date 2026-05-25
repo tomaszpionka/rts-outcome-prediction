@@ -19,6 +19,31 @@ merged to `master`.
 
 ### Removed
 
+## [3.75.0] — 2026-05-25 (PR #245: feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication)
+
+### Added
+- Q6 rating-reconstruction successor adjudication for SC2EGSet Step `02_01_03` (Layer-2 execution PR; future PR #245 at branch `feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication`).
+- New adjudicator module `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py` (45 falsifier helpers; 31-column `Q6_ADJUDICATION_SCHEMA`; deterministic CSV + MD output via `run_rating_reconstruction_adjudication()`).
+- Q6 adjudication artifact pair at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.{csv,md}` (8 decision rows: Q6A omit / Q6B rolling / Q6C elo / Q6D glicko / Q6E trueskill / Q6F deferred + `Q6_selected_policy` + `Q6_per_family_impact_summary`; MD has 18 §sections).
+- Q6_selected_policy = `deferred_blocker_with_algorithm_survey_required`, verdict `deferred_blocker`, materialization_permission `blocked_pending_algorithm_survey_pr`. Q6 remains `deferred_blocker` after this PR; the comparative back-testing evidence among Elo / Glicko / Glicko-2 / TrueSkill / rolling-baseline does not exist in any prior artifact and binding a winner would violate Invariant I7 (no magic numbers).
+- Mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_history_rating_reconstruction.py` — 315 tests, 99.54% branch coverage on the adjudicator module (exceeds the 95% project threshold).
+- Sandbox jupytext-paired notebook at `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.{py,ipynb}` (py:percent canonical; outputs cleared; all logic imported from the adjudicator module).
+- Binding adversarial-review nits N-1 through N-4 from PR #244 Round 1 implemented: N-1 (Aligulac BTL / Bradley-Terry / Neural BTL acknowledged via `excluded_methods_considered` field and MD §5.1 rejection paragraph; not selected as Q6 candidates); N-2 (raw-MMR-where-present hybrid acknowledged via `raw_mmr_hybrid_rejection` field and MD §5.2 rejection paragraph); N-3 (per-player history-depth probe — `player_history_all` has NO `player_id_worldwide` column per `DESCRIBE`, so the probe groups by `toon_id` with documented inline rationale citing the empirical schema constraint); N-4 (all probes are full-table scans with deterministic `ORDER BY` clauses where needed; no `LIMIT` without `ORDER BY`).
+- Soft nits N-5 through N-10 incorporated where mechanically practical (N-7 inlined into PR #244 plan; N-9 `POST_GAME_TOKENS` imported from PR #242 `adjudicate_history_enriched_pre_game_source_layer` with word-boundary regex semantic refinement to avoid false-positive substring collisions with `rolling_win_rate`; N-10 MD §5.3 explicitly states Q6F is a legitimate verdict).
+
+### Provenance / lineage
+- Parent PR #242 (`f2a169ec...` CSV, `fdaa7d6d...` MD) and parent PR #243 (`29d39522...` CSV, `026deda3...` MD) byte-stable; SHAs pinned on every Q6 decision row.
+- Q5 selected_policy = `sensitivity_indicator_co_registration` (PR #243) is BINDING and NOT re-adjudicated.
+- Step 02_01_03 base adjudication Q1-Q4, Q7, Q8 (PR #242) ratified; not re-adjudicated.
+
+### Not in this PR (preserved hard stops; future Layer-3+ PRs)
+- NO feature value materialised, NO Parquet output, NO CROSS-02-01 post-materialization audit, NO `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` file.
+- NO status YAML mutation (`STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml`).
+- NO `research_log.md` entry (per PR #242 / PR #243 adjudication-artifact precedent; closure-log deferred).
+- NO `ROADMAP.md` edit, NO spec edits, NO cleaning-layer YAML edits.
+- NO Step 02_01_04 start, NO Phase 03 start, NO baseline modelling.
+- NO thesis / docs / .claude / data / AoE2 edits.
+
 ## [3.74.0] — 2026-05-24 (PR #243: feat/sc2egset-02-01-03-history-cross-region-adjudication)
 
 ### Added
