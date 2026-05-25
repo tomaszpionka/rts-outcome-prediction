@@ -6,11 +6,15 @@ plan_base_ref: 445bae0197fa75b613443f8eafef114ff2bb6939
 plan_file: planning/current_plan.md
 chosen_outcome: A
 branch: feat/sc2egset-02-01-03-history-rating-reconstruction-adjudication
+planning_pr_number: 244
+planning_pr_url: https://github.com/tomaszpionka/rts-outcome-prediction/pull/244
+planning_pr_state: draft
 verdict: APPROVE-WITH-NITS
 blockers: 0
 nits: 10
 round: 1
 round_cap: 3
+future_layer2_pr_number: TBD
 ---
 
 # Q6 plan adversarial review
