@@ -182,7 +182,7 @@ REAL_INPUTS_AVAILABLE: bool = (
 
 # Pinned artifact SHAs (from committed artifacts at T01-T06)
 EXPECTED_Q6_CSV_SHA: str = (
-    "68140404c6136ad2edcf3e5e35a48fc4b16cc400dc823ce1117fe94d56171d1a"
+    "703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0"
 )
 EXPECTED_Q6_MD_SHA: str = (
     "7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419"

@@ -280,7 +280,7 @@ MATCHES_FLAT_CLEAN_YAML_PATH = REPO_ROOT / MATCHES_FLAT_CLEAN_YAML_REL
 MATCHES_HISTORY_MINIMAL_YAML_PATH = REPO_ROOT / MATCHES_HISTORY_MINIMAL_YAML_REL
 CSV_OUT_PATH = REPO_ROOT / RATING_RECONSTRUCTION_ADJUDICATION_CSV_REL
 MD_OUT_PATH = REPO_ROOT / RATING_RECONSTRUCTION_ADJUDICATION_MD_REL
-AUDIT_PR_LABEL = "PR #N"
+AUDIT_PR_LABEL = "PR #245"
 AUDIT_DATE = "2026-05-25"
 
 print("REPO_ROOT:", REPO_ROOT)
@@ -377,7 +377,7 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-EXPECTED_CSV_SHA = "68140404c6136ad2edcf3e5e35a48fc4b16cc400dc823ce1117fe94d56171d1a"
+EXPECTED_CSV_SHA = "703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0"
 EXPECTED_MD_SHA = "7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419"
 
 observed_csv_sha = _sha256(CSV_OUT_PATH)
@@ -409,7 +409,7 @@ print("Artifact determinism confirmed: both SHAs match committed artifacts.")
 # - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv`
 #   (31 columns x 8 rows + 1 header; `materialized_output_paths` is `""`
 #   on every row; `audit_pr` is populated; CSV SHA-256 =
-#   `68140404c6136ad2edcf3e5e35a48fc4b16cc400dc823ce1117fe94d56171d1a`).
+#   `703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0`).
 # - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md`
 #   (18 §sections; MD SHA-256 =
 #   `7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419`).

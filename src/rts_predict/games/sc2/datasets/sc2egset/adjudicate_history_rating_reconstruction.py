@@ -9,7 +9,7 @@ This module is the Layer-2 successor to PR #242's parent adjudication.
 PR #242 closed Q6 (``rating_policy``) as ``verdict=deferred_blocker``.
 PR #243 resolved Q5 (``cross_region_fragmentation_handling``) with
 ``Q5_selected_policy=sensitivity_indicator_co_registration``. This module
-(future PR #N) upgrades Q6 only; Q5 is NOT re-adjudicated.
+(future PR #245) upgrades Q6 only; Q5 is NOT re-adjudicated.
 
 The 6 candidate rating policies (closed enumerated set per planning
 Assumption 11):
@@ -570,7 +570,7 @@ class RatingReconstructionAdjudicationDecision:
         evidence_paths: Newline-joined repo paths + citations (>=1 for
             non-omit candidates).
         falsifiers: Newline-joined ``key:status`` pairs.
-        audit_pr: Layer-2 PR number placeholder ("PR #N" until merge).
+        audit_pr: Layer-2 PR number string (e.g., ``"PR #245"``).
         parent_pr242_csv_sha256: Pinned PR #242 CSV SHA-256.
         parent_pr242_md_sha256: Pinned PR #242 MD SHA-256.
         parent_pr243_csv_sha256: Pinned PR #243 CSV SHA-256.
@@ -3183,7 +3183,7 @@ def run_rating_reconstruction_adjudication(
             ``matches_history_minimal.yaml``.
         csv_out_path: Destination Q6 CSV path.
         md_out_path: Destination Q6 MD path.
-        audit_pr: Layer-2 PR number placeholder string (e.g., ``"PR #N"``).
+        audit_pr: Layer-2 PR number string (e.g., ``"PR #245"``).
         audit_date: ISO YYYY-MM-DD date (recorded in provenance only).
         skip_probes: If True, skip the read-only DuckDB probes entirely
             (tests use this to avoid DuckDB I/O).
