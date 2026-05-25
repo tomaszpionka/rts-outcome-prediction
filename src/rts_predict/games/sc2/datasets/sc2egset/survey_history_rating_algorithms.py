@@ -9,7 +9,7 @@ This module is the Layer-2 successor to PR #245's Q6 deferred-blocker
 verdict. PR #245 closed Q6 (``rating_policy``) as
 ``Q6_selected_policy = deferred_blocker_with_algorithm_survey_required``
 with ``materialization_permission = blocked_pending_algorithm_survey_pr``.
-This module (PR #<TBD>) emits an algorithm-survey verdict over the 4
+This module (PR #247) emits an algorithm-survey verdict over the 4
 included rating candidates plus 2 carry-forward references; the verdict
 either unblocks materialization (``bind_now``), unblocks the other 5
 families without ``reconstructed_rating``
@@ -2820,9 +2820,9 @@ def run_q6f_rating_algorithm_survey(
         db_path: Read-only path to the sc2egset DuckDB.
         csv_path: Survey CSV output path.
         md_path: Survey MD output path.
-        audit_pr: PR number string (e.g., ``'PR #246'``); placeholder
-            ``'PR #<TBD>'`` permitted at first commit and replaced after
-            the draft PR is opened.
+        audit_pr: PR number string (e.g., ``'PR #247'``); placeholder
+            ``'PR #<TBD>'`` is the default sentinel and is replaced once
+            the draft PR is assigned a number.
         write_artifacts: If True, write the CSV+MD pair; otherwise return
             the result without writing.
         repo_root: Optional repository root for SHA pin verification; if

@@ -209,11 +209,12 @@ print(f"CSV_PATH = {CSV_PATH}")
 print(f"MD_PATH  = {MD_PATH}")
 
 # %%
+_AUDIT_PR_NUMBER = "PR #247"  # Replaces AUDIT_PR_NUMBER_PLACEHOLDER once assigned.
 RESULT = run_q6f_rating_algorithm_survey(
     db_path=DB_PATH,
     csv_path=CSV_PATH,
     md_path=MD_PATH,
-    audit_pr=AUDIT_PR_NUMBER_PLACEHOLDER,
+    audit_pr=_AUDIT_PR_NUMBER,
     write_artifacts=True,
     repo_root=REPO_ROOT,
 )

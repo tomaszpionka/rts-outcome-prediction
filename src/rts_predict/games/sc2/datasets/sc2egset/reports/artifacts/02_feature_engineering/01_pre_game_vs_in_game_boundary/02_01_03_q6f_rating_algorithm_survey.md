@@ -1,6 +1,6 @@
 # Q6F Rating-Algorithm Survey
 
-**Audit PR:** PR #<TBD>
+**Audit PR:** PR #247
 
 ## 1. Non-Materialization Disclaimer
 

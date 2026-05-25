@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.76.0] — 2026-05-25 (PR #<TBD>: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey)
+## [3.76.0] — 2026-05-25 (PR #247: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey)
 
 ### Added
 - Q6F rating-algorithm SURVEY (Layer-2 execution) for SC2EGSet Step `02_01_03`. Authorises a future Layer-3 materialization PR based on the emitted Q6F verdict.
