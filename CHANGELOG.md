@@ -19,6 +19,17 @@ merged to `master`.
 
 ### Removed
 
+## [3.78.0] - 2026-05-26 (PR #<TBD>: feat/sc2egset-02-01-03-q6h-rating-path-decision)
+
+### Added
+- Q6H final rating-path decision artifact pair (`02_01_03_q6h_rating_path_decision.{csv,md}`) for SC2EGSet Step `02_01_03`. Terminal rating-path adjudication for `reconstructed_rating` (CROSS-02-02 §6.2 L241); after Q6H is merged no further Q6X PRs are authorised.
+- Q6H decision module `src/rts_predict/games/sc2/datasets/sc2egset/decide_history_rating_path.py` (38-column `Q6H_DECISION_SCHEMA`; 5-row decision set; 40-key `FALSIFIER_PRIORITY_CHAIN`; binding `Q6H_PATH_DECISION_RULE` with pinned SHA-256; A9 thesis-pragmatism admissibility three-pin (≥ 6 sentences, ≥ 3 PR #249 §X.Y cross-references, reviewer-adversarial sign-off); deterministic CSV + ≥ 19-section MD writer; canonical Layer-2 default per A9(b)).
+- Q6H mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_decide_history_rating_path.py` (371 tests; 98% branch coverage on the decision module).
+- Q6H sandbox jupytext notebook pair at `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6h_rating_path_decision.{py,ipynb}` (py:percent canonical; no `def`/`class`/`lambda` in cells; all logic imported from the decision module).
+
+### Changed
+- `Q6H_selected_policy = recommendation_only_event_by_event_glicko2` (canonical Layer-2 default per A9(b); Branch (ii) reached). `materialization_permission = recommendation_only_blocked_pending_phase_03_or_later_decision`. Q5 / Q6F / Q6G remain BINDING and unchanged; no feature materialization; no feature artifact; no CROSS-02-01 audit; no STEP_STATUS flip; no research_log entry; no ROADMAP edit; no Step 02_01_04; no Phase 03; no baseline modeling.
+
 ## [3.77.0] — 2026-05-26 (PR #249: feat/sc2egset-02-01-03-q6g-rating-implementation-proof)
 
 ### Added
