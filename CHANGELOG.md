@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.78.0] - 2026-05-26 (PR #<TBD>: feat/sc2egset-02-01-03-q6h-rating-path-decision)
+## [3.78.0] - 2026-05-26 (PR #251: feat/sc2egset-02-01-03-q6h-rating-path-decision)
 
 ### Added
 - Q6H final rating-path decision artifact pair (`02_01_03_q6h_rating_path_decision.{csv,md}`) for SC2EGSet Step `02_01_03`. Terminal rating-path adjudication for `reconstructed_rating` (CROSS-02-02 §6.2 L241); after Q6H is merged no further Q6X PRs are authorised.

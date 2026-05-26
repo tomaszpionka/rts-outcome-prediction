@@ -1,6 +1,6 @@
 # Q6H Final Rating-Path Decision
 
-**Audit PR:** PR #<TBD>
+**Audit PR:** PR #251
 
 ## 1. Summary (Non-Materialization; Non-Phase-03)
 
