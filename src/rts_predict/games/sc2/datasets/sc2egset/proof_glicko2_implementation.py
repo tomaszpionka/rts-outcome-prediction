@@ -8,7 +8,7 @@ for the Layer-1 specification.
 This module is the Layer-2 successor to PR #247's Q6F survey. PR #247
 selected ``Q6F_selected_policy = narrow_with_evidence`` with
 ``materialization_permission = recommendation_only_blocked_pending_implementation_proof_pr``.
-This module (PR #<TBD>) emits an implementation-proof verdict for the
+This module (PR #249) emits an implementation-proof verdict for the
 Glicko-2 candidate (single candidate under proof per A5): it (a) re-runs
 PR #247's event-by-event reference engine, (b) implements the
 production-shaped batched-update Glicko-2 path (Glickman 2012 §3

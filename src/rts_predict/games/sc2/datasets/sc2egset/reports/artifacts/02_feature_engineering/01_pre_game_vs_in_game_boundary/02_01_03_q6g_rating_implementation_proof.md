@@ -1,6 +1,6 @@
 # Q6G Rating-Implementation Proof
 
-**Audit PR:** PR #<TBD>
+**Audit PR:** PR #249
 
 ## 1. Non-Materialization Disclaimer
 

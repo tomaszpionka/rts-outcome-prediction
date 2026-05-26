@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.77.0] — 2026-05-26 (PR #<TBD>: feat/sc2egset-02-01-03-q6g-rating-implementation-proof)
+## [3.77.0] — 2026-05-26 (PR #249: feat/sc2egset-02-01-03-q6g-rating-implementation-proof)
 
 ### Added
 - Q6G rating-implementation-proof (Layer-2 execution) for SC2EGSet Step `02_01_03`. Discharges PR #247's `recommendation_only_blocked_pending_implementation_proof_pr` materialization permission by producing a byte-deterministic Glicko-2 batched-production engine and an event-by-event vs. batched ordering-equivalence proof (BLOCKER-1 / A19: Spearman rho >= 0.99 AND |Delta log-loss| <= SE_log_loss_event).
