@@ -1,160 +1,154 @@
 ---
-reviewer_role: reviewer-adversarial
-reviewer_model: claude-opus-4-7[1m]
-reviewer_date: 2026-05-25
-plan_base_ref: ee15d3625eee60688776219f533d4a5ceefb4b76
-plan_file: planning/current_plan.md
+critique_role: reviewer-adversarial
+critique_model: claude-opus-4-7[1m]
+critique_date: 2026-05-26
+plan_ref: planning/current_plan.md
+plan_date: 2026-05-25
+base_ref: 779dc40a36765d90034181fc3885ea32cab204e6
+branch: feat/sc2egset-02-01-03-q6g-rating-implementation-proof
 chosen_outcome: A
-branch: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey
-planning_pr_number: 246
-planning_pr_url: https://github.com/tomaszpionka/rts-outcome-prediction/pull/246
-planning_pr_state: draft
-verdict: APPROVE-WITH-NITS
+final_verdict: APPROVE-WITH-NITS
 blockers: 0
-nits: 4
-round: 1
-round_cap: 3
-future_layer2_pr_number: TBD
-future_layer2_version_bump: 3.75.0 -> 3.76.0
-parent_planning_pr: 244
-parent_execution_pr: 245
-parent_q5_pr: 243
-parent_q1_q4_q7_q8_pr: 242
+nits_round_1_incorporated: 6 of 6
+nits_round_2_remaining: 2 (R2-N1, R2-N2; both non-blocking)
+adversarial_rounds_consumed: 2 of 3
+parent_planning_pr: 246 (merged 2026-05-25; Q6F Layer-1)
+parent_execution_pr: 247 (merged 2026-05-25; Q6F Layer-2; verdict narrow_with_evidence)
+parent_q5_pr: 243 (Q5 BINDING preserved; sensitivity_indicator_co_registration)
+parent_q6_pr: 245 (Q6 BINDING discharged by Q6F)
 ---
 
-# Q6F plan adversarial review
+# Reviewer-Adversarial Critique — Q6G Layer-1 plan (Round 1 + Round 2)
 
-## Metadata
+This critique consolidates two adversarial rounds against the Q6G rating-implementation-proof Layer-1 plan. Round 1 (HOLD) identified a methodology BLOCKER and 6 NITs; the planner produced a Round 2 amendment incorporating all of them as binding methodology. Round 2 (APPROVE-WITH-NITS) verified each amendment is materially addressed and found 2 additional non-blocking nits.
 
-- Plan: `planning/current_plan.md`
-- Plan author: `@planner-science` (Opus 4.7, 1M context)
-- Plan timestamp: 2026-05-25
-- Reviewer: `@reviewer-adversarial`
-- Review timestamp: 2026-05-25
-- Round: 1 of 3 (adversarial cap; per `feedback_adversarial_cap_execution.md`)
-- Chosen outcome under review: A — Q6F rating-algorithm survey planning PR
-- Branch: `feat/sc2egset-02-01-03-q6f-rating-algorithm-survey`
-- Layer: Layer-1 (planning-only; 2-file diff)
-- Predecessors verified:
-  - PR #242 (Q1-Q4, Q7, Q8 ratified)
-  - PR #243 (Q5 resolved; `Q5_selected_policy = sensitivity_indicator_co_registration`, verdict `narrow_with_evidence`, BINDING)
-  - PR #244 (Q6 Layer-1 plan; APPROVE-WITH-NITS Round 1)
-  - PR #245 (Q6 Layer-2 execution; verdict `deferred_blocker`; materialization `blocked_pending_algorithm_survey_pr`; this Q6F survey is the named unblock)
+Round 3 of the Layer-1 cap is reserved; it will be invoked only if the Layer-2 execution PR's reviewer surfaces a Layer-1-traceable defect.
 
-## Verdict: APPROVE-WITH-NITS
+---
 
-The plan is materializable as a 2-file Layer-1 planning-only PR. The chosen outcome (A — Q6F rating-algorithm survey) is correctly motivated and uniquely justified. **0 blockers; 4 cosmetic nits** — all inlined into the plan's `## Adversarial-Review Adjustments (Round 1)` section as Layer-2 executor guidance. The most subtle scope risk (Q6F survey drifting into Phase 03 baseline modelling) is enforced by 4 independent falsifiers (`q6f_phase_03_baseline_creep`, `q6f_train_test_split_referenced`, `q6f_global_batch_fit_referenced`, `q6f_target_match_outcome_read_as_input`) plus the T03 prediction-before-update protocol.
+## Round 1 — HOLD pending BLOCKER-1 resolution
 
-## 11-point checklist
+**Reviewer:** `@reviewer-adversarial`
+**Date:** 2026-05-25
+**Verdict:** **HOLD** pending BLOCKER-1 resolution; otherwise APPROVE-WITH-NITS.
 
-1. **Q6F-as-next-atomic-step — PASS.** Lines 73-79 reject outcomes B-F with cited reasons. B violates I7 (Q6 still `deferred_blocker_with_algorithm_survey_required`). C violates non-batching rule. D would train Phase 03 on a spec-disowned feature universe. E (hygiene-only) has no real blocker. F forfeits a known-required step. The "direct materialization with omit" alternative is correctly subsumed under Q6F itself as the `omit_reconstructed_rating_and_unblock_other_five` verdict branch (lines 42, 147-148, 282-286), so the omit path is reachable WITHIN Q6F without bypassing the survey. Airtight.
+### Per-challenge findings (10 challenges)
 
-2. **Materialization barred — PASS.** Multiple layered enforcement: Assumption 14 (`materialized_output_paths` MUST be empty on every row); Assumption 18 (evaluation traces are EPHEMERAL — NOT persisted to Parquet, JSON, npz, pkl); falsifier `q6f_materialization_creep`; falsifier `q6f_rating_trace_persistence_violation`; falsifier `q6f_rating_object_persistence_violation`; Forbidden Files table bars any `*.parquet`. The evaluation-trace-vs-feature distinction is unambiguous at line 66 ("evaluation traces of forward-only rating predictions ... Q6F-internal artifacts ONLY"). Falsifier-enforced.
+**(1) Q6G as next atomic step.** PASS. The Q6F binding row (`02_01_03_q6f_rating_algorithm_survey.md` §12 lines 121, 129; §13 lines 194–205) sets `materialization_permission = recommendation_only_blocked_pending_implementation_proof_pr` for ALL six families, including `omit_reconstructed_rating`. The smaller "execute omit + unblock five" path still requires an implementation-proof PR — it cannot bypass Q6G's class. Outcome B is correctly rejected; OQ5 honestly parks the omit-closure question. No finding.
 
-3. **Survey vs Phase 03 baseline modelling — PASS.** Lines 67-69, 250, 266 distinguish: (a) no train/test split / temporal CV / k-fold (falsifier `q6f_train_test_split_referenced`); (b) no model object fit — rating engines are forward-only online updaters, not classifiers; (c) no global / batch fit (falsifier `q6f_global_batch_fit_referenced`); (d) target-game outcome read as evaluation target only (falsifier `q6f_target_match_outcome_read_as_input`); (e) explicit `q6f_phase_03_baseline_creep` falsifier with explanation that T04 metrics are NOT Phase-03 baselines. T03's forward-only protocol at line 244-248 is correctly described: "predicted probability ... using ONLY the rating state accumulated from rows with strictly-earlier ... timestamp ... after scoring row R, the rating state is updated using R's actual outcome (which becomes input to FUTURE rows' predictions but NEVER to R's own prediction)." Boundary clean.
+**(2) Materialization planning is still barred.** RESPECTED. Q6F MD §13 (lines 194–205) literally states "Materialization permission ... `recommendation_only_blocked_pending_implementation_proof_pr`" for all 6 families and "Future feature materialization is a SEPARATE PR (Layer-3) ... subject to its own CROSS-02-01 post-materialization leakage audit." A materialization-planning PR before the proof would be a verdict-text violation. Plan honors this.
 
-4. **AUC / log-loss / Brier as evaluation targets only — PASS.** T03 line 247: "After scoring row R, the rating state is updated using R's actual outcome (which becomes input to FUTURE rows' predictions but NEVER to R's own prediction)." T04 line 266: "the rating INPUT for each prediction never sees the future actual." Two falsifiers enforce: `q6f_target_match_outcome_read_as_input` and `q6f_future_match_leakage_referenced`. Invariant I3 (`history_time < target_time`) is honoured via the inherited `STRICT_LT_HISTORY_FILTER` constant.
+**(3) Implementation-proof vs feature materialization boundary.** WARNING — boundary is sharp in text, fragile in artifact form. The plan's "small 5x3 markdown table" sample (OQ4 default) of rating mu values would BY CONSTRUCTION be a persisted, citable rating output. An examiner distinguishing "evaluation trace" from "feature materialization" sees the same tuple as both. → **Triggers NIT-N1.**
 
-5. **Candidate completeness and fairness — PASS.** 4 included + 2 carry-forward (lines 105-114). Rolling-baseline justified as "rating proxy without opponent strength; baseline" (line 107) — legitimate floor; the survey would lack a "no opponent-strength" reference otherwise. Elo K=24 (midpoint between K=20 and K=32 with rationale). Glicko-2 defaults pinned per Glickman 2012. TrueSkill 1v1→Glicko-like degeneracy noted in Assumption 7 and tested in T08 `TestTrueSkillEngine`.
+**(4) Glicko-2 defensible despite TrueSkill CI overlap.** AT RISK — proof-path `bind_glicko2_forward_only` may be unreachable. Q6F §11 table shows Glicko-2 log-loss CI [0.6216, 0.6302] vs TrueSkill [0.6246, 0.6342] — overlap of 0.0056 (about 0.9% of mid). Batched volatility correction (Glickman 2012 §7) does not systematically shift Glicko-2 log-loss in either direction at this sample size with `rating_period_days=30`. Realistic outcome is `recommendation_only_glicko2`, not `bind_now`. → **Triggers NIT-N2.**
 
-6. **BTL / Bradley-Terry / Neural BTL inclusion — PASS.** Assumption 8 carries forward PR #245 N-1 rejection with rationale: "BTL collapses to Elo-with-race-prior in 1v1; Neural BTL needs its own model-training pipeline." Rejection re-stated in every row's `excluded_methods_considered` column. Executor permitted to expand IFF substantive case + citations + fixtures. Defensible.
+**(5) `omit_reconstructed_rating_and_unblock_other_five` must remain an outcome.** RESPECTED-as-needed. Q6F §12 explicitly preserves both `omit_reconstructed_rating_and_unblock_other_five` (decision rule branch 4) and `narrow_with_evidence` (branch 3) as outcomes. Removing proof-path C from Q6G would silently narrow the deterministic adjudication rule that Q6F published, which would itself be a Q6F re-adjudication.
 
-7. **Raw MMR hybrid rejection — PASS.** Assumption 9 carries PR #245 N-2 rationale. See NIT-1 (schema clarity).
+**(6) Event-by-event Glicko-2 simplification.** **BLOCKER-class methodology nit.** PR #245 / Q6F §8 (Glicko-2 specification) states verbatim: "Event-by-event simplification ... Sigma held constant ... the full batched volatility update is deferred to a future Q6G PR." Q6G MUST implement batched Glicko-2 per Glickman (2012) Example §2–§7. Reporting BOTH variants is necessary but INSUFFICIENT: the plan must additionally prove an ordering-equivalence bound (Spearman ρ ≥ 0.99 OR Kendall τ ≥ 0.95 on per-player rating trajectories AND log-loss delta within ±1·SE). Without such a bound, Q6F's evidence (collected under the event-by-event simplification) does NOT transfer to a `bind_now` under the batched algorithm. → **BLOCKER-1.**
 
-8. **Q5 binding preserved — PASS.** Q5 cited as BINDING at line 95 with explicit re-affirmation protocol: cross-region history rows are NOT dropped from survey input; `is_cross_region_fragmented` is a co-registered evidence dimension. Falsifier `q6f_q5_re_adjudication_drift` halts entrypoint if any survey row carries Q5-verdict-bearing token in verdict-bearing field. MD §3 re-affirms.
+**(7) Q5 binding policy preserved.** RESPECTED. PR #243 MD line 22 binds `Q5_selected_policy = sensitivity_indicator_co_registration` with verdict `narrow_with_evidence`; line 213 explicitly notes "Q6 remains deferred." Plan §Assumption 6 + falsifier `q6g_q5_re_adjudication_drift` preserve. Verified.
 
-9. **Schema sufficiency and determinism — PASS.** 36 columns (lines 405-444); all 6 SHA fields named with `_sha256` suffix; `materialized_output_paths` is column 34 and Assumption 14 plus falsifier `q6f_materialization_creep` enforces empty. Byte-stability via dual-write hash check (T06, T08). See NIT-2 (column-count consistency).
+**(8) Schema gaps.** WARNING — the proposed 34-column Q6G proof schema needs additions: `bootstrap_random_seed`, `rating_period_days` (separate column), `cold_start_threshold_n_games`, `numpy_rng_bit_generator`, `python_floating_point_summation_order_policy`, `glicko2_volatility_iteration_convergence_tol`. Q6F CSV uses 44 columns; Q6G uses 34. Justify the asymmetry, else the schema is arbitrary by examiner standards. → **Triggers NIT-N3.**
 
-10. **No status / no research_log / no ROADMAP / no Phase 03 creep — PASS.** `## Out of scope` (lines 521-541) lists 14 forbidden mutations, each with named falsifier. Forbidden Files table bars STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS, research_log (dataset + reports), ROADMAP, CROSS-02-01 audit. Gate Condition #12 re-asserts.
+**(9) No status YAML / research_log / ROADMAP / Phase 03 mutations.** RESPECTED. Plan §Out-of-scope lists 26 falsifier-tied prohibitions explicitly covering all six mutation targets. The 2-file Layer-1 manifest verifiably excludes them. Verified.
 
-11. **Blockers — NONE.** All 11 checks pass.
+**(10) Defensibility weaknesses for the examiner.** AT RISK — three concerns:
+- (i) The 4-proof-path adjudication relies on bootstrap CI re-evaluation but deepens dependence on a single resampling scheme; the plan should pre-commit to a deterministic bootstrap method and document the random seed before generation, not after. → **Triggers NIT-N6.**
+- (ii) Player identity = `toon_id` (region-scoped) carries forward an examiner-objectionable asymmetry: ratings cannot follow players across region migrations. Without an explicit cited acknowledgement in §Limitations, the proof's own validity inherits Invariant #2 risk. → **Triggers NIT-N4.**
+- (iii) The plan defers `rating_period_selection` to a literal 30-day default with no sensitivity sweep. For a thesis-grade proof, at minimum a {7d, 30d, 90d} sensitivity arm is required to refute "30d was a magic number" (Invariant #7). → **Triggers NIT-N5.**
 
-## Additional adversarial probes
+### Round 1 BLOCKER
 
-- **Plan-required `##` sections — PASS.** 10 sections present at lines 27, 52, 81, 168, 197, 362, 470, 503, 521, 543 (8 required + `## Out of scope` + `## Adversarial-Review Adjustments`).
-- **Hyperparameter discipline — PASS.** Assumption 10 pins fixed literature defaults and explicitly bars tuned variants. OQ2 cleanly defers tuning to a hypothetical "Q6G" follow-up Step. Defensible.
-- **Cold-start floor — PASS-WITH-CAVEAT.** OQ4 acknowledges `cold_start_rate ≥ ~50%` structurally; recommends reporting but not gating. No arbitrary threshold pinned, which is correct given I7.
-- **Selected_policy AUC floor — NIT-3.** AUC_FLOOR=0.55 and AUC_BIND_THRESHOLD=0.60 pinned in T05 with rationales not cited to a primary source.
-- **PR-number normalisation — PASS.** Standard PR #244/#245 precedent.
-- **Branch naming — PASS.** `feat/sc2egset-02-01-03-q6f-rating-algorithm-survey` consistent with PR #242/#243/#245.
-- **N-3 player_id_worldwide handling — PASS.** Assumption 11 acknowledges PHA has no `player_id_worldwide`; mandates `toon_id` as grouping key per PR #245 §9.
-- **Critique stub format — PASS.** Matches PR #244/#245 precedent.
+**BLOCKER-1 (Challenge 6):** Q6G must prove batched vs. event-by-event Glicko-2 ordering equivalence to a documented bound (Spearman ρ ≥ 0.99 AND |Δ log-loss| ≤ 1·SE). Add this as a binding acceptance criterion in the Layer-2 gate AND as a falsifier `q6g_batched_event_ordering_equivalence_unproven`. Failure of the bound forbids `bind_now`; fallback to `recommendation_only_glicko2`, `defer_to_two_candidate_implementation_comparison`, `omit_reconstructed_rating_and_unblock_other_five`, or `deferred_blocker`.
 
-## Nits (non-blocking; all 4 inlined into plan)
+### Round 1 NITs (6)
 
-### NIT-1 — Schema clarity for `raw_mmr_hybrid_rejection`
+- **NIT-N1** (Challenge 3) — MD §10 sample emission must be probability-only (5 floats in [0,1]); add falsifier `q6g_raw_mu_or_sigma_persisted_in_md` to make the materialization-boundary sharp.
+- **NIT-N2** (Challenge 4) — Make `recommendation_only_glicko2` the default expected outcome in OQ1 prose; the data already weakly favors it.
+- **NIT-N3** (Challenge 8) — Add 5 schema columns (`bootstrap_random_seed`, `rating_period_days`, `glicko2_iteration_tol`, `numpy_rng_bit_generator`, `python_floating_point_summation_order_policy`). Justify the schema delta against the Q6F CSV explicitly.
+- **NIT-N4** (Challenge 10.ii) — Add §Limitations paragraph: "`toon_id` is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted bias for Q6G."
+- **NIT-N5** (Challenge 10.iii) — Add OQ6: rating_period_days `{7, 30, 90}` sensitivity arm — emit OR cite Glickman 2012 §10 as accepted default.
+- **NIT-N6** (Challenge 10.i) — Pre-commit to bootstrap method (BCa vs percentile) and seed in the Layer-1 plan; do not let the executor pick.
 
-**Severity:** soft (Layer-2 executor SHOULD address).
+### Round 1 audit trail
 
-**Evidence:** Assumption 9 (line 117) references a "`raw_mmr_hybrid_rejection` field" that does NOT appear in the canonical 36-column `Q6F_SURVEY_SCHEMA` (lines 408-444). The schema comment at line 446 says the N-2 rejection string is carried in the `notes` column (column 35). This is consistent (per-row N-2 rejection lives in `notes`), but Assumption 9's wording implies a dedicated field.
+- Round 1 of 3 adversarial cap consumed.
+- Files cross-checked on master: Q6F MD §12–13 (lines 117–205); Q6F MD §8 (Glicko-2 line 74); Q6F CSV header (44 columns); PR #243 MD lines 22, 213; PR #245 MD §1, §6, §10, §12.
 
-**Fix (inlined):** Layer-2 executor chooses one path: (a) add `raw_mmr_hybrid_rejection` as column 37 of `Q6F_SURVEY_SCHEMA`, mirroring PR #245's dedicated-column pattern exactly (preferred for PR #245 parity); or (b) reword Assumption 9 in the future MD §7 to say "the raw-MMR-hybrid rejection token is carried in the `notes` column per row" (less mirroring; valid). Document the choice in the Layer-2 PR body.
+**Round 1 VERDICT: HOLD** pending BLOCKER-1 resolution; otherwise APPROVE-WITH-NITS.
 
-### NIT-2 — Trivial column-count consistency
+---
 
-**Severity:** trivial.
+## Round 2 — APPROVE-WITH-NITS (zero blockers)
 
-**Evidence:** `## Scope` line 36 says "≥36 columns" — should say "exactly 36 columns" to match the canonical schema declaration. One-word edit.
+**Reviewer:** `@reviewer-adversarial`
+**Date:** 2026-05-26
+**Verdict:** **APPROVE-WITH-NITS** (zero blockers; 6 of 6 Round 1 NITs incorporated; 2 new R2 non-blocking nits).
 
-**Fix (inlined):** Layer-2 executor changes "≥36" → "exactly 36" (or "exactly 37" if NIT-1 path (a) is chosen).
+### Per-amendment verification
 
-### NIT-3 — AUC threshold rationale citation
+**BLOCKER-1:** PASS — A19 (lines 152–157 of `planning/current_plan.md`) binds Spearman ρ ≥ 0.99 AND |Δ log-loss| ≤ 1 SE with deterministic-percentile-bootstrap SE formula `(CI_high − CI_low) / (2 × 1.96)` from PR #247-derived CI. Falsifier `q6g_batched_event_ordering_equivalence_unproven` registered. Row 3 (`Q6G_C_glicko2_event_vs_batched_equivalence_proof`) is enumerated at line 123 and computed at T05 step 1 BEFORE Row 5's decision rule (T05 step 4). Guard falsifier `q6g_bind_now_emitted_without_equivalence_pass` is wired in T01 falsifier chain, T05 step 5, Gate clause (b3), and test `TestBlockerGuard_BindNowRequiresEquivalence`. Decision rule middle branch correctly falls back to `recommendation_only_glicko2` when either bound fails. Bounds are concrete numerics, not handwave.
 
-**Severity:** soft (Layer-2 executor SHOULD address).
+**NIT-N1:** PASS — A20 (line 159) pins exactly 5 floats in [0,1] for MD §10. T06 step 4 implements the probability-only sample table; T06 step 5 implements the writer-time grep check. Gate clauses (a4) and (a5) enforce. Test `TestNIT_N1_MDSampleIsProbabilityOnly` covers. Falsifier `q6g_raw_mu_or_sigma_persisted_in_md` registered. MD §8 is the only allow-listed section for Glicko-2 symbols.
 
-**Evidence:** T05's `AUC_FLOOR=0.55` and `AUC_BIND_THRESHOLD=0.60` are pinned with informal rationales ("5% above no-skill ... commonly used in calibration literature" and "defensible 'genuine forward-only skill signal' floor for ~22K decisive matches"). These are borderline Invariant I7 (no magic numbers — every threshold traced to data or citation). OQ1 surfaces this; OQ7 provides a tie-breaking fallback.
+**NIT-N2:** PASS — OQ1 (line 743) names `recommendation_only_glicko2` as default expected outcome; quotes Q6F §11 CI overlap (Glicko-2 [0.6216–0.6302] vs TrueSkill [0.6246–0.6342], 0.9% of mid-range) at lines 67 and 416–419. Decision rule middle branch carries the explicit CI-overlap rationale string. Scope outcome #3 is labelled "NIT-N2 default expected outcome."
 
-**Fix (inlined):** Layer-2 executor chooses one path: (a) cite a primary source for the floor (e.g., Steyerberg 2009 §5.4 on AUC interpretation; Hosmer-Lemeshow 2013 on weak-discrimination floors); or (b) compute bootstrap CIs on each candidate's AUC and use the lower-CI-bound > 0.5 test instead of pinning a numeric floor. The plan's default (keep pinned thresholds, surface follow-up PR if metrics are bunched) is defensible but not maximally rigorous.
+**NIT-N3:** PASS — A21 introduces the 5 constants; lines 261–265 enumerate columns 35–39 (`bootstrap_random_seed`, `rating_period_days`, `glicko2_iteration_tol`, `numpy_rng_bit_generator`, `python_floating_point_summation_order_policy`). Module assertion at T01 step 13 (`assert len(Q6G_PROOF_SCHEMA) == 39`), `TestModuleConstants`, Gate (c1) reconciling 4 places, MD §11 column-count assertion. Q6F-vs-Q6G schema delta explained (44 vs 39: 4-candidate CI block vs 2 proof-class JSON columns).
 
-### NIT-4 — TrueSkill `tau` justification
+**NIT-N4:** PASS — Explicit `### Limitations` subsection inserted between Assumptions and Unknowns (lines 171–175); cites Invariant #2 branch (iii) verbatim; declares rating fragmentation across region-migrating players as accepted Q6G bias; mandates verbatim restatement in MD §15.
 
-**Severity:** trivial.
+**NIT-N5:** PASS — OQ6 (line 748) records default = Glickman 2012 §10 (30 days, worked example) and explicitly defers `{7, 30, 90}` sensitivity arm to future Q6H or Layer-3-internal sensitivity step. A22 pins. §Out of scope lists explicitly. Falsifier `q6g_rating_period_days_not_30` registered.
 
-**Evidence:** Assumption 10 sets TrueSkill `tau=25/300` without justification (the `draw_margin=0` rationale at "PHA is decisive-only per PR #242 Q1" IS justified). Trivial — Herbrich et al. 2006 defaults are standard.
+**NIT-N6:** PASS — A21 (lines 161–167) pre-commits 5 constants: `BOOTSTRAP_METHOD = "deterministic_percentile"`, `BOOTSTRAP_RANDOM_SEED = 42`, `BOOTSTRAP_BLOCK_COUNT = 200`, `NUMPY_RNG_BIT_GENERATOR = "PCG64"`, `PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = "sorted_then_kahan"`. T04 step 2 implements via PCG64 + percentile bootstrap. Percentile-over-BCa justification at line 197 (one paragraph; [OPINION] flagged; Efron & Tibshirani 1993 cited). Six dedicated falsifiers registered.
 
-**Fix (inlined):** Layer-2 executor adds inline citation to Herbrich-Minka-Graepel (2006) §4 for the default `tau` value, or documents the choice as "literature default."
+### Round-2-fresh challenges
 
-## Non-issues considered and dismissed
+**R2-NEW-1 (Spearman ordering determinism):** PASS — T03 step 7 pins sort key `(toon_id, timestamp, replay_id)` for the batched-path log-loss accumulation. T02 step 1 mandates the loader uses "same query as PR #247 §T02". T05 step 1 applies `~is_cold_start` mask identically to both paths before computing Spearman and uses `scipy.stats.spearmanr(...).statistic` with tie-averaged ranks. Determinism of the Spearman rank statistic is inherited from PR #247's stream ordering plus the explicit shared mask.
 
-- **Materialization gate framing.** 5-layer enforcement; clean.
-- **Survey vs Phase 03 baseline.** 4 falsifiers + T03/T04 protocol enforce.
-- **AUC/log-loss/Brier as evaluation targets only.** T03 "prediction-before-update" protocol explicit; 2 falsifiers enforce.
-- **Q6F-as-next-atomic-step.** Outcomes B-F airtight rejection.
-- **Candidate completeness.** 4 included + 2 carry-forward justified.
-- **BTL / Bradley-Terry / Neural BTL inclusion.** Carry-forward as N-1 rejection from PR #245.
-- **Raw MMR hybrid rejection.** Carry-forward as N-2 rejection from PR #245.
-- **Q5 binding preserved.** Falsifier `q6f_q5_re_adjudication_drift` enforces.
-- **Hyperparameter discipline.** Fixed-defaults-only declaration defensible.
-- **Cold-start floor.** Reported but not gated; correct given I7.
-- **No status / no research_log / no ROADMAP / no Phase 03 creep.** 14 forbidden mutations with named falsifiers.
-- **N-3 player_id_worldwide handling.** Correctly carried forward as `toon_id` per PR #245 §9.
+**R2-NEW-2 (CSV-level enforcement of `bind_now` precondition):** PASS — Gate clause (b3) is a CSV-level reviewer-runnable check: "If Row 5's `proof_verdict == 'bind_now'`, then Row 3's `passes_spearman_bound == True` AND `passes_delta_log_loss_bound == True` AND Row 4's `hashes_equal == True`." Because Row 3's JSON column and Row 4's JSON column are serialized in the CSV (schema columns 24 and 25), the future PR's reviewer-adversarial can verify by parsing the CSV directly — no Python required. T05 step 5 also enforces in code; defense-in-depth.
 
-## Summary
+**R2-NEW-3 (Determinism failure ⇒ no `bind_now`):** PASS — Decision rule first branch (lines 402–407) explicitly handles `IF NOT Determinism pass → deferred_blocker` with materialization_permission `"blocked_pending_byte_determinism_failure_investigation"`. The rule short-circuits to `deferred_blocker` regardless of equivalence pass. Gate (b3) also requires `Row 4's hashes_equal == True` for `bind_now`, making both proofs jointly necessary. Test `TestDecisionRule_AllThreeBranches` covers (a)(b)(c).
 
-| Dimension | Verdict |
-|---|---|
-| Outcome A defensibility | yes — uniquely motivated; B/C/D/E/F rejections cite verifiable evidence |
-| Q6F-vs-Phase-03 boundary | clean — 4 falsifiers + T03/T04 prediction-before-update protocol |
-| Candidate-set completeness | yes — 4 included + 2 carry-forward, justified |
-| BTL / raw-MMR carry-forward | correct — PR #245 N-1 and N-2 rationale preserved |
-| Q5 binding preservation | enforced via falsifier `q6f_q5_re_adjudication_drift` |
-| Schema sufficiency | yes — 36 columns, SHA fields properly typed, materialization gated |
-| Falsifier-set completeness | yes — 4 Phase-03-creep falsifiers + 2 leakage falsifiers + parent-SHA pinning |
-| Materialization-gate framing | correct — 5-layer enforcement |
-| Total blockers | 0 |
-| Total nits | 4 (NIT-1 and NIT-3 SHOULD be addressed by Layer-2; NIT-2 and NIT-4 trivial) |
-| Recommendation | materialize draft PR; Layer-2 dispatch in separate session after user review |
+**R2-NEW-4 (No TrueSkill re-implementation in Q6G):** PASS — TrueSkill re-implementation is forbidden in 4 places: A5 (line 108), forbidden file row (line 656), falsifier `q6g_no_trueskill_re_implementation` (line 727), test `TestNoTrueSkillReImplementation` (line 530). Scope outcome #2 explicitly defers TrueSkill implementation to a hypothetical future Q6H.
 
-Round 1 of 3 adversarial cap consumed.
+**R2-NEW-5 (Test target realism):** WARNING — Test target was raised from ≥120 to ≥150 (A15, T08). However, the test enumeration lists only 17 test classes. Reaching 150 tests requires about 9 parametrised assertions per class on average. This is realistic for the falsifier chain (38 keys → 38+ parametrised tests in `TestFalsifierChain` alone), but the plan does not commit a per-class minimum or parametrisation guarantee. → **Triggers R2-N1 (non-blocking).**
 
-## Layer-2 dispatch reminder for the parent session
+### Round 2 blockers
 
-After this planning-only PR is reviewed and merged, the next session's executor:
+**None.**
 
-- Reads `planning/current_plan.md` (this Q6F plan) directly.
-- Addresses NIT-1 (schema/prose alignment for `raw_mmr_hybrid_rejection`) and NIT-3 (AUC threshold citation) per the plan's `## Adversarial-Review Adjustments (Round 1)` guidance.
-- Treats NIT-2 and NIT-4 as cosmetic / trivial.
-- Routes T03 + T05 (substantive rating-engine + verdict reasoning) to Opus; T01-T02 / T04 / T06-T09 may use Sonnet.
-- Dispatches `@reviewer-adversarial` as the Layer-2 final gate; the adversarial 3-round cap resets for Layer-2 (per `feedback_adversarial_cap_execution.md` symmetric application).
-- Does NOT begin Step 02_01_04 or Phase 03 work.
-- Does NOT materialise the `reconstructed_rating` Parquet column (the Q6F survey produces a CSV/MD verdict, NOT a feature artifact).
+### Round 2 non-blocking nits
+
+- **R2-N1** (from R2-NEW-5): The 150-test floor lacks per-class minimums. Layer-2 reviewer-adversarial should re-verify test density (not just count) at Layer-2 Round 1. **Recommendation:** Layer-2 executor pre-commits per-class minimums (e.g., `TestFalsifierChain` ≥ 38, `TestEquivalenceProof_*` ≥ 10, `TestDecisionRule_*` ≥ 6). Non-blocking — coverage gate (95% branch) is the harder constraint and survives the absence of per-class counts. **No change to this Layer-1 plan required.**
+- **R2-N2** (cosmetic): The traceability table row for BLOCKER-1 (line 762) maps to Gate clause (b3) and now explicitly notes "(`bind_now` permitted only if equivalence pass + determinism pass)" — the polish recommended by Round 2 is already inline. **Pre-commit by user directive incorporated.** Status: addressed in the plan as-written; no further action.
+
+### Round 2 audit trail
+
+- Adversarial cap consumed: Round 2 of 3.
+- Round 1 BLOCKER status: **RESOLVED** (BLOCKER-1 bound to A19 + 2 falsifiers + Gate b3 + decision-rule guard + dedicated test `TestBlockerGuard_BindNowRequiresEquivalence`).
+- Round 1 NIT statuses: **6 of 6 incorporated** as binding methodology (not as prose-only acknowledgements). Each amendment is traceable via the §Adversarial-Review Adjustments traceability table at lines 760–768 of `planning/current_plan.md`.
+- Files cross-checked on master: `planning/current_plan.md` (this revision, lines 152–157, 159, 161–167, 171–175, 261–265, 668–688, 743, 748); PR #247 CSV (44 columns; SHA `249e5591...`); PR #247 MD (18 sections; SHA `4b49bee4...`); PR #243 CSV (`29d39522...`); PR #245 MD (§1, §6, §10, §12).
+
+**Round 2 VERDICT: APPROVE-WITH-NITS** (zero blockers; 2 non-blocking R2 nits informational only; Layer-2 dispatch authorised).
+
+---
+
+## Cap accounting
+
+- Round 1 of 3 Layer-1 adversarial cap: **consumed (HOLD).**
+- Round 2 of 3 Layer-1 adversarial cap: **consumed (APPROVE-WITH-NITS).**
+- Round 3 of 3 Layer-1 adversarial cap: **reserved** — invoke only if Layer-2 execution PR's reviewer-adversarial surfaces a Layer-1-traceable defect.
+- Layer-2 execution PR has a fresh 3-round adversarial cap per `feedback_adversarial_cap_execution.md` (symmetric application).
+
+## Final gate
+
+This Layer-1 PR is mergeable when:
+
+1. Diff contains exactly 2 files: `planning/current_plan.md` + `planning/current_plan.critique.md`.
+2. Branch matches `feat/sc2egset-02-01-03-q6g-rating-implementation-proof`.
+3. Base ref = `779dc40a36765d90034181fc3885ea32cab204e6` (or a fast-forward descendant).
+4. Pre-commit hooks pass (planning-artifact validation; no `.py` touched).
+5. PR is ready (not draft) at gate review time.
+6. Reviewer-adversarial verdict: **APPROVE-WITH-NITS** (zero blockers) — recorded here.
+
+The Layer-2 execution PR's gate conditions are enumerated in §Gate Condition of the plan body. Layer-2 dispatch is authorised after this Layer-1 PR merges.
