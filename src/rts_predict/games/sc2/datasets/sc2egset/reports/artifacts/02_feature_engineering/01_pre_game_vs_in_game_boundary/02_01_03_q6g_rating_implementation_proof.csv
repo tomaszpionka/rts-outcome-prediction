@@ -1,0 +1,301 @@
+decision_id,parent_decision_id,proof_row_label,included_in_proof,inclusion_or_rejection_reason,glicko2_path_kind,initialization_policy,hyperparameter_policy,cold_start_policy,tie_policy,player_identity_policy,cross_region_policy,forward_only_constraints,log_loss,log_loss_ci_low,log_loss_ci_high,brier,brier_ci_low,brier_ci_high,calibration_error,coverage_rate,cold_start_rate,runtime_summary,equivalence_proof_statistics,byte_determinism_proof_statistics,selected_policy,proof_verdict,materialization_permission,raw_mmr_hybrid_rejection,evidence_paths,falsifiers,audit_pr,materialized_output_paths,notes,bootstrap_random_seed,rating_period_days,glicko2_iteration_tol,numpy_rng_bit_generator,python_floating_point_summation_order_policy
+Q6G_A_glicko2_event_by_event_reference,Q6F_D_glicko_or_glicko_2,Glicko-2 event-by-event reference,True,Row 1: PR #247 Glicko-2 event-by-event engine invoked verbatim via _run_glicko2_event_by_event_reference (A18). Reference anchor for the BLOCKER-1 equivalence proof.,event_by_event_reference,"Initial mu=1500 (Glicko scale), RD=350, sigma=0.06 (Glickman 2012 reference defaults; A9). Mapped to Glicko-2 internal scale by (mu - 1500) / 173.7178.","mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults; A9). rating_period_days=30 (A22 / NIT-N5 / OQ6; pinned per Glickman 2012 section 10 worked example). iteration_tol=1e-6.",G-CS-4: first match per focal toon_id is flagged is_cold_start=True; predicted probability at cold-start = symmetric E function = 0.5; cold-start rows are excluded from metric computation and from the BLOCKER-1 equivalence proof.,"Decisive-only (Win/Loss) per PR #242 Q1 (PHA carries decisive results only); same-timestamp ties broken by deterministic sort key (focal_toon, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id).",toon_id (PHA grouping key per PR #245 / PR #247; A10). NIT-N4 limitation: toon_id is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted Q6G bias.,is_cross_region_fragmented is a co-registered evidence dimension preserved per Q5 BINDING (PR #243 narrow_with_evidence); NOT a filter on the proof input stream. The Q6G proof does NOT re-adjudicate Q5.,Per-row prediction uses only PHA records satisfying TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at (STRICT_LT_HISTORY_FILTER; A6 / PR #242 Q3 BIND_NOW). The target outcome updates the rating state ONLY AFTER scoring the prediction; it is never read as feature input for predicting its own match.,0.625522,0.621595,0.630180,0.217711,0.216023,0.219650,0.034911,0.944621,0.055379,deterministic_forward_only_event_by_event_single_pass,not_applicable,not_applicable,,not_applicable_carry_forward,not_applicable_carry_forward,"raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2 and re-affirmed by PR #247 Q6F. Q6G inherits this rejection without re-adjudication; the rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment).","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Efron, Tibshirani (1993) -- An Introduction to the Bootstrap. Chapman & Hall. Source for the percentile bootstrap (NIT-N6).
+citation::Higham (2002) -- Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM. Source for Kahan / Neumaier compensated summation (NIT-N6 PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = sorted_then_kahan).
+parent_pr242_csv_sha256::f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b
+parent_pr242_md_sha256::fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d
+parent_pr243_csv_sha256::29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424
+parent_pr243_md_sha256::026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719
+parent_pr245_csv_sha256::703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0
+parent_pr245_md_sha256::7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419
+parent_pr247_csv_sha256::249e5591c6505b748fe3d371284a72d8f4620f57dbe9628c908ec2fbf097c8ed
+parent_pr247_md_sha256::4b49bee405bf87d4b8920b188e2c38d185ecc077b532d64a8bdd5a90cdf143f2","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+parent_pr247_csv_sha256_mismatch:did_not_fire
+parent_pr247_md_sha256_mismatch:did_not_fire
+q6g_batched_event_ordering_equivalence_unproven:did_not_fire
+q6g_bind_now_emitted_without_equivalence_pass:did_not_fire
+q6g_raw_mu_or_sigma_persisted_in_md:did_not_fire
+q6g_decision_count_mismatch:did_not_fire
+q6g_decision_id_order_mismatch:did_not_fire
+q6g_q6g_selected_policy_row_missing:did_not_fire
+q6g_byte_determinism_failed:did_not_fire
+q6g_rating_trace_persistence_violation:did_not_fire
+q6g_q5_re_adjudication_drift:did_not_fire
+q6g_q6f_re_adjudication_drift:did_not_fire
+q6g_no_trueskill_re_implementation:did_not_fire
+q6g_rating_period_days_not_30:did_not_fire
+q6g_bootstrap_seed_not_42:did_not_fire
+q6g_bootstrap_block_count_not_200:did_not_fire
+q6g_bootstrap_method_not_deterministic_percentile:did_not_fire
+q6g_numpy_rng_not_pcg64:did_not_fire
+q6g_python_summation_policy_not_sorted_then_kahan:did_not_fire
+q6g_glicko2_iteration_tol_not_1e_6:did_not_fire
+q6g_materialization_creep:did_not_fire
+q6g_parquet_emitted:did_not_fire
+q6g_status_drift:did_not_fire
+q6g_research_log_drift:did_not_fire
+q6g_roadmap_drift:did_not_fire
+q6g_spec_drift:did_not_fire
+q6g_cleaning_layer_drift:did_not_fire
+q6g_target_match_outcome_read_as_input:did_not_fire
+q6g_future_match_leakage_referenced:did_not_fire
+q6g_global_batch_fit_referenced:did_not_fire
+q6g_no_post_game_token:did_not_fire
+q6g_phase_03_baseline_creep:did_not_fire
+q6g_step_02_01_04_creep:did_not_fire
+q6g_event_reference_not_imported_from_pr247:did_not_fire",PR #249,,"Q6G Row 1 (event-by-event reference). Engine: PR #247 _run_glicko2_survey delegated verbatim via _run_glicko2_event_by_event_reference (A18). Metrics computed on the non-cold-start mask; expected to match PR #247 section 11 Glicko-2 row to within 1e-4 (log_loss ~ 0.6255, brier ~ 0.2177, calibration_error ~ 0.0349).",42,30,1.0e-06,PCG64,sorted_then_kahan
+Q6G_B_glicko2_batched_production_shape,Q6G_A_glicko2_event_by_event_reference,Glicko-2 batched-production shape,True,Row 2: production-shape Glicko-2 batched-update path implemented per Glickman 2012 section 3 rating-period batching. Matches within a rating period are batched; state is published at period boundaries; per-row predictions consume the most recent CLOSED-period state.,batched_production_shape,"Initial mu=1500 (Glicko scale), RD=350, sigma=0.06 (Glickman 2012 reference defaults; A9). Mapped to Glicko-2 internal scale by (mu - 1500) / 173.7178.","mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults; A9). rating_period_days=30 (A22 / NIT-N5 / OQ6; pinned per Glickman 2012 section 10 worked example). iteration_tol=1e-6.",G-CS-4: first match per focal toon_id is flagged is_cold_start=True; predicted probability at cold-start = symmetric E function = 0.5; cold-start rows are excluded from metric computation and from the BLOCKER-1 equivalence proof.,"Decisive-only (Win/Loss) per PR #242 Q1 (PHA carries decisive results only); same-timestamp ties broken by deterministic sort key (focal_toon, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id).",toon_id (PHA grouping key per PR #245 / PR #247; A10). NIT-N4 limitation: toon_id is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted Q6G bias.,is_cross_region_fragmented is a co-registered evidence dimension preserved per Q5 BINDING (PR #243 narrow_with_evidence); NOT a filter on the proof input stream. The Q6G proof does NOT re-adjudicate Q5.,Per-row prediction uses only PHA records satisfying TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at (STRICT_LT_HISTORY_FILTER; A6 / PR #242 Q3 BIND_NOW). The target outcome updates the rating state ONLY AFTER scoring the prediction; it is never read as feature input for predicting its own match.,0.704805,0.702073,0.707859,0.252748,0.251656,0.253849,0.041161,0.944621,0.055379,deterministic_forward_only_batched_period_pass,not_applicable,not_applicable,,not_applicable_carry_forward,not_applicable_carry_forward,"raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2 and re-affirmed by PR #247 Q6F. Q6G inherits this rejection without re-adjudication; the rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment).","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Efron, Tibshirani (1993) -- An Introduction to the Bootstrap. Chapman & Hall. Source for the percentile bootstrap (NIT-N6).
+citation::Higham (2002) -- Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM. Source for Kahan / Neumaier compensated summation (NIT-N6 PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = sorted_then_kahan).
+parent_pr242_csv_sha256::f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b
+parent_pr242_md_sha256::fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d
+parent_pr243_csv_sha256::29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424
+parent_pr243_md_sha256::026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719
+parent_pr245_csv_sha256::703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0
+parent_pr245_md_sha256::7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419
+parent_pr247_csv_sha256::249e5591c6505b748fe3d371284a72d8f4620f57dbe9628c908ec2fbf097c8ed
+parent_pr247_md_sha256::4b49bee405bf87d4b8920b188e2c38d185ecc077b532d64a8bdd5a90cdf143f2","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+parent_pr247_csv_sha256_mismatch:did_not_fire
+parent_pr247_md_sha256_mismatch:did_not_fire
+q6g_batched_event_ordering_equivalence_unproven:did_not_fire
+q6g_bind_now_emitted_without_equivalence_pass:did_not_fire
+q6g_raw_mu_or_sigma_persisted_in_md:did_not_fire
+q6g_decision_count_mismatch:did_not_fire
+q6g_decision_id_order_mismatch:did_not_fire
+q6g_q6g_selected_policy_row_missing:did_not_fire
+q6g_byte_determinism_failed:did_not_fire
+q6g_rating_trace_persistence_violation:did_not_fire
+q6g_q5_re_adjudication_drift:did_not_fire
+q6g_q6f_re_adjudication_drift:did_not_fire
+q6g_no_trueskill_re_implementation:did_not_fire
+q6g_rating_period_days_not_30:did_not_fire
+q6g_bootstrap_seed_not_42:did_not_fire
+q6g_bootstrap_block_count_not_200:did_not_fire
+q6g_bootstrap_method_not_deterministic_percentile:did_not_fire
+q6g_numpy_rng_not_pcg64:did_not_fire
+q6g_python_summation_policy_not_sorted_then_kahan:did_not_fire
+q6g_glicko2_iteration_tol_not_1e_6:did_not_fire
+q6g_materialization_creep:did_not_fire
+q6g_parquet_emitted:did_not_fire
+q6g_status_drift:did_not_fire
+q6g_research_log_drift:did_not_fire
+q6g_roadmap_drift:did_not_fire
+q6g_spec_drift:did_not_fire
+q6g_cleaning_layer_drift:did_not_fire
+q6g_target_match_outcome_read_as_input:did_not_fire
+q6g_future_match_leakage_referenced:did_not_fire
+q6g_global_batch_fit_referenced:did_not_fire
+q6g_no_post_game_token:did_not_fire
+q6g_phase_03_baseline_creep:did_not_fire
+q6g_step_02_01_04_creep:did_not_fire
+q6g_event_reference_not_imported_from_pr247:did_not_fire",PR #249,,"Q6G Row 2 (batched-production Glicko-2). Engine: _run_glicko2_batched_production with rating_period_days=30, iteration_tol=1e-6, sorted_then_kahan summation order. Per-row predictions consume closed-period state only; period boundaries anchored at the earliest PHA timestamp.",42,30,1.0e-06,PCG64,sorted_then_kahan
+Q6G_C_glicko2_event_vs_batched_equivalence_proof,Q6G_B_glicko2_batched_production_shape,Glicko-2 event-vs-batched equivalence proof,True,Row 3: BLOCKER-1 / A19 binding equivalence proof. Spearman rho between event-by-event and batched-production predicted probabilities (tie-averaged ranks; ~is_cold_start mask) plus |Delta log-loss| compared against the deterministic-bootstrap SE of the event-path log-loss.,equivalence_proof,not_applicable,"mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults; A9). rating_period_days=30 (A22 / NIT-N5 / OQ6; pinned per Glickman 2012 section 10 worked example). iteration_tol=1e-6.",G-CS-4: first match per focal toon_id is flagged is_cold_start=True; predicted probability at cold-start = symmetric E function = 0.5; cold-start rows are excluded from metric computation and from the BLOCKER-1 equivalence proof.,"Decisive-only (Win/Loss) per PR #242 Q1 (PHA carries decisive results only); same-timestamp ties broken by deterministic sort key (focal_toon, TRY_CAST(details_timeUTC AS TIMESTAMP), replay_id).",toon_id (PHA grouping key per PR #245 / PR #247; A10). NIT-N4 limitation: toon_id is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted Q6G bias.,is_cross_region_fragmented is a co-registered evidence dimension preserved per Q5 BINDING (PR #243 narrow_with_evidence); NOT a filter on the proof input stream. The Q6G proof does NOT re-adjudicate Q5.,Per-row prediction uses only PHA records satisfying TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at (STRICT_LT_HISTORY_FILTER; A6 / PR #242 Q3 BIND_NOW). The target outcome updates the rating state ONLY AFTER scoring the prediction; it is never read as feature input for predicting its own match.,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,deterministic_equivalence_proof,"{""abs_delta_log_loss"": 0.07928287850476923, ""passes_delta_log_loss_bound"": false, ""passes_spearman_bound"": false, ""se_log_loss_event"": 0.0021901391180403455, ""spearman_rho"": 0.2292277763744191}",not_applicable,,not_applicable_carry_forward,not_applicable_carry_forward,"raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2 and re-affirmed by PR #247 Q6F. Q6G inherits this rejection without re-adjudication; the rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment).","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Efron, Tibshirani (1993) -- An Introduction to the Bootstrap. Chapman & Hall. Source for the percentile bootstrap (NIT-N6).
+citation::Higham (2002) -- Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM. Source for Kahan / Neumaier compensated summation (NIT-N6 PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = sorted_then_kahan).
+parent_pr242_csv_sha256::f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b
+parent_pr242_md_sha256::fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d
+parent_pr243_csv_sha256::29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424
+parent_pr243_md_sha256::026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719
+parent_pr245_csv_sha256::703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0
+parent_pr245_md_sha256::7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419
+parent_pr247_csv_sha256::249e5591c6505b748fe3d371284a72d8f4620f57dbe9628c908ec2fbf097c8ed
+parent_pr247_md_sha256::4b49bee405bf87d4b8920b188e2c38d185ecc077b532d64a8bdd5a90cdf143f2","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+parent_pr247_csv_sha256_mismatch:did_not_fire
+parent_pr247_md_sha256_mismatch:did_not_fire
+q6g_batched_event_ordering_equivalence_unproven:did_not_fire
+q6g_bind_now_emitted_without_equivalence_pass:did_not_fire
+q6g_raw_mu_or_sigma_persisted_in_md:did_not_fire
+q6g_decision_count_mismatch:did_not_fire
+q6g_decision_id_order_mismatch:did_not_fire
+q6g_q6g_selected_policy_row_missing:did_not_fire
+q6g_byte_determinism_failed:did_not_fire
+q6g_rating_trace_persistence_violation:did_not_fire
+q6g_q5_re_adjudication_drift:did_not_fire
+q6g_q6f_re_adjudication_drift:did_not_fire
+q6g_no_trueskill_re_implementation:did_not_fire
+q6g_rating_period_days_not_30:did_not_fire
+q6g_bootstrap_seed_not_42:did_not_fire
+q6g_bootstrap_block_count_not_200:did_not_fire
+q6g_bootstrap_method_not_deterministic_percentile:did_not_fire
+q6g_numpy_rng_not_pcg64:did_not_fire
+q6g_python_summation_policy_not_sorted_then_kahan:did_not_fire
+q6g_glicko2_iteration_tol_not_1e_6:did_not_fire
+q6g_materialization_creep:did_not_fire
+q6g_parquet_emitted:did_not_fire
+q6g_status_drift:did_not_fire
+q6g_research_log_drift:did_not_fire
+q6g_roadmap_drift:did_not_fire
+q6g_spec_drift:did_not_fire
+q6g_cleaning_layer_drift:did_not_fire
+q6g_target_match_outcome_read_as_input:did_not_fire
+q6g_future_match_leakage_referenced:did_not_fire
+q6g_global_batch_fit_referenced:did_not_fire
+q6g_no_post_game_token:did_not_fire
+q6g_phase_03_baseline_creep:did_not_fire
+q6g_step_02_01_04_creep:did_not_fire
+q6g_event_reference_not_imported_from_pr247:did_not_fire",PR #249,,Q6G Row 3 (BLOCKER-1 / A19 equivalence proof). Computes Spearman rho between Row 1 and Row 2 probabilities on the joint non-cold-start mask AND |Delta log-loss| against the deterministic-bootstrap SE of the event-path log-loss. passes_spearman_bound = False; passes_delta_log_loss_bound = False.,42,30,1.0e-06,PCG64,sorted_then_kahan
+Q6G_D_glicko2_implementation_byte_determinism_proof,Q6G_B_glicko2_batched_production_shape,Glicko-2 implementation byte determinism proof,True,Row 4: byte-stability proof for the batched-production engine. Two independent runs with identical args; the SHA-256 of the predicted-probability bytes must match (hashes_equal).,byte_determinism_proof,not_applicable,"mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults; A9). rating_period_days=30 (A22 / NIT-N5 / OQ6; pinned per Glickman 2012 section 10 worked example). iteration_tol=1e-6.",not_applicable,not_applicable,toon_id (PHA grouping key per PR #245 / PR #247; A10). NIT-N4 limitation: toon_id is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted Q6G bias.,is_cross_region_fragmented is a co-registered evidence dimension preserved per Q5 BINDING (PR #243 narrow_with_evidence); NOT a filter on the proof input stream. The Q6G proof does NOT re-adjudicate Q5.,Per-row prediction uses only PHA records satisfying TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at (STRICT_LT_HISTORY_FILTER; A6 / PR #242 Q3 BIND_NOW). The target outcome updates the rating state ONLY AFTER scoring the prediction; it is never read as feature input for predicting its own match.,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,deterministic_byte_determinism_proof,not_applicable,"{""hashes_equal"": true, ""run_a_sha256"": ""71e5411024c01eb40018a5c7d0959db8162074e57e99bb5b8532cde247e75d8b"", ""run_b_sha256"": ""71e5411024c01eb40018a5c7d0959db8162074e57e99bb5b8532cde247e75d8b""}",,not_applicable_carry_forward,not_applicable_carry_forward,"raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2 and re-affirmed by PR #247 Q6F. Q6G inherits this rejection without re-adjudication; the rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment).","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Efron, Tibshirani (1993) -- An Introduction to the Bootstrap. Chapman & Hall. Source for the percentile bootstrap (NIT-N6).
+citation::Higham (2002) -- Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM. Source for Kahan / Neumaier compensated summation (NIT-N6 PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = sorted_then_kahan).
+parent_pr242_csv_sha256::f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b
+parent_pr242_md_sha256::fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d
+parent_pr243_csv_sha256::29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424
+parent_pr243_md_sha256::026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719
+parent_pr245_csv_sha256::703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0
+parent_pr245_md_sha256::7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419
+parent_pr247_csv_sha256::249e5591c6505b748fe3d371284a72d8f4620f57dbe9628c908ec2fbf097c8ed
+parent_pr247_md_sha256::4b49bee405bf87d4b8920b188e2c38d185ecc077b532d64a8bdd5a90cdf143f2","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+parent_pr247_csv_sha256_mismatch:did_not_fire
+parent_pr247_md_sha256_mismatch:did_not_fire
+q6g_batched_event_ordering_equivalence_unproven:did_not_fire
+q6g_bind_now_emitted_without_equivalence_pass:did_not_fire
+q6g_raw_mu_or_sigma_persisted_in_md:did_not_fire
+q6g_decision_count_mismatch:did_not_fire
+q6g_decision_id_order_mismatch:did_not_fire
+q6g_q6g_selected_policy_row_missing:did_not_fire
+q6g_byte_determinism_failed:did_not_fire
+q6g_rating_trace_persistence_violation:did_not_fire
+q6g_q5_re_adjudication_drift:did_not_fire
+q6g_q6f_re_adjudication_drift:did_not_fire
+q6g_no_trueskill_re_implementation:did_not_fire
+q6g_rating_period_days_not_30:did_not_fire
+q6g_bootstrap_seed_not_42:did_not_fire
+q6g_bootstrap_block_count_not_200:did_not_fire
+q6g_bootstrap_method_not_deterministic_percentile:did_not_fire
+q6g_numpy_rng_not_pcg64:did_not_fire
+q6g_python_summation_policy_not_sorted_then_kahan:did_not_fire
+q6g_glicko2_iteration_tol_not_1e_6:did_not_fire
+q6g_materialization_creep:did_not_fire
+q6g_parquet_emitted:did_not_fire
+q6g_status_drift:did_not_fire
+q6g_research_log_drift:did_not_fire
+q6g_roadmap_drift:did_not_fire
+q6g_spec_drift:did_not_fire
+q6g_cleaning_layer_drift:did_not_fire
+q6g_target_match_outcome_read_as_input:did_not_fire
+q6g_future_match_leakage_referenced:did_not_fire
+q6g_global_batch_fit_referenced:did_not_fire
+q6g_no_post_game_token:did_not_fire
+q6g_phase_03_baseline_creep:did_not_fire
+q6g_step_02_01_04_creep:did_not_fire
+q6g_event_reference_not_imported_from_pr247:did_not_fire",PR #249,,Q6G Row 4 (byte-determinism proof). Two independent invocations of _run_glicko2_batched_production over the same PHA stream; SHA-256 of np.ascontiguousarray(predicted_probabilities).tobytes() for each run. hashes_equal = True.,42,30,1.0e-06,PCG64,sorted_then_kahan
+Q6G_selected_policy,Q6G_C_glicko2_event_vs_batched_equivalence_proof,Q6G selected policy (BINDING),True,Row 5: emergent Q6G_selected_policy verdict per the auto-derived decision rule (Q6G_PROOF_DECISION_RULE). Equivalence pass AND determinism pass -> bind_now; equivalence fail -> recommendation_only_glicko2 (NIT-N2 default); determinism fail -> deferred_blocker.,verdict_row,not_applicable,"mu=1500, RD=350, sigma=0.06, tau=0.5 (Glickman 2012 reference defaults; A9). rating_period_days=30 (A22 / NIT-N5 / OQ6; pinned per Glickman 2012 section 10 worked example). iteration_tol=1e-6.",not_applicable,not_applicable,toon_id (PHA grouping key per PR #245 / PR #247; A10). NIT-N4 limitation: toon_id is region-scoped per Invariant #2 branch (iii); rating fragmentation across region-migrating players is an accepted Q6G bias.,is_cross_region_fragmented is a co-registered evidence dimension preserved per Q5 BINDING (PR #243 narrow_with_evidence); NOT a filter on the proof input stream. The Q6G proof does NOT re-adjudicate Q5.,Per-row prediction uses only PHA records satisfying TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < target.started_at (STRICT_LT_HISTORY_FILTER; A6 / PR #242 Q3 BIND_NOW). The target outcome updates the rating state ONLY AFTER scoring the prediction; it is never read as feature input for predicting its own match.,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,verdict_row,not_applicable,not_applicable,recommendation_only_glicko2,recommendation_only_glicko2,recommendation_only_glicko2_event_by_event_validated_batched_path_unproven_or_unequivalent,"raw_mmr_where_present_plus_is_mmr_missing: REJECTED unchanged from PR #245 N-2 and re-affirmed by PR #247 Q6F. Q6G inherits this rejection without re-adjudication; the rated/unrated partition is correlated with skill (only ranked-ladder games carry MMR), so admitting raw_mmr as a feature plus is_mmr_missing as a flag would leak corpus structure under Invariant I5 (symmetric treatment).","src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_cross_region_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv
+src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md
+citation::Glickman (1999) -- Parameter estimation in large dynamic paired comparison experiments. Applied Statistics 48: 377-394.
+citation::Glickman (2012) -- Example of the Glicko-2 system. Boston University Technical Note.
+citation::Efron, Tibshirani (1993) -- An Introduction to the Bootstrap. Chapman & Hall. Source for the percentile bootstrap (NIT-N6).
+citation::Higham (2002) -- Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM. Source for Kahan / Neumaier compensated summation (NIT-N6 PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = sorted_then_kahan).
+parent_pr242_csv_sha256::f2a169ecd9182e1aa4e3a2a73fa33d045c66a7913d11a59982c3122b26faf53b
+parent_pr242_md_sha256::fdaa7d6dec233cc4f1d0b2bc87aa0ba711e49bea0297d0efd3c7ff96800f237d
+parent_pr243_csv_sha256::29d395229139c7df7b6143e96323983c691c572111b74b68570946f9cafb3424
+parent_pr243_md_sha256::026deda326b5aa65381bb3bcdf111ae17a0cbde0cf36a73dc7dfa19b0f0f5719
+parent_pr245_csv_sha256::703c915376dbcaed54e641c2473bb924cf5881864f76c7389057c819b9d8f4d0
+parent_pr245_md_sha256::7efea247924fdb01d8d3ab5f66a0765937ec5142f6a46a99512abdf7f4839419
+parent_pr247_csv_sha256::249e5591c6505b748fe3d371284a72d8f4620f57dbe9628c908ec2fbf097c8ed
+parent_pr247_md_sha256::4b49bee405bf87d4b8920b188e2c38d185ecc077b532d64a8bdd5a90cdf143f2","parent_pr242_csv_sha256_mismatch:did_not_fire
+parent_pr242_md_sha256_mismatch:did_not_fire
+parent_pr243_csv_sha256_mismatch:did_not_fire
+parent_pr243_md_sha256_mismatch:did_not_fire
+parent_pr245_csv_sha256_mismatch:did_not_fire
+parent_pr245_md_sha256_mismatch:did_not_fire
+parent_pr247_csv_sha256_mismatch:did_not_fire
+parent_pr247_md_sha256_mismatch:did_not_fire
+q6g_batched_event_ordering_equivalence_unproven:did_not_fire
+q6g_bind_now_emitted_without_equivalence_pass:did_not_fire
+q6g_raw_mu_or_sigma_persisted_in_md:did_not_fire
+q6g_decision_count_mismatch:did_not_fire
+q6g_decision_id_order_mismatch:did_not_fire
+q6g_q6g_selected_policy_row_missing:did_not_fire
+q6g_byte_determinism_failed:did_not_fire
+q6g_rating_trace_persistence_violation:did_not_fire
+q6g_q5_re_adjudication_drift:did_not_fire
+q6g_q6f_re_adjudication_drift:did_not_fire
+q6g_no_trueskill_re_implementation:did_not_fire
+q6g_rating_period_days_not_30:did_not_fire
+q6g_bootstrap_seed_not_42:did_not_fire
+q6g_bootstrap_block_count_not_200:did_not_fire
+q6g_bootstrap_method_not_deterministic_percentile:did_not_fire
+q6g_numpy_rng_not_pcg64:did_not_fire
+q6g_python_summation_policy_not_sorted_then_kahan:did_not_fire
+q6g_glicko2_iteration_tol_not_1e_6:did_not_fire
+q6g_materialization_creep:did_not_fire
+q6g_parquet_emitted:did_not_fire
+q6g_status_drift:did_not_fire
+q6g_research_log_drift:did_not_fire
+q6g_roadmap_drift:did_not_fire
+q6g_spec_drift:did_not_fire
+q6g_cleaning_layer_drift:did_not_fire
+q6g_target_match_outcome_read_as_input:did_not_fire
+q6g_future_match_leakage_referenced:did_not_fire
+q6g_global_batch_fit_referenced:did_not_fire
+q6g_no_post_game_token:did_not_fire
+q6g_phase_03_baseline_creep:did_not_fire
+q6g_step_02_01_04_creep:did_not_fire
+q6g_event_reference_not_imported_from_pr247:did_not_fire",PR #249,,"Q6G SELECTED POLICY = recommendation_only_glicko2
+VERDICT = recommendation_only_glicko2
+MATERIALIZATION PERMISSION = recommendation_only_glicko2_event_by_event_validated_batched_path_unproven_or_unequivalent
+RATIONALE: Event-by-event Glicko-2 implementation validated against PR #247 section 11; batched-production path Spearman rho = 0.2292 or |Delta log-loss| = 0.079283 (SE = 0.002190) failed A19's equivalence criterion. Q6F's CI overlap (0.9% of mid-range) is not strong enough to bind a batched path that is not provably equivalent to the event path on this corpus.
+DECISION RULE (verbatim from Q6G_PROOF_DECISION_RULE): BLOCKER-1 (A19) + byte-determinism jointly necessary for bind_now; equivalence fail -> recommendation_only_glicko2 (NIT-N2 default); determinism fail -> deferred_blocker.
+Q5 BINDING preserved (sensitivity_indicator_co_registration); Q6F BINDING preserved (narrow_with_evidence); raw_mmr_hybrid rejection re-affirmed; no TrueSkill re-implementation (A5).",42,30,1.0e-06,PCG64,sorted_then_kahan
