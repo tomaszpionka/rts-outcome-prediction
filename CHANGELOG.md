@@ -19,6 +19,32 @@ merged to `master`.
 
 ### Removed
 
+## [3.77.0] — 2026-05-26 (PR #<TBD>: feat/sc2egset-02-01-03-q6g-rating-implementation-proof)
+
+### Added
+- Q6G rating-implementation-proof (Layer-2 execution) for SC2EGSet Step `02_01_03`. Discharges PR #247's `recommendation_only_blocked_pending_implementation_proof_pr` materialization permission by producing a byte-deterministic Glicko-2 batched-production engine and an event-by-event vs. batched ordering-equivalence proof (BLOCKER-1 / A19: Spearman rho >= 0.99 AND |Delta log-loss| <= SE_log_loss_event).
+- New proof module `src/rts_predict/games/sc2/datasets/sc2egset/proof_glicko2_implementation.py` (40 falsifier keys; 39-column `Q6G_PROOF_SCHEMA`; deterministic CSV + MD output via `run_q6g_rating_implementation_proof()`). Row 1 event-by-event reference delegates to PR #247's `_run_glicko2_survey` verbatim (A18); Row 2 implements the production-shape batched-update Glicko-2 path (Glickman 2012 section 3 rating-period batching; `rating_period_days = 30`, `iteration_tol = 1e-6`); Row 3 emits the BLOCKER-1 equivalence statistics; Row 4 emits the byte-determinism SHA-256 equality proof; Row 5 emits `Q6G_selected_policy` per the auto-derived decision rule.
+- Q6G proof artifact pair at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6g_rating_implementation_proof.{csv,md}` (5 decision rows in `Q6G_PROOF_ROWS` order: Q6G_A event-by-event reference / Q6G_B batched-production / Q6G_C equivalence-proof / Q6G_D byte-determinism-proof / Q6G_selected_policy; MD has 21 `## ` sections including new sections 13a Equivalence Proof Result, 13b Byte-Determinism Proof Result, and 15 Limitations per NIT-N4).
+- Q6G_selected_policy = `recommendation_only_glicko2`; verdict = `recommendation_only_glicko2`; materialization_permission = `recommendation_only_glicko2_event_by_event_validated_batched_path_unproven_or_unequivalent` (NIT-N2 default expected outcome). On the sc2egset PHA corpus with `rating_period_days = 30`, the batched-production path's per-row predictions diverge from the event-by-event reference (Spearman rho < 0.99 AND |Delta log-loss| > SE_event), so A19's equivalence criterion fails. Byte-determinism PASSES (two independent batched-engine runs produce identical SHA-256 over `predicted_probabilities` bytes).
+- Mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_proof_glicko2_implementation.py` -- 275 tests, 95.04% branch coverage on the proof module (exceeds the 95% project threshold; meets Gate clauses d1 / d2).
+- Sandbox jupytext-paired notebook at `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6g_rating_implementation_proof.{py,ipynb}` (py:percent canonical; outputs cleared; no `def` / `class` / `lambda` in cells; all logic imported from the proof module).
+- Binding adversarial-review BLOCKER-1 + NIT-N1..N6 from PR #248 Layer-1 Round 2 incorporated as binding methodology: BLOCKER-1 (event-vs-batched equivalence pre-required before `bind_now`); NIT-N1 (MD section 10 sample is probability-only, exactly 5 floats in [0, 1]; `q6g_raw_mu_or_sigma_persisted_in_md` writer-time grep guard); NIT-N2 (`recommendation_only_glicko2` default expected outcome); NIT-N3 (schema = 39 columns reconciled across module assertion, CSV header, MD section 11, tests); NIT-N4 (Limitations subsection acknowledges toon_id region scope as accepted Q6G bias per Invariant #2); NIT-N5 (`rating_period_days = 30` per Glickman 2012 section 10 worked example; `{7, 30, 90}` sensitivity arm OUT OF SCOPE); NIT-N6 (deterministic percentile bootstrap with `BOOTSTRAP_RANDOM_SEED = 42`, `BOOTSTRAP_BLOCK_COUNT = 200`, `NUMPY_RNG_BIT_GENERATOR = "PCG64"`, `PYTHON_FLOATING_POINT_SUMMATION_ORDER_POLICY = "sorted_then_kahan"`; Efron-Tibshirani 1993 and Higham 2002 cited).
+
+### Provenance / lineage
+- Parent PR #242 (`f2a169ec...` CSV, `fdaa7d6d...` MD), PR #243 (`29d39522...` CSV, `026deda3...` MD), PR #245 (`703c9153...` CSV, `7efea247...` MD), and PR #247 (`249e5591...` CSV, `4b49bee4...` MD) byte-stable; all 8 SHAs pinned as module constants and re-asserted on every Q6G decision row's `evidence_paths`.
+- Q5_selected_policy = `sensitivity_indicator_co_registration` (PR #243) is BINDING and NOT re-adjudicated; `q6g_q5_re_adjudication_drift` falsifier enforces.
+- Q6F_selected_policy = `narrow_with_evidence` (PR #247) is BINDING and NOT re-adjudicated; `q6g_q6f_re_adjudication_drift` falsifier enforces.
+- TrueSkill is NOT re-implemented in Q6G (A5); `q6g_no_trueskill_re_implementation` falsifier enforces; defer-to-Q6H two-candidate-comparison is the named outcome if the executor overrides the auto-derived verdict.
+
+### Not in this PR (preserved hard stops; future Layer-3 PRs)
+- NO feature value materialised, NO Parquet output, NO `reconstructed_rating` feature column.
+- NO CROSS-02-01 post-materialization audit, NO `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` file.
+- NO status YAML mutation (`STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml`).
+- NO `research_log.md` entry (per PR #242 / #243 / #245 / #247 adjudication-artifact precedent).
+- NO `ROADMAP.md` edit, NO spec edits, NO cleaning-layer YAML edits.
+- NO Step 02_01_04 start, NO Phase 03 start, NO baseline modelling.
+- NO thesis / docs / .claude / data / AoE2 edits.
+
 ## [3.76.0] — 2026-05-25 (PR #247: feat/sc2egset-02-01-03-q6f-rating-algorithm-survey)
 
 ### Added
