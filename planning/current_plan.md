@@ -22,7 +22,7 @@ adversarial_round_cap: "3 rounds total (planning-side); Round 1 consumed on the 
 adversarial_cap_symmetry: "Same 3-round cap applies to execution-side review per feedback_adversarial_cap_execution.md."
 parent_planning_pr: "PR #250 (Q6H Layer-1; merged at master f37efed1)"
 parent_execution_pr: "PR #251 (Q6H Layer-2; merged at master 28bfc89f)"
-planning_pr: "PR #<TBD-A1-LAYER-1>"
+planning_pr: "PR #252"
 planning_pr_version_bump: "none (Layer-1 planning-only; 2 files)"
 planning_pr_scope: "Layer-1 (2 files only) — planning/current_plan.md + planning/current_plan.critique.md. NO ROADMAP edit, NO pyproject bump, NO CHANGELOG entry, NO planning/INDEX.md archive, NO status YAML flip, NO research_log entry, NO artifact, NO source/test/notebook touch. NO Q6H artifact mutation. NO Step 02_01_03 scope narrowing."
 future_layer2_pr: "PR #<TBD-A1-LAYER-2>"
