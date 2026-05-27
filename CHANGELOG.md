@@ -19,6 +19,45 @@ merged to `master`.
 
 ### Removed
 
+## [3.80.0] — 2026-05-27 (PR #<TBD>: feat/sc2egset-02-01-99-rating-omit-closure-artifact)
+
+### Added
+- SC2EGSet Step `02_01_99` rating omit-closure decision artifact pair: 45-column CSV (1 canonical decision row) + 21-section MD at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.{csv,md}`.
+- Closure-side decision module `src/rts_predict/games/sc2/datasets/sc2egset/close_history_rating_omit_path.py` (non-Q6X; 39 falsifier keys; Unicode-NFKD Jaccard anti-boilerplate tokeniser per R2-N2; 10 hard-coded parent SHA pins + 4 dispatch-time SHAs + 1 master HEAD SHA = 15 provenance values).
+- Mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_close_history_rating_omit_path.py` (318 tests; 98.52% branch coverage on the new module).
+- Jupytext-paired sandbox notebook (`.py` source + paired `.ipynb` with cleared outputs) under `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.{py,ipynb}` that materializes the omit-closure artifact pair.
+
+### Branch (iii) preconditions all satisfied
+- `THESIS_PRAGMATISM = TRUE` elevated under reviewer-adversarial sign-off (Layer-1 + Layer-2 dual signoff structure per R2-N4).
+- Thesis-pragmatism elevation section (MD §6): 7 substantive sentences (≥6 required); 5 PR #249 `§X.Y` cross-references (≥3 required).
+- Anti-boilerplate Jaccard `0.1708` vs Q6H §15 (< 0.5 threshold; Unicode-NFKD tokenisation deterministic for em/en dashes, curly quotes, NBSPs, accented characters).
+- Branch (ii) state semantic anchor (CSV column 14) records the OQ7 wording bridge: `q6h_verdict_state=reached_as_recommendation_only_event_by_event_glicko2; omit_closure_scope_interpretation=blocked_for_phase_02_materialization_scope_under_layer_2_election; is_q6h_re_adjudication=FALSE; is_new_q6x_loop=FALSE`.
+
+### Decision
+- Verdict: `omit_reconstructed_rating_and_unblock_other_five`.
+- 5-family permitted set (verbatim from Q6H `Q6H_FIVE_FAMILY_POST_OMIT_SET`): `focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `cross_region_fragmentation_handling`, `in_game_history_aggregate`.
+- Excluded family: `reconstructed_rating`.
+- Excluded columns: `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`, `reconstructed_rating_diff`.
+- Q6 status: `intentionally_omitted_under_branch_iii` (NOT silently satisfied; recorded as a first-class CSV row field).
+- Q5/Q6F/Q6G/Q6H BINDING verdicts preserved byte-unchanged via 15-SHA provenance set.
+
+### Schema arithmetic (R2-N1)
+- Round 2 schema = 42 (Round 1) + 1 (NIT #1 `branch_ii_state_semantic_anchor`) + 2 (NIT #4 net: 2 → 4 dual signoff columns) + 1 (NIT #3 `elevation_rationale_jaccard_vs_q6h_section_15`) − 1 (Round-2 simplification: 2 module-SHA columns relocated from CSV to module constants, net per-column-budget impact −1) = **45 columns**.
+
+### Provenance (R2-N3)
+- 11 hard-coded provenance values = 10 parent artifact SHAs from PR #242/#243/#245/#247/#249 (2 SHAs per PR × 5 PRs = 10 file SHAs) + 1 `head_master_sha_at_layer_1_plan_time` (= `0acc0e83274b52831daf80a56beaacaed9340b13`).
+- Plus 4 dispatch-time SHAs (PR #251 CSV + PR #251 MD + PR #251 module `decide_history_rating_path.py` + PR #253 ROADMAP) = 15 total provenance values.
+
+### Notes
+- NO feature materialization. NO Parquet. NO CROSS-02-01 audit. NO `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` created.
+- NO ROADMAP edit (PR #253's `step_number: "02_01_99"` block is sufficient).
+- NO `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` flip.
+- NO dataset or root `research_log.md` entry (per Q-chain adjudication-artifact precedent).
+- NO Step `02_01_03` closure; NO Step `02_01_04` work; NO Phase 03 work; NO baseline modeling.
+- NO new Q6X PR (Q6H is terminal; the new module is closure-side `close_history_rating_omit_path.py`).
+- NO 5-family ROADMAP narrowing (separate downstream PR; must merge BEFORE 5-family materialization PR).
+- NO 5-family materialization (separate downstream PR; must merge AFTER ROADMAP-amendment PR).
+
 ## [3.79.0] — 2026-05-27 (PR #253: feat/sc2egset-02-01-03b-omit-closure-roadmap-stub)
 
 ### Added
