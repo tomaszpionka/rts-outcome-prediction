@@ -1199,11 +1199,122 @@ def _emit_decision_md(
     lines.append("")
     lines.append(
         "Asserted at module load: `len(OMIT_CLOSURE_SCHEMA) == 45`. "
-        "Stage 2 will embed the per-column Schema Derivation rationale "
-        "verbatim from the Layer-1 plan's `## Schema Derivation` section. "
-        "45 = 38 (Q6H base schema) + 7 deviations - 1 simplification "
-        "(reviewer signoff SHA columns consolidated into module constants "
-        "and MD §20)."
+        "**Round 2 arithmetic:** 42 (Round 1) + 1 (NIT #1 "
+        "`branch_ii_state_semantic_anchor`) + 2 (NIT #4 net: 2 sign-off "
+        "columns -> 4 sign-off columns) + 1 (NIT #3 "
+        "`elevation_rationale_jaccard_vs_q6h_section_15`) - 1 (Round-2 "
+        "simplification: 2 module-SHA columns "
+        "`parent_pr251_module_sha256` + `parent_pr253_roadmap_sha256` "
+        "relocated from CSV to module constants, net per-column-budget "
+        "impact -1) = 45 columns."
+    )
+    lines.append("")
+    lines.append(
+        "**Per-column derivation prose (NIT #2; reproduced verbatim from "
+        "the Layer-1 plan `## Schema Derivation` section).**"
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 1 - `elevation_rationale_jaccard_vs_q6h_section_15` "
+        "(column 13; NIT #3; float, `:.4f`).** Reviewer-adversarial "
+        "Round-1 concern: the dual-count discipline (sentence count >= 6 "
+        "+ cross-reference count >= 3) can be satisfied by a boilerplate "
+        "paraphrase of the Q6H §15 paragraph. Round-2 mitigation: a "
+        "token-level Jaccard similarity measure against Q6H §15 with "
+        "threshold `< 0.5` enforces that the elevation rationale shares "
+        "less than half of its unique tokens (after Unicode-NFKD "
+        "normalisation + lowercase + Unicode punctuation strip per R2-N2) "
+        "with the §15 paragraph. The column makes the Jaccard observable "
+        "inspectable post-emission; the corresponding falsifier "
+        "`omit_closure_elevation_rationale_jaccard_overlap_with_q6h_"
+        "section_15_exceeds_threshold` makes it test-grade. Threshold "
+        "derivation: Jaccard >= 0.5 is the conservative ceiling for "
+        "paraphrase-likely overlap in short paragraphs."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 2 - `branch_ii_state_semantic_anchor` (column 14; "
+        "NIT #1; string, semicolon-separated 4-key format).** "
+        "Reviewer-adversarial Round-1 concern: re-labeling Q6H Branch "
+        "(ii) as \"blocked-by-Layer-2-election\" risks subtle "
+        "re-adjudication of Q6H's actual verdict (which was REACHED, not "
+        "blocked). Round-2 mitigation: a structured 4-key string "
+        "explicitly distinguishes (a) Q6H literal verdict state, (b) "
+        "omit-closure scope interpretation, (c) absence of Q6H "
+        "re-adjudication, (d) absence of new Q6X loop. The column value "
+        "format is binding: "
+        f"`{OMIT_CLOSURE_BRANCH_II_STATE_ANCHOR_CANONICAL}`. Falsifier "
+        "`omit_closure_branch_ii_state_anchor_misnamed_or_missing_re_"
+        "adjudication_assertion` enforces."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 3 - `reviewer_adversarial_signoff_layer_1` (column "
+        "15; NIT #4; boolean string `TRUE` / `FALSE`).** "
+        "Reviewer-adversarial Round-1 concern: a single sign-off SHA "
+        "conflated the Layer-1 planning critique (which authorises the "
+        "Layer-2 execution) with the Layer-2 execution critique (which "
+        "audits the emitted artifact). Round-2 mitigation: the boolean "
+        "is TRUE iff the Layer-1 critique recorded APPROVE or "
+        "APPROVE-WITH-NITS with 0 blockers. Falsifier "
+        "`omit_closure_reviewer_signoff_layer_1_or_layer_2_not_approve_"
+        "with_zero_blockers` enforces."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 4 - `reviewer_adversarial_layer_1_critique_sha256` "
+        "(column 16; NIT #4; SHA pin).** Reviewer-adversarial Round-1 "
+        "concern: the original single SHA column did not specify whether "
+        "the Layer-1 or Layer-2 critique was pinned. Round-2 mitigation: "
+        "the SHA is computed at Layer-2 T01 against the Layer-1 "
+        "critique file's merged-state byte content. The schema "
+        "simplification (Round-1's `parent_pr251_module_sha256` and "
+        "`parent_pr253_roadmap_sha256` removed from the CSV row to "
+        "preserve the 45-column budget) is documented here: those two "
+        "SHAs are pinned in the module constant "
+        "`OMIT_CLOSURE_PARENT_SHA_PINS` and recorded in MD §20, not in "
+        "the CSV row. Falsifier "
+        "`omit_closure_reviewer_signoff_layer_1_missing_or_invalid_sha` "
+        "enforces."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 5 - `reviewer_adversarial_signoff_layer_2` (column "
+        "17; NIT #4; boolean string `TRUE` / `FALSE`).** Same logic as "
+        "Deviation 3 applied to Layer-2. The Layer-2 sign-off is the "
+        "execution-side audit; making it a separate boolean lets "
+        "downstream readers verify the execution critique was admissible "
+        "independently. Falsifier "
+        "`omit_closure_reviewer_signoff_layer_1_or_layer_2_not_approve_"
+        "with_zero_blockers` (shared with Deviation 3) enforces both "
+        "booleans."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 6 - `reviewer_adversarial_layer_2_critique_sha256` "
+        "(column 18; NIT #4; SHA pin).** Same as Deviation 4 for "
+        "Layer-2. Round-2 mitigation: the SHA is computed at Layer-2 "
+        "T09 against the Layer-2 critique file's post-sign-off byte "
+        "state. Practical sequencing note: if T09 modifies the critique "
+        "file (e.g., Round-2 sign-off), the artifact CSV+MD MUST be "
+        "regenerated; this is precedented in Q-chain artifact PRs. "
+        "Falsifier "
+        "`omit_closure_reviewer_signoff_layer_2_missing_or_invalid_sha` "
+        "enforces."
+    )
+    lines.append("")
+    lines.append(
+        "**Deviation 7 - Duplication of artifact-elevation count vs "
+        "Q6H-section-15 re-count (columns 9-10 sentence counts + "
+        "columns 11-12 cross-reference counts).** This deviation was "
+        "present in Round 1 (columns 9, 10, 11, 12) and is retained in "
+        "Round 2 unchanged. Reviewer-adversarial Round-1 acknowledged "
+        "this as a methodologically correct dual-count discipline (the "
+        "elevation §6 has its own independent count; Q6H §15 has its "
+        "independent count; the dual-count makes the discipline "
+        "grep-able and prevents copy-paste). The dual-count enforces "
+        "that the elevation rationale is independent of Q6H §15's "
+        "evidence count."
     )
     lines.append("")
 
@@ -1293,6 +1404,15 @@ def _emit_decision_md(
     lines.append("")
 
     lines.append("## 20. Provenance (15 SHA Pins + Master HEAD SHA)")
+    lines.append("")
+    lines.append(
+        "**Provenance ledger (R2-N3 wording).** 11 hard-coded provenance "
+        "values = 10 parent artifact SHAs from PR #242 / #243 / #245 / "
+        "#247 / #249 (2 SHAs per PR x 5 PRs = 10 file SHAs) + 1 "
+        "`head_master_sha_at_layer_1_plan_time`. Plus 4 dispatch-time "
+        "SHAs (PR #251 CSV / MD / module + PR #253 ROADMAP) = 15 total "
+        "provenance values."
+    )
     lines.append("")
     for sha_key, sha_val in OMIT_CLOSURE_PARENT_SHA_PINS.items():
         lines.append(f"- `{sha_key}`: `{sha_val}`")
