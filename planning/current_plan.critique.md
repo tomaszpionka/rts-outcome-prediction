@@ -1,250 +1,154 @@
----
-critique_role: reviewer-adversarial
-critique_model: claude-opus-4-7[1m]
-critique_dates: [2026-05-26, 2026-05-26]
-plan_ref: planning/current_plan.md
-plan_date: 2026-05-26
-base_ref: d9276194a1684542a04494ec02df44a5a3f2338e
-branch: feat/sc2egset-02-01-03-q6h-rating-path-decision
-chosen_outcome: A
-round_1_verdict: HOLD
-round_1_blockers: 3
-round_1_warnings: 2
-round_1_notes: 3
-round_2_verdict: HOLD-WITH-MECHANICAL-FIX
-round_2_blockers: 1 (R2.6 §"Problem Statement" Q6G metric inversion)
-round_2_warnings: 0
-round_2_notes: 2 (branch-name preference; Layer-2 manifest scope explicit)
-round_2_mechanical_fix_status: applied by parent without consuming Round 3
-final_verdict_post_mechanical_fix: APPROVE
-adversarial_rounds_consumed: 2 of 3
-parent_planning_pr: 248 (merged 2026-05-26; Q6G Layer-1)
-parent_execution_pr: 249 (merged 2026-05-26; Q6G Layer-2; recommendation_only_glicko2)
-parent_q5_pr: 243 (Q5 BINDING preserved)
-parent_q6_pr: 245 (Q6 deferred_blocker; discharged by Q6F)
-parent_q6f_pr: 247 (Q6F narrow_with_evidence; BINDING)
----
+# Critique log — feat/sc2egset-02-01-03b-omit-closure-roadmap-stub (Layer-1, Round 2)
 
-# Reviewer-Adversarial Critique — Q6H Layer-1 plan (Round 1 + Round 2)
+## Round 1 HOLD record (preserved for lineage audit)
 
-This critique consolidates two adversarial rounds against the Q6H final
-rating-path decision Layer-1 plan. Round 1 (HOLD) identified 3 BLOCKERs +
-2 warnings + 3 notes; the planner produced a Round 2 amendment
-incorporating all of them as binding methodology. Round 2
-(HOLD-WITH-MECHANICAL-FIX) identified one residual textual error (R2.6)
-that the parent applied directly without dispatching planner-science
-Round 3 (the 3-round cap accounts only for substantive methodology rounds;
-textual corrections do not consume a round).
+The Round-1 planning attempt was a direct 5-family ROADMAP narrowing plan. Reviewer-adversarial Round-1 verdict: **HOLD with 3 BLOCKERs**.
 
-Round 3 of the Layer-1 cap is reserved; it will be invoked only if the
-Layer-2 execution PR's reviewer surfaces a Layer-1-traceable defect.
+### R1-B1 — Scope amendment authority unproven
+
+> ROADMAP Step 02_01_03 declares 6 families (lines 2280/2317/2326/2470/2496); planner cited no Q6H clause authorising 5-family ROADMAP narrowing under Branch (ii) reached.
+
+**Round 2 resolution:** A new Step lineage segment `02_01_03b` is declared rather than amending Step 02_01_03 in place. Step 02_01_03's 6-family declaration remains byte-unchanged. The 5-family narrowing is deferred to a separate downstream PR that lands AFTER the omit-closure artifact merges (at which point the narrowing has explicit Branch (iii) authority via the merged omit-closure decision row).
+
+### R1-B2 — Silent Q6 closure
+
+> Excluding `reconstructed_rating` operationally equals Branch (iii), but Branch (iii) preconditions (THESIS_PRAGMATISM=TRUE + ≥6-sentence substantive paragraph + reviewer-adversarial sign-off per Q6H §7) were NOT satisfied. The Q6H §15 thesis-pragmatism paragraph is "standby" only.
+
+**Round 2 resolution:** The new Step 02_01_03b ROADMAP block enumerates ALL 4 Branch (iii) preconditions (Branches (i) AND (ii) both blocked; `thesis_pragmatism == TRUE`; `substantive_paragraph_ok == TRUE`; `reviewer_signoff == TRUE`) as `gate.halt_predicate` clauses. The future omit-closure artifact PR (3 PRs downstream) will (a) explicitly elevate `thesis_pragmatism` from canonical FALSE to TRUE with rationale; (b) re-verify the ≥6-sentence + ≥3-cross-reference content of Q6H §15; (c) record explicit reviewer-adversarial sign-off; (d) emit a decision row recording all 4 preconditions as satisfied. The override falsifier `q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15` preserves the §15 paragraph byte-unchanged in the Q6H artifact.
+
+### R1-B3 — Non-batching / lineage defect
+
+> A scope-narrowing amendment after an exhausted-stub adjudication is a new Step lineage segment, not an in-place mutation of the 02_01_03 block.
+
+**Round 2 resolution:** A new Step lineage segment `02_01_03b` is declared with its own ROADMAP block, its own scaffold, its own validator, and its own artifact — mirroring the canonical PR #238 → #239 → #240 → #241 → #242 ladder precedent for Step 02_01_03 itself. The lineage ladder length for Step 02_01_03b is minimum 6 PRs (ROADMAP-stub Layer-1, ROADMAP-stub Layer-2, scaffold Layer-1, scaffold Layer-2, artifact Layer-1, artifact Layer-2) plus the eventual Step 02_01_03 closure PR. No PR in the chain batches ROADMAP + notebook + artifact + next Step.
 
 ---
 
-## Round 1 — HOLD pending R2.1 / R2.2 / R2.3 resolution
+## Round 2 planner-science self-critique (S-1 .. S-7)
 
-**Reviewer:** `@reviewer-adversarial`
-**Date:** 2026-05-26
-**Verdict:** **HOLD** pending 3 blockers; otherwise APPROVE-WITH-NITS.
+(Self-identified weaknesses for reviewer-adversarial to probe.)
 
-### Round 1 BLOCKERs (3)
-
-**R2.1 — 5-family / §6.2 line-range citation defect.** Plan asserted
-"matches lines 238-243" of `reports/specs/02_02_feature_engineering_plan.md`,
-but lines 238-243 contain SIX family rows: L238 `focal_player_history`,
-L239 `opponent_player_history`, L240 `matchup_history_aggregate`,
-**L241 `reconstructed_rating`**, L242 `cross_region_fragmentation_handling`,
-L243 `in_game_history_aggregate`. The 5-family post-omit set is
-**L238-240 + L242-243** (i.e., §6.2 minus L241). The verbatim citation
-must be either `238-240, 242-243` OR `§6.2 minus reconstructed_rating at
-L241`. Failing this, the plan's "unblock five" claim is internally
-inconsistent.
-
-**R2.2 — `THESIS_PRAGMATISM` flag admissibility (Invariant I9 / no magic
-gates).** A boolean that flips the entire decision rule is a magic gate.
-The plan must pin three things:
- (i) **exact admissibility criterion** — e.g., "substantive reasoning
-     paragraph + reviewer-adversarial sign-off";
- (ii) **canonical default-derivation path** — e.g., "TRUE iff parent
-     PR #249 chose `recommendation_only_glicko2` AND no execution evidence
-     has been gathered between PR #249 merge and Q6H Layer-2 execution
-     time";
- (iii) a **falsifier**
-     `q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15`
-     with verbatim minimum-content rule (e.g., ≥ N sentences in MD §15;
-     must cite PR #249 §15 finding-by-finding).
-
-**R2.3 — Schema column count (37 vs 38).** Plan permitted 37 OR 38
-columns ambiguously. Reviewer recommended **38** (split
-`materialized_output_paths` out of legacy `notes` so materialization
-paths are reviewer-grep-able without parsing prose). Add falsifier
-`q6h_schema_column_count_equals_38`. Update the 4-location pinning
-narrative (module constant, parametric test, gate clause, MD §11
-assertion).
-
-### Round 1 warnings (2; upgrade to blocker if not addressed)
-
-**R2.4 — Adopt both invited falsifier additions.**
-- `q6h_parquet_emitted` (Group 4 non-recurrence boundary).
-- `q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15`
-  (= the R2.2 override falsifier).
-
-**R2.5 — Decision-rule order-of-operations.** Evaluating
-`THESIS_PRAGMATISM` first would short-circuit the bind / recommendation /
-defer evaluation and reduce the decision rule to a boolean flip. The
-methodologically defensible order is:
- (i) attempt bind → if proof obligations met;
- (ii) if bind blocked, recommendation_only_event_by_event_glicko2;
- (iii) if neither viable AND pragmatism gate TRUE, omit;
- (iv) else defer.
-Justify the chosen order explicitly OR invert. Either acceptable; record
-the choice with rationale.
-
-### Round 1 notes (3; non-blocking)
-
-- **N1.** Add a §15 paragraph in the Layer-2 MD reconciling the
-  **#247 → #249 → Q6H sequence regression** (from "narrowed pending
-  implementation proof" → "proof passed but `recommendation_only`" →
-  "omitted under thesis-pragmatism" — examiner must see the regression
-  as intentional, not silent walkback).
-- **N2.** Verbatim citation discipline for PR #247 docstring lines 15–17:
-  preserve double-backticks and the verbatim token
-  `omit_reconstructed_rating_and_unblock_other_five` exactly.
-- **N3.** Optional Q6 status field token
-  `q6_status = "discharged_by_omission_under_thesis_pragmatism"` pinned
-  at Layer-1 to remove Layer-2 ambiguity on the omit branch.
-
-### Round 1 audit trail
-
-- Round 1 of 3 Layer-1 adversarial cap: **consumed (HOLD).**
-- Files cross-checked on master at `d9276194`:
-  `reports/specs/02_02_feature_engineering_plan.md` lines 234–243;
-  PR #249 CSV / MD; PR #247 docstring; PR #245 §6 / §12.
-
-**Round 1 VERDICT: HOLD** pending R2.1 + R2.2 + R2.3 resolution.
+- **S-1 — Sub-step token `02_01_03b` is non-precedented.** `docs/TAXONOMY.md` does not enumerate sub-step suffix conventions. This is the first "b" suffix in the SC2EGSet ROADMAP. Flagged as OQ1; user decision required before Layer-2 dispatch. Reviewer-adversarial may HOLD on this.
+- **S-2 — Lineage ladder length (6+ PRs) may be over-engineered.** A reasonable reviewer may argue that Q6H §17 already authorises the omit-closure path and that the ROADMAP-stub + scaffold + artifact triplet collapses to a single artifact PR (the A2 path). Counter-argument: non-batching rule (R1-B3) and the #238 → #239 → #240 → #241 → #242 precedent for Step 02_01_03 itself. The 6-PR ladder is the canonical pattern, not over-engineering.
+- **S-3 — The omit-closure artifact's 4 Branch (iii) preconditions are pre-declared in the ROADMAP block (T02 step 25) but not pre-verified.** A reviewer may argue that pre-declaring preconditions as halt gates is sufficient guardrail; an alternative argument is that the ROADMAP block should also include a pre-verification step that the §15 paragraph currently meets the ≥6-sentence + ≥3-cross-reference admissibility threshold. Counter-argument: the pre-verification is the omit-closure artifact PR's job, not the ROADMAP-stub PR's job (non-batching).
+- **S-4 — `parent_pr251_*_sha256` pins are deferred to Layer-2 dispatch time.** The 3 new SHAs (Q6H CSV, Q6H MD, decision module) are not pinned in this Layer-1 plan; they are computed at Layer-2 dispatch time via `sha256sum`. A reviewer may argue these should be pinned now. Counter-argument: master HEAD at PR #251 merge (28bfc89f) is the gate; the future Layer-2 PR re-verifies at dispatch time. Pinning at Layer-1 time would freeze a SHA that the Layer-2 PR may not be able to reproduce if master drifts (e.g., a hotfix PR lands between Layer-1 and Layer-2).
+- **S-5 — `thesis_pragmatism_elevation_rationale` schema TBD.** The future omit-closure artifact's CSV column for the elevation rationale is deferred to OQ2. A reviewer may argue that the rationale schema should be pre-declared in this Layer-1 plan. Counter-argument: schema authoring is the omit-closure artifact's own Layer-1 plan's job (non-batching; the omit-closure artifact has its own planner-science round).
+- **S-6 — Q6H §17 "Layer-3 materialization OR omit-closure follow-up" is the authority basis, but the §17 wording is ambiguous about which of the two paths must come first.** A reviewer may argue that "Layer-3 materialization" is the primary path and "omit-closure follow-up" is a fallback only if Layer-3 fails. Counter-argument: §17 uses "OR" (disjunction, no precedence); both paths are admissible at the same priority level. The omit-closure follow-up is chosen now because the Q6H Branch (ii) verdict explicitly defers to "Phase 03 or later" for materialization — i.e., Layer-3 materialization is blocked until Phase 03; the omit-closure path unblocks 5 of 6 families for Phase-02 closure now.
+- **S-7 — The plan delegates substantive judgments (OQ1 token, OQ2 schema, OQ3 sign-off recording, OQ4 narrowing mechanics) to future planning rounds.** A reviewer may argue that this is over-deferring. Counter-argument: each Open Question is genuinely a future-PR-scoped decision; binding them at this Layer-1 plan time would either (a) be speculative (planner-science cannot bind a decision without the relevant authority basis) or (b) usurp the future planner-science rounds' scope.
 
 ---
 
-## Round 2 — HOLD-WITH-MECHANICAL-FIX (R2.6 textual correction)
+## Round 2 reviewer-adversarial verdict (placeholder)
 
-**Reviewer:** `@reviewer-adversarial`
-**Date:** 2026-05-26
-**Verdict:** **HOLD-WITH-MECHANICAL-FIX** — 1 residual textual blocker
-(R2.6); 0 warnings; 2 nits. Reviewer authorised the parent to execute the
-textual correction directly without consuming Round 3.
+To be filled in by reviewer-adversarial agent.
 
-### Round 1 resolutions verified
+- **Verdict:** TBD (APPROVE / APPROVE-WITH-NITS / HOLD-WITH-BLOCKERS)
+- **Blockers:** TBD
+- **Warnings:** TBD
+- **Notes:** TBD
 
-| Round 1 ref | Status | Evidence |
-|-------------|--------|----------|
-| R2.1 (5-family / §6.2 line-range) | **PASS** | Plan now says verbatim "§6.2 minus L241 reconstructed_rating; L238 + L239 + L240 + L242 + L243"; family-set assertion in A8 + Schema columns 14–18 + Falsifier Group 2 keys 7–10. |
-| R2.2 (`THESIS_PRAGMATISM` admissibility) | **PASS** | Three pins (a)/(b)/(c) added at A9; Schema columns 21–22; Group 3 falsifier `q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15`; Gate (b3) + (b4). |
-| R2.3 (schema column count = 38) | **PASS** | A10 pins 38 columns; T01 step 7 enumerates them; Gate (c1); 4-place pinning at module / test / CSV header / MD §11. Column 38 `materialized_output_paths` split from column 37 `notes`. |
-| R2.4 (invited falsifier additions) | **PASS** | Both keys present in Groups 3 and 4. Total chain count = 40 (≥ 37 R2.4 floor). |
-| R2.5 (decision-rule order-of-operations) | **PASS** | §"Decision rule" pins evidentiary-first order (i)→(v) with methodological-justification paragraph; A12; Falsifier `q6h_decision_rule_order_not_evidentiary_first`. |
-| N1 (#247 → #249 → Q6H regression sentence) | **PASS** | T04 step 4 grep-check; Gate (b3). |
-| N2 (verbatim PR #247 docstring citation) | **PASS** | T04 step 5; Gate (b5); MD §16. |
-| N3 (`q6_status` token) | **PASS** | Schema column 20; Branch (iii) emission; falsifier `q6h_silent_q6_closure_on_omit_branch`. |
+If verdict is HOLD-WITH-BLOCKERS, planner-science returns for Round 3 (the final round before user escalation).
 
-### Round 2 blocker — R2.6
+---
 
-**R2.6 — §"Problem Statement" Q6G metric inversion.** The Round 2
-amendment as initially produced by planner-science misreported Q6G's
-equivalence outcome as PASSED (Spearman ρ = 0.9931; |Δ log-loss| = 0.0028;
-SE = 0.0035). PR #249 master artifact at
-`src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6g_rating_implementation_proof.csv`
-Row 3 actually has:
+## Round 3 reviewer-adversarial verdict (placeholder; only if Round 2 = HOLD)
+
+To be filled in by reviewer-adversarial agent if Round 2 verdict is HOLD.
+
+- **Verdict:** TBD
+- **Blockers:** TBD
+- **Warnings:** TBD
+- **Notes:** TBD
+
+If Round 3 verdict is HOLD, planner-science halts and escalates to user per `feedback_adversarial_cap_execution.md`.
+
+---
+
+## Execution-side Round 1 verdict (placeholder; T07 of the future Layer-2 PR)
+
+To be filled in by reviewer-adversarial agent at T07 of the future Layer-2 ROADMAP-stub execution PR.
+
+- **Verdict:** TBD
+- **Blockers:** TBD
+
+---
+
+## Execution-side Round 2 verdict (placeholder; only if execution-side Round 1 = HOLD)
+
+To be filled in by reviewer-adversarial agent if execution-side Round 1 verdict is HOLD.
+
+- **Verdict:** TBD
+- **Blockers:** TBD
+
+---
+
+## Execution-side Round 3 verdict (placeholder; only if execution-side Round 2 = HOLD)
+
+To be filled in by reviewer-adversarial agent if execution-side Round 2 verdict is HOLD.
+
+- **Verdict:** TBD
+- **Blockers:** TBD
+
+If execution-side Round 3 verdict is HOLD, execution halts and escalates to user.
+
+---
+
+## Round 2 reviewer-adversarial verdict (appended 2026-05-27)
+
+**Reviewer agent:** reviewer-adversarial (Opus)
+**Inputs reviewed:** `planning/current_plan.md` (Round 2 plan; 656 lines) + this critique scaffold (92 lines) + Q6H artifact pair (READ-ONLY) + Step 02_01_03 ROADMAP block (READ-ONLY) + INDEX archive precedent ladder (#238 → #239 → #240 → #241 → #242).
+**Base ref:** `28bfc89fae56e88bd4c039077d7971496d5f1b1c` (PR #251 merge commit).
+**Adversarial round:** 2 of 3 (planning-side); Round 1 was HOLD on the rejected direct-narrowing plan.
+
+### Axis-by-axis verdict (10 axes per Round-2 prompt)
+
+| # | Axis | Result |
+|---|------|--------|
+| 1 | A1 stub required before A2 artifact (non-batching) | PASS |
+| 2 | A2 direct artifact admissible? | PASS (rejection sound) |
+| 3a | R1-B1 resolved | PASS |
+| 3b | R1-B2 resolved | PASS WITH NOTE (see R2-N1 below) |
+| 3c | R1-B3 resolved | PASS |
+| 4 | Branch (iii) preconditions explicit | PASS |
+| 5 | "No further Q6X PRs" stricture honored | PASS |
+| 6 | Q5/Q6F/Q6G/Q6H parent verdicts preserved | PASS |
+| 7 | No materialization in this Layer-1 PR | PASS |
+| 8 | Phase 03 barred | PASS |
+| 9 | Future Layer-2 scope excludes status YAML / research_log | PASS |
+| 10 | No blockers aggregated | PASS |
+
+### Round-2 verdict
 
 ```
-spearman_rho = 0.2292277763744191       (FAR below 0.99)
-abs_delta_log_loss = 0.07928287850476923 (FAR above SE = 0.0021901391180403455)
-passes_spearman_bound = false
-passes_delta_log_loss_bound = false
+ROUND-2 VERDICT: APPROVE-WITH-NITS (zero blockers, 3 nits)
+PR MATERIALIZATION AUTHORISED: YES
+RATIONALE: Outcome A1 (ROADMAP-only stub for new lineage segment 02_01_03b) cleanly resolves all 3 Round-1 blockers without operationally selecting Branch (iii); the 2-file Layer-1 scope is hermetic, the future Layer-2 4-file scope is non-batching compliant, and the precedent #238 → #239 → #240 → #241 → #242 ladder is correctly cited and applies analogously to 02_01_03b.
 ```
 
-The verdict `recommendation_only_glicko2` (Row 5) was the NIT-N2 default
-expected outcome under the auto-derived rule when equivalence FAILS and
-byte-determinism PASSES — **not** the consequence of passed equivalence
-without a separating anchor.
+### Round-2 blockers
 
-The decision rule, falsifier set, schema, and gate clauses elsewhere in
-the plan were derived correctly from the actual FAILED outcome and
-required no revision. Only the §"Problem Statement" prose narrative was
-inverted.
+NONE.
 
-### Round 2 mechanical-fix authorisation
+### Round-2 nits (non-blocking; recommended for incorporation BEFORE Layer-2 dispatch)
 
-Because R2.6 is a textual correction (not a methodology change), the
-3-round adversarial cap accounts only for substantive methodology
-rounds; mechanical text correction does not consume a round. The parent
-was authorised to execute the textual replacement directly using the
-following verbatim §"Problem Statement" text:
+- **R2-N1 — Branch (iii) precondition (a) reframing should be telegraphed.** The plan asserts that under the omit-closure artifact PR, Q6H Branch (ii) will be "blocked NOT by Q6H's evidentiary failure but by the explicit Layer-2 election to treat the recommendation_only verdict as insufficient for materialization scope" (plan line ~161). This is a methodologically non-trivial reframing of the decision module's literal text at `decide_history_rating_path.py` line 459 ("IF branches (i) and (ii) are both blocked" — originally meaning evidence-deficient). The plan should flag this reframing as Open Question OQ7 so the future omit-closure artifact PR's planner-science round considers whether "blocked-by-Layer-2-election" satisfies the decision-rule's intent or constitutes a subtle re-adjudication of Q6H. **Recommended fix:** Add OQ7 to `## Open Questions` before Layer-2 dispatch.
 
-> Q6G's batched-vs-event Glicko-2 equivalence proof FAILED both bounds on
-> the sc2egset PHA corpus: Spearman ρ = 0.2292 (≪ 0.99 threshold) and
-> |Δ log-loss| = 0.07928 (≫ 1·SE = 0.00219). The byte-determinism proof
-> PASSED. Under the Q6G auto-derived decision rule
-> (`equivalence fail → recommendation_only_glicko2` as NIT-N2 default;
-> `determinism fail → deferred_blocker`), the emergent verdict was
-> `Q6G_selected_policy = recommendation_only_glicko2`. […]
+- **R2-N2 — Sub-step token `02_01_03b` is the first "b" suffix in the SC2EGSet repo.** `docs/TAXONOMY.md` (Step schema lines 81-110) defines step numbering as `{PHASE}_{PIPELINE_SECTION}_{STEP}` zero-padded two-digit; the example `01_01_99` implies a 2-digit range 01-99. Suffix `b` is non-precedented. Plan A11 / OQ1 propose 3 alternatives. **Recommended resolution:** Prefer option `02_01_99` — it remains within the documented two-digit numeric schema (the TAXONOMY example `01_01_99` proves 99 is in-bounds), avoids inventing a new convention, and 99 is the conventional "late/closure" reservation across the docs. Suffix `b` requires a `docs/TAXONOMY.md` amendment, which the plan correctly defers as a separate Category E PR — that defer is correct but introduces churn the user can avoid. **Recommended fix:** Resolve OQ1 to `02_01_99` before Layer-2 dispatch (cheaper than the `b` path).
 
-Parent confirmation: applied at `planning/current_plan.md` §"Problem
-Statement" in this Round-2-mechanical-fix amendment.
+- **R2-N3 — Plan-cited 6-family ROADMAP line ranges (2280/2317/2326/2470/2496) are imprecise vs current master.** Grep of the current ROADMAP at master `28bfc89f` shows the only `reconstructed_rating` token at line ~2284 (not 2280), with Step 02_01_03 block ending near line 2523 (block confirmed). The inaccuracy was inherited from the Round-1 critique. The plan partly compensates via U1 directing the Layer-2 executor to re-grep `## Phase 03` at dispatch time. **Recommended fix:** Update Round-2 plan A16 wording to "lines approximately 2274-2523; re-grep at Layer-2 dispatch time" rather than asserting specific within-block line numbers.
 
-### Round 2 nits (2; non-blocking)
+### Round-2 notes (informational)
 
-- **R2-N1 (branch name preference).** Plan initially used branch
-  `feat/sc2egset-02-01-03-q6h-reconstructed-rating-closure`; user prompt
-  named `feat/sc2egset-02-01-03-q6h-rating-path-decision`. Repo precedent
-  (PR #244, #246, #248) supports the user's `rating-path-decision`
-  pattern. The parent uses `feat/sc2egset-02-01-03-q6h-rating-path-decision`.
-- **R2-N2 (Layer-2 9-file manifest scope explicit).** The §"File
-  Manifest" now declares the Layer-2 9-file block as forward-visibility-only
-  ("NOT created in this PR") to remove the Round-2 reviewer's concern
-  that the Layer-2 manifest scope might be ambiguous.
+- **R2-Note1 — Lineage ladder length (6 PRs minimum for 02_01_03b + closure PR = 7).** Acknowledged by the plan in L2 and S-2 of this critique. The trade-off is consistent with the existing Step 02_01_03 ladder (10 PRs: #238/#239/#240/#241/#242/#243/#244/#245/#247/#249/#251) and is the correct cost of non-batching discipline.
 
-### Round 2 final verdict (post-mechanical-fix)
+- **R2-Note2 — The future omit-closure artifact PR will require a new decision module (e.g., `close_history_rating_omit_path.py`).** This adds a Python-module surface area materially comparable to a "Q6X-style" PR in an executor's eye. The plan does not call this out explicitly. Methodologically defensible (it is a closure-side decision module, not an adjudication-side Q6X), but the future omit-closure artifact PR's planner-science round must make the distinction clear in module naming and module docstring to avoid auditor confusion.
 
-**APPROVE** (zero residual blockers; 2 non-blocking nits addressed in the
-parent's materialization). Layer-1 PR may be opened as draft.
+### Round-1 blocker resolution synthesis (from Round-2 review)
 
-### Round 2 audit trail
+- **R1-B1** RESOLVED — Step 02_01_03's 6-family declaration is preserved byte-unchanged in both this Layer-1 PR and the future Layer-2 stub PR; 5-family narrowing deferred to a 4th-downstream PR with explicit Branch (iii) authority.
+- **R1-B2** RESOLVED — Branch (iii) preconditions enumerated as halt-predicate clauses in the future ROADMAP block; this PR does NOT operationally execute Branch (iii); Q6H §15 standby paragraph preserved byte-unchanged via Q6H override falsifier.
+- **R1-B3** RESOLVED — 6-PR lineage ladder matches `.claude/rules/data-analysis-lineage.md` §"Non-batching rule" steps 1-9; cited #238 → #239 → #240 → #241 → #242 ladder verified against INDEX entries.
 
-- Adversarial cap consumed: Round 2 of 3.
-- Round 1 BLOCKER status: **RESOLVED** (R2.1 + R2.2 + R2.3 incorporated
-  as binding methodology with explicit traceability).
-- Round 1 NIT statuses: **3 of 3 incorporated** as binding methodology.
-- Round 2 BLOCKER status: **RESOLVED** (R2.6 textual correction applied
-  by parent under reviewer-authorised mechanical-fix path).
-- Round 3 of 3 Layer-1 adversarial cap: **reserved** — invoke only if
-  Layer-2 execution PR's reviewer-adversarial surfaces a Layer-1-traceable
-  defect.
+### Final approval gate
 
----
-
-## Cap accounting
-
-- Round 1 of 3 Layer-1 adversarial cap: **consumed (HOLD).**
-- Round 2 of 3 Layer-1 adversarial cap: **consumed (HOLD-WITH-MECHANICAL-FIX
-  → APPROVE post-fix).**
-- Round 3 of 3 Layer-1 adversarial cap: **reserved.**
-- Layer-2 execution PR receives a fresh 3-round adversarial cap per
-  `feedback_adversarial_cap_execution.md` (symmetric application).
-
-## Final gate
-
-This Layer-1 PR is mergeable when:
-
-1. Diff contains exactly 2 files: `planning/current_plan.md` +
-   `planning/current_plan.critique.md`.
-2. Branch matches `feat/sc2egset-02-01-03-q6h-rating-path-decision`.
-3. Base ref = `d9276194a1684542a04494ec02df44a5a3f2338e` (or a
-   fast-forward descendant).
-4. Pre-commit hooks pass (planning-artifact validation; no `.py` touched).
-5. PR is ready (not draft) at gate review time.
-6. Reviewer-adversarial verdict: **APPROVE** post-Round-2-mechanical-fix —
-   recorded here.
-
-The Layer-2 execution PR's gate conditions are enumerated in §"Gate
-Condition" of the plan body. Layer-2 dispatch is authorised after this
-Layer-1 PR merges.
+Round-2 verdict APPROVE-WITH-NITS authorises this Layer-1 planning PR to materialize (2-file commit + draft PR creation). The 3 nits R2-N1 / R2-N2 / R2-N3 are recommended for incorporation BEFORE the future Layer-2 dispatch; the user MAY address them via a follow-up commit on the same branch, or instruct the Layer-2 planner-science round to incorporate them at that time. The 3 nits do NOT block this Layer-1 PR's materialization or merge.
