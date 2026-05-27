@@ -28,7 +28,7 @@ merged to `master`.
 - Jupytext-paired sandbox notebook (`.py` source + paired `.ipynb` with cleared outputs) under `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.{py,ipynb}` that materializes the omit-closure artifact pair.
 
 ### Branch (iii) preconditions all satisfied
-- `THESIS_PRAGMATISM = TRUE` elevated under reviewer-adversarial sign-off (Layer-1 + Layer-2 dual signoff structure per R2-N4).
+- `THESIS_PRAGMATISM = TRUE` elevated under reviewer-adversarial sign-off (Layer-1 + Layer-2 dual signoff structure per Round-1 NIT #4 / Round-2 schema).
 - Thesis-pragmatism elevation section (MD §6): 7 substantive sentences (≥6 required); 5 PR #249 `§X.Y` cross-references (≥3 required).
 - Anti-boilerplate Jaccard `0.1708` vs Q6H §15 (< 0.5 threshold; Unicode-NFKD tokenisation deterministic for em/en dashes, curly quotes, NBSPs, accented characters).
 - Branch (ii) state semantic anchor (CSV column 14) records the OQ7 wording bridge: `q6h_verdict_state=reached_as_recommendation_only_event_by_event_glicko2; omit_closure_scope_interpretation=blocked_for_phase_02_materialization_scope_under_layer_2_election; is_q6h_re_adjudication=FALSE; is_new_q6x_loop=FALSE`.

@@ -271,7 +271,7 @@ OMIT_CLOSURE_DECISION_RULE_SHA256: str = hashlib.sha256(
 
 
 # ---------------------------------------------------------------------------
-# Falsifier roll-call (38 keys; >= 30 required by plan)
+# Falsifier roll-call (39 keys; >= 30 required by plan)
 # ---------------------------------------------------------------------------
 
 OMIT_CLOSURE_FALSIFIER_KEYS: tuple[str, ...] = (
