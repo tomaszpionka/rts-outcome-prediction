@@ -19,6 +19,20 @@ merged to `master`.
 
 ### Removed
 
+## [3.79.0] — 2026-05-27 (PR #253: feat/sc2egset-02-01-03b-omit-closure-roadmap-stub)
+
+### Added
+- ROADMAP-only Step `02_01_99` omit-closure stub block inserted into `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` — rating omit-closure follow-up to Step 02_01_03's Q6H Branch (ii) verdict. Canonical on-disk sub-step token: `02_01_99` (taxonomy-conformant per `docs/TAXONOMY.md` `01_01_99` example). Authority basis: Q6H §17 verbatim ("Step 02_01_03 closure is deferred to a future PR (Layer-3 materialization or omit-closure follow-up)"). Step 02_01_03's existing 6-family declaration preserved byte-unchanged.
+
+### Changed
+- `pyproject.toml` version `3.78.0 → 3.79.0` (minor; feat-family).
+- `planning/INDEX.md`: archived PR #251 (Q6H Layer-2 at `28bfc89f`) and PR #252 (Step 02_01_99 Layer-1 plan at `703747f2`); new active line for `feat/sc2egset-02-01-03b-omit-closure-roadmap-stub` Layer-2 ROADMAP-stub execution PR.
+
+### Notes
+- Branch-name deviation: branch slug retains historical `02-01-03b` hyphenated form for git-history continuity per the Layer-1 plan A11 binding (PR #252 merged 2026-05-27); on-disk ROADMAP step_number, future filenames, and forward refs use canonical `02_01_99`.
+- This PR is ROADMAP-only. NO omit-closure artifact created. NO feature materialization. NO feature artifact. NO CROSS-02-01 post-materialization audit artifact. NO STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip. NO research_log entry. NO Step 02_01_04 / Phase 03 work. NO baseline modeling. NO new Q6X PR.
+- The new Step 02_01_99 stub does NOT select Q6H Branch (iii) by itself; merely creating the stub does NOT close Q6 or unblock 5-family materialization. Q6H Branch (iii) preconditions (thesis_pragmatism = TRUE elevation; >=6-sentence substantive paragraph + >=3 PR #249 cross-references; explicit reviewer-adversarial sign-off) are deferred to a future omit-closure artifact PR (3 PRs downstream per the canonical PR #238 -> #239 -> #240 -> #241 -> #242 lineage ladder).
+
 ## [3.78.0] - 2026-05-26 (PR #251: feat/sc2egset-02-01-03-q6h-rating-path-decision)
 
 ### Added

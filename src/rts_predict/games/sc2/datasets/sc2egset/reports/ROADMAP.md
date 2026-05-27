@@ -2524,6 +2524,223 @@ research_log_entry: >-
 
 ---
 
+### Step 02_01_99 — Rating omit-closure follow-up stub (sc2egset)
+
+```yaml
+step_number: "02_01_99"
+name: "Rating omit-closure follow-up to Step 02_01_03 Q6H Branch (iii) (sc2egset)"
+description: >-
+  ROADMAP-only stub declaring Step 02_01_99 — the rating omit-closure
+  follow-up to Step 02_01_03's Q6H Branch (ii) verdict. Purpose:
+  prepare a future omit-closure artifact PR (Layer-3) that may satisfy
+  Q6H Branch (iii) preconditions and elevate `thesis_pragmatism` to
+  TRUE under explicit reviewer-adversarial sign-off. This stub does
+  NOT select Q6H Branch (iii) by itself; merely creating the stub
+  does NOT close Q6 or unblock 5-family materialization. Step
+  02_01_03's existing 6-family declaration (including the
+  `reconstructed_rating` family) remains BINDING and byte-unchanged
+  until a later approved scope amendment that lands AFTER the future
+  omit-closure artifact PR merges. Authority basis: Q6H §17 verbatim:
+  "Step 02_01_03 closure is deferred to a future PR (Layer-3
+  materialization or omit-closure follow-up)" — this stub declares
+  the omit-closure follow-up path. Branch-name deviation: the git
+  branch slug `feat/sc2egset-02-01-03b-omit-closure-roadmap-stub`
+  retains the historical `02-01-03b` hyphenated form for
+  git-history continuity per the Layer-1 plan's A11 binding (PR #252);
+  the on-disk step_number is the canonical `02_01_99`.
+  NO ARTIFACT is emitted in this ROADMAP-stub PR — this entry only
+  declares the future step per `.claude/rules/data-analysis-lineage.md`
+  "Non-batching rule for empirical work" sequence step 1; the
+  omit-closure decision artifact + scaffold + validator are produced
+  by SEPARATE FUTURE PRs (sequence steps 2-7).
+phase: "02 — Feature Engineering"
+pipeline_section: "02_01 — Pre-Game vs In-Game Boundary"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 2"
+dataset: "sc2egset"
+question: >-
+  Under the Q6H §17 two-path admission (omit-closure or Layer-3
+  materialization), is the omit-closure path methodologically
+  admissible under the 4 Branch (iii) preconditions enumerated in
+  decide_history_rating_path.py lines 457-481, with thesis_pragmatism
+  elevated to TRUE under explicit reviewer-adversarial sign-off, the
+  Q6H §15 standby paragraph re-verified as >=6 sentences AND >=3
+  PR #249 §X.Y cross-references, and Branches (i) and (ii) recorded
+  as blocked for materialization-scope purposes?
+method: >-
+  Step 02_01_99 itself does NOT execute the omit-closure decision.
+  This is a ROADMAP-only stub. The future omit-closure artifact PR
+  (3 PRs downstream from this stub per the canonical PR #238 -> PR
+  #239 -> PR #240 -> PR #241 -> PR #242 ladder precedent) will: (a)
+  read Q6H artifact pair byte-unchanged from PR #251; (b) re-verify
+  Q6H §15 sentence count (>=6) and PR #249 cross-reference count
+  (>=3); (c) record explicit `thesis_pragmatism = TRUE` elevation
+  with rationale referencing PR #249 + PR #251 evidence; (d) obtain
+  explicit reviewer-adversarial sign-off; (e) emit a CSV + MD
+  decision artifact pair recording the elevation and the 5-family
+  unblock per the verbatim `Q6H_FIVE_FAMILY_POST_OMIT_SET` constant
+  (`focal_player_history`, `opponent_player_history`,
+  `matchup_history_aggregate`, `cross_region_fragmentation_handling`,
+  `in_game_history_aggregate`); (f) emit NO Parquet, NO CROSS-02-01
+  audit, NO feature materialization, NO status YAML flip. The lineage
+  mirrors PR #238 -> #239 -> #240 -> #241 -> #242 for Step 02_01_03.
+  OQ7 wording/traceability bridge: Branch (ii) will be recorded as
+  blocked-by-Layer-2-election (not evidence-deficit) in the future
+  omit-closure artifact MD §N; this stub does NOT pre-determine that
+  recording — it is deferred to the omit-closure artifact's own
+  Layer-1 plan.
+stratification: >-
+  Per family: dataset_tag = sc2egset; prediction_setting =
+  history_enriched_pre_game. Omit-closure is a single decision
+  artifact, not a feature aggregation (analogous to PR #251 Q6H
+  stratification).
+predecessors: "02_01_03"
+notebook_path: >-
+  sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_omit_closure_decision.py
+inputs:
+  duckdb_tables: []
+  schema_yamls: []
+  prior_artifacts:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6h_rating_path_decision.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6h_rating_path_decision.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/decide_history_rating_path.py"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6g_rating_implementation_proof.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6g_rating_implementation_proof.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_q6f_rating_algorithm_survey.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_rating_reconstruction_adjudication.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_source_anchor_coldstart_adjudication.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv"
+  external_references:
+    - "Q6H §17 verbatim: Step 02_01_03 closure is deferred to a future PR (Layer-3 materialization or omit-closure follow-up)"
+    - "Q6H §15 standby paragraph admissibility: >=6 sentences + >=3 PR #249 §X.Y cross-references"
+    - "decide_history_rating_path.py: Q6H_FIVE_FAMILY_POST_OMIT_SET constant (5 families)"
+    - "decide_history_rating_path.py: Branch (iii) preconditions literal (lines 457-481)"
+    - "decide_history_rating_path.py: override falsifier q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15"
+    - ".claude/rules/data-analysis-lineage.md (non-batching rule; halt-before-artifact)"
+    - ".claude/scientific-invariants.md (I3, I6, I7, I9, I10)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_omit_closure_decision.csv"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_omit_closure_decision.md"
+reproducibility: >-
+  Every column in the future omit-closure CSV traces to either the
+  Q6H decision module's Branch (iii) literal or the Q6H §15 paragraph.
+  Every count/distribution embedded in the MD must include its
+  derivation. The Branch (iii) elevation rationale must include
+  explicit reviewer-adversarial sign-off SHA. Seed 42 convention.
+  Relative-path provenance (Invariant I10).
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Temporal discipline is preserved by the omit-closure path: no
+      feature values are computed in this ROADMAP stub. The future
+      omit-closure artifact PR's decision does not produce Parquet or
+      feature columns; temporal leakage discipline (strict
+      history_time < target_time) applies only when the 5-family
+      materialization PR executes (a separate future PR).
+  - number: "6"
+    how_upheld: >-
+      The future omit-closure artifact MD must embed verbatim any
+      count/distribution it reports with its derivation SQL or
+      source reference. No value may be paraphrased.
+  - number: "7"
+    how_upheld: >-
+      Branch (iii) preconditions are evidentiary admissibility
+      criteria, not magic booleans. The substantive paragraph +
+      reviewer sign-off pins prevent boolean-driven closure. No magic
+      numbers in the omit-closure artifact.
+  - number: "9"
+    how_upheld: >-
+      Step 02_01_99 conclusions derive only from its own future
+      artifacts and from completed predecessor steps' artifacts
+      (Q6H artifact pair from PR #251 and prior Q-chain artifacts
+      from PRs #242-#249), all lower-numbered and on disk.
+  - number: "10"
+    how_upheld: >-
+      The future omit-closure artifact uses relative paths in all
+      SHA pins; no absolute path written to any artifact. This
+      ROADMAP stub itself uses only relative artifact paths.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires
+    only after the future omit-closure artifact PR materializes the
+    CSV + MD decision pair. At that point the predicate is: (a) the
+    planned CSV and MD exist at the declared paths and are non-empty;
+    (b) the CSV records `decision_verdict =
+    omit_reconstructed_rating_and_unblock_other_five`; (c) the MD
+    §N records explicit `thesis_pragmatism = TRUE` elevation with
+    rationale; (d) Q6H §15 sentence count >= 6 and PR #249
+    cross-reference count >= 3 are re-verified; (e) reviewer-
+    adversarial sign-off SHA is present; (f) the 5-family post-omit
+    set matches Q6H_FIVE_FAMILY_POST_OMIT_SET exactly; (g) no
+    Parquet, no CROSS-02-01 audit artifact, no feature column, no
+    status YAML flip is present in the omit-closure artifact PR diff.
+  continue_predicate: >-
+    A future PR may begin the 5-family ROADMAP narrowing (amending
+    Step 02_01_03's 6-family declaration to 5 families) only after
+    the omit-closure artifact PR merges with a passing artifact_check.
+    A future PR may begin 5-family feature materialization only after
+    the 5-family ROADMAP narrowing PR merges. Step 02_01_03 closure
+    (STEP_STATUS flip to `complete`) happens only after BOTH the
+    omit-closure artifact AND the 5-family materialization artifact
+    merge (or a documented alternative closure pathway). No direct
+    skip from this stub to feature materialization, CROSS-02-01 audit,
+    or status YAML flip.
+  halt_predicate: >-
+    Halt before generating the omit-closure artifact if any of the
+    following hold:
+      - Q6H §15 sentence count drops below 6 (Branch (iii)
+        precondition fails);
+      - Q6H §15 cross-reference count to PR #249 §X.Y drops below 3
+        (Branch (iii) precondition fails);
+      - the override falsifier
+        `q6h_thesis_pragmatism_set_false_without_substantive_reasoning_paragraph_in_md_section_15`
+        would fire (Q6H §15 paragraph has been silently removed or
+        degraded);
+      - `Q6H_FIVE_FAMILY_POST_OMIT_SET` count != 5 or contains
+        `reconstructed_rating`;
+      - Q6H artifact pair SHAs do not match PR #251 merge SHAs;
+      - reviewer-adversarial sign-off is missing from the omit-closure
+        artifact PR's `planning/current_plan.critique.md`;
+      - the omit-closure artifact PR attempts to mutate Q6H artifact
+        bytes (Q5/Q6F/Q6G/Q6H re-adjudication ban);
+      - the omit-closure artifact PR attempts a 5-family ROADMAP
+        narrowing (the narrowing is a SEPARATE downstream PR);
+      - the omit-closure artifact PR attempts a STEP_STATUS flip
+        (the flip is a SEPARATE downstream PR);
+      - the future scaffold attempts to batch ROADMAP + notebook +
+        artifact + next step in one execution (non-batching rule);
+      - any feature artifact (.parquet, .csv, .md under
+        reports/artifacts/02_feature_engineering/) is produced by
+        the ROADMAP stub PR (this PR);
+      - any CROSS-02-01 audit artifact
+        (reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md})
+        is produced by this PR;
+      - STEP_STATUS.yaml, PIPELINE_SECTION_STATUS.yaml, or
+        PHASE_STATUS.yaml is edited in this PR;
+      - dataset or root research_log.md is edited in this PR;
+      - Step 02_01_03 ROADMAP block family list is modified in this PR;
+      - reconstructed_rating is silently removed from Step 02_01_03
+        in this PR;
+      - Phase 03 or Step 02_01_04 is started;
+      - another Q6X PR is opened (Q6H is terminal).
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > §4.5 Feature engineering plan (sc2egset rating omit-closure decision)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per
+  .claude/rules/data-analysis-lineage.md "Non-batching rule" sequence
+  (step 1 — ROADMAP stub only — produces no research_log entry).
+  Required on the future omit-closure artifact PR per the standard
+  step-completion protocol; entry goes into
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
+```
+
+---
+
 ## Phase 03 — Splitting & Baselines (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.
