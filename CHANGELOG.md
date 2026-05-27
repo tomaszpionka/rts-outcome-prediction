@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.79.0] — 2026-05-27 (PR #<TBD>: feat/sc2egset-02-01-03b-omit-closure-roadmap-stub)
+## [3.79.0] — 2026-05-27 (PR #253: feat/sc2egset-02-01-03b-omit-closure-roadmap-stub)
 
 ### Added
 - ROADMAP-only Step `02_01_99` omit-closure stub block inserted into `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` — rating omit-closure follow-up to Step 02_01_03's Q6H Branch (ii) verdict. Canonical on-disk sub-step token: `02_01_99` (taxonomy-conformant per `docs/TAXONOMY.md` `01_01_99` example). Authority basis: Q6H §17 verbatim ("Step 02_01_03 closure is deferred to a future PR (Layer-3 materialization or omit-closure follow-up)"). Step 02_01_03's existing 6-family declaration preserved byte-unchanged.
