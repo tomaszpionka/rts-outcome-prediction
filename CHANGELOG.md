@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.80.0] — 2026-05-27 (PR #<TBD>: feat/sc2egset-02-01-99-rating-omit-closure-artifact)
+## [3.80.0] — 2026-05-27 (PR #255: feat/sc2egset-02-01-99-rating-omit-closure-artifact)
 
 ### Added
 - SC2EGSet Step `02_01_99` rating omit-closure decision artifact pair: 45-column CSV (1 canonical decision row) + 21-section MD at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.{csv,md}`.

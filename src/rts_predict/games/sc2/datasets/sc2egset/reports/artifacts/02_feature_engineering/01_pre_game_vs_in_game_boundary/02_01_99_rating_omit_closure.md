@@ -1,6 +1,6 @@
 # Step 02_01_99 Rating Omit-Closure Decision
 
-**Audit PR:** PR #<TBD>
+**Audit PR:** PR #255
 
 ## 1. Summary
 
@@ -253,7 +253,7 @@ This artifact does NOT materialize features and emits NO Parquet output.
 - `parent_pr253_roadmap_sha256`: `cf49d826b77a6fa43db1d0eefa355783e1ea89c2f1e1f322e35a94fa220c6674`
 - `head_master_sha_at_layer_1_plan_time`: `0acc0e83274b52831daf80a56beaacaed9340b13`
 - Omit-closure decision-rule SHA-256 (Q6H Branch (iii) literal): `f6580ae9b98fe0d829858fb74591c714adb07577fdf763ca334b14e363dc2a9a`
-- HEAD git SHA at run time: `5eefefd53e4b7cc8fb66df9f2d88001eb5f8a27b`
+- HEAD git SHA at run time: `c872edf46cc55abd33c983b19da5c41d09321c32`
 
 ## 21. Final Verdict
 

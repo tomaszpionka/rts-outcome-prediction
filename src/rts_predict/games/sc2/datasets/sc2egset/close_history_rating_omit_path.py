@@ -134,7 +134,7 @@ assert "reconstructed_rating" not in OMIT_CLOSURE_FIVE_FAMILY_SET, (
 # Parent SHA pins (10 hard-coded; A1 verbatim) + Layer-1 head SHA
 # ---------------------------------------------------------------------------
 
-AUDIT_PR_NUMBER_PLACEHOLDER: str = "PR #<TBD>"
+AUDIT_PR_NUMBER_PLACEHOLDER: str = "PR #255"
 
 OMIT_CLOSURE_PARENT_SHA_PINS: dict[str, str] = {
     "parent_pr242_csv_sha256": (
@@ -896,7 +896,7 @@ def _build_decision_row(
         layer_1_signoff_state: APPROVE / APPROVE-WITH-NITS / HOLD-...
         layer_2_critique_sha256: SHA of the Layer-2 critique file.
         layer_2_signoff_state: APPROVE / APPROVE-WITH-NITS / HOLD-...
-        audit_pr_number: PR number string, e.g. ``"PR #<TBD>"``.
+        audit_pr_number: PR number string, e.g. ``"PR #255"``.
 
     Returns:
         A populated ``RatingOmitClosureDecision``.

@@ -199,7 +199,7 @@ class TestModuleConstants:
         assert OMIT_CLOSURE_PR249_CROSS_REF_MIN_COUNT == 3
 
     def test_audit_pr_placeholder(self) -> None:
-        assert AUDIT_PR_NUMBER_PLACEHOLDER == "PR #<TBD>"
+        assert AUDIT_PR_NUMBER_PLACEHOLDER == "PR #255"
 
     def test_head_master_sha_40_hex(self) -> None:
         assert len(HEAD_MASTER_SHA_AT_LAYER_1_PLAN_TIME) == 40
