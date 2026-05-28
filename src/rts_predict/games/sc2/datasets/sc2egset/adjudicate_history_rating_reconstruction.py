@@ -95,8 +95,8 @@ __all__ = [
     "CITATION_GLICKMAN_2012",
     "CITATION_HERBRICH_MINKA_GRAEPEL_2006",
     "EXCLUDED_METHODS_CONSIDERED",
+    "DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS",
     "EXPECTED_CROSS_02_02_SPEC_SHA256",
-    "EXPECTED_DATASET_RESEARCH_LOG_SHA256",
     "EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256",
     "EXPECTED_MATCHES_FLAT_CLEAN_YAML_SHA256",
     "EXPECTED_MATCHES_HISTORY_MINIMAL_YAML_SHA256",
@@ -132,6 +132,7 @@ __all__ = [
     "TARGET_SOURCE_TABLE",
     "HISTORY_SOURCE_TABLE",
     "HISTORY_TIME_COLUMN",
+    "compute_dataset_research_log_sha256",
     "run_rating_reconstruction_adjudication",
 ]
 
@@ -164,8 +165,35 @@ EXPECTED_CROSS_02_02_SPEC_SHA256: str = (
 EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256: str = (
     "320b8b018982f12539a34512421f1b34359bb825f0d1410687492dfe5c6fed1f"
 )
-EXPECTED_DATASET_RESEARCH_LOG_SHA256: str = (
-    "3290607dad93f9907818f6c0fe61200fcbaa0d9891d3dfbec677996cb58fb1c7"
+# ---------------------------------------------------------------------------
+# Dataset research_log.md — append-only lineage, NOT an immutable input.
+#
+# PR #245 originally pinned this file by exact SHA-256 alongside the other
+# stable source artifacts (specs, cleaning-layer YAMLs, parent CSV/MD). That
+# was a category error: the dataset ``research_log.md`` is append-only
+# lineage that grows with every Category A PR. Pinning it by SHA bound the
+# adjudicator's pass/fail to a snapshot that is guaranteed to drift, and
+# blocked any downstream PR that legitimately appended a new entry (the
+# first hit was PR #259's five-family materialization).
+#
+# Hygiene fix (chore PR #260, 2026-05-28,
+# branch ``chore/sc2egset-research-log-append-only-sha-fix``):
+# the immortal SHA pin is removed and replaced with an evidence-presence
+# check (``_check_dataset_research_log_evidence_present``) that asserts the
+# load-bearing PR #245-era tokens are still on disk. Append-only updates
+# are silently tolerated; evidence loss / tampering still halts.
+#
+# The chosen tokens are the verbatim PR #245-era anchors cited in this
+# module's own docstring (lines 24-27): the per-player-history Phase 02
+# rating-system backtesting sentence (research_log lines 732-734) and the
+# Aligulac/Bradley-Terry/Neural BTL N-1 binding restatement (line 961).
+# Both anchors are load-bearing for Q6's candidate-set design and would
+# only disappear under intentional evidence destruction.
+# ---------------------------------------------------------------------------
+DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS: tuple[str, ...] = (
+    "per-player-history key for Phase 02 rating-system backtesting",
+    "Aligulac-style BTL",
+    "Aligulac race-conditioned, Bradley–Terry, Neural BTL",
 )
 EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256: str = (
     "7962dd910e0b72419e35a9895689cd4ae6a51c2be0bc6e5e0fe4a0ceb8f207d0"
@@ -664,8 +692,8 @@ HELPER_TO_FALSIFIER_KEY: dict[str, str] = {
     "_check_feature_family_registry_csv_sha256": (
         "feature_family_registry_csv_sha256_mismatch"
     ),
-    "_check_dataset_research_log_sha256": (
-        "dataset_research_log_sha256_mismatch"
+    "_check_dataset_research_log_evidence_present": (
+        "dataset_research_log_evidence_missing"
     ),
     "_check_player_history_all_yaml_sha256": (
         "player_history_all_yaml_sha256_mismatch"
@@ -773,7 +801,7 @@ FALSIFIER_PRIORITY_CHAIN: tuple[str, ...] = (
     "pr241_sha256_mismatch",
     "cross_02_02_spec_sha256_mismatch",
     "feature_family_registry_csv_sha256_mismatch",
-    "dataset_research_log_sha256_mismatch",
+    "dataset_research_log_evidence_missing",
     "player_history_all_yaml_sha256_mismatch",
     "matches_flat_clean_yaml_sha256_mismatch",
     "matches_history_minimal_yaml_sha256_mismatch",
@@ -1072,7 +1100,9 @@ def _probe_pha_result_vs_mmr_presence(
 
 
 # ---------------------------------------------------------------------------
-# Falsifier helpers — SHA pins (11)
+# Falsifier helpers — SHA pins (10) + 1 append-only evidence-presence
+# check (dataset research_log; see DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS
+# block comment for the chore PR #260 2026-05-28 rationale).
 # ---------------------------------------------------------------------------
 
 
@@ -1145,11 +1175,58 @@ def _check_feature_family_registry_csv_sha256(
     )
 
 
-def _check_dataset_research_log_sha256(path: Path) -> tuple[bool, str]:
-    """Dataset research_log.md SHA pin."""
-    return _check_sha_pin(
-        path, EXPECTED_DATASET_RESEARCH_LOG_SHA256, "dataset research_log"
-    )
+def _check_dataset_research_log_evidence_present(
+    path: Path,
+) -> tuple[bool, str]:
+    """Verify load-bearing PR #245-era evidence tokens are still on disk.
+
+    The dataset ``research_log.md`` is append-only lineage; the original
+    PR #245 exact-SHA pin was removed (see the
+    ``DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS`` block comment for the
+    full rationale). This check halts ONLY on evidence loss / tampering
+    (a required token missing from the file), not on benign later
+    appends.
+
+    Args:
+        path: Path to the dataset ``research_log.md``.
+
+    Returns:
+        ``(did_fire, message)``.
+    """
+    if not path.exists():
+        return True, (
+            f"dataset research_log evidence_missing: file not found at "
+            f"{path!r}"
+        )
+    content = path.read_text(encoding="utf-8")
+    missing = [
+        tok
+        for tok in DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS
+        if tok not in content
+    ]
+    if missing:
+        return True, (
+            f"dataset research_log evidence_missing: required PR #245-era "
+            f"tokens absent from {path!r}: {missing!r}"
+        )
+    return False, ""
+
+
+def compute_dataset_research_log_sha256(path: Path) -> str:
+    """Compute SHA-256 of the dataset ``research_log.md`` for provenance.
+
+    Provenance-only helper: callers may record the observed digest in
+    audit MDs without comparing it to a hardcoded expected value. The
+    correctness gate is
+    ``_check_dataset_research_log_evidence_present``, not SHA equality.
+
+    Args:
+        path: Path to the dataset ``research_log.md``.
+
+    Returns:
+        64-char lowercase hex digest, or ``'NOT_FOUND'`` if absent.
+    """
+    return _sha256_file(path)
 
 
 def _check_player_history_all_yaml_sha256(
@@ -3102,8 +3179,9 @@ def _write_md(
         f"`{EXPECTED_CROSS_02_02_SPEC_SHA256}`\n"
         f"- `feature_family_registry_csv_sha256`: "
         f"`{EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256}`\n"
-        f"- `dataset_research_log_sha256`: "
-        f"`{EXPECTED_DATASET_RESEARCH_LOG_SHA256}`\n"
+        f"- `dataset_research_log_evidence_tokens`: "
+        f"`{list(DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS)!r}` "
+        f"(append-only lineage; presence-checked, not SHA-pinned)\n"
         f"- `player_history_all_yaml_sha256`: "
         f"`{EXPECTED_PLAYER_HISTORY_ALL_YAML_SHA256}`\n"
         f"- `matches_flat_clean_yaml_sha256`: "
@@ -3158,7 +3236,11 @@ def run_rating_reconstruction_adjudication(
 ) -> RatingReconstructionAdjudicationResult:
     """Run the Q6 rating-reconstruction successor adjudication.
 
-    Verifies SHA pins on all 11 parent/source files, constructs the 8 Q6
+    Verifies SHA pins on 10 parent/source files plus the append-only
+    evidence-presence check on the dataset ``research_log.md``
+    (see ``DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS``; the SHA pin was
+    removed in chore PR #260 2026-05-28 because the file is
+    append-only mutable lineage). Constructs the 8 Q6
     decision rows per T05, runs every falsifier in
     ``FALSIFIER_PRIORITY_CHAIN`` order, and (if no falsifier fires)
     writes the CSV + MD artifact pair byte-deterministically.
@@ -3228,8 +3310,8 @@ def run_rating_reconstruction_adjudication(
                 feature_family_registry_csv_path
             )
         ),
-        "dataset_research_log_sha256_mismatch": (
-            lambda: _check_dataset_research_log_sha256(
+        "dataset_research_log_evidence_missing": (
+            lambda: _check_dataset_research_log_evidence_present(
                 dataset_research_log_path
             )
         ),

@@ -37,10 +37,10 @@ from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_rating_reconstru
     ALLOWED_RATING_EVIDENCE_LEVELS,
     CANDIDATE_REQUIRED_CITATIONS,
     CROSS_02_02_SPEC_REL,
+    DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS,
     DATASET_RESEARCH_LOG_REL,
     EXCLUDED_METHODS_CONSIDERED,
     EXPECTED_CROSS_02_02_SPEC_SHA256,
-    EXPECTED_DATASET_RESEARCH_LOG_SHA256,
     EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256,
     EXPECTED_MATCHES_FLAT_CLEAN_YAML_SHA256,
     EXPECTED_MATCHES_HISTORY_MINIMAL_YAML_SHA256,
@@ -84,7 +84,7 @@ from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_rating_reconstru
     _check_cold_start_policy_present_when_non_omit,
     _check_complexity_deployability_valid,
     _check_cross_02_02_spec_sha256,
-    _check_dataset_research_log_sha256,
+    _check_dataset_research_log_evidence_present,
     _check_decision_count,
     _check_decision_ids_canonical_order,
     _check_evidence_level_valid,
@@ -134,6 +134,7 @@ from rts_predict.games.sc2.datasets.sc2egset.adjudicate_history_rating_reconstru
     _scoped_field_iter,
     _sha256_file,
     _write_md,
+    compute_dataset_research_log_sha256,
     run_rating_reconstruction_adjudication,
 )
 
@@ -534,13 +535,15 @@ class TestShaFalsifierFires:
         fired, _ = _check_feature_family_registry_csv_sha256(fake)
         assert fired
 
-    def test_dataset_research_log_sha_fires_on_tampered(
+    def test_dataset_research_log_evidence_fires_on_tampered(
         self, tmp_path: Path
     ) -> None:
+        """Tampered content lacking PR #245-era tokens halts the check."""
         fake = tmp_path / "x.md"
-        fake.write_text("# tampered", encoding="utf-8")
-        fired, _ = _check_dataset_research_log_sha256(fake)
+        fake.write_text("# tampered (no PR #245 tokens)", encoding="utf-8")
+        fired, msg = _check_dataset_research_log_evidence_present(fake)
         assert fired
+        assert "evidence_missing" in msg
 
     def test_pha_yaml_sha_fires_on_tampered(self, tmp_path: Path) -> None:
         fake = tmp_path / "x.yaml"
@@ -605,11 +608,109 @@ class TestShaFalsifierPassesOnCanonical:
         )
         assert not fired
 
-    def test_dataset_research_log_passes(self) -> None:
+    def test_dataset_research_log_evidence_present_passes(self) -> None:
+        """Evidence-presence check passes on canonical on-disk content."""
         if not DATASET_RESEARCH_LOG_PATH.exists():
             pytest.skip("Dataset research_log not on disk")
-        fired, _ = _check_dataset_research_log_sha256(DATASET_RESEARCH_LOG_PATH)
+        fired, _ = _check_dataset_research_log_evidence_present(
+            DATASET_RESEARCH_LOG_PATH
+        )
         assert not fired
+
+
+class TestDatasetResearchLogAppendOnlySafety:
+    """Regression tests for chore PR #260 2026-05-28 append-only fix.
+
+    The dataset ``research_log.md`` is append-only mutable lineage; the
+    original PR #245 exact-SHA pin was a category error. These tests
+    pin the append-only-safe contract:
+
+    1. Benign new entries appended at the end DO NOT halt the check.
+    2. Removal / tampering of any required PR #245-era token DOES halt
+       the check with an ``evidence_missing`` message.
+    3. All three configured tokens are independently load-bearing
+       (removing any one of them halts the check).
+    4. The provenance-only ``compute_dataset_research_log_sha256``
+       helper returns a valid digest without comparing it to anything.
+    """
+
+    def test_dataset_research_log_passes_when_new_entries_appended(
+        self, tmp_path: Path
+    ) -> None:
+        """Appending a new entry after the existing content must not halt."""
+        if not DATASET_RESEARCH_LOG_PATH.exists():
+            pytest.skip("Dataset research_log not on disk")
+        original = DATASET_RESEARCH_LOG_PATH.read_text(encoding="utf-8")
+        appended = tmp_path / "research_log_with_append.md"
+        appended.write_text(
+            original
+            + "\n\n---\n\n## 2099-01-01 -- benign append regression entry\n"
+            + "- **Category:** C\n- **Note:** synthetic append-only safety probe\n",
+            encoding="utf-8",
+        )
+        fired, msg = _check_dataset_research_log_evidence_present(appended)
+        assert not fired, (
+            f"Append-only update must not halt; got: {msg!r}"
+        )
+
+    def test_dataset_research_log_halts_when_pr245_evidence_removed(
+        self, tmp_path: Path
+    ) -> None:
+        """Removing the PR #245-era anchor tokens must halt the check."""
+        if not DATASET_RESEARCH_LOG_PATH.exists():
+            pytest.skip("Dataset research_log not on disk")
+        original = DATASET_RESEARCH_LOG_PATH.read_text(encoding="utf-8")
+        stripped = original
+        for tok in DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS:
+            stripped = stripped.replace(tok, "")
+        fake = tmp_path / "research_log_stripped.md"
+        fake.write_text(stripped, encoding="utf-8")
+        fired, msg = _check_dataset_research_log_evidence_present(fake)
+        assert fired
+        assert "evidence_missing" in msg
+
+    @pytest.mark.parametrize(
+        "token_index", list(range(len(DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS)))
+    )
+    def test_each_pr245_token_is_independently_load_bearing(
+        self, tmp_path: Path, token_index: int
+    ) -> None:
+        """Removing any single required token must halt the check."""
+        if not DATASET_RESEARCH_LOG_PATH.exists():
+            pytest.skip("Dataset research_log not on disk")
+        original = DATASET_RESEARCH_LOG_PATH.read_text(encoding="utf-8")
+        target_token = DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS[token_index]
+        stripped = original.replace(target_token, "")
+        fake = tmp_path / f"research_log_missing_{token_index}.md"
+        fake.write_text(stripped, encoding="utf-8")
+        fired, msg = _check_dataset_research_log_evidence_present(fake)
+        assert fired
+        assert target_token in msg
+
+    def test_check_halts_when_file_missing(self, tmp_path: Path) -> None:
+        """Missing on-disk file must halt with evidence_missing message."""
+        missing = tmp_path / "nope.md"
+        fired, msg = _check_dataset_research_log_evidence_present(missing)
+        assert fired
+        assert "evidence_missing" in msg
+
+    def test_compute_sha256_helper_returns_valid_digest(self) -> None:
+        """Provenance helper returns a 64-char lowercase hex digest."""
+        if not DATASET_RESEARCH_LOG_PATH.exists():
+            pytest.skip("Dataset research_log not on disk")
+        digest = compute_dataset_research_log_sha256(
+            DATASET_RESEARCH_LOG_PATH
+        )
+        assert _is_valid_sha256(digest)
+
+    def test_compute_sha256_helper_returns_not_found_for_missing(
+        self, tmp_path: Path
+    ) -> None:
+        """Provenance helper returns ``'NOT_FOUND'`` when file absent."""
+        assert (
+            compute_dataset_research_log_sha256(tmp_path / "missing.md")
+            == "NOT_FOUND"
+        )
 
 
 class TestCandidateSetFalsifiers:
@@ -889,14 +990,6 @@ class TestPinnedShaConstantsMatchDisk:
         assert (
             _sha256_file(FEATURE_FAMILY_REGISTRY_CSV_PATH)
             == EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256
-        )
-
-    def test_dataset_research_log_sha_matches_disk(self) -> None:
-        if not DATASET_RESEARCH_LOG_PATH.exists():
-            pytest.skip("Dataset research_log not on disk")
-        assert (
-            _sha256_file(DATASET_RESEARCH_LOG_PATH)
-            == EXPECTED_DATASET_RESEARCH_LOG_SHA256
         )
 
     def test_pha_yaml_sha_matches_disk(self) -> None:
