@@ -2526,7 +2526,7 @@ research_log_entry: >-
 
 <!-- amendment_id: materialization_scope_amendment_post_pr_255 -->
 
-**Status:** materialization_scope_amendment_post_pr_255 — recorded by PR #<TBD> (the Layer-2 execution PR materialising this amendment).
+**Status:** materialization_scope_amendment_post_pr_255 — recorded by PR #257 (the Layer-2 execution PR materialising this amendment).
 
 **Effect on Step 02_01_03:** the original six-family declaration above (including
 `reconstructed_rating`) remains BINDING as the historical record of the closed

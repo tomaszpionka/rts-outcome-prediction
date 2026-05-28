@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.81.0] — 2026-05-28 (PR #<TBD>: feat/sc2egset-02-01-03-five-family-scope-amendment)
+## [3.81.0] — 2026-05-28 (PR #257: feat/sc2egset-02-01-03-five-family-scope-amendment)
 
 ### Added
 - ROADMAP-only materialization-scope amendment recording PR #255's omit-closure decision against Step 02_01_03 / Step 02_01_99.
