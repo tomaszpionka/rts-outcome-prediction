@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.81.1] — 2026-05-28 (PR #<TBD>: chore/sc2egset-research-log-append-only-sha-fix)
+## [3.81.1] — 2026-05-28 (PR #260: chore/sc2egset-research-log-append-only-sha-fix)
 
 ### Removed
 

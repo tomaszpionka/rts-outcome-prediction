@@ -176,7 +176,7 @@ EXPECTED_FEATURE_FAMILY_REGISTRY_CSV_SHA256: str = (
 # blocked any downstream PR that legitimately appended a new entry (the
 # first hit was PR #259's five-family materialization).
 #
-# Hygiene fix (chore PR #<TBD>, 2026-05-28,
+# Hygiene fix (chore PR #260, 2026-05-28,
 # branch ``chore/sc2egset-research-log-append-only-sha-fix``):
 # the immortal SHA pin is removed and replaced with an evidence-presence
 # check (``_check_dataset_research_log_evidence_present``) that asserts the
@@ -1102,7 +1102,7 @@ def _probe_pha_result_vs_mmr_presence(
 # ---------------------------------------------------------------------------
 # Falsifier helpers — SHA pins (10) + 1 append-only evidence-presence
 # check (dataset research_log; see DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS
-# block comment for the chore PR #<TBD> 2026-05-28 rationale).
+# block comment for the chore PR #260 2026-05-28 rationale).
 # ---------------------------------------------------------------------------
 
 
@@ -3239,7 +3239,7 @@ def run_rating_reconstruction_adjudication(
     Verifies SHA pins on 10 parent/source files plus the append-only
     evidence-presence check on the dataset ``research_log.md``
     (see ``DATASET_RESEARCH_LOG_PR245_EVIDENCE_TOKENS``; the SHA pin was
-    removed in chore PR #<TBD> 2026-05-28 because the file is
+    removed in chore PR #260 2026-05-28 because the file is
     append-only mutable lineage). Constructs the 8 Q6
     decision rows per T05, runs every falsifier in
     ``FALSIFIER_PRIORITY_CHAIN`` order, and (if no falsifier fires)

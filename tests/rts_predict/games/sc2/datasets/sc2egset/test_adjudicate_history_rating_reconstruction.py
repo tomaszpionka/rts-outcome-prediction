@@ -619,7 +619,7 @@ class TestShaFalsifierPassesOnCanonical:
 
 
 class TestDatasetResearchLogAppendOnlySafety:
-    """Regression tests for chore PR #<TBD> 2026-05-28 append-only fix.
+    """Regression tests for chore PR #260 2026-05-28 append-only fix.
 
     The dataset ``research_log.md`` is append-only mutable lineage; the
     original PR #245 exact-SHA pin was a category error. These tests
