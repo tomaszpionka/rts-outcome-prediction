@@ -2522,6 +2522,101 @@ research_log_entry: >-
   src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
 ```
 
+##### Materialization-scope amendment (post-PR #255)
+
+<!-- amendment_id: materialization_scope_amendment_post_pr_255 -->
+
+**Status:** materialization_scope_amendment_post_pr_255 — recorded by PR #257 (the Layer-2 execution PR materialising this amendment).
+
+**Effect on Step 02_01_03:** the original six-family declaration above (including
+`reconstructed_rating`) remains BINDING as the historical record of the closed
+Q-chain. The MATERIALIZATION PATH that Step 02_01_03 will execute under is
+NARROWED to exactly five families:
+
+1. `focal_player_history`
+2. `opponent_player_history`
+3. `matchup_history_aggregate`
+4. `cross_region_fragmentation_handling`
+5. `in_game_history_aggregate`
+
+The 6th family `reconstructed_rating` is EXCLUDED from the materialization path.
+
+**Excluded columns (verbatim):**
+
+- `reconstructed_rating_focal_pre`
+- `reconstructed_rating_opp_pre`
+- `reconstructed_rating_diff`
+
+**Q6 omission status:** `intentionally_omitted_under_branch_iii`. The exclusion of
+`reconstructed_rating` is NOT silent satisfaction of Q6 — it is the explicit
+recording of Q6H Branch (iii) elevation per PR #255 row field
+`q6_not_silently_satisfied = TRUE`.
+
+**Authority basis (parent artifacts):**
+
+- PR #243 Q5 cross-region adjudication (`02_01_03_history_cross_region_adjudication.{csv,md}`).
+- PR #247 Q6F rating-algorithm survey (`02_01_03_q6f_rating_algorithm_survey.{csv,md}`).
+- PR #249 Q6G rating-implementation proof (`02_01_03_q6g_rating_implementation_proof.{csv,md}`).
+- PR #251 Q6H rating-path decision (`02_01_03_q6h_rating_path_decision.{csv,md}`).
+- PR #253 ROADMAP stub for Step 02_01_99.
+- PR #255 omit-closure decision artifact (`02_01_99_rating_omit_closure.{csv,md}`)
+  with `decision_verdict = omit_reconstructed_rating_and_unblock_other_five`.
+
+**Scope of this amendment:**
+
+- NO feature value materialization. No `.parquet` is produced by this amendment PR.
+- NO CROSS-02-01 post-materialization audit. No
+  `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` is created.
+- NO `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, or `PHASE_STATUS.yaml`
+  row addition or mutation.
+- NO `research_log.md` entry (dataset or root).
+- NO Step 02_01_04 start.
+- NO Phase 03 start.
+- NO new Q6X PR (Q6H is terminal per PR #251).
+
+**Continue-predicate (updated):** Feature materialization for Step 02_01_03 may
+proceed in a future PR only when ALL of the following hold:
+
+1. The materialized columns cover exactly the five permitted families listed
+   above (no more, no fewer).
+2. No column with name matching `reconstructed_rating_focal_pre`,
+   `reconstructed_rating_opp_pre`, or `reconstructed_rating_diff` (or any other
+   `reconstructed_rating_*` token) is materialized.
+3. The CROSS-02-01 post-materialization audit is NON-vacuous (`features_audited`
+   covers exactly the five families' materialized columns) and returns
+   `verdict = PASS`.
+4. All Q5/Q6F/Q6G/Q6H parent artifact bytes are unchanged (no Q-chain
+   re-adjudication).
+5. PR #255 omit-closure artifact bytes are unchanged.
+
+**Halt-predicate (updated):** Halt before any future PR proceeds if:
+
+- any `reconstructed_rating_*` column is generated;
+- the exact five-family set drifts (renamed, reordered, added to, dropped from);
+- the PR #255 omit-closure artifact bytes drift from the SHA pinned at this PR's
+  merge time;
+- any Q5 (PR #243), Q6F (PR #247), Q6G (PR #249), or Q6H (PR #251) parent
+  artifact's bytes drift;
+- any target-match outcome, future-match outcome, or Phase 03 split leakage is
+  introduced into any feature column;
+- any `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`, or
+  `research_log.md` is edited in this scope-amendment PR;
+- any feature `.parquet`, CROSS-02-01 audit JSON/MD, or
+  `reports/artifacts/02_01_03/` file is produced in this scope-amendment PR.
+
+**Step 02_01_03 closure status:** OPEN. This amendment does NOT close Step
+02_01_03. Closure requires (a) actual five-family materialization (a separate
+future PR), (b) a non-vacuous CROSS-02-01 post-materialization audit on the five
+families' columns, and (c) a separate closure PR analogous to PR #237 for Step
+02_01_02. Until all three conditions are met, Step 02_01_03 remains absent from
+`STEP_STATUS.yaml` (status row is added by the closure PR, not by this
+amendment).
+
+**Forward path (informational, not a commitment):** the next planned PR after
+this amendment merges is the five-family materialization PR (planned branch
+`feat/sc2egset-02-01-03-five-family-materialization`), followed by the formal
+Step 02_01_03 closure PR.
+
 ---
 
 ### Step 02_01_99 — Rating omit-closure follow-up stub (sc2egset)
@@ -2738,6 +2833,20 @@ research_log_entry: >-
   step-completion protocol; entry goes into
   src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
 ```
+
+##### Materialization-scope amendment back-reference (post-PR #255)
+
+<!-- amendment_id: materialization_scope_amendment_post_pr_255 (back-reference) -->
+
+PR #255 (omit-closure decision artifact, merged 2026-05-28 at
+`52f9c1082b200019d080cce74e60567452020e18`) satisfied the four preconditions
+declared in this Step 02_01_99's `question` field. The downstream
+`materialization_scope_amendment_post_pr_255` note is recorded against Step
+02_01_03 above; see the host amendment block for the five permitted families,
+the excluded family `reconstructed_rating`, the three excluded columns, and the
+updated continue-predicate / halt-predicate. Step 02_01_99 itself remains a
+ROADMAP-only stub; no new artifact, no new YAML row, no status flip is
+introduced by the amendment.
 
 ---
 
