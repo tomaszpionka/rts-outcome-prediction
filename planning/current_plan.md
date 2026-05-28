@@ -26,7 +26,7 @@ adversarial_round_cap: "3 rounds total (planning-side) per feedback_adversarial_
 adversarial_cap_symmetry: "Same 3-round cap applies to execution-side review per feedback_adversarial_cap_execution.md."
 parent_layer_1_pr: "PR #254 (02_01_99 omit-closure artifact Layer-1; merged at master 0acc0e83)"
 parent_layer_2_pr: "PR #255 (02_01_99 omit-closure artifact Layer-2; merged at master 52f9c108)"
-planning_pr: "PR #<TBD-this-Layer-1>"
+planning_pr: "PR #256"
 future_execution_pr: "PR #<TBD-future-Layer-2>"
 future_execution_file_count: 4
 future_execution_files:
