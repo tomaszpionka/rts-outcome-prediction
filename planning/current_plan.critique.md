@@ -1,283 +1,197 @@
-# Critique log — feat/sc2egset-02-01-99-rating-omit-closure-artifact (Layer-1, Round 2)
-
-## Summary verdict
-
-| Round | Verdict | Blockers | Nits | Plan length | Schema cols |
-|-------|---------|----------|------|-------------|-------------|
-| Round 1 (planning-side) | APPROVE-WITH-NITS | 0 | 4 (NIT-1 / NIT-2 / NIT-3 / NIT-4) | 939 lines | 42 |
-| Round 2 (planning-side) | APPROVE-WITH-NITS | 0 | 3 (R2-N1 / R2-N2 / R2-N3 — Layer-2 dispatch requirements) | 998 lines | 45 |
-
-All 4 Round-1 nits were resolved in Round 2 per explicit user directive (bake all schema/provenance-impacting nits into Layer-1 before materialization). The 3 Round-2 nits are surface-level (one arithmetic-prose clarification, one Unicode-safe tokenisation refinement, one parent-SHA label off-by-one) and are recorded below as **Layer-2 dispatch requirements**, not Layer-1 blockers. Per reviewer-adversarial Round-2 explicit recommendation, the 3-round adversarial cap is preserved for genuine blockers; Round 3 is NOT consumed on these cosmetic fixes.
-
-Outcome A — Step `02_01_99` omit-closure artifact Layer-1 planning PR. Authority basis: Q6H `decide_history_rating_path.py` lines 457–481 (Branch (iii) literal); Q6H artifact MD §17 (two-path admission); PR #253 ROADMAP block `step_number: "02_01_99"` (≈ lines 2527–2740, `gate.artifact_check` / `gate.continue_predicate`).
-
+---
+critique_role: reviewer-adversarial
+critique_model: claude-opus-4-7[1m]
+critique_round: 1
+critique_date: 2026-05-28
+plan_file: planning/current_plan.md
+plan_branch: feat/sc2egset-02-01-03-five-family-scope-amendment
+plan_layer: 1
+plan_chosen_outcome: A
+plan_category: A
+plan_base_ref: 52f9c1082b200019d080cce74e60567452020e18
+verdict: APPROVE-WITH-NITS
+blockers_count: 0
+nits_count: 2
+nits_resolved_in_finalization: [NIT-1-halt-counter, NIT-2-verbatim-amendment-inline]
+round_cap: "3 rounds total (planning-side) per feedback_adversarial_cap_execution.md."
+round_cap_symmetry: "Same 3-round cap applies to execution-side review."
+axes_evaluated: 22
+axes_pass: 22
+axes_fail: 0
+axes_partial_resolved_in_finalization: [A3]
 ---
 
-## Round 1 reviewer-adversarial verdict (2026-05-27)
+# Adversarial Review — Plan (Round 1)
 
-**Reviewer agent:** reviewer-adversarial (Opus)
-**Inputs reviewed:** Round-1 plan (`/tmp/plan_02_01_99/proposed_current_plan.md`; 939 lines; 42-column schema) + Q6H artifact pair (READ-ONLY) + Q6H decision module `decide_history_rating_path.py` (READ-ONLY) + PR #253 ROADMAP block (READ-ONLY) + Q-chain precedent ladder PR #244/#245/#246/#247/#248/#249/#250/#251/#252/#253.
-**Base ref:** `a9cf552f346d8402fa4856fbee51fa34b0b0cefe` (PR #253 merge commit; master HEAD at Layer-1 plan time).
-**Adversarial round:** 1 of 3 (planning-side); 3-round cap per `feedback_adversarial_cap_execution.md`.
+Plan: SC2EGSet Step 02_01_03 five-family materialization-scope amendment (Layer-1, ROADMAP-only future execution)
+Phase: 02 — Feature Engineering / Pipeline Section 02_01 / Step 02_01_03 (host) + Step 02_01_99 (back-ref)
+Date: 2026-05-28
+Base ref: `52f9c1082b200019d080cce74e60567452020e18` (PR #255 merge commit)
 
-### Round-1 axis-by-axis verdict (26 axes: 15 planner-charter + 11 user-prompt)
+## Invariant compliance (Layer-1 PR + planned Layer-2 PR)
 
-**Planner-charter axes (1–15):**
+- **#1 (per-player split):** N/A — neither PR materializes features or splits data.
+- **#2 (canonical nickname):** N/A — no feature computation; identity scope unaffected.
+- **#3 (temporal `< T`):** N/A in this PR. The amendment text preserves the host Step's existing leakage constraint (line 2284's six-family declaration is byte-unchanged); no rolling/window logic introduced.
+- **#4 (prediction target):** N/A — no target encoding here.
+- **#5 (symmetric treatment):** N/A — no feature pipeline edits.
+- **#6 (reproducibility):** RESPECTED — plan pins 14 binding parent SHAs in T01, asserts no-drift before any write; T01 names file paths verbatim; CHANGELOG body cites parent PRs.
+- **#7 (no magic numbers):** RESPECTED — only constants introduced are version `3.81.0`, line numbers (2274/2523/2525/2527/2740/2742), and the grep token, all derived from observed repo state (verified: line 2523 = closing fence of Step 02_01_03; 2740 = closing fence of Step 02_01_99; 2525, 2742 = `---` separators).
+- **#8 (cross-game protocol):** N/A — SC2-only ROADMAP edit; no AoE2 pipeline contract changed.
+- **#9 (research pipeline discipline):** RESPECTED — every claim in the amendment cites PR #255's binding CSV row (existing artifact) or Q-chain parent PRs whose artifacts exist on disk. No future-step knowledge invoked.
 
-| # | Axis | Result |
-|---|------|--------|
-| 1 | Outcome A correctness as next atomic unit | PASS |
-| 2 | Compressed Layer-2 9-file scope justified | PASS |
-| 3 | Module name `close_history_rating_omit_path.py` closure-side | PASS |
-| 4 | 5-family set completeness | PASS |
-| 5 | No silent Branch (iii) elevation | PASS-WITH-NOTE |
-| 6 | OQ7 wording bridge (blocked-by-Layer-2-election vs evidence-deficit) | PASS-WITH-NOTE |
-| 7 | No silent 5-family materialization authorisation | PASS |
-| 8 | Q5/Q6F/Q6G/Q6H BINDING preserved | PASS (10 hard-coded SHAs empirically verified vs current repo state) |
-| 9 | No materialization in either PR | PASS |
-| 10 | No Q6X re-opening | PASS |
-| 11 | Phase 03 / Step 02_01_04 barred | PASS |
-| 12 | Version bump 3.79.0 → 3.80.0 SemVer-correct | PASS |
-| 13 | Canonical branch slug `02-01-99` (not `02-01-03b`) | PASS |
-| 14 | Future Tests Contract implementable | PASS |
-| 15 | No batching of ROADMAP+notebook+artifact+next-Step | PASS |
+## Lens assessments
 
-**User-prompt axes (A1–A11):**
+- **Temporal discipline:** SOUND — the amendment is a methodological-scope note, not a feature-computation change. Line 2284 (the canonical six-family list) remains byte-unchanged, preserving the historical declaration; the amendment narrows materialization permission going forward, which is a downstream-PR concern.
+- **Statistical methodology:** SOUND — no statistical inference is exercised. The amendment is a record of a binding evidentiary decision (PR #255), not a new test.
+- **Feature engineering:** SOUND — feature families remain defined at the same level of abstraction; the amendment only documents that one family (`reconstructed_rating`) is intentionally omitted. The five permitted families match Q6H verbatim ordering, verified against `02_01_99_rating_omit_closure.md:108-114`.
+- **Thesis defensibility:** STRONG for the Layer-1 PR's narrow purpose. An examiner asking "why did you omit Glicko/Elo ratings as features?" can be directed at PR #255's `omit_reconstructed_rating_and_unblock_other_five` verdict, whose `thesis_pragmatism = TRUE` is documented with 7 elevation sentences and 5 PR #249 cross-references. The ROADMAP amendment makes the omission *visible in the navigable methodology document* rather than buried in a CSV row — that is the defensibility upgrade this PR exists to deliver.
+- **Cross-game comparability:** MAINTAINED — the SC2 omission of `reconstructed_rating` does not preclude AoE2 from including a rating-equivalent in its own dataset because AoE2's source (aoe2companion / aoestats) carries native rating values, whereas sc2egset's tracker events do not. The amendment makes the asymmetry explicit, which is what Invariant 8 requires (asymmetry as a controlled variable, not a hidden flaw).
 
-| # | Axis | Result |
-|---|------|--------|
-| A1 | Omit-closure artifact = next atomic unit | PASS |
-| A2 | Direct emission vs. Layer-1→Layer-2 | PASS |
-| A3 | Branch (iii) preconditions explicit and testable | PASS |
-| A4 | Q6 omission explicit not silent | PASS |
-| A5 | Five-family set semicolon-separated and traceable | PASS |
-| A6 | Q5/Q6F/Q6G/Q6H verbatim preservation + SHA pins + drift falsifiers | PASS |
-| A7 | Another Q6X loop avoided | PASS |
-| A8 | Materialization barred in both PRs AND CROSS-02-01 audit barred | PASS |
-| A9 | Phase 03 barred | PASS |
-| A10 | Layer-2 avoids status YAML and `research_log` changes | PASS (Q-chain no-research_log precedent empirically verified) |
-| A11 | Blockers requiring HOLD | PASS — none identified |
+## Verifications performed against repo
 
-### Round-1 verdict
+- `master HEAD = 52f9c1082b200019d080cce74e60567452020e18` — matches plan.
+- `pyproject.toml:3 = version = "3.80.0"` — matches plan.
+- `ROADMAP.md` total lines = **2777**.
+- `ROADMAP.md:2274` = `### Step 02_01_03 — History-enriched pre_game feature-family materialization (sc2egset)` — matches.
+- `ROADMAP.md:2284` = `matchup_history_aggregate, reconstructed_rating,` — six-family declaration with `reconstructed_rating` present — matches plan claim that it must remain byte-unchanged.
+- `ROADMAP.md:2523` = closing ` ``` ` of Step 02_01_03 YAML block — matches plan insertion-point claim.
+- `ROADMAP.md:2525` = `---` separator before Step 02_01_99 — matches plan.
+- `ROADMAP.md:2527` = `### Step 02_01_99 — Rating omit-closure follow-up stub (sc2egset)` — matches.
+- `ROADMAP.md:2740` = closing ` ``` ` of Step 02_01_99 YAML block — matches plan insertion-point claim.
+- `ROADMAP.md:2742` = `---` separator before Phase 03 placeholder — matches plan.
+- PR #255 CSV row fields: `decision_verdict = omit_reconstructed_rating_and_unblock_other_five`, `q6_omission_status = intentionally_omitted_under_branch_iii`, `q6_not_silently_satisfied = TRUE`, `future_roadmap_scope_amendment_required = TRUE`, `future_materialization_pr_required = TRUE` — all four TRUE.
+- Five-family permitted set in PR #255 MD §8 — verbatim canonical order matches plan A4.
+- Excluded family + 3 excluded columns in PR #255 MD §9 — verbatim match plan A5/A6.
+- Grep token `materialization_scope_amendment_post_pr_255` — zero existing matches anywhere in `.md`/`.yaml`/`.toml` files (high-quality, collision-free).
+- Precedent PR #239 (3.70.1 → 3.71.0, 4-file diff CHANGELOG+INDEX+pyproject+ROADMAP, no `research_log`) — matches plan's L2 4-file template.
+- Precedent PR #253 (3.78.0 → 3.79.0, identical 4-file diff template, no `research_log`) — matches.
+- `CHANGELOG.md:13-21` = empty `[Unreleased]` 4-header skeleton — matches plan T04 expectation.
+
+## 22-axis scorecard
+
+### Planner-charter axes (15)
+
+1. **Outcome A is genuinely the next atomic unit (not consolidation).** PASS — `data-analysis-lineage.md` "Non-batching rule" explicitly forbids batching ROADMAP + artifact + research_log + next-step in one execution. The Q-chain precedent (PR #252 Layer-1 → PR #253 Layer-2 ROADMAP-stub; PR #254 Layer-1 → PR #255 Layer-2 artifact) establishes a stable 2-PR rhythm per substantive ROADMAP edit. Plan §Problem Statement paragraph 2 makes this argument explicit. The user could plausibly request consolidation, but rejecting it is the more defensible default given the non-batching invariant.
+
+2. **B (direct five-family materialization PR) correctly rejected.** PASS — PR #255 CSV explicitly records `future_roadmap_scope_amendment_required = TRUE`; materializing without first amending ROADMAP would produce Parquet that contradicts the ROADMAP's six-family declaration at the same SHA. Plan §Problem Statement paragraph 5 gives precisely this argument.
+
+3. **C (blocked-state note) correctly rejected.** PASS — all four PR #255 preconditions are TRUE on the merged record; ROADMAP amendment is *allowed* now. Plan §Problem Statement paragraph 6.
+
+4. **D/E/F correctly rejected per user prompt.** PASS — plan acknowledges user's explicit REJECT and does not reopen Q6X / Phase 03 / baseline-modelling paths.
+
+5. **G (hygiene-only) correctly rejected.** PASS — plan §Problem Statement final paragraph notes no concrete defect blocks A. `planning/INDEX.md` cosmetic staleness mentioned in the user prompt is not load-bearing on the ROADMAP amendment.
+
+6. **15 binding predicates are mutually consistent.** PASS — A1-A15 enumerated verbatim. A4's canonical order matches PR #255 MD §8 verbatim. A5/A6 match PR #255 MD §9 verbatim. A8/A9 (byte-unchanged YAML bodies) consistent with plan's insertion-point design (post-fence prose insertion). A12 (minor bump) consistent with PR #239/#253 precedent. A13/A14 (no research_log / no status YAML) consistent with the same precedent.
+
+7. **L2 4-file diff structure matches PR #239/#253 precedent.** PASS — verified against git show: PR #239 and PR #253 each modified exactly {CHANGELOG.md, planning/INDEX.md, pyproject.toml, ROADMAP.md}. Plan §File Manifest L2 row matches.
+
+8. **L1 2-file diff is correctly bounded.** PASS — plan declares exactly `planning/current_plan.md` + `planning/current_plan.critique.md`, and the forbidden-files list excludes every other path (status YAMLs, research_log, all source/test/notebook/spec/cleaning paths, docs, .claude, thesis, data, AoE2).
+
+9. **Step 02_01_03 closure correctly remains deferred.** PASS — plan A15 explicitly states Step 02_01_03 remains OPEN; closure deferred to a separate later PR that lands non-vacuous CROSS-02-01 audit + five-family materialization. The amendment-only-without-closure pattern mirrors PR #239 (created Step 02_01_03 stub but did not close it) and is consistent with Q6H §17 "closure deferred to a future PR (Layer-3 materialization or omit-closure follow-up)".
+
+10. **Minor bump (3.80.0 → 3.81.0) justified vs patch.** PASS — `.claude/rules/git-workflow.md` precedent applied consistently: ROADMAP scope changes are minor bumps (PR #239 = 3.70.1→3.71.0; PR #253 = 3.78.0→3.79.0). Patch would understate a methodological scope change; major is wrong because no backward-incompatible contract changes.
+
+11. **Insertion-only pattern (lines 2524 / 2741) avoids YAML body touches.** PASS — verified: the closing ` ``` ` fence at 2523 is followed by a blank line at 2524 and `---` at 2525. Inserting an `##### Materialization-scope amendment` heading + prose block between 2524 and 2525 leaves the entire YAML body (2276-2523) byte-unchanged. Same logic at 2741 (between Step 02_01_99 closing fence and the Phase 03 separator at 2742).
+
+12. **Grep token `materialization_scope_amendment_post_pr_255` is unique and not collision-prone.** PASS — grep across `*.md`/`*.yaml`/`*.toml` yields zero current matches. Token includes the binding parent PR number, so cross-PR collisions are structurally impossible. Token's snake_case form is consistent with existing CSV column conventions (`q6_omission_status`, `future_roadmap_scope_amendment_required`).
+
+13. **Authority basis for the amendment is verifiable.** PASS — plan cites PR #255 verbatim (decision_verdict `omit_reconstructed_rating_and_unblock_other_five`, `q6_omission_status intentionally_omitted_under_branch_iii`, all four boolean fields TRUE). Verified these against `02_01_99_rating_omit_closure.csv:row 1` directly. Plan does not introduce new evidence claims; Invariant I9 respected.
+
+14. **Halt-predicate count and content.** PASS — plan §Execution Steps > Stop conditions during Layer-2 execution enumerates **nine** distinct halt conditions S1-S9 covering (a) YAML body byte changes, (b) family-set drift, (c) PR #255 SHA drift, (d) Q-chain parent SHA drift, (e) silent removal of `reconstructed_rating` from Step 02_01_03's existing list, (f) excluded-column spelling drift, (g) status YAML/research_log touch, (h) artifact/audit file appearance, (i) Phase 03 / Step 02_01_04 leak. NIT-1 raised against the prior plan's summary that mis-stated "eight" — the canonical enumeration is **nine** and the plan now reflects this consistently (see plan §Execution Steps and §Future ROADMAP amendment content note).
+
+15. **Plan respects 8 required `##` sections per `feedback_plan_required_sections.md`.** PASS — present: `## Scope`, `## Execution Steps`, `## File Manifest`, `## Problem Statement`, `## Assumptions & Unknowns`, `## Literature Context`, `## Gate Condition`, `## Open Questions`. All 8 named `##` headings exist.
+
+### User-prompt axes (7)
+
+- **A1. Outcome A vs L1+L2 consolidation defensibility.** PASS — non-batching rule and Q-chain precedent both favor split. User could overrule but plan correctly defaults to split.
+
+- **A2. 22-axis scorecard real, not papering.** PASS — every axis maps to a verifiable artifact, line number, SHA, precedent PR, or rule citation. None are content-free.
+
+- **A3. Amendment prose satisfies all 12 required sub-clauses verbatim.** PASS (after NIT-2 resolution) — the plan §Future ROADMAP amendment content now inlines the verbatim insertion text for both insertion points (Step 02_01_03 host block and Step 02_01_99 back-reference). A reviewer can mechanically verify all 12 required content sub-clauses by reading the verbatim block in the plan body. NIT-2 raised against the prior plan that bracket-summarised the draft is fully resolved.
+
+- **A4. Grep token quality (unique, collision-free).** PASS — verified zero existing matches across `*.md`/`*.yaml`/`*.toml`.
+
+- **A5. Insertion-only pattern avoids YAML body touches.** PASS — verified the closing-fence position (2523, 2740) and the structurally-distinct `---` separator at the next non-blank line (2525, 2742). The amendment block lives in the markdown prose layer between two ` ``` `-delimited YAML blocks; the YAML parser's body bytes are untouched.
+
+- **A6. Minor bump justified.** PASS — same as axis 10.
+
+- **A7. Layer-2 cannot sneak in Q6X re-opening or Phase 03 leak.** PASS — plan §File Manifest > Forbidden files and §Execution Steps > Stop conditions explicitly enumerate `NO Q6X PR / no re-opening of Q5/Q6F/Q6G/Q6H` and `NO Step 02_01_04 / Phase 03 / baseline modelling`. The CHANGELOG NO-list (T04 sub-bullet 7) recites the same prohibition for the merged record. Halt-condition S9 (Phase 03 / Step 02_01_04 leak) makes accidental scope creep a defined stop.
+
+## Blockers: **0**
+
+## Nits: **2 (both resolved during Layer-1 finalization)**
+
+**NIT-1 — Halt-clause counter mis-states the plan body's own count.** The original plan §Future ROADMAP amendment content read "Eight halt clauses cover all six required halt predicates plus two extras," but plan §Execution Steps > Stop conditions during Layer-2 execution enumerates **nine** distinct conditions. **Resolution:** the plan now uses S1-S9 explicit enumeration and states "**nine** explicit clauses" in the section header. The plan §Future ROADMAP amendment content sub-clause-11 footnote was tightened to "Seven halt clauses cover all six required halt predicates from the user prompt" since the ROADMAP amendment text itself lists seven Layer-3-future-PR halt predicates (the plan's S1-S9 list governs the Layer-2 execution PR; the seven in the amendment text govern the downstream materialization PR). Both numbers are now internally consistent.
+
+**NIT-2 — Amendment-note draft is summarized rather than verbatim in the plan body.** The original plan §Future ROADMAP amendment content used `[full amendment note text with: ...]` summary brackets. A reviewer could not mechanically verify that all 12 required content sub-clauses appear in the *draft text* without seeing the verbatim block. **Resolution:** the verbatim insertion text for both insertion points (Step 02_01_03 host block + Step 02_01_99 back-reference) is now inlined in plan §Future ROADMAP amendment content. Layer-2 T02 may make minor stylistic refinements provided every BINDING clause (A1-A15) is preserved.
+
+## Weakest link
+
+The plan's strongest claim is the insertion-only pattern (lines 2524 / 2741) — and that claim is verifiable from the repo. The weakest is the **non-batching argument for splitting L1 and L2**: the non-batching rule's primary target is *empirical* batching (ROADMAP + notebook + artifact + research_log in one PR), and one could argue that a ROADMAP-only amendment plus a metadata-only L1 plan is below the empirical-batching threshold. Counterargument: PR #252→#253 and PR #254→#255 both treated ROADMAP-only edits as deserving their own Layer-1 plan PR, establishing a project-internal precedent that the plan cites. An examiner asking "why did you not consolidate?" would receive the answer "consistency with the project's own established 2-PR rhythm" — defensible but not bulletproof. If the user prefers consolidation, the plan's structure is reversible.
+
+## Examiner's questions
+
+1. "Why is `reconstructed_rating` excluded while the comparable feature family in AoE2 would be `rating_current_pre`?" — Answered: PR #255 CSV row `q6_omission_status = intentionally_omitted_under_branch_iii`, with seven elevation sentences referencing PR #249 evidence five times. The AoE2 dataset carries native rating in source, so the asymmetry is dataset-imposed, not a methodological choice. The cross-game answer surfaces in Manual 06.
+
+2. "If the amendment is binding, why not just close Step 02_01_03?" — Answered (plan A15 + §Hard-stops): closure requires a non-vacuous CROSS-02-01 audit which requires actual five-family materialization Parquet, which is the *next* PR after this amendment. Closure is a separate atomic unit.
+
+3. "Why a minor bump for a ROADMAP-only change?" — Answered: PR #239 and PR #253 precedents under the same `.claude/rules/git-workflow.md` interpretation.
+
+4. "What stops the L2 PR from quietly removing `reconstructed_rating` from line 2284?" — Answered: plan §Execution Steps > Stop conditions S5 explicitly states "Halt if `reconstructed_rating` is silently removed from the existing Step 02_01_03 block at line 2284." Plan A8 makes byte-unchanged YAML body a binding assumption that the future Gate Condition verifies.
+
+## Recommendation
 
 ```
-ROUND-1 VERDICT: APPROVE-WITH-NITS (zero blockers, 4 nits)
-PR MATERIALIZATION AUTHORISED: YES (subject to user election on whether to bake nits into Layer-1 via Round 2, or defer to Layer-2 dispatch).
-RATIONALE: Outcome A is the correct next atomic unit after PR #253 per non-batching rule + Q-chain precedent; 26 axes all PASS or PASS-WITH-NOTE; the 4 nits are schema/provenance-impacting clarifications that can be folded in either at Layer-1 (Round 2 re-plan) or at Layer-2 dispatch (executor amendment) — both paths are methodologically valid.
+Round: 1
+Verdict: APPROVE-WITH-NITS
+Blockers: 0
+Nits: 2 (both resolved during Layer-1 finalization)
+  - NIT-1: Halt-clause counter mis-statement — resolved by enumerating S1-S9 with "nine" header.
+  - NIT-2: Amendment-note bracket-summary — resolved by inlining verbatim text for both insertion points.
+22-axis scorecard:
+  1. Outcome A is next atomic unit: PASS
+  2. B correctly rejected: PASS
+  3. C correctly rejected: PASS
+  4. D/E/F correctly rejected: PASS
+  5. G correctly rejected: PASS
+  6. 15 binding predicates mutually consistent: PASS
+  7. L2 4-file diff matches PR #239/#253 precedent: PASS
+  8. L1 2-file diff correctly bounded: PASS
+  9. Step 02_01_03 closure correctly deferred: PASS
+  10. Minor bump justified: PASS
+  11. Insertion-only pattern preserves YAML bodies: PASS
+  12. Grep token unique and not collision-prone: PASS
+  13. Authority basis verifiable: PASS
+  14. Halt-predicate count and content: PASS (NIT-1 resolved)
+  15. 8 required ## sections present: PASS
+  A1. Outcome A vs consolidation defensibility: PASS
+  A2. 22-axis scorecard real: PASS
+  A3. 12 required content sub-clauses verbatim: PASS (NIT-2 resolved)
+  A4. Grep token quality: PASS
+  A5. Insertion-only avoids YAML body touches: PASS
+  A6. Minor bump justified: PASS
+  A7. L2 cannot sneak in Q6X or Phase 03: PASS
+Recommendation: Materialize the Layer-1 PR as-planned. Both nits were
+resolved during Layer-1 finalization (NIT-1 → S1-S9 enumeration with
+"nine" header; NIT-2 → verbatim amendment text inlined). The
+ZERO-BLOCKERS condition is met; the parent should materialize
+planning/current_plan.md + planning/current_plan.critique.md without
+invoking a second adversarial round on this plan content.
 ```
 
-### Round-1 blockers
-
-NONE.
-
-### Round-1 non-blocking nits (4)
-
-**NIT #1 — Branch (iii) literal-precondition semantic discipline (OQ7 anchoring).**
-The Q6H decision-rule literal at `decide_history_rating_path.py` lines 457–460 reads literally: "IF branches (i) and (ii) are both blocked AND thesis_pragmatism == TRUE AND substantive_paragraph_ok == TRUE AND reviewer_signoff == TRUE." But Q6H §19 records "Branch evaluated: (ii)" — Branch (ii) was REACHED (not blocked). The Round-1 plan's S-3 counter-argument distinguishes "blocked-for-materialization-scope-purposes" from "blocked-as-Q6H-verdict-state" — methodologically defensible but requires explicit terminology to avoid subtle re-adjudication of Q6H. **Recommended fix:** add a CSV column `branch_ii_state_semantic_anchor` with semicolon-separated 4-key value distinguishing the two state-readings, plus an MD §4.2 sub-section quoting the Q6H decision-rule literal verbatim.
-
-**NIT #2 — Column-count rationale for 42 vs Q6H's 38.**
-The Round-1 plan adds 4 columns beyond Q6H's 38-column precedent without a per-column derivation paragraph mapping each addition to a reviewer concern or lineage need. **Recommended fix:** add a new top-level plan section `## Schema Derivation` between `## Future Artifact Contract` and `## Future Tests Contract` with per-column rationale; reproduce in artifact MD §11 with ≥1 substantive sentence per added column.
-
-**NIT #3 — Substantive-vs-paraphrase anti-boilerplate guardrail.**
-The structural test (≥6 sentences + ≥3 PR #249 cross-references) does NOT distinguish substantive new argument from paraphrased Q6H §15 by token reordering. **Recommended fix:** add a falsifier `omit_closure_elevation_rationale_jaccard_overlap_with_q6h_section_15_exceeds_threshold` with a concrete threshold (e.g., token-level Jaccard < 0.5) and an explicit CSV column recording the computed Jaccard to 4 decimal places.
-
-**NIT #4 — Reviewer-signoff SHA chicken-and-egg.**
-A23 says the sign-off SHA is `sha256sum planning/current_plan.critique.md` at the artifact PR's commit time, but the critique file is written BEFORE the artifact in the Layer-2 diff. **Recommended fix:** split into two distinct SHA columns `reviewer_adversarial_layer_1_critique_sha256` (pinned at Layer-1 PR merge) + `reviewer_adversarial_layer_2_critique_sha256` (pinned at Layer-2 execution end), plus optionally split the boolean for grep-symmetry.
-
-### Round-1 path forward (recorded)
-
-User chose Option 2 (broaden Round 2 scope): bake ALL 4 nits into Round 2 BEFORE Layer-1 materialization. Justification: the nits are schema/provenance-impacting, and deferring them to Layer-2 would leave the Layer-1 plan with known inconsistencies that the Layer-2 executor must absorb. Baking them in at Layer-1 makes the plan self-consistent and reviewer-checkable in one round.
-
----
-
-## Round 2 planner-science self-critique narrative
-
-The Round-2 plan resolves the 4 Round-1 nits as follows. Full details in `planning/current_plan.md` `## Adversarial-Review Adjustments (Round 1 → Round 2)` section; summary below.
-
-### NIT-1 resolution (column `branch_ii_state_semantic_anchor` at position 14)
-
-A new CSV column `branch_ii_state_semantic_anchor` (semicolon-separated 4-key value) was added at position 14. Recommended value format:
-
-```
-q6h_verdict_state=reached_as_recommendation_only_event_by_event_glicko2;omit_closure_scope_interpretation=blocked_for_phase_02_materialization_scope_under_layer_2_election;is_q6h_re_adjudication=FALSE;is_new_q6x_loop=FALSE
-```
-
-A new BINDING assumption `A26` declares the column's canonical 4-key shape. A new falsifier key `omit_closure_branch_ii_state_anchor_misnamed_or_missing_re_adjudication_assertion` enforces the shape. Future artifact MD §4 expanded with a sub-section §4.2 "Branch (ii) verdict-state vs Branch (iii) precondition-state" that quotes the Q6H decision-rule literal at `decide_history_rating_path.py` lines 442–448 (Branch (ii) literal) and lines 457–481 (Branch (iii) literal) verbatim and explicitly asserts "this is NOT a re-adjudication of Q6H" AND "this is NOT a new Q6X loop."
-
-### NIT-2 resolution (`## Schema Derivation` section)
-
-A new top-level plan section `## Schema Derivation` was added between `## Future Artifact Contract` and `## Future Tests Contract`. It maps each of the 7 columns deviating from Q6H's 38-column schema to a reviewer concern or lineage need (NIT-1, NIT-3, NIT-4, dual-count discipline, dispatch-time SHA pinning). Per-column rationale is reproduced in artifact MD §11 with ≥1 substantive sentence per added column.
-
-### NIT-3 resolution (column 13 `elevation_rationale_jaccard_vs_q6h_section_15` + falsifier + threshold 0.5)
-
-A new CSV column `elevation_rationale_jaccard_vs_q6h_section_15` (float, 4 decimal places) was added at position 13. A new BINDING assumption `A29` declares the threshold = 0.5 and the deterministic tokenisation method (whitespace + lowercase + `str.translate(str.maketrans("", "", string.punctuation))` ASCII-only strip; **see R2-N2 below for Unicode-safe refinement**). A new falsifier key `omit_closure_elevation_rationale_jaccard_overlap_with_q6h_section_15_exceeds_threshold` fires IF `jaccard >= 0.5`. `_tokenize_for_jaccard()` and `_compute_jaccard()` functions are specified in T02 instructions. Test `test_omit_closure_elevation_rationale_jaccard_lt_threshold` is in T03 instructions. Pre-emit Jaccard verification in T04 HALTs the executor if the threshold is breached.
-
-### NIT-4 resolution (columns 15-18: dual signoff SHA + dual boolean)
-
-Round-1's single column `reviewer_adversarial_signoff_critique_sha256` + single boolean `reviewer_adversarial_signoff` were replaced with four columns at positions 15-18:
-
-- `reviewer_adversarial_signoff_layer_1` (bool — TRUE iff Layer-1 critique recorded APPROVE/APPROVE-WITH-NITS with 0 blockers)
-- `reviewer_adversarial_layer_1_critique_sha256` (sha256 — pinned at Layer-2 T01)
-- `reviewer_adversarial_signoff_layer_2` (bool — TRUE iff Layer-2 critique recorded APPROVE/APPROVE-WITH-NITS with 0 blockers)
-- `reviewer_adversarial_layer_2_critique_sha256` (sha256 — pinned at Layer-2 T09 after signoff, before artifact CSV finalization)
-
-Net change: +2 columns (2 originals → 4 replacements). New BINDING assumptions `A27` (Layer-1 SHA timing discipline) + `A28` (Layer-2 SHA timing discipline). Three new falsifier keys (`omit_closure_reviewer_signoff_layer_1_missing_or_invalid_sha`, `omit_closure_reviewer_signoff_layer_2_missing_or_invalid_sha`, `omit_closure_reviewer_signoff_layer_1_or_layer_2_not_approve_with_zero_blockers`). Artifact MD §19 split into §19.1 Layer-1 Sign-Off + §19.2 Layer-2 Sign-Off. T01 instructions extended to compute Layer-1 SHA at execution-start. T09 instructions extended to compute Layer-2 SHA AFTER reviewer-adversarial signoff and BEFORE artifact CSV finalization (with a re-run loop for the sandbox notebook to regenerate the artifact CSV referencing the post-signoff SHA).
-
-### Schema column count delta
-
-- Round 1 schema: 42 columns.
-- NIT #1: +1 (`branch_ii_state_semantic_anchor`).
-- NIT #4 net: +2 (replaced 2 columns with 4 = +2 net; Round-2 schema also relocated 2 module-SHA columns out of the CSV to module constants, which reduces the gross column budget by 2 — see R2-N1 below).
-- NIT #3: +1 (`elevation_rationale_jaccard_vs_q6h_section_15`).
-- NIT #2: 0 (Schema Derivation is a plan section, not a schema column).
-
-**Final Round-2 schema column count: 45 columns.** The enumeration in `## Future Artifact Contract` lists 45 columns in canonical order. `assert len(OMIT_CLOSURE_SCHEMA) == 45` is asserted at module load (T02) and in the test contract (T03).
-
----
-
-## Round 2 reviewer-adversarial verdict (2026-05-27)
-
-**Reviewer agent:** reviewer-adversarial (Opus)
-**Inputs reviewed:** Round-2 plan (`/tmp/plan_02_01_99/round_2_plan.md`; 998 lines; 45-column schema) + Round-1 plan for diff comparison + this critique file's Round-1 record.
-**Base ref:** `a9cf552f346d8402fa4856fbee51fa34b0b0cefe` (master HEAD at plan time; unchanged from Round 1).
-**Adversarial round:** 2 of 3 (planning-side).
-
-### Round-2 nit-resolution audit (8 sub-checks)
-
-| Sub-check | Result | Evidence |
-|-----------|--------|----------|
-| R2-NIT-1 (NIT-1 baked in) | PASS | Column 14 + A26 + falsifier + MD §4.2 verbatim Q6H quotes (lines 442–448, 457–481) |
-| R2-NIT-2 (NIT-2 baked in) | PASS | `## Schema Derivation` section between Future Artifact Contract and Future Tests Contract; 7 deviations mapped; MD §11 reproduction mandated |
-| R2-NIT-3 (NIT-3 baked in) | PASS | Column 13 + A29 (threshold 0.5) + falsifier + `_tokenize_for_jaccard()` + `_compute_jaccard()` in T02 + test in T03 + pre-emit verification in T04 |
-| R2-NIT-4 (NIT-4 baked in) | PASS | Columns 15-18 + A27 + A28 + 3 falsifiers + MD §19.1/§19.2 split + T01/T09 timing |
-| R2-S1 (42 references ≤ 5) | PASS | 9 total `42` occurrences; all in Round-1-history narrative |
-| R2-S2 (45 references in N+ schema-count contexts) | PASS | 27 total `45` occurrences across §Scope, §Future Artifact Contract, §Schema Derivation, T02 module, T03 test, §File Manifest, §Gate Condition, §Reviewer-Adversarial Charter, etc. |
-| R2-S3 (column-count arithmetic) | PASS-WITH-NOTE | Schema enumeration is canonical and correct (45 cols); explanatory arithmetic in `## Adversarial-Review Adjustments` is slightly muddled — see R2-N1 below |
-| R2-S4 (column ordering canonical) | PASS | 4 NIT-4 columns at positions 15-18 in single canonical order, self-consistent across §Future Artifact Contract, §Schema Derivation, §Gate Condition, §Reviewer-Adversarial Charter |
-
-### Round-2 re-issued 26 Round-1 axes (under Round-2 conditions)
-
-All 26 Round-1 axes re-issue as STILL PASS or RE-PASS under Round-2 conditions:
-
-**Planner-charter (1–15):** 1 STILL PASS, 2 STILL PASS, 3 STILL PASS, 4 STILL PASS, **5 RE-PASS** (NIT-3 Jaccard falsifier strengthens), **6 RE-PASS** (NIT-1 anchor column strengthens), 7 STILL PASS, 8 STILL PASS, 9 STILL PASS, **10 RE-PASS** (NIT-1 `is_new_q6x_loop=FALSE` assertion strengthens), 11 STILL PASS, 12 STILL PASS, 13 STILL PASS, **14 RE-PASS** (5 new Round-2 tests added; estimate 55–85 total), 15 STILL PASS.
-
-**User-prompt (A1–A11):** A1 STILL PASS, A2 STILL PASS, **A3 RE-PASS** (NIT-1 strengthens), A4 STILL PASS, A5 STILL PASS, A6 STILL PASS, **A7 RE-PASS** (NIT-1 strengthens), A8 STILL PASS, A9 STILL PASS, A10 STILL PASS, A11 STILL PASS.
-
-### Round-2 NEW axes (R-16 .. R-22)
-
-| # | Axis | Result |
-|---|------|--------|
-| R-16 | Anchor format defensibility (4-key semicolon vs 4-column split) | PASS — atomic + grep-able + matches `five_family_set`/`excluded_columns` precedent |
-| R-17 | Dual signoff structural coherence (boolean+SHA pair) | PASS-WITH-NOTE — slightly redundant but user-mandated; not blocking |
-| R-18 | Jaccard threshold defensibility (0.5) | PASS-WITH-NOTE — reasonable ceiling; lacks empirical calibration but T04 pre-emit verification is the right escape valve |
-| R-19 | Jaccard tokenisation determinism | PASS-WITH-NOTE — ASCII punctuation strip is brittle to Unicode; see R2-N2 below |
-| R-20 | T01/T09 timing discipline coherence | PASS — defensible end-to-end via T09 regeneration loop; bounded by 3-round cap |
-| R-21 | Schema Derivation completeness | PASS — all 7 deviations mapped to reviewer concerns with substantive rationale |
-| R-22 | Round-2 planner self-critique completeness | PASS — S-9/S-10/S-11 cover the 3 Round-2-likely-new-reviewer-concerns |
-
-### Round-2 verdict
-
-```
-ROUND-2 VERDICT: APPROVE-WITH-NITS (zero blockers, 3 nits)
-PR MATERIALIZATION AUTHORISED: YES
-RATIONALE: All 4 Round-1 nits cleanly baked in; 45-column schema is self-consistent; 26 Round-1 axes + 7 Round-2 axes all PASS or PASS-WITH-NOTE; the 3 Round-2 nits are surface-level (arithmetic prose, Unicode tokenisation, parent-SHA label) and explicitly recommended for Layer-2 dispatch (not Round 3).
-```
-
-### Round-2 blockers
-
-NONE.
-
-### Round-2 non-blocking nits — recorded as **Layer-2 dispatch requirements** (NOT Layer-1 blockers)
-
-Per user directive (verbatim): "Layer-2 must later address them before final execution gate. Do not use Round 3 for these nits. Preserve the final planning-side adversarial round for genuine blockers."
-
-**R2-N1 — Schema arithmetic prose clarification (Layer-2 T02 amendment scope).**
-The `## Adversarial-Review Adjustments` section's arithmetic line reads "42 + 1 + 2 + 1 = 45" which sums to 46 unless the reader independently knows Round 2 also relocated 2 module-SHA columns out of the CSV to module constants. The schema enumeration (cols 1–45) is canonical and correct; only the explanatory arithmetic is muddled.
-**Layer-2 fix:** amend the arithmetic explanation to surface the Round-2 schema simplification: "42 + 1 (NIT #1) + 2 (NIT #4 net: 2 → 4) + 1 (NIT #3) − 1 (Round-2 simplification: 2 module-SHA columns relocated from CSV to module constants) = 45."
-**Binding:** canonical 45-column schema remains BINDING; this nit is prose-only.
-
-**R2-N2 — Unicode-safe Jaccard tokenisation (Layer-2 T02 amendment scope).**
-A29 specifies `str.translate(str.maketrans("", "", string.punctuation))` which is ASCII-only. Unicode characters in Q6H §15 or rationale text (em-dash `—`, en-dash `–`, curly quotes `"` `"`, ellipsis `…`, non-breaking space) will NOT be stripped, potentially causing artificially low Jaccard scores (paraphrase passes via Unicode swap). Risk in practice is low (the executor authors both texts fresh from the same MD source) but the discipline should be deterministic and Unicode-safe.
-**Layer-2 fix:** amend A29 and the `_tokenize_for_jaccard()` implementation to apply Unicode normalisation + Unicode punctuation stripping. Recommended pattern:
-```python
-import unicodedata
-def _tokenize_for_jaccard(text: str) -> set[str]:
-    lowered = unicodedata.normalize('NFKD', text).lower()
-    stripped = ''.join(c for c in lowered if not unicodedata.category(c).startswith('P'))
-    return set(stripped.split())
-```
-**Binding:** Jaccard threshold 0.5 remains BINDING; falsifier remains in roll-call.
-
-**R2-N3 — Parent-SHA label off-by-one (Layer-2 T02 amendment scope).**
-T01 step 8 wording says "Verify the 11 pinned parent SHAs (PR #242/#243/#245/#247/#249)". Those 5 PRs contribute exactly 10 SHAs (2 per PR × 5 PRs); the 11th provenance value is `head_master_sha_at_layer_1_plan_time` (NOT a parent-PR SHA).
-**Layer-2 fix:** correct the T01 step 8 wording to: "Verify the 11 pinned provenance values: 10 parent SHAs from PR #242/#243/#245/#247/#249 (2 per PR × 5 PRs) + `head_master_sha_at_layer_1_plan_time` (1 master HEAD SHA pin)."
-**Binding:** provenance count of 11 hard-coded entries remains BINDING; this nit is label-only.
-
-### Round-2 informational notes
-
-- The Round-2 plan is substantively stronger than Round-1: three new structural guardrails (Jaccard falsifier, semantic-anchor 4-key format, dual signoff timing) augment the substantive reviewer-adversarial guardrail without introducing new methodology risk.
-- The "Round-2 schema simplification" (relocating 2 module-SHA columns out of the CSV) is currently a parenthetical comment; R2-N1 surfaces it explicitly.
-- S-10 ("Is the dual sign-off discipline operationally feasible?") is the load-bearing planner self-critique; the 3-round cap bounds the T09 regeneration loop to 3 iterations, which is operationally tractable and precedented in Q-chain Layer-2 PRs.
-- Round 3 should NOT be used; R2-N1/N2/N3 fold cleanly into Layer-2 dispatch.
-
----
-
-## Layer-2 dispatch requirements (Round 2 nits to address BEFORE Layer-2 final execution gate)
-
-Per user directive (verbatim, recorded for the Layer-2 planning round):
-
-> Layer-2 must later address them before final execution gate:
->
-> 1. **R2-N1**: fix/clarify schema arithmetic prose; canonical 45-column schema remains binding.
-> 2. **R2-N2**: implement Unicode-safe tokenisation for the Jaccard anti-boilerplate falsifier: `unicodedata.normalize('NFKD', text)`, Unicode punctuation stripping, and deterministic token handling.
-> 3. **R2-N3**: correct the parent-SHA label: 10 artifact SHAs from PR #242/#243/#245/#247/#249 plus `head_master_sha_at_layer_1_plan_time` = 11 provenance values.
->
-> Do not use Round 3 for these nits. Preserve the final planning-side adversarial round for genuine blockers.
-
-The Layer-2 planning round (separate downstream PR cycle that opens after this Layer-1 PR merges) MUST surface these as Round-1 binding nits to the Layer-2 planner-science prompt, so the Layer-2 plan addresses them in `## Adversarial-Review Adjustments` of the Layer-2 plan.
-
----
-
-## Hard stops for this Layer-1 PR (per user directive, verbatim)
-
-> Do not touch ROADMAP, status YAMLs, research_log, CHANGELOG, pyproject, INDEX, source/tests/notebooks/artifacts, Phase 03, Step 02_01_04, or any materialization output in this Layer-1 PR.
-
-The 2-file diff:
-- `planning/current_plan.md` (998 lines; Round-2 plan body)
-- `planning/current_plan.critique.md` (this file)
-
-No other repo file is modified.
-
----
-
-## Execution-side Round 1 verdict (placeholder; T09 of the future Layer-2 PR)
-
-To be filled in by reviewer-adversarial agent at T09 of the future Layer-2 omit-closure-artifact execution PR.
-
-- **Verdict:** TBD
-- **Blockers:** TBD
-- **Notes:** TBD
-
----
-
-## Execution-side Round 2 verdict (placeholder; only if execution-side Round 1 = HOLD)
-
-- **Verdict:** TBD
-- **Blockers:** TBD
-
----
-
-## Execution-side Round 3 verdict (placeholder; only if execution-side Round 2 = HOLD)
-
-- **Verdict:** TBD
-- **Blockers:** TBD
-
-If execution-side Round 3 verdict is HOLD, execution halts and escalates to user per `feedback_adversarial_cap_execution.md`.
-
----
-
-## Final approval gate (Layer-1)
-
-Round-1 verdict APPROVE-WITH-NITS + Round-2 verdict APPROVE-WITH-NITS authorise this Layer-1 planning PR to materialize (2-file commit + draft PR creation). The 3 Round-2 nits R2-N1/R2-N2/R2-N3 are explicitly recorded as **Layer-2 dispatch requirements**; they do NOT block this Layer-1 PR's materialization or merge. The 3-round adversarial cap is preserved with 1 round unused (held in reserve for genuine blockers if any emerge in a hypothetical re-plan trigger).
-
-PR state: DRAFT. Not marked ready. Not merged. Layer-2 dispatch deferred to a separate downstream session.
+Verdict: **APPROVE-WITH-NITS** — 0 blockers, 2 nits (both resolved). Parent may materialize the draft Layer-1 PR.
+
+## Relevant absolute file paths
+
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/scientific-invariants.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/rules/data-analysis-lineage.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/rules/git-workflow.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.csv`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/CHANGELOG.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/INDEX.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/pyproject.toml`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.md`
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.critique.md`
