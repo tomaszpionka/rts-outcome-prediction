@@ -19,6 +19,59 @@ merged to `master`.
 
 ### Removed
 
+## [3.82.0] — 2026-05-28 (PR #<TBD>: feat/sc2egset-02-01-03-five-family-materialization)
+
+### Added
+- FIRST non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit on SC2EGSet Step `02_01_03`; five history-enriched pre_game families materialised into ONE Parquet artifact (44,418 rows × 28 projected columns = 3 identity + 1 context anchor + 24 audited feature columns) at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet`.
+- Materialisation module `src/rts_predict/games/sc2/datasets/sc2egset/materialize_history_enriched_pre_game_features.py` exposing `materialize_history_enriched_pre_game_features(...)`, `audit_history_enriched_pre_game_features(...)`, `run_step_02_01_03(...)`, frozen `HistoryEnrichedMaterializationResult` and `HistoryEnrichedAuditResult` dataclasses, module-level UPPER_SNAKE constants per Invariant I7, the named `_MATERIALIZATION_QUERY` per Invariant I6, and the falsifier-priority chain.
+- Mirrored test file `tests/rts_predict/games/sc2/datasets/sc2egset/test_materialize_history_enriched_pre_game_features.py` (175 named tests; 95% branch coverage on the new module).
+- Non-vacuous CROSS-02-01 audit pair at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` — `features_audited` = exactly the 24 history-enriched PRE_GAME feature columns; `features_audited_count = 24`; `row_count = 44418`; `distinct_focal_match_count = 22209`; `verdict = PASS`; 17 BINDING parent artifact SHAs pinned (12 Q-chain + 2 omit-closure + 1 registry + 3 tranche-1); custom_extensions section enumerating fields beyond §3; defensive `matches_long_raw_yaml_sha256` pin per R3-N2; verbatim `_MATERIALIZATION_QUERY` embedded in audit MD per Invariant I6.
+- Non-closure entry appended to dataset `research_log.md` mirroring PR #236's precedent: `closure_status: still_open`, `materialization_state: materialized`, `leakage_audit_state: post_materialization_pass`, `features_audited_count: 24`, `row_count: 44418`, `artifact: 02_01_03_history_enriched_pre_game_features.parquet`, `leakage_audit: reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}`.
+- Sandbox jupytext notebook pair at `sandbox/sc2/sc2egset/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_feature_materialization.{py,ipynb}` (PR #241 scaffold OVERWRITTEN in place per `sandbox/README.md` single-notebook-per-Step contract; PR #241 scaffold content preserved at git SHA `3c6709bf`).
+
+### Five-family permitted set (verbatim per `FIVE_FAMILY_CANONICAL_ORDER`)
+- `focal_player_history` (6 audited columns)
+- `opponent_player_history` (6 audited columns)
+- `matchup_history_aggregate` (2 audited columns; 1v1-restricted via `JOIN matches_flat_clean mfc_h` per B2 fix)
+- `cross_region_fragmentation_handling` (2 audited columns; focal/opponent symmetric per Invariant I5 / N9)
+- `in_game_history_aggregate` (8 audited columns = 4 IN_GAME_HISTORICAL columns × 2 sides)
+
+### Excluded family + columns (verbatim per PR #257 amendment + PR #255 omit-closure)
+- Excluded family: `reconstructed_rating` (verdict: `omit_reconstructed_rating_and_unblock_other_five`).
+- Excluded columns: `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`, `reconstructed_rating_diff`.
+
+### Methodological bindings
+- Q5 cross-region policy: `sensitivity_indicator_co_registration` (PR #243 selected_policy BINDING + PR #255 `q5_policy` field re-elevation).
+- Q7 IN_GAME_HISTORICAL allowed-column 4-tuple (verbatim PR #242 Q7 BINDING): `APM`, `SQ`, `supplyCappedPercent`, `header_elapsedGameLoops`.
+- Strict-< TRY_CAST canonical predicate (Invariant I3; PR #242 Q3 BINDING + B-X2): `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < t.started_at`.
+- B2 matchup-CTE 1v1-restriction via `JOIN matches_flat_clean mfc_h ON mfc_h.replay_id = ph_focal.replay_id`.
+- Per-player history CTEs deliberately aggregate ALL game types per Q1 BINDING; this cross-game-type aggregation is documented in audit MD §1 as a Q1-binding consequence, not silently absorbed.
+- N11: `ph.is_decisive_result = TRUE` used in place of inline `ph.result IN ('Win', 'Loss')` (verified to exist as BOOLEAN at `player_history_all.yaml` lines 48-54).
+
+### Parents
+- PR #242 (`e372e7b6`) — Q1/Q2/Q3/Q4/Q7/Q8 adjudication.
+- PR #243 (`445bae01`) — Q5 cross-region adjudication (`sensitivity_indicator_co_registration`).
+- PR #245 (`ee15d362`) — Q6 rating-reconstruction successor adjudication.
+- PR #247 (`779dc40a`) — Q6F rating-algorithm survey.
+- PR #249 (`d9276194`) — Q6G rating-implementation proof.
+- PR #251 (`28bfc89f`) — Q6H rating-path decision (terminal).
+- PR #255 (`52f9c108`) — Step 02_01_99 omit-closure.
+- PR #257 (`3ab48b30`) — ROADMAP materialization-scope amendment (grep token `materialization_scope_amendment_post_pr_255`).
+
+### Changed
+- `pyproject.toml` version `3.81.0 → 3.82.0` (minor; feat-family per `.claude/rules/git-workflow.md`).
+- `planning/INDEX.md`: archived PR #257 (Layer-2 ROADMAP amendment at `3ab48b30`) and PR #258 (Layer-1 plan at `8496eaf7`); new active line for `feat/sc2egset-02-01-03-five-family-materialization` Layer-2 materialisation-execution PR.
+
+### Notes
+- NO Step `02_01_03` closure; closure deferred to a separate U2.B-style PR per PR #237 precedent.
+- NO `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml` flip.
+- NO ROADMAP edit (PR #257 amendment is sufficient).
+- NO spec edit (CROSS-02-00 / CROSS-02-01 / CROSS-02-02 / CROSS-02-03 are LOCKED).
+- NO cleaning-layer YAML edit.
+- NO root `reports/research_log.md` (CROSS entry) edit — single-dataset materialisation.
+- NO Step `02_01_04` / Phase 03 / baseline modeling work; NO new Q6X PR.
+- NO `reconstructed_rating` family materialised; NO `reconstructed_rating_*` column projected; NO raw MMR/rating/elo/glicko/skill/mu/sigma scalar; NO tracker-derived target-match feature; NO global batch fit.
+
 ## [3.81.0] — 2026-05-28 (PR #257: feat/sc2egset-02-01-03-five-family-scope-amendment)
 
 ### Added

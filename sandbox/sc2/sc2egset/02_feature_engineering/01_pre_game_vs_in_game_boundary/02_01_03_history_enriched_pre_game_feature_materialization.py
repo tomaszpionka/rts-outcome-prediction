@@ -15,262 +15,267 @@
 # ---
 
 # %% [markdown]
-# # Step 02_01_03 — History-enriched pre_game feature-family materialization SCAFFOLD: sc2egset
+# # Step 02_01_03 — Five-family history-enriched pre_game feature materialization: sc2egset
 #
-# **SCAFFOLD + ONE VALIDATION MODULE (non-batching sequence step 2 of 9).**
-# This notebook is **scaffold-only**: it declares the DESIGN CONTRACT for the
-# 6 tranche-2 `history_enriched_pre_game` families and exercises the
-# `validate_history_enriched_pre_game_materialization` validator. NO feature
-# value is materialised. NO Parquet is written. NO `STEP_STATUS.yaml`,
-# `PIPELINE_SECTION_STATUS.yaml`, or `PHASE_STATUS.yaml` is mutated. NO
-# `research_log.md` entry is appended.
+# **MATERIALIZATION + POST-MAT AUDIT + RESEARCH_LOG APPEND (non-batching
+# sequence steps 6-8 of 9).** This notebook OVERWRITES the PR #241 scaffold
+# (preserved at git SHA `3c6709bf`) per `sandbox/README.md` single-notebook-
+# per-Step contract. It materialises the FIVE history-enriched pre_game
+# feature families authorised by PR #257's ROADMAP amendment (grep token
+# `materialization_scope_amendment_post_pr_255`) into ONE Parquet artifact
+# (44,418 rows × 28 projected columns = 3 identity + 1 context anchor +
+# 24 audited features), runs the FIRST non-vacuous CROSS-02-01-v1.0.1 §3
+# leakage audit for Step `02_01_03`, and appends a non-closure
+# `research_log.md` entry mirroring PR #236's precedent.
+#
+# **Five permitted families (PR #257 amendment lines 2536-2540):**
+# `focal_player_history`, `opponent_player_history`,
+# `matchup_history_aggregate`, `cross_region_fragmentation_handling`,
+# `in_game_history_aggregate`.
+#
+# **Excluded family (PR #257 amendment line 2542):** `reconstructed_rating`
+# (verdict from PR #255 omit-closure:
+# `omit_reconstructed_rating_and_unblock_other_five`).
+#
+# **Excluded columns (PR #257 amendment lines 2546-2548):**
+# `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`,
+# `reconstructed_rating_diff`.
+#
+# `started_at` is projected as a row-identity anchor only (CROSS-02-00
+# Section 5.1 = CONTEXT) and is excluded from `features_audited`.
+#
+# **This PR does NOT:** flip STEP_STATUS / PIPELINE_SECTION_STATUS /
+# PHASE_STATUS · edit ROADMAP · patch any spec or cleaning-layer YAML ·
+# start Step 02_01_04 · start Phase 03 · close Step 02_01_03. Closure is
+# deferred to a separate U2.B-style PR per PR #237 precedent.
 #
 # **Phase:** 02 · **Pipeline Section:** 02_01 · **Step:** 02_01_03 ·
-# **Dataset:** sc2egset · **Predecessors:** 02_01_02 (closed, PR #237 closure);
-# transitive 02_01_01 (closed). **Lineage position:** artifact #2 of N for
-# Step 02_01_03 readiness (PR #239 ROADMAP stub preceded; this scaffold is
-# the second non-batching deliverable; future PRs will produce tranche-2
-# source/anchor/cold-start adjudication, materialization-execution plan,
-# materialization-execution, audit, and closure).
+# **Dataset:** sc2egset · **Predecessors:** 02_01_02 (closed, PR #237);
+# PR #239 (ROADMAP stub) → PR #241 (scaffold) → PR #242 (Q1/Q2/Q3/Q4/Q7/Q8)
+# → PR #243 (Q5) → PR #245 (Q6) → PR #247 (Q6F) → PR #249 (Q6G) →
+# PR #251 (Q6H terminal) → PR #253 (Step 02_01_99 ROADMAP stub) →
+# PR #255 (omit-closure) → PR #257 (ROADMAP amendment).
 
 # %% [markdown]
-# ## NO materialization, NO artifact banner
+# ## Hypothesis + falsifier + sanity-check declaration (data-analysis-lineage.md)
 #
-# This scaffold does NOT:
-# - materialize any feature value;
-# - execute any projection SQL against the DuckDB;
-# - write any file under `reports/artifacts/02_01_03/`;
-# - update `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml`;
-# - append a `research_log.md` entry (dataset or root);
-# - close Step 02_01_03;
-# - begin Step 02_01_04 or Phase 03;
-# - patch any cleaning-layer YAML or spec;
-# - re-execute the §10 verdict audit or the CROSS-02-01 leakage audit.
+# - **Assumption being tested:** the 24 history-enriched feature columns are
+#   leakage-free under the strict-< TRY_CAST history filter, and the
+#   matchup CTE is 1v1-restricted via the `matches_flat_clean` join (B2 fix).
+# - **Measurement claim:** the materialised Parquet has exactly 44,418 rows
+#   × 28 projected columns (3 identity + 1 context + 24 audited); the
+#   CROSS-02-01 audit returns `verdict = "PASS"`; the
+#   `features_audited` list equals the canonical 24-tuple in projection
+#   order; the `reconstructed_rating` family and its three columns are
+#   ABSENT from the output.
+# - **Falsifier:** `F-audit-verdict-not-pass`, `F-row-count-mismatch`,
+#   `F-features-audited-not-twenty-four`,
+#   `F-reconstructed-rating-column-present`,
+#   `F-matchup-cte-includes-non-1v1-history`,
+#   `F-decisive-result-flag-not-used`, plus the full falsifier-priority chain.
+# - **Sanity check:** `COUNT(*) == EXPECTED_OUTPUT_ROW_COUNT == 44_418`;
+#   `COUNT(DISTINCT focal_match_id) == 22_209`; focal/opponent symmetry
+#   violations = 0 on `started_at` swap; module-load assertions on the
+#   per-family sub-feature counts (6 + 6 + 2 + 2 + 8 = 24).
+# - **Expected artifact:**
+#   `02_01_03_history_enriched_pre_game_features.parquet` + audit pair
+#   under `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` +
+#   one new non-closure entry in the dataset `research_log.md`.
+# - **Lineage source:** PR #257 ROADMAP amendment authorises this
+#   materialisation; PR #255 omit-closure binds the verdict and the
+#   `q5_policy = sensitivity_indicator_co_registration` field re-elevation.
+# - **Downstream decision:** the future U2.B-style closure PR consumes
+#   these artifacts to flip `STEP_STATUS.yaml` to `02_01_03: complete`.
 
 # %%
 from pathlib import Path
 
-from rts_predict.games.sc2.datasets.sc2egset.validate_history_enriched_pre_game_materialization import (  # noqa: E501
+from rts_predict.games.sc2.datasets.sc2egset.materialize_history_enriched_pre_game_features import (  # noqa: E501
+    CROSS_REGION_POLICY,
+    EXCLUDED_FAMILY,
+    EXPECTED_AUDITED_FEATURE_COLUMN_COUNT,
+    EXPECTED_AUDITED_FEATURE_COLUMNS,
+    EXPECTED_DISTINCT_FOCAL_MATCH_COUNT,
+    EXPECTED_OUTPUT_COLUMNS,
+    EXPECTED_OUTPUT_ROW_COUNT,
+    EXPECTED_PARQUET_COLUMN_COUNT,
+    FIVE_FAMILY_CANONICAL_ORDER,
+    FORBIDDEN_RECONSTRUCTED_RATING_COLUMNS,
+    HISTORY_ENRICHED_AUDIT_JSON_RELPATH,
+    HISTORY_ENRICHED_AUDIT_MD_RELPATH,
+    HISTORY_ENRICHED_OUTPUT_RELPATH,
+    HISTORY_ENRICHED_RESEARCH_LOG_RELPATH,
     IN_GAME_HISTORICAL_AGGREGATED_COLUMNS,
-    validate_history_enriched_pre_game_materialization,
+    PROJECTED_CONTEXT_COLUMNS,
+    PROJECTED_IDENTITY_COLUMNS,
+    run_step_02_01_03,
 )
 
 # %% [markdown]
-# ## Tranche-2 history_enriched_pre_game families — design table
+# ## Context — PR #257 ROADMAP amendment frozen-input snapshot
 #
-# The 6 tranche-2 families are the closed 02_01_01 registry CSV's
-# `history_enriched_pre_game` rows (rows 7-12). All carry
-# `prediction_setting=history_enriched_pre_game`,
-# `source_table_or_event_family=matches_flat` (registry-recorded; view-vs-raw
-# refinement is deferred — see view-vs-raw cell below),
-# `temporal_anchor=details_timeUTC`,
-# `allowed_cutoff_rule=history_time < target_time` (strict-`<`, never `<=`),
-# `per_player_construction=symmetric`. 5 rows carry `status=allowed`; the
-# `cross_region_fragmentation_handling` row carries `status=allowed_with_caveat`.
-#
-# | family_id | candidate_leakage_modes | cold_start_handling | status |
-# |-----------|------------------------|---------------------|--------|
-# | sc2egset.history_enriched_pre_game.focal_player_history | rolling_includes_target_game | G-CS-2 | allowed |
-# | sc2egset.history_enriched_pre_game.opponent_player_history | rolling_includes_target_game | G-CS-2 | allowed |
-# | sc2egset.history_enriched_pre_game.matchup_history_aggregate | h2h_includes_target_game | G-CS-3 | allowed |
-# | sc2egset.history_enriched_pre_game.reconstructed_rating | rating_uses_target_game_outcome | G-CS-4 | allowed |
-# | sc2egset.history_enriched_pre_game.cross_region_fragmentation_handling | cross_region_history_drop | G-CS-5 | allowed_with_caveat |
-# | sc2egset.history_enriched_pre_game.in_game_history_aggregate | rolling_includes_target_game | G-CS-2 | allowed |
+# - **Q1 source layer (PR #242 BINDING):** `matches_flat_clean` for the
+#   target row; `player_history_all` for history-side rows. Per-player
+#   history aggregates ALL game types per Q1 BINDING (documented in audit
+#   MD §1).
+# - **Q1 1v1 restriction (B2 fix):** the `matchup_history_aggregate` CTE
+#   restricts the shared-replay self-join to 1v1 historical matches via
+#   `JOIN matches_flat_clean mfc_h ON mfc_h.replay_id = ph_focal.replay_id`.
+# - **Q2 target anchor (PR #242 BINDING):**
+#   `matches_history_minimal.started_at TIMESTAMP`; CONTEXT per CROSS-02-00
+#   Section 5.1.
+# - **Q3 strict-< history filter (PR #242 BINDING B-X2):** canonical
+#   `TRY_CAST(ph.details_timeUTC AS TIMESTAMP) < t.started_at`.
+# - **Q4 cold-start gates:** G-CS-2/3/4/5 at the registry layer; G-CS-6
+#   fold-aware fit DEFERRED to Phase 03.
+# - **Q5 cross-region policy (PR #243 BINDING + PR #255 q5_policy
+#   re-elevation):** `sensitivity_indicator_co_registration` — co-register
+#   BOTH `is_cross_region_fragmented_focal_history_any` AND
+#   `is_cross_region_fragmented_opponent_history_any` BOOLEAN flags per
+#   Invariant I5 symmetry.
+# - **Q6 (PR #245 + PR #255 omit-closure):**
+#   `omit_reconstructed_rating_and_unblock_other_five` — the
+#   `reconstructed_rating` family is INTENTIONALLY OMITTED, not silently
+#   satisfied.
+# - **Q6F/Q6G/Q6H:** rating-algorithm survey / implementation proof /
+#   path-decision artifacts pinned by SHA; carry-forward only.
+# - **Q7 IN_GAME_HISTORICAL allowed columns (PR #242 BINDING):**
+#   `APM`, `SQ`, `supplyCappedPercent`, `header_elapsedGameLoops`
+#   (×2 sides = 8 audited columns in `in_game_history_aggregate`).
+# - **Q8 MHM consumption:** target row identity + `started_at` anchor +
+#   cold-start enumeration only; NEVER as a feature source.
+# - **N11 fix:** `ph.is_decisive_result = TRUE` is used in place of inline
+#   `ph.result IN ('Win', 'Loss')` (verified to exist as BOOLEAN at
+#   `player_history_all.yaml` lines 48-54).
+# - **N9 Invariant I5 citation:** cross-region indicator pair symmetrised
+#   per `.claude/scientific-invariants.md` Invariant I5, beyond PR #243's
+#   single-indicator text.
 
 # %% [markdown]
-# ## Context and input artifacts
+# ## Five permitted families and their audited-column counts
 #
-# This notebook binds to four predecessor artifacts (all read-only):
-#
-# - **Closed 02_01_01 registry CSV** (authoritative catalog for the 6 tranche-2 families):
-#   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_feature_family_registry.csv`
-# - **PR #229 §10 design-time verdict-audit CSV** (per-family design-time verdicts; rows 7-12 cover tranche-2):
-#   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_01_section10_verdict_audit.csv`
-# - **PR #234 source/anchor/race adjudication CSV** (tranche-1 reference; format precedent for the future tranche-2 adjudication PR):
-#   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_source_anchor_race_adjudication.csv`
-# - **PR #236 materialised 02_01_02 Parquet** (tranche-1 evidence; read as upstream evidence only, NOT re-materialised):
-#   `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet`
-
-# %% [markdown]
-# ## What `matches_history_minimal` is consumed for (PR #239 nit)
-#
-# The Step 02_01_03 ROADMAP block's `inputs.duckdb_tables` list includes
-# `matches_history_minimal` (MHM) alongside `matches_flat_clean` (MFC) and
-# `player_history_all`. The body `method` text references MFC and
-# `player_history_all` directly; MHM is consumed for two distinct purposes:
-#
-# 1. **Cold-start enumeration G-CS-2 / G-CS-3 / G-CS-4 / G-CS-5.** MHM
-#    enumerates the set of `(focal_player, target.started_at)` target rows
-#    over which prior history is counted (the support set for the
-#    cold-start gating decision — "does this player have ≥ K prior matches
-#    by `started_at`?").
-# 2. **Row-identity anchor `started_at`.** Per PR #234 Q2(a),
-#    `started_at TIMESTAMP` is the BINDING Phase-02 row-identity anchor
-#    (`use_as_window_bound = false`, `use_as_row_identity = true`). MHM is
-#    the canonical source of `started_at` joined back onto MFC.
-#
-# **Resolution DEFERRED** to the future tranche-2 source/anchor/cold-start
-# adjudication PR (analogous to PR #234 for tranche-1). The scaffold records
-# only the consumption purpose; the validator does NOT runtime-check this
-# prose (this requirement is enforced procedurally by reviewer-deep reading
-# this cell, per the merged plan's Assumption A8).
-
-# %% [markdown]
-# ## View-vs-raw source layer deferral (N7 / PR #234 precedent)
-#
-# The 02_01_01 registry CSV records `source_table_or_event_family =
-# matches_flat` (raw layer) for all 6 history families. The Step 02_01_03
-# ROADMAP block's `inputs.duckdb_tables` lists `matches_flat_clean` (the
-# 1v1-scoped cleaned-raw view used by tranche-1 per PR #234 Q1 = MFC) plus
-# `player_history_all` and `matches_history_minimal`. This is a known
-# registry-vs-ROADMAP source-layer divergence (`matches_flat` raw vs
-# `matches_flat_clean` view).
-#
-# **The scaffold does NOT resolve this divergence.** Resolution is DEFERRED
-# to the future tranche-2 source/anchor/cold-start adjudication PR (the
-# tranche-2 analogue of PR #234). The validator binds to the registry CSV
-# as authoritative for this scaffold layer and accepts `matches_flat` as
-# the recorded source.
-
-# %% [markdown]
-# ## Three concepts distinguished (CROSS-02-00 §5.4 + CROSS-02-02 §6.2)
-#
-# This scaffold explicitly distinguishes three orthogonal concepts that are
-# easy to conflate, and which the validator enforces are kept distinct:
-#
-# 1. **`history_enriched_pre_game`** (this tranche). Features derived over
-#    PRIOR matches (`history_time < target_time` strict-`<`) and consumed
-#    pre-game at target match T. The 6 families in this tranche.
-# 2. **`in_game_snapshot`** (DEFERRED to Step 02_01_04+). Features derived
-#    from target-match tracker/game events with `event.loop <= cutoff_loop`.
-#    The validator's `_check_aliasing_in_tranche` rejects any
-#    `in_game_snapshot` row that re-uses a tranche-2 family_id.
-# 3. **`IN_GAME_HISTORICAL` columns aggregated from PRIOR matches** (used
-#    only by the `in_game_history_aggregate` family in this tranche). Per
-#    CROSS-02-00 §5.4 Concern 8 / T15 record, the SC2 IN_GAME_HISTORICAL
-#    telemetry-scope retains four columns in scope for history-aggregation
-#    use: `APM`, `SQ`, `supplyCappedPercent`, `header_elapsedGameLoops`.
-#    These columns remain FORBIDDEN as direct game-T pre-game features
-#    (they would be `in_game_snapshot` if read at game T); they are ONLY
-#    legal as aggregates over PRIOR matches.
-
-# %% [markdown]
-# ## Projection design (SPECIFIED, NOT EXECUTED)
-#
-# The future materialization SQL pattern is a self-join of `matches_flat_clean`
-# (target row) to `player_history_all` (history rows) on `(player_id_worldwide)`
-# with the strict `ph.details_timeUTC < target.started_at` filter, producing
-# `focal_*` and `opponent_*` symmetric columns. Encoders / smoothing priors
-# (cold-start constants K, smoothing pseudocount m, Bayesian prior strength α)
-# are SPECIFIED but NOT FIT here (G-CS-6 fold-aware fit is deferred to the
-# materialization PR). NO SQL is executed in this scaffold.
-
-# %% [markdown]
-# ## Cross-region adjudication DEFERRED
-#
-# The `cross_region_fragmentation_handling` row carries
-# `status = allowed_with_caveat` and
-# `candidate_leakage_modes = cross_region_history_drop`. CROSS-02-02 §6.2 row 5
-# enumerates three operationalisation options:
-# (a) strict-exclusion, (b) dual-feature-path, (c) sensitivity-indicator
-# co-registration. The choice is empirically conditional (retention measurement)
-# and is DEFERRED to the future tranche-2 source/anchor/cold-start adjudication
-# PR. The scaffold validator verifies only that the `cross_region` row
-# exists with the `allowed_with_caveat` status; it does NOT pin a policy
-# numeric choice.
-#
-# §10 verdict-audit re-run vs justification: DEFERRED to materialization PR
-# per ROADMAP `continue_predicate` (lines 2464+).
-
-# %% [markdown]
-# ## Rating reconstruction model choice DEFERRED
-#
-# The `reconstructed_rating` row's cold-start handling is `G-CS-4` (no global
-# rating fit; forward-in-time reconstruction from prior decisive results
-# only). The choice between Elo (Elo 1978), Glicko (Glickman 1999), Glicko-2
-# (Glickman 2012), and TrueSkill (Herbrich, Minka, Graepel 2006/2007) is
-# DEFERRED to the materialization PR. The scaffold records only `G-CS-4`
-# as the declared cold-start gate; no algorithm is pinned.
+# | # | Family | Audited column count |
+# |---|--------|---------------------|
+# | 1 | `focal_player_history` | 6 |
+# | 2 | `opponent_player_history` | 6 |
+# | 3 | `matchup_history_aggregate` | 2 |
+# | 4 | `cross_region_fragmentation_handling` | 2 |
+# | 5 | `in_game_history_aggregate` | 8 |
+# | **TOTAL** | | **24** |
 
 # %%
-DESIGNED_COLUMN_NAMES = (
-    "focal_prior_match_count",
-    "opponent_prior_match_count",
-    "matchup_h2h_count",
-    "focal_reconstructed_rating",
-    "opponent_reconstructed_rating",
-    "is_cross_region_fragmented",
-    "focal_apm_prior_mean",
-    "opponent_apm_prior_mean",
+DUCKDB_PATH = Path(
+    "src/rts_predict/games/sc2/datasets/sc2egset/data/db/db.duckdb"
 )
+OUTPUT_PARQUET_PATH = Path(HISTORY_ENRICHED_OUTPUT_RELPATH)
+AUDIT_JSON_PATH = Path(HISTORY_ENRICHED_AUDIT_JSON_RELPATH)
+AUDIT_MD_PATH = Path(HISTORY_ENRICHED_AUDIT_MD_RELPATH)
+RESEARCH_LOG_PATH = Path(HISTORY_ENRICHED_RESEARCH_LOG_RELPATH)
+AUDIT_DATE = "2026-05-28"
+AUDIT_PR_LABEL = "PR #<TBD>"
+BRANCH = "feat/sc2egset-02-01-03-five-family-materialization"
 
-DESIGNED_IN_GAME_HISTORICAL_COLUMNS = IN_GAME_HISTORICAL_AGGREGATED_COLUMNS
+# %% [markdown]
+# ## Verify constants (module-load self-assertion echo)
 
-REGISTRY_CSV = Path(
-    "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
-    "02_feature_engineering/01_pre_game_vs_in_game_boundary/"
-    "02_01_01_feature_family_registry.csv"
+# %%
+print("FIVE_FAMILY_CANONICAL_ORDER:", FIVE_FAMILY_CANONICAL_ORDER)
+print("EXCLUDED_FAMILY:", EXCLUDED_FAMILY)
+print(
+    "FORBIDDEN_RECONSTRUCTED_RATING_COLUMNS:",
+    sorted(FORBIDDEN_RECONSTRUCTED_RATING_COLUMNS),
+)
+print("CROSS_REGION_POLICY:", CROSS_REGION_POLICY)
+print(
+    "IN_GAME_HISTORICAL_AGGREGATED_COLUMNS:",
+    IN_GAME_HISTORICAL_AGGREGATED_COLUMNS,
+)
+print(
+    "EXPECTED_AUDITED_FEATURE_COLUMN_COUNT:",
+    EXPECTED_AUDITED_FEATURE_COLUMN_COUNT,
+)
+print("EXPECTED_PARQUET_COLUMN_COUNT:", EXPECTED_PARQUET_COLUMN_COUNT)
+print("EXPECTED_OUTPUT_ROW_COUNT:", EXPECTED_OUTPUT_ROW_COUNT)
+print("EXPECTED_DISTINCT_FOCAL_MATCH_COUNT:", EXPECTED_DISTINCT_FOCAL_MATCH_COUNT)
+
+# %% [markdown]
+# ## Materialise + audit + append research_log entry
+
+# %%
+mat_result, audit_result = run_step_02_01_03(
+    duckdb_path=DUCKDB_PATH,
+    output_parquet_path=OUTPUT_PARQUET_PATH,
+    audit_json_path=AUDIT_JSON_PATH,
+    audit_md_path=AUDIT_MD_PATH,
+    research_log_path=RESEARCH_LOG_PATH,
+    audit_date=AUDIT_DATE,
+    branch=BRANCH,
+    audit_pr=AUDIT_PR_LABEL,
+    write_research_log=True,
 )
 
 # %%
-result = validate_history_enriched_pre_game_materialization(
-    REGISTRY_CSV,
-    DESIGNED_COLUMN_NAMES,
-    DESIGNED_IN_GAME_HISTORICAL_COLUMNS,
+print("mat.passed:", mat_result.passed)
+print("mat.row_count:", mat_result.row_count)
+print("mat.distinct_focal_match_id:", mat_result.distinct_focal_match_id_count)
+print("mat.column_count:", len(mat_result.column_names))
+print("mat.focal_rows_per_match_violations:", mat_result.focal_rows_per_match_violations)
+print("mat.symmetry_violations:", mat_result.symmetry_violations)
+print("mat.halting_falsifier:", mat_result.halting_falsifier)
+
+assert mat_result.passed is True
+assert mat_result.row_count == EXPECTED_OUTPUT_ROW_COUNT
+assert mat_result.distinct_focal_match_id_count == EXPECTED_DISTINCT_FOCAL_MATCH_COUNT
+assert mat_result.column_names == EXPECTED_OUTPUT_COLUMNS
+assert mat_result.halting_falsifier is None
+
+# %%
+print("audit.verdict:", audit_result.verdict)
+print("audit.halting_falsifier:", audit_result.halting_falsifier)
+print("audit.features_audited count:", len(audit_result.features_audited))
+print("audit.projected_context_columns:", audit_result.projected_context_columns)
+print("audit.projected_identity_columns:", audit_result.projected_identity_columns)
+
+assert audit_result.verdict == "PASS"
+assert audit_result.halting_falsifier is None
+assert len(audit_result.features_audited) == EXPECTED_AUDITED_FEATURE_COLUMN_COUNT
+assert audit_result.features_audited == EXPECTED_AUDITED_FEATURE_COLUMNS
+assert audit_result.projected_context_columns == PROJECTED_CONTEXT_COLUMNS
+assert audit_result.projected_identity_columns == PROJECTED_IDENTITY_COLUMNS
+assert set(audit_result.features_audited).isdisjoint(
+    set(audit_result.projected_context_columns)
+    | set(audit_result.projected_identity_columns)
 )
 
-print("passed:", result.passed)
-print("tranche_count:", result.tranche_count)
-print("tranche_family_ids:", result.tranche_family_ids)
-print("missing_families_in_tranche:", result.missing_families_in_tranche)
-print("extra_history_in_tranche:", result.extra_history_in_tranche)
-print("pre_game_aliases_in_tranche:", result.pre_game_aliases_in_tranche)
-print("in_game_aliases_in_tranche:", result.in_game_aliases_in_tranche)
-print("blocked_aliases_in_tranche:", result.blocked_aliases_in_tranche)
-print("wrong_prediction_setting_rows:", result.wrong_prediction_setting_rows)
-print("wrong_temporal_anchor_rows:", result.wrong_temporal_anchor_rows)
-print("cutoff_violations:", result.cutoff_violations)
-print("tracker_source_in_history:", result.tracker_source_in_history)
-print("asymmetric_construction:", result.asymmetric_construction)
-print("post_game_token_hits:", result.post_game_token_hits)
-print("cross_region_caveat_ok:", result.cross_region_caveat_ok)
-print("in_game_historical_out_of_scope:", result.in_game_historical_out_of_scope)
-print("cold_start_gate_violations:", result.cold_start_gate_violations)
-print("status_violations:", result.status_violations)
-print("materialized_output_paths:", result.materialized_output_paths)
-print("halting_falsifier:", result.halting_falsifier)
-
-assert result.passed is True
-assert result.tranche_count == 6
-assert result.materialized_output_paths == ()
-assert result.halting_falsifier is None
-assert result.cross_region_caveat_ok is True
-
 # %% [markdown]
-# ## Closing — scaffold + ONE validator persisted; NO feature value materialized
+# ## Closing — five-family Parquet + non-vacuous audit + research_log entry persisted
 #
-# **What was done (non-batching step 2 of 9):**
-# - Persisted the SCAFFOLD jupytext notebook pair (this `.py` + paired
-#   `.ipynb`).
-# - Persisted the validator module
-#   `validate_history_enriched_pre_game_materialization.py` with 16
-#   falsifiers in a priority chain (structural before per-row).
-# - Persisted the mirrored test file with ≥30 tests across 18+ classes and
-#   ≥95% line coverage on the validator module.
+# **What was done (non-batching steps 6-8 of 9):**
+# - Materialised five-family Parquet at the canonical path
+#   (`HISTORY_ENRICHED_OUTPUT_RELPATH` constant; 44,418 rows × 28 cols =
+#   3 identity + 1 context anchor + 24 audited features over the five
+#   permitted families).
+# - Persisted the FIRST non-vacuous CROSS-02-01-v1.0.1 §3 audit pair at
+#   `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}`
+#   (`features_audited` = exactly the 24 history-enriched PRE_GAME feature
+#   columns; `verdict = PASS`; 17 BINDING parent artifact SHAs pinned;
+#   custom_extensions section enumerates fields beyond §3; defensive
+#   `matches_long_raw_yaml_sha256` pin per R3-N2).
+# - Appended a non-closure entry to the dataset `research_log.md` mirroring
+#   PR #236's precedent (`closure_status: still_open`,
+#   `materialization_state: materialized`,
+#   `leakage_audit_state: post_materialization_pass`,
+#   `features_audited_count: 24`, `row_count: 44418`, etc).
 #
-# **What was NOT done (deferred to future PRs):**
-# - NO feature value materialised; NO Parquet written.
-# - NO `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` /
-#   `PHASE_STATUS.yaml` flip; NO `research_log.md` entry.
-# - NO §10 verdict-audit re-run (DEFERRED to materialization PR per
-#   ROADMAP `continue_predicate`).
-# - NO CROSS-02-01-v1.0.1 post-materialization leakage audit (DEFERRED).
-# - NO cross-region fragmentation policy choice (DEFERRED to tranche-2
-#   source/anchor/cold-start adjudication PR).
-# - NO rating reconstruction algorithm choice (DEFERRED to materialization PR).
-# - NO Step 02_01_04 work; NO Phase 03 work.
-#
-# **Lineage position:** artifact #2 of N for Step 02_01_03 readiness
-# (PR #239 ROADMAP stub → this scaffold → future tranche-2 adjudication →
-# materialization plan → materialization execution → post-mat audit →
-# closure).
+# **What was NOT done (deferred to the U2.B-style closure PR):**
+# - `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`
+#   are byte-unchanged.
+# - `02_01_03: complete` is NOT added to `STEP_STATUS.yaml`.
+# - ROADMAP body, specs, and cleaning-layer YAMLs are byte-unchanged.
+# - Root `reports/research_log.md` is byte-unchanged (single-dataset
+#   materialisation; no CROSS entry needed).
+# - Phase 03 is not started; Step 02_01_04 is not started.
+# - The PR #241 scaffold notebook content is preserved at git SHA
+#   `3c6709bf` in the repo's git history; this notebook OVERWRITES the
+#   scaffold in place per `sandbox/README.md` single-notebook-per-Step
+#   contract.
