@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.82.0] — 2026-05-28 (PR #<TBD>: feat/sc2egset-02-01-03-five-family-materialization)
+## [3.82.0] — 2026-05-28 (PR #259: feat/sc2egset-02-01-03-five-family-materialization)
 
 ### Added
 - FIRST non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit on SC2EGSet Step `02_01_03`; five history-enriched pre_game families materialised into ONE Parquet artifact (44,418 rows × 28 projected columns = 3 identity + 1 context anchor + 24 audited feature columns) at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet`.

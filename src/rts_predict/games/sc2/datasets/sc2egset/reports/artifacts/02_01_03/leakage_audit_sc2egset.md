@@ -16,7 +16,7 @@ CROSS-02-01-v1.0.1 Section 5 gate condition is mechanically satisfied: `features
 
 **N9 Invariant I5 citation.** The cross-region indicator pair (`is_cross_region_fragmented_focal_history_any`, `is_cross_region_fragmented_opponent_history_any`) goes beyond PR #243's single-indicator text by symmetrising the indicator across focal + opponent. The methodological basis is Invariant I5 (focal/opponent symmetric construction per `.claude/scientific-invariants.md`), not PR #243's text alone.
 
-This is the first non-vacuous CROSS-02-01 post-materialization audit for Step 02_01_03 (PR #<TBD>).
+This is the first non-vacuous CROSS-02-01 post-materialization audit for Step 02_01_03 (PR #259).
 
 ## 2. Verbatim materialization SQL + 17 binding parent provenance
 

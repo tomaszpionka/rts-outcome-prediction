@@ -7,7 +7,7 @@
 - **Category:** A (science / Phase 02 / materialization-execution)
 - **Dataset:** sc2egset
 - **Branch:** `feat/sc2egset-02-01-03-five-family-materialization`
-- **PR:** `PR #<TBD>`
+- **PR:** `PR #259`
 - **Step scope:** Step `02_01_03` -- FIRST history-enriched pre_game feature-family materialisation for the five permitted families authorised by PR #257 ROADMAP amendment (`materialization_scope_amendment_post_pr_255`): `focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `cross_region_fragmentation_handling`, `in_game_history_aggregate`. Excluded family `reconstructed_rating` per PR #255 omit-closure verdict; the three forbidden columns (`reconstructed_rating_diff`, `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`) are NOT materialised. Step closure is NOT claimed; closure flips are deferred to a separate U2.B-style PR per PR #237 precedent.
 - **closure_status:** `still_open`
 - **materialization_state:** `materialized`
