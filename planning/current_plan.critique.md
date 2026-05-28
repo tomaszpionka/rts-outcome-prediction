@@ -1,197 +1,176 @@
 ---
 critique_role: reviewer-adversarial
 critique_model: claude-opus-4-7[1m]
-critique_round: 1
+critique_round: 3
 critique_date: 2026-05-28
 plan_file: planning/current_plan.md
-plan_branch: feat/sc2egset-02-01-03-five-family-scope-amendment
+plan_branch: feat/sc2egset-02-01-03-five-family-materialization
 plan_layer: 1
 plan_chosen_outcome: A
 plan_category: A
-plan_base_ref: 52f9c1082b200019d080cce74e60567452020e18
-verdict: APPROVE-WITH-NITS
-blockers_count: 0
-nits_count: 2
-nits_resolved_in_finalization: [NIT-1-halt-counter, NIT-2-verbatim-amendment-inline]
+plan_base_ref: 3ab48b3025f17ce62843d7300195e8094c893a72
 round_cap: "3 rounds total (planning-side) per feedback_adversarial_cap_execution.md."
 round_cap_symmetry: "Same 3-round cap applies to execution-side review."
-axes_evaluated: 22
-axes_pass: 22
-axes_fail: 0
-axes_partial_resolved_in_finalization: [A3]
+rounds_used: 3
+round_1_verdict: HOLD
+round_1_blockers_count: 4
+round_1_nits_count: 11
+round_2_verdict: HOLD
+round_2_blockers_count: 4
+round_2_nits_count: 2
+round_3_verdict: APPROVE-WITH-NITS
+round_3_blockers_count: 0
+round_3_nits_count: 1
+final_verdict: APPROVE-WITH-NITS
+final_blockers_count: 0
+final_nits_count: 0
+final_nits_resolved_in_finalization: [R3-NI-B-test-count-floor-harmonized-to-66]
+axes_evaluated_round_1: 25
+axes_evaluated_round_2: 17
+axes_evaluated_round_3: 10
 ---
 
-# Adversarial Review — Plan (Round 1)
+# Reviewer-adversarial critique log — SC2EGSet Step 02_01_03 five-family materialization (Layer-1 planning PR)
 
-Plan: SC2EGSet Step 02_01_03 five-family materialization-scope amendment (Layer-1, ROADMAP-only future execution)
-Phase: 02 — Feature Engineering / Pipeline Section 02_01 / Step 02_01_03 (host) + Step 02_01_99 (back-ref)
+Plan: SC2EGSet Step 02_01_03 five-family materialization (Layer-1; future Layer-2 materialization execution)
+Phase: 02 — Feature Engineering / Pipeline Section 02_01 / Step 02_01_03 (host)
+Branch: `feat/sc2egset-02-01-03-five-family-materialization`
+Base ref: `3ab48b3025f17ce62843d7300195e8094c893a72` (PR #257 merge commit)
 Date: 2026-05-28
-Base ref: `52f9c1082b200019d080cce74e60567452020e18` (PR #255 merge commit)
 
-## Invariant compliance (Layer-1 PR + planned Layer-2 PR)
+**Final verdict (Round 3): APPROVE-WITH-NITS with 0 blockers and 1 non-blocking nit (R3-NI-B test-count floor inconsistency 60/63/66), harmonized by the parent at materialization time (all `≥60 tests` / `≥60 named test cases` / `≥63 named test cases` references swept to `≥66 named test cases` to match T05's actual enumeration of 66 tests).**
 
-- **#1 (per-player split):** N/A — neither PR materializes features or splits data.
-- **#2 (canonical nickname):** N/A — no feature computation; identity scope unaffected.
-- **#3 (temporal `< T`):** N/A in this PR. The amendment text preserves the host Step's existing leakage constraint (line 2284's six-family declaration is byte-unchanged); no rolling/window logic introduced.
-- **#4 (prediction target):** N/A — no target encoding here.
-- **#5 (symmetric treatment):** N/A — no feature pipeline edits.
-- **#6 (reproducibility):** RESPECTED — plan pins 14 binding parent SHAs in T01, asserts no-drift before any write; T01 names file paths verbatim; CHANGELOG body cites parent PRs.
-- **#7 (no magic numbers):** RESPECTED — only constants introduced are version `3.81.0`, line numbers (2274/2523/2525/2527/2740/2742), and the grep token, all derived from observed repo state (verified: line 2523 = closing fence of Step 02_01_03; 2740 = closing fence of Step 02_01_99; 2525, 2742 = `---` separators).
-- **#8 (cross-game protocol):** N/A — SC2-only ROADMAP edit; no AoE2 pipeline contract changed.
-- **#9 (research pipeline discipline):** RESPECTED — every claim in the amendment cites PR #255's binding CSV row (existing artifact) or Q-chain parent PRs whose artifacts exist on disk. No future-step knowledge invoked.
+Cap protocol: 3 planning-side rounds (`feedback_adversarial_cap_execution.md`); this log reaches Round 3 without escalation.
 
-## Lens assessments
+---
 
-- **Temporal discipline:** SOUND — the amendment is a methodological-scope note, not a feature-computation change. Line 2284 (the canonical six-family list) remains byte-unchanged, preserving the historical declaration; the amendment narrows materialization permission going forward, which is a downstream-PR concern.
-- **Statistical methodology:** SOUND — no statistical inference is exercised. The amendment is a record of a binding evidentiary decision (PR #255), not a new test.
-- **Feature engineering:** SOUND — feature families remain defined at the same level of abstraction; the amendment only documents that one family (`reconstructed_rating`) is intentionally omitted. The five permitted families match Q6H verbatim ordering, verified against `02_01_99_rating_omit_closure.md:108-114`.
-- **Thesis defensibility:** STRONG for the Layer-1 PR's narrow purpose. An examiner asking "why did you omit Glicko/Elo ratings as features?" can be directed at PR #255's `omit_reconstructed_rating_and_unblock_other_five` verdict, whose `thesis_pragmatism = TRUE` is documented with 7 elevation sentences and 5 PR #249 cross-references. The ROADMAP amendment makes the omission *visible in the navigable methodology document* rather than buried in a CSV row — that is the defensibility upgrade this PR exists to deliver.
-- **Cross-game comparability:** MAINTAINED — the SC2 omission of `reconstructed_rating` does not preclude AoE2 from including a rating-equivalent in its own dataset because AoE2's source (aoe2companion / aoestats) carries native rating values, whereas sc2egset's tracker events do not. The amendment makes the asymmetry explicit, which is what Invariant 8 requires (asymmetry as a controlled variable, not a hidden flaw).
+## Round 1 — verdict: HOLD (4 blockers + 11 non-blocking nits)
 
-## Verifications performed against repo
+### Round 1 blockers
 
-- `master HEAD = 52f9c1082b200019d080cce74e60567452020e18` — matches plan.
-- `pyproject.toml:3 = version = "3.80.0"` — matches plan.
-- `ROADMAP.md` total lines = **2777**.
-- `ROADMAP.md:2274` = `### Step 02_01_03 — History-enriched pre_game feature-family materialization (sc2egset)` — matches.
-- `ROADMAP.md:2284` = `matchup_history_aggregate, reconstructed_rating,` — six-family declaration with `reconstructed_rating` present — matches plan claim that it must remain byte-unchanged.
-- `ROADMAP.md:2523` = closing ` ``` ` of Step 02_01_03 YAML block — matches plan insertion-point claim.
-- `ROADMAP.md:2525` = `---` separator before Step 02_01_99 — matches plan.
-- `ROADMAP.md:2527` = `### Step 02_01_99 — Rating omit-closure follow-up stub (sc2egset)` — matches.
-- `ROADMAP.md:2740` = closing ` ``` ` of Step 02_01_99 YAML block — matches plan insertion-point claim.
-- `ROADMAP.md:2742` = `---` separator before Phase 03 placeholder — matches plan.
-- PR #255 CSV row fields: `decision_verdict = omit_reconstructed_rating_and_unblock_other_five`, `q6_omission_status = intentionally_omitted_under_branch_iii`, `q6_not_silently_satisfied = TRUE`, `future_roadmap_scope_amendment_required = TRUE`, `future_materialization_pr_required = TRUE` — all four TRUE.
-- Five-family permitted set in PR #255 MD §8 — verbatim canonical order matches plan A4.
-- Excluded family + 3 excluded columns in PR #255 MD §9 — verbatim match plan A5/A6.
-- Grep token `materialization_scope_amendment_post_pr_255` — zero existing matches anywhere in `.md`/`.yaml`/`.toml` files (high-quality, collision-free).
-- Precedent PR #239 (3.70.1 → 3.71.0, 4-file diff CHANGELOG+INDEX+pyproject+ROADMAP, no `research_log`) — matches plan's L2 4-file template.
-- Precedent PR #253 (3.78.0 → 3.79.0, identical 4-file diff template, no `research_log`) — matches.
-- `CHANGELOG.md:13-21` = empty `[Unreleased]` 4-header skeleton — matches plan T04 expectation.
+- **R1-B1 — Layer-2 file count 10 vs 11.** Plan claimed PR #236 was 10 files; `git show 51288130 --stat` proves PR #236 was 11 files including a 30-line `research_log.md` entry. Plan's "10-file diff exactly" claim was a factual misreading of precedent. **Required remediation:** include `research_log.md` in the canonical Layer-2 diff (matching PR #236) OR justify the deviation explicitly. **Resolved in Round 2.**
 
-## 22-axis scorecard
+- **R1-B2 — History-source layer asymmetry causes false-positive heads-up.** `player_history_all` is all-game-types (per Q1 BINDING, justified for cold-start support), but the `matchup_history_aggregate` CTE joined on shared `replay_id` without restricting to 1v1 replays. Two players who shared a non-1v1 historical match (as teammates in 4v4, as opponents in 2v2, etc.) would generate spurious head-to-head counts. `focal_prior_win_rate_decisive` and `opponent_prior_win_rate_decisive` similarly aggregated win rates across game types, not 1v1 only. **Required remediation:** (a) restrict matchup CTE to 1v1 history via `JOIN matches_flat_clean mfc_h ON mfc_h.replay_id = ph_focal.replay_id`; (b) document the cross-game-type win-rate aggregation in audit MD §1 as a deliberate Q1-binding consequence. **Resolved in Round 2** (option (a) for matchup + partial (b) for per-player win-rates).
 
-### Planner-charter axes (15)
+- **R1-B3 — A22 / OQ4 default "no `research_log.md` entry per PR #236 precedent" is factually wrong.** PR #236 DID add a 30-line `research_log.md` entry with `closure_status: still_open`. **Required remediation:** elevate A22 default to "MUST add a single dataset `research_log.md` entry with `closure_status: still_open`, `materialization_state: materialized`, `leakage_audit_state: post_materialization_pass`, `features_audited_count`, `row_count`, `artifact`, `leakage_audit`". **Resolved in Round 2.**
 
-1. **Outcome A is genuinely the next atomic unit (not consolidation).** PASS — `data-analysis-lineage.md` "Non-batching rule" explicitly forbids batching ROADMAP + artifact + research_log + next-step in one execution. The Q-chain precedent (PR #252 Layer-1 → PR #253 Layer-2 ROADMAP-stub; PR #254 Layer-1 → PR #255 Layer-2 artifact) establishes a stable 2-PR rhythm per substantive ROADMAP edit. Plan §Problem Statement paragraph 2 makes this argument explicit. The user could plausibly request consolidation, but rejecting it is the more defensible default given the non-batching invariant.
+- **R1-B4 — A13 SHA-pin count math wrong + PR #245 omitted.** A13 arithmetic "6 CSVs + 6 MDs = 12" contradicted "5 PRs × 2 = 10"; PR #245 CSV+MD (referenced as parents by PR #255 row) were NOT in the pin list. **Required remediation:** recompute the actual binding-parent count and include PR #245 artifacts in T01. **Resolved in Round 2 (partial)** — PR #245 added, count recomputed to 16, but a new SHA cross-contamination surfaced (Round 2 NI-6 → Round 3 R3-B3).
 
-2. **B (direct five-family materialization PR) correctly rejected.** PASS — PR #255 CSV explicitly records `future_roadmap_scope_amendment_required = TRUE`; materializing without first amending ROADMAP would produce Parquet that contradicts the ROADMAP's six-family declaration at the same SHA. Plan §Problem Statement paragraph 5 gives precisely this argument.
+### Round 1 non-blocking nits
 
-3. **C (blocked-state note) correctly rejected.** PASS — all four PR #255 preconditions are TRUE on the merged record; ROADMAP amendment is *allowed* now. Plan §Problem Statement paragraph 6.
+- **R1-N1** `FIVE_FAMILY_PERMITTED_SET` (frozenset, unordered) — add a `FIVE_FAMILY_CANONICAL_ORDER: tuple[str, ...]` for ordered display/audit. **Resolved in Round 2.**
+- **R1-N2** A7 binding-chain logic should cite PR #255's `q5_policy` field as the explicit BINDING elevation, not just the byte-unchanged transitive argument. **Resolved in Round 2.**
+- **R1-N3** Subsumed by R1-B4.
+- **R1-N4** Sub-feature count per history-side family (3 of 6 listed in CROSS-02-02 §6.2 row 1) silently narrowed; justify or expand. **Resolved in Round 2** by widening to 6 sub-features per side (24 audited columns total).
+- **R1-N5** Audit JSON schema extended §3 with 5+ custom fields; flag as "fields beyond §3" in audit MD. **Resolved in Round 2** via `custom_extensions` section.
+- **R1-N6** Add a test pinning the JOIN-then-FILTER invariant (target row admitted, excluded by FILTER). **Resolved in Round 2** as `test_join_then_filter_invariant_target_row_admitted_but_excluded`.
+- **R1-N7** W4 self-contradictory about `audit_date`; pin one convention. **Resolved in Round 2** as "materialization-execution date, mirroring PR #236 = 2026-05-23".
+- **R1-N8** Notebook filename divergence (`_feature_materialization` scaffold vs `_materialization` new) undocumented. **Resolved in Round 2** by overwriting the scaffold in place per `sandbox/README.md` notebook contract.
+- **R1-N9** Cross-region indicator symmetrization went beyond PR #243's text authority; cite Invariant I5 explicitly. **Resolved in Round 2** as audit MD §1 citation.
+- **R1-N10** Tied to R1-N4; resolved.
+- **R1-N11** Use `ph.is_decisive_result = TRUE` instead of inline `ph.result IN ('Win', 'Loss')`. **Resolved in Round 2.**
 
-4. **D/E/F correctly rejected per user prompt.** PASS — plan acknowledges user's explicit REJECT and does not reopen Q6X / Phase 03 / baseline-modelling paths.
+---
 
-5. **G (hygiene-only) correctly rejected.** PASS — plan §Problem Statement final paragraph notes no concrete defect blocks A. `planning/INDEX.md` cosmetic staleness mentioned in the user prompt is not load-bearing on the ROADMAP amendment.
+## Round 2 — verdict: HOLD (4 blockers + 2 non-blocking nits)
 
-6. **15 binding predicates are mutually consistent.** PASS — A1-A15 enumerated verbatim. A4's canonical order matches PR #255 MD §8 verbatim. A5/A6 match PR #255 MD §9 verbatim. A8/A9 (byte-unchanged YAML bodies) consistent with plan's insertion-point design (post-fence prose insertion). A12 (minor bump) consistent with PR #239/#253 precedent. A13/A14 (no research_log / no status YAML) consistent with the same precedent.
+Round 2 confirmed all 4 Round 1 blockers were resolved in intent and 9 of 11 nits resolved cleanly. The revision surfaced **4 new internal-consistency blockers** (mechanical, not methodological) and **2 non-blocking nits**.
 
-7. **L2 4-file diff structure matches PR #239/#253 precedent.** PASS — verified against git show: PR #239 and PR #253 each modified exactly {CHANGELOG.md, planning/INDEX.md, pyproject.toml, ROADMAP.md}. Plan §File Manifest L2 row matches.
+### Round 2 blockers (all surfaced by the revision)
 
-8. **L1 2-file diff is correctly bounded.** PASS — plan declares exactly `planning/current_plan.md` + `planning/current_plan.critique.md`, and the forbidden-files list excludes every other path (status YAMLs, research_log, all source/test/notebook/spec/cleaning paths, docs, .claude, thesis, data, AoE2).
+- **R2-NI-1** T02 constants code block declared `EXPECTED_AUDITED_FEATURE_COLUMN_COUNT: int = 30` and `EXPECTED_PARQUET_COLUMN_COUNT: int = 34`, then the prose immediately after said "Final pinned: = 24 / = 28". Self-acknowledged contradiction inside one section; an executor would copy the wrong constants and fail the falsifier. **Required remediation:** rewrite the code block to declare `= 24` / `= 28` directly. **Resolved in Round 3 (R3-B1).**
 
-9. **Step 02_01_03 closure correctly remains deferred.** PASS — plan A15 explicitly states Step 02_01_03 remains OPEN; closure deferred to a separate later PR that lands non-vacuous CROSS-02-01 audit + five-family materialization. The amendment-only-without-closure pattern mirrors PR #239 (created Step 02_01_03 stub but did not close it) and is consistent with Q6H §17 "closure deferred to a future PR (Layer-3 materialization or omit-closure follow-up)".
+- **R2-NI-5** Constant comment `# 6+6+2+2+8+6+matchup-conditional rate already counted` listed six terms when there are only 5 families; trailing "+6" had no semantic referent. **Required remediation:** rewrite to `# 6+6+2+2+8 = 24 (5 families per FIVE_FAMILY_CANONICAL_ORDER)`. **Resolved in Round 3 (R3-B2).**
 
-10. **Minor bump (3.80.0 → 3.81.0) justified vs patch.** PASS — `.claude/rules/git-workflow.md` precedent applied consistently: ROADMAP scope changes are minor bumps (PR #239 = 3.70.1→3.71.0; PR #253 = 3.78.0→3.79.0). Patch would understate a methodological scope change; major is wrong because no backward-incompatible contract changes.
+- **R2-NI-6** Plan attributed merge SHA `ee15d362` to BOTH PR #243 and PR #245. Verified via `gh pr view 243 --json mergeCommit`: PR #243's actual SHA is `445bae0197fa75b613443f8eafef114ff2bb6939`; `ee15d3625eee60688776219f533d4a5ceefb4b76` belongs exclusively to PR #245. The plan's test `test_q5_binding_sha_pin_matches_pr243_merge_sha` would fail at executor time. **Required remediation:** correct all PR #243 attributions. **Resolved in Round 3 (R3-B3).**
 
-11. **Insertion-only pattern (lines 2524 / 2741) avoids YAML body touches.** PASS — verified: the closing ` ``` ` fence at 2523 is followed by a blank line at 2524 and `---` at 2525. Inserting an `##### Materialization-scope amendment` heading + prose block between 2524 and 2525 leaves the entire YAML body (2276-2523) byte-unchanged. Same logic at 2741 (between Step 02_01_99 closing fence and the Phase 03 separator at 2742).
+- **R2-B4-residual** Round 2 revision summary at line 11 said "raising audited column count from 18 to **30**"; File Manifest item 5 said "44,418 rows × 34 cols = 3 identity + 1 context + 30 audited"; File Manifest item 8 said `features_audited_count: 30`. All three contradicted the rest of the plan (which used 24). **Required remediation:** sweep-replace `30 audited → 24 audited`, `34 cols → 28 cols`, `from 18 to 30 → from 18 to 24`, `features_audited_count: 30 → features_audited_count: 24`. **Resolved in Round 3 (R3-B4).**
 
-12. **Grep token `materialization_scope_amendment_post_pr_255` is unique and not collision-prone.** PASS — grep across `*.md`/`*.yaml`/`*.toml` yields zero current matches. Token includes the binding parent PR number, so cross-PR collisions are structurally impossible. Token's snake_case form is consistent with existing CSV column conventions (`q6_omission_status`, `future_roadmap_scope_amendment_required`).
+### Round 2 non-blocking nits
 
-13. **Authority basis for the amendment is verifiable.** PASS — plan cites PR #255 verbatim (decision_verdict `omit_reconstructed_rating_and_unblock_other_five`, `q6_omission_status intentionally_omitted_under_branch_iii`, all four boolean fields TRUE). Verified these against `02_01_99_rating_omit_closure.csv:row 1` directly. Plan does not introduce new evidence claims; Invariant I9 respected.
+- **R2-NI-7** A13 claimed 16 BINDING parent artifact SHAs but audit JSON T07 enumerated 17 distinct SHA pins (12 Q-chain + 2 omit-closure + 1 registry + 1 tranche-1 Parquet + 1 tranche-1 audit JSON + 1 tranche-1 audit MD = 17, not 16). **Required remediation:** reconcile to 17 everywhere. **Resolved in Round 3 (R3-N1).**
 
-14. **Halt-predicate count and content.** PASS — plan §Execution Steps > Stop conditions during Layer-2 execution enumerates **nine** distinct halt conditions S1-S9 covering (a) YAML body byte changes, (b) family-set drift, (c) PR #255 SHA drift, (d) Q-chain parent SHA drift, (e) silent removal of `reconstructed_rating` from Step 02_01_03's existing list, (f) excluded-column spelling drift, (g) status YAML/research_log touch, (h) artifact/audit file appearance, (i) Phase 03 / Step 02_01_04 leak. NIT-1 raised against the prior plan's summary that mis-stated "eight" — the canonical enumeration is **nine** and the plan now reflects this consistently (see plan §Execution Steps and §Future ROADMAP amendment content note).
+- **R2-NI-N2** `matches_long_raw_yaml_sha256` pinned defensively but the view is not joined by the SQL. Add a clarifying note. **Resolved in Round 3 (R3-N2)** via audit MD §2 note.
 
-15. **Plan respects 8 required `##` sections per `feedback_plan_required_sections.md`.** PASS — present: `## Scope`, `## Execution Steps`, `## File Manifest`, `## Problem Statement`, `## Assumptions & Unknowns`, `## Literature Context`, `## Gate Condition`, `## Open Questions`. All 8 named `##` headings exist.
+---
 
-### User-prompt axes (7)
+## Round 3 — verdict: APPROVE-WITH-NITS (0 blockers + 1 non-blocking nit)
 
-- **A1. Outcome A vs L1+L2 consolidation defensibility.** PASS — non-batching rule and Q-chain precedent both favor split. User could overrule but plan correctly defaults to split.
+### Round 2 blocker resolution verification
 
-- **A2. 22-axis scorecard real, not papering.** PASS — every axis maps to a verifiable artifact, line number, SHA, precedent PR, or rule citation. None are content-free.
+- **R3-B1 — PASS.** `planning/current_plan.md` T02 constants block declares `EXPECTED_AUDITED_FEATURE_COLUMN_COUNT: int = 24` and `EXPECTED_PARQUET_COLUMN_COUNT: int = 28` directly. The Round 2 `= 30 / = 34` then-correction pattern is gone; constants block is self-consistent.
 
-- **A3. Amendment prose satisfies all 12 required sub-clauses verbatim.** PASS (after NIT-2 resolution) — the plan §Future ROADMAP amendment content now inlines the verbatim insertion text for both insertion points (Step 02_01_03 host block and Step 02_01_99 back-reference). A reviewer can mechanically verify all 12 required content sub-clauses by reading the verbatim block in the plan body. NIT-2 raised against the prior plan that bracket-summarised the draft is fully resolved.
+- **R3-B2 — PASS.** Comment reads `# 6 + 6 + 2 + 2 + 8 = 24 (Family 1 + Family 2 + Family 3 + Family 4 + Family 5 per FIVE_FAMILY_CANONICAL_ORDER)`. Single-source-of-truth phrasing. No trailing `+6`, no "matchup-conditional rate already counted" residue.
 
-- **A4. Grep token quality (unique, collision-free).** PASS — verified zero existing matches across `*.md`/`*.yaml`/`*.toml`.
+- **R3-B3 — PASS.** Verified via `gh pr view`: PR #243's merge SHA is `445bae0197fa75b613443f8eafef114ff2bb6939`; PR #245's is `ee15d3625eee60688776219f533d4a5ceefb4b76`. Both T01 and Literature Context attribute PR #243 to `445bae01` and PR #245 to `ee15d362` correctly. Cross-contamination resolved. A disambiguation test `test_pr245_binding_sha_pin_matches_pr245_merge_sha_ee15d362` exists.
 
-- **A5. Insertion-only pattern avoids YAML body touches.** PASS — verified the closing-fence position (2523, 2740) and the structurally-distinct `---` separator at the next non-blank line (2525, 2742). The amendment block lives in the markdown prose layer between two ` ``` `-delimited YAML blocks; the YAML parser's body bytes are untouched.
+- **R3-B4 — PASS.** `grep -n "= 30\|= 34\|30 audited\|34 cols\|features_audited_count: 30\|from 18 to 30"` returns matches ONLY in Round 3 meta-text (revision summary describing the fix). Zero matches in substantive plan body. `24 audited` / `28 cols` / `features_audited_count: 24` consistent across Scope, T03, T04 falsifier label, T05 test names, T07 audit JSON, T08 research_log labels, A15, A22, L4, gate summary.
 
-- **A6. Minor bump justified.** PASS — same as axis 10.
+### Round 2 nit resolution verification
 
-- **A7. Layer-2 cannot sneak in Q6X re-opening or Phase 03 leak.** PASS — plan §File Manifest > Forbidden files and §Execution Steps > Stop conditions explicitly enumerate `NO Q6X PR / no re-opening of Q5/Q6F/Q6G/Q6H` and `NO Step 02_01_04 / Phase 03 / baseline modelling`. The CHANGELOG NO-list (T04 sub-bullet 7) recites the same prohibition for the merged record. Halt-condition S9 (Phase 03 / Step 02_01_04 leak) makes accidental scope creep a defined stop.
+- **R3-N1 — PASS.** A13, S2, L7, T01, dispatch instructions, and gate summary all say `17 BINDING parent artifact SHAs` consistently. Enumeration `12 Q-chain + 2 omit-closure + 1 registry + 3 tranche-1 = 17` appears at T01 and gate summary. Three new test cases enforce: `test_pr236_tranche1_three_sha_pins_distinct`, `test_total_binding_parent_sha_count_is_seventeen`, `test_matches_long_raw_yaml_pinned_defensively_not_joined`.
 
-## Blockers: **0**
+- **R3-N2 — PASS.** Audit MD §2 defensive-pin note added: "`matches_long_raw_yaml_sha256` is a defensive lineage-completeness pin (not a read-source pin) to detect future drift if a later revision joins this view; the current materialisation does NOT read `matches_long_raw`." Codified as A31, S26, L23, OQ13, and a named test.
 
-## Nits: **2 (both resolved during Layer-1 finalization)**
+### New-issue scans (Round 3)
 
-**NIT-1 — Halt-clause counter mis-states the plan body's own count.** The original plan §Future ROADMAP amendment content read "Eight halt clauses cover all six required halt predicates plus two extras," but plan §Execution Steps > Stop conditions during Layer-2 execution enumerates **nine** distinct conditions. **Resolution:** the plan now uses S1-S9 explicit enumeration and states "**nine** explicit clauses" in the section header. The plan §Future ROADMAP amendment content sub-clause-11 footnote was tightened to "Seven halt clauses cover all six required halt predicates from the user prompt" since the ROADMAP amendment text itself lists seven Layer-3-future-PR halt predicates (the plan's S1-S9 list governs the Layer-2 execution PR; the seven in the amendment text govern the downstream materialization PR). Both numbers are now internally consistent.
+- **R3-NI-A — PASS.** All 10 PR merge SHAs in the Round 3 revision summary enumeration (PR #236, #237, #241, #242, #243, #245, #247, #249, #251, #255, #257) verified via `gh pr view N --json mergeCommit,title`. Every prefix matches GitHub. PR titles also confirm each PR is what the plan claims it is.
 
-**NIT-2 — Amendment-note draft is summarized rather than verbatim in the plan body.** The original plan §Future ROADMAP amendment content used `[full amendment note text with: ...]` summary brackets. A reviewer could not mechanically verify that all 12 required content sub-clauses appear in the *draft text* without seeing the verbatim block. **Resolution:** the verbatim insertion text for both insertion points (Step 02_01_03 host block + Step 02_01_99 back-reference) is now inlined in plan §Future ROADMAP amendment content. Layer-2 T02 may make minor stylistic refinements provided every BINDING clause (A1-A15) is preserved.
+- **R3-NI-B — NIT.** Test-count floors inconsistent across the plan: File Manifest said `≥60`; W7 and gate summary said `≥63`; T05 enumerated 66 test cases. All three floors technically satisfied by the actual count, but the inconsistency invites drift. **Handled by parent at materialization time** — all `≥60 tests` / `≥60 named test cases` / `≥63 named test cases` references swept to `≥66 named test cases` in `planning/current_plan.md`. The only remaining `≥60` / `≥63` reference is in the Round 3 revision-summary meta-text describing the fix.
 
-## Weakest link
+- **R3-NI-C — PASS.** PR #236's actual research_log heading is `## 2026-05-23 — Materialize Step 02_01_02 pre_game tranche-1 Parquet + first non-vacuous CROSS-02-01 audit`. Round 3 plan's specified heading follows this pattern with the Step 02_01_03 / scope-noun substitution. Required sub-headings (Category, Dataset, Branch, PR, Step scope, What, Why, How (reproducibility), Findings, What this means, Decisions taken, Decisions deferred, Thesis mapping, Open questions / follow-ups, Acknowledged trade-offs, Scope notes) match PR #236's actual diff exactly.
 
-The plan's strongest claim is the insertion-only pattern (lines 2524 / 2741) — and that claim is verifiable from the repo. The weakest is the **non-batching argument for splitting L1 and L2**: the non-batching rule's primary target is *empirical* batching (ROADMAP + notebook + artifact + research_log in one PR), and one could argue that a ROADMAP-only amendment plus a metadata-only L1 plan is below the empirical-batching threshold. Counterargument: PR #252→#253 and PR #254→#255 both treated ROADMAP-only edits as deserving their own Layer-1 plan PR, establishing a project-internal precedent that the plan cites. An examiner asking "why did you not consolidate?" would receive the answer "consistency with the project's own established 2-PR rhythm" — defensible but not bulletproof. If the user prefers consolidation, the plan's structure is reversible.
+- **R3-NI-D — PASS.** `sandbox/README.md` does not prohibit overwriting a notebook for phase transition within the same Step number. Hard rules (cell-size cap, read-only DuckDB, both files committed) are silent on overwrite semantics. The PR #233 → PR #236 lineage precedent (notebook updated, not replaced) supports this. Round 3's overwrite-in-place fix is permissible.
 
-## Examiner's questions
+### Round 3 final blockers
 
-1. "Why is `reconstructed_rating` excluded while the comparable feature family in AoE2 would be `rating_current_pre`?" — Answered: PR #255 CSV row `q6_omission_status = intentionally_omitted_under_branch_iii`, with seven elevation sentences referencing PR #249 evidence five times. The AoE2 dataset carries native rating in source, so the asymmetry is dataset-imposed, not a methodological choice. The cross-game answer surfaces in Manual 06.
+None.
 
-2. "If the amendment is binding, why not just close Step 02_01_03?" — Answered (plan A15 + §Hard-stops): closure requires a non-vacuous CROSS-02-01 audit which requires actual five-family materialization Parquet, which is the *next* PR after this amendment. Closure is a separate atomic unit.
+### Round 3 final non-blocking nits
 
-3. "Why a minor bump for a ROADMAP-only change?" — Answered: PR #239 and PR #253 precedents under the same `.claude/rules/git-workflow.md` interpretation.
+- **R3-NI-B** Test-count floor inconsistency 60/63/66 — handled by parent at materialization time (all swept to ≥66 in `planning/current_plan.md`). Plan's T05 enumeration of 66 tests is the authoritative deliverable; gate floor and W7 / File Manifest / Scope all aligned to ≥66.
 
-4. "What stops the L2 PR from quietly removing `reconstructed_rating` from line 2284?" — Answered: plan §Execution Steps > Stop conditions S5 explicitly states "Halt if `reconstructed_rating` is silently removed from the existing Step 02_01_03 block at line 2284." Plan A8 makes byte-unchanged YAML body a binding assumption that the future Gate Condition verifies.
+### Recommendation
 
-## Recommendation
+**APPROVE-WITH-NITS.** All 4 Round 2 blockers resolved with line-level evidence; all 2 Round 2 nits resolved; all 10 PR SHAs in the Round 3 self-verification block independently verified against GitHub; PR #236's actual research_log heading and sub-headings mirrored faithfully; sandbox README permits the planned notebook overwrite. The only Round 3 non-blocking nit (R3-NI-B) was harmonized by the parent at materialization time.
 
-```
-Round: 1
-Verdict: APPROVE-WITH-NITS
-Blockers: 0
-Nits: 2 (both resolved during Layer-1 finalization)
-  - NIT-1: Halt-clause counter mis-statement — resolved by enumerating S1-S9 with "nine" header.
-  - NIT-2: Amendment-note bracket-summary — resolved by inlining verbatim text for both insertion points.
-22-axis scorecard:
-  1. Outcome A is next atomic unit: PASS
-  2. B correctly rejected: PASS
-  3. C correctly rejected: PASS
-  4. D/E/F correctly rejected: PASS
-  5. G correctly rejected: PASS
-  6. 15 binding predicates mutually consistent: PASS
-  7. L2 4-file diff matches PR #239/#253 precedent: PASS
-  8. L1 2-file diff correctly bounded: PASS
-  9. Step 02_01_03 closure correctly deferred: PASS
-  10. Minor bump justified: PASS
-  11. Insertion-only pattern preserves YAML bodies: PASS
-  12. Grep token unique and not collision-prone: PASS
-  13. Authority basis verifiable: PASS
-  14. Halt-predicate count and content: PASS (NIT-1 resolved)
-  15. 8 required ## sections present: PASS
-  A1. Outcome A vs consolidation defensibility: PASS
-  A2. 22-axis scorecard real: PASS
-  A3. 12 required content sub-clauses verbatim: PASS (NIT-2 resolved)
-  A4. Grep token quality: PASS
-  A5. Insertion-only avoids YAML body touches: PASS
-  A6. Minor bump justified: PASS
-  A7. L2 cannot sneak in Q6X or Phase 03: PASS
-Recommendation: Materialize the Layer-1 PR as-planned. Both nits were
-resolved during Layer-1 finalization (NIT-1 → S1-S9 enumeration with
-"nine" header; NIT-2 → verbatim amendment text inlined). The
-ZERO-BLOCKERS condition is met; the parent should materialize
-planning/current_plan.md + planning/current_plan.critique.md without
-invoking a second adversarial round on this plan content.
-```
+Per the 3-round cap protocol, with 0 blockers and 0 outstanding nits, the parent materializes the plan + this critique log to:
+- `planning/current_plan.md`
+- `planning/current_plan.critique.md`
 
-Verdict: **APPROVE-WITH-NITS** — 0 blockers, 2 nits (both resolved). Parent may materialize the draft Layer-1 PR.
+on branch `feat/sc2egset-02-01-03-five-family-materialization` and opens a DRAFT planning PR.
 
-## Relevant absolute file paths
+---
 
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/scientific-invariants.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/rules/data-analysis-lineage.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.claude/rules/git-workflow.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.csv`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/CHANGELOG.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/INDEX.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/pyproject.toml`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.md`
-- `/Users/tomaszpionka/Projects/rts-outcome-prediction/planning/current_plan.critique.md`
+## Repo verifications performed (Rounds 1–3)
+
+GitHub `gh pr view N --json mergeCommit,title,mergedAt`:
+- PR #236 → `39298c0afd3a23bfbd4603415314af784a672952` (Materialize Step 02_01_02 pre_game tranche-1)
+- PR #237 → `a16d78c2…` (Closure for Step 02_01_02)
+- PR #241 → `3c6709bfc21baba893d34a3b87c308d7f8ba787e` (Step 02_01_03 history scaffold)
+- PR #242 → `e372e7b6…` (Q1/Q2/Q3/Q4/Q7/Q8 adjudication)
+- PR #243 → `445bae0197fa75b613443f8eafef114ff2bb6939` (Q5 cross-region adjudication) — Round 2 plan had this wrong as `ee15d362`; corrected in Round 3.
+- PR #245 → `ee15d3625eee60688776219f533d4a5ceefb4b76` (Q6 rating-reconstruction successor adjudication)
+- PR #247 → `779dc40a…` (Q6F rating-algorithm survey)
+- PR #249 → `d9276194…` (Q6G implementation proof)
+- PR #251 → `28bfc89f…` (Q6H path decision)
+- PR #255 → `52f9c108…` (Step 02_01_99 omit-closure)
+- PR #257 → `3ab48b30…` (ROADMAP materialization-scope amendment)
+
+Repo files inspected (Rounds 1–3):
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (PR #257 amendment lines 2525–2618 + back-reference 2837–2849)
+- `src/rts_predict/games/sc2/datasets/sc2egset/materialize_pre_game_features.py` (PR #236 template; confirms module-level constants, falsifier-priority chain, `_QUERY` suffix convention)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (PR #236 30-line precedent entry; field labels + sub-headings)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json` (PR #236 audit-schema template; `audit_date = 2026-05-23` convention)
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/player_history_all.yaml` (confirms `is_decisive_result` BOOLEAN; confirms all-game-types scope)
+- `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/views/matches_flat_clean.yaml` (Q1 target source; used for matchup CTE 1v1 restriction)
+- `reports/specs/02_00_feature_input_contract.md` (LOCKED CROSS-02-00-v3.0.1)
+- `reports/specs/02_01_leakage_audit_protocol.md` (LOCKED CROSS-02-01-v1.0.1; §3 audit schema; §5 gate condition)
+- `reports/specs/02_02_feature_engineering_plan.md` (LOCKED CROSS-02-02-v1.0.1; §6.2 row 1 verbatim 6-sub-feature enumeration)
+- `reports/specs/02_03_temporal_feature_audit_protocol.md` (LOCKED CROSS-02-03-v1.0.1)
+- `sandbox/README.md` (notebook contract; confirms overwrite-in-place is permissible)
+- `.claude/scientific-invariants.md` (I3 strict-<; I5 symmetric; I6 verbatim SQL; I7 no magic numbers; I9 lineage; I10 relative paths)
+- `.claude/ml-protocol.md` (three leakage failure modes)
+- `.claude/rules/data-analysis-lineage.md` (non-batching sequence; sequence step 7 = artifact generation)
+- `.claude/rules/python-code.md` (module-level UPPER_SNAKE; `_QUERY` suffix; mirrored tests; ≥95% branch coverage)
+- `.claude/rules/git-workflow.md` (semver bump rules; PR body via `.github/tmp/pr.txt`; commit via `.github/tmp/commit.txt`)
