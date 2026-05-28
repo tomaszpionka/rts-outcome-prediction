@@ -19,6 +19,22 @@ merged to `master`.
 
 ### Removed
 
+## [3.81.0] — 2026-05-28 (PR #<TBD>: feat/sc2egset-02-01-03-five-family-scope-amendment)
+
+### Added
+- ROADMAP-only materialization-scope amendment recording PR #255's omit-closure decision against Step 02_01_03 / Step 02_01_99.
+- Grep token `materialization_scope_amendment_post_pr_255` inserted at two anchor points in ROADMAP.md: host block after Step 02_01_03 YAML fence and back-reference block after Step 02_01_99 YAML fence.
+- Five permitted families for future Step 02_01_03 materialization (verbatim): `focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `cross_region_fragmentation_handling`, `in_game_history_aggregate`.
+- Excluded family: `reconstructed_rating`. Excluded columns: `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`, `reconstructed_rating_diff`.
+- Updated continue-predicate: materialization may proceed only for the five permitted families; no `reconstructed_rating_*` column; CROSS-02-01 audit must be non-vacuous for the five families.
+- Halt-predicate (seven clauses): any `reconstructed_rating_*` generated; five-family set drifts; PR #255 artifact drifts; Q5/Q6F/Q6G/Q6H parent artifact drifts; target-match/future-match/Phase 03 split leakage; status YAML or research_log edited in this PR; materialization artifact or CROSS-02-01 audit appears in this PR.
+- Parents: PR #243 Q5; PR #247 Q6F; PR #249 Q6G; PR #251 Q6H; PR #253 ROADMAP stub; PR #255 omit-closure artifact.
+
+### Notes
+- No feature materialization. No feature artifact. No CROSS-02-01 audit. No status YAML flip. No research_log entry. No Step 02_01_03 closure. No Step 02_01_04. No Phase 03. No new Q6X PR.
+- Step 02_01_03 original six-family declaration (including `reconstructed_rating`) at ROADMAP line 2284 remains byte-unchanged as the historical record of the closed Q-chain.
+- Future five-family materialization is a separate downstream PR (`feat/sc2egset-02-01-03-five-family-materialization`).
+
 ## [3.80.0] — 2026-05-27 (PR #255: feat/sc2egset-02-01-99-rating-omit-closure-artifact)
 
 ### Added
