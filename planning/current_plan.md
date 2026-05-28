@@ -32,7 +32,7 @@ adversarial_round_cap: "3 rounds total (planning-side) per feedback_adversarial_
 adversarial_cap_symmetry: "Same 3-round cap applies to execution-side review per feedback_adversarial_cap_execution.md."
 parent_layer_1_pr: "PR #256 (Step 02_01_03 / 02_01_99 ROADMAP materialization-scope amendment Layer-1; merged at master 2f8a6536)"
 parent_layer_2_pr: "PR #257 (Step 02_01_03 / 02_01_99 ROADMAP materialization-scope amendment Layer-2; merged at master 3ab48b30)"
-planning_pr: "PR #<TBD-Layer-1>"
+planning_pr: "PR #258"
 future_execution_pr: "PR #<TBD-future-Layer-2>"
 future_execution_file_count: 11
 future_execution_files:
