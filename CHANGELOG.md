@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.84.0] — 2026-05-29 (PR #<TBD>: feat/sc2egset-02-02-01-symmetry-difference-scaffold)
+## [3.84.0] — 2026-05-29 (PR #266: feat/sc2egset-02-02-01-symmetry-difference-scaffold)
 
 ### Added
 - SC2EGSet Step `02_02_01` Layer-2 scaffold + one validation module per the PR #265 Layer-1 plan (data-analysis-lineage non-batching sequence step 2). Implements the design-contract validator for the Pipeline Section `02_02 — Symmetry & Difference Features` family.
