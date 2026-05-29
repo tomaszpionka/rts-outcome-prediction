@@ -19,6 +19,33 @@ merged to `master`.
 
 ### Removed
 
+## [3.84.0] — 2026-05-29 (PR #<TBD>: feat/sc2egset-02-02-01-symmetry-difference-scaffold)
+
+### Added
+- SC2EGSet Step `02_02_01` Layer-2 scaffold + one validation module per the PR #265 Layer-1 plan (data-analysis-lineage non-batching sequence step 2). Implements the design-contract validator for the Pipeline Section `02_02 — Symmetry & Difference Features` family.
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_symmetry_difference_feature_materialization.py` — pure-function scaffold-stage validator with a 14-step halting falsifier chain (`input_parquet_missing` → `input_parquet_sha_mismatch` → `parent_audit_json_missing` → `audit_json_misaligned` → `artifact_directory_present` → `direction_annotation_invalid` → `source_column_traceability_violation` → `reconstructed_rating_in_candidates` → `slot_dependent_token_present` → `target_leak_token_in_candidate` → `aoe2_vocabulary_in_candidate` → `tracker_sourced_candidate` → `direction_name_inconsistent` → `materialization_output_path_present`). Module-level constants: `IDENTITY_COLUMNS = ("focal_match_id", "focal_player", "opponent_player")`; `CONTEXT_ANCHOR_COLUMNS = ("started_at",)`; `UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_02` 7-tuple verbatim from PR #236 audit JSON; `UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_03` 24-tuple verbatim from PR #259 audit JSON; SHA256 pins `24db73fb…` / `053900e7…`; `VALID_DIRECTION_LITERAL_VALUES = ("focal_minus_opponent", "symmetric")`; boundary-aware `BLOCKED_SLOT_TOKEN_REGEX` (12 patterns covering player/slot/p/idx/home/away/left/right/host/guest/a_minus_b/b_minus_a); boundary-aware `POST_GAME_TOKEN_REGEX` (10 patterns) with `POST_GAME_TOKEN_ALLOWLIST_SUBSTRINGS` covering legitimate `prior_win_rate` compounds; `BLOCKED_FAMILY_FRAGMENTS` enforcing PR #255 / PR #257 `reconstructed_rating` exclusion; `FORBIDDEN_AOE2_VOCABULARY = ("civilization", "civ")` for Invariant I8 cross-game hygiene; `EXPECTED_NO_OUTPUT_ARTIFACT_DIRECTORIES` for filesystem-absence enforcement. Frozen `CandidateFeatureSpec` dataclass with `direction: Literal["focal_minus_opponent", "symmetric"]` and `source_columns: tuple[str, ...]` (each element must trace to the audited union).
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_symmetry_difference_feature_materialization.py` — 62 effective test cases; 95.28% branch coverage on the validator module. Positive-control tests verify `focal_prior_win_rate_decisive` and `matchup_h2h_focal_win_rate` do NOT fire the post-game leakage falsifier (allowlist substring suppression per PR #265 plan A11). Filesystem-absence tests assert ABSENCE not emptiness (`.gitkeep`-only directory still fires the falsifier per PR #265 plan A12). Halting-priority test verifies first-failure-wins ordering (missing input + invalid direction → `input_parquet_missing`).
+- `sandbox/sc2/sc2egset/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_materialization.py` and `.ipynb` — jupytext-paired scaffold notebook (py:percent). Declares hypothesis + 14-falsifier chain + sanity check up front; consumes the two upstream Parquets via SHA256-pinned read-only paths; enumerates 6 candidate symmetry/difference families per `02_FEATURE_ENGINEERING_MANUAL.md` §3 (Bradley-Terry); invokes the T01 validator; asserts `passed=True`, `halting_falsifier=None`, `materialized_output_paths=()`, `artifact_directory_absence_ok=True`. No `def`/`class`/`lambda` in code cells per `.claude/rules/python-code.md` notebook discipline.
+- `planning/INDEX.md` Archive rows for PR #264 (merge SHA `7f2506ed`; Layer-2 ROADMAP-only stub) and PR #265 (merge SHA `98a1d6c2`; Layer-1 scaffold plan); new Active line for this Layer-2 execution PR.
+
+### Changed
+- `pyproject.toml` version bumped `3.83.0 → 3.84.0` (minor; feat-class per `.claude/rules/git-workflow.md` "minor for feat/refactor/docs"; mirrors PR #232 / PR #233 / PR #239 / PR #241 `feat/`-class scaffold lineage).
+
+### Notes
+- **No feature materialisation.** No Parquet, no CSV, no MD or JSON artifact emitted under `reports/artifacts/02_02_01/` or `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`.
+- **No feature artifact.** Validator is pure-function over candidate specs and upstream-artifact schema metadata; does not open input Parquets for value reads.
+- **No leakage audit artifact** (no `leakage_audit_sc2egset.{json,md}` pair created under any `02_02` path).
+- **No source-anchor adjudication.** Candidate enumeration is CANDIDATE-only; binding decision deferred to future PR analogous to PR #234 for `02_01_02`.
+- **No STEP_STATUS row added for 02_02_01.** Closure deferred to future U2.B-style PR analogous to PR #237 / PR #262 post-materialisation.
+- **No PIPELINE_SECTION_STATUS row added for 02_02.** Deferred per PR #230 precedent — section row lands at first step closure, not at scaffold.
+- **No PHASE_STATUS mutation.** Phase 02 stays `in_progress`; Phase 03 stays `not_started`.
+- **No ROADMAP edit.** The `02_02_01` block at ROADMAP lines 2853-3131 remains byte-unchanged.
+- **No research_log append** (dataset or root). Per `.claude/rules/data-analysis-lineage.md` non-batching sequence step 2 vs step 8 — research_log is appended at step closure, not at scaffold.
+- **No upstream artifact mutation.** Both `02_01_02` and `02_01_03` Parquets byte-stable at the embedded SHA256 pins (`24db73fb…` / `053900e7…`); both `02_01_x` audit JSONs byte-unchanged.
+- **No reconstructed_rating re-introduction.** PR #255 / PR #257 binding exclusion stands; `BLOCKED_FAMILY_FRAGMENTS` constant enforces structurally.
+- **No AoE2 civilization vocabulary.** SC2EGSet uses `race` exclusively per Invariant I8 cross-game hygiene; `FORBIDDEN_AOE2_VOCABULARY` constant enforces structurally.
+- **No Phase 03 / Step 02_01_04 / Step 02_02_02+ / baseline modelling.**
+
 ## [3.83.0] — 2026-05-29 (PR #264: feat/sc2egset-02-02-01-roadmap-stub)
 
 ### Added
