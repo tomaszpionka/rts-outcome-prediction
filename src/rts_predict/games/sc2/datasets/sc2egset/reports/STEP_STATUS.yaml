@@ -202,3 +202,8 @@ steps:
     pipeline_section: "02_01"
     status: complete
     completed_at: "2026-05-23"
+  "02_01_03":
+    name: "History-enriched pre_game feature-family materialization (sc2egset)"
+    pipeline_section: "02_01"
+    status: complete
+    completed_at: "2026-05-28"
