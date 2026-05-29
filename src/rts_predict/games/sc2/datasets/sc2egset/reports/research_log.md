@@ -7,7 +7,7 @@
 - **Category:** C (governance / status closure)
 - **Dataset:** sc2egset
 - **Branch:** `chore/sc2egset-02-01-03-formal-closure`
-- **PR:** `PR #<TBD>`
+- **PR:** `PR #262`
 - **Step scope:** Step `02_01_03` — formal status closure; flips `STEP_STATUS.yaml` from no-row to `complete`; does NOT add `02_01_99` row; does NOT touch ROADMAP / PIPELINE_SECTION_STATUS / PHASE_STATUS / root research_log / artifacts / source / tests / notebooks / specs / data / AoE2 / thesis / docs / .claude.
 - **closure_status:** `closed`
 - **materialization_state:** `materialized`

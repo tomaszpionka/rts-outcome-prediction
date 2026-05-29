@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.82.1] — 2026-05-29 (PR #<TBD>: chore/sc2egset-02-01-03-formal-closure)
+## [3.82.1] — 2026-05-29 (PR #262: chore/sc2egset-02-01-03-formal-closure)
 
 ### Added
 - SC2EGSet Step `02_01_03` STEP_STATUS row (`02_01_03: complete`) with `completed_at: "2026-05-28"` (PR #259 audit-evidence date; CROSS-02-01-v1.0.1 §5 gate mechanically cleared).
