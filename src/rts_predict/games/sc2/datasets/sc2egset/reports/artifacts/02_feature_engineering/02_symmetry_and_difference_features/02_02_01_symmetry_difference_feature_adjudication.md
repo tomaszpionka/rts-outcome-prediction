@@ -9,7 +9,7 @@ This document is a **decision-only adjudication artifact** for SC2EGSet Step 02_
 
 Feature materialisation is a separate future Step 02_02 PR (analogue of PR #259 for Step 02_01_03).
 
-Executed: 2026-05-29. Audit PR: PR #<TBD>.
+Executed: 2026-05-29. Audit PR: PR #268.
 
 ## §2 — Input artifact lineage (paths + SHA-256)
 
@@ -106,7 +106,7 @@ Validator traceability check (PR #266 `_check_source_column_traceability`) passe
 - `validator_passed`: **True**
 - `validator_halting_falsifier`: **None**
 - Validator module: `src/rts_predict/games/sc2/datasets/sc2egset/validate_symmetry_difference_feature_materialization.py`
-- Audit PR: PR #<TBD>
+- Audit PR: PR #268
 
 The PR #266 validator runs the 14-step halting-falsifier chain over the candidate specs and the upstream Parquet SHA-256 pins. A `passed=True` result is required for the CSV+MD to be written; if the validator fires any falsifier, the adjudicator raises `SymmetryDifferenceAdjudicationError` before writing any artifact.
 

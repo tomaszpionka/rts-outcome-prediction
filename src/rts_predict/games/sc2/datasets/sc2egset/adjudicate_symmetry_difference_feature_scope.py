@@ -41,7 +41,7 @@ LOGGER = logging.getLogger(__name__)
 # Provenance / identity constants
 # ---------------------------------------------------------------------------
 
-AUDIT_PR: str = "PR #<TBD>"  # normalized after the draft PR opens
+AUDIT_PR: str = "PR #268"
 EXECUTED_AT_UTC_DATE: str = "2026-05-29"
 DECISION_ID: str = "02_02_01_symmetry_difference_feature_scope"
 LINEAGE_POSITION: str = (

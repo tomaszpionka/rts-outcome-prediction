@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- **Active** — `feat/sc2egset-02-02-01-symmetry-difference-adjudication` — Layer-2 execution PR for SC2EGSet Step 02_02_01 source-anchor / column-naming / direction-policy / transform-scope adjudication. Emits 1 CSV + 1 MD adjudication artifact pair (`reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_adjudication.{csv,md}`). No feature materialization; no feature artifact; no leakage audit; no status YAML / research_log / ROADMAP / Phase-03 mutation. Version bump `3.84.0 → 3.85.0`. PR #<TBD>.
+- **Active** — `feat/sc2egset-02-02-01-symmetry-difference-adjudication` — Layer-2 execution PR for SC2EGSet Step 02_02_01 source-anchor / column-naming / direction-policy / transform-scope adjudication. Emits 1 CSV + 1 MD adjudication artifact pair (`reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_adjudication.{csv,md}`). No feature materialization; no feature artifact; no leakage audit; no status YAML / research_log / ROADMAP / Phase-03 mutation. Version bump `3.84.0 → 3.85.0`. PR #268.
 
 ## Archive
 

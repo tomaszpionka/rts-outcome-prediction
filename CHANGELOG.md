@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.85.0] — 2026-05-29 (PR #<TBD>: feat/sc2egset-02-02-01-symmetry-difference-adjudication)
+## [3.85.0] — 2026-05-29 (PR #268: feat/sc2egset-02-02-01-symmetry-difference-adjudication)
 
 ### Added
 
