@@ -19,6 +19,31 @@ merged to `master`.
 
 ### Removed
 
+## [3.83.0] — 2026-05-29 (PR #<TBD>: feat/sc2egset-02-02-01-roadmap-stub)
+
+### Added
+- SC2EGSet Step `02_02_01` ROADMAP-only stub inserted in `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` between the existing Step `02_01_99` block (and its `materialization_scope_amendment_post_pr_255` back-reference) and the `## Phase 03 — Splitting & Baselines (placeholder)` heading. The new block opens Pipeline Section `02_02 — Symmetry & Difference Features` per `docs/PHASES.md` Phase 02 row 2 and authorises future scaffold/validator/adjudication/materialization PRs that will transform Step `02_01_03`'s focal/opponent paired columns into symmetric/difference representations per `02_FEATURE_ENGINEERING_MANUAL.md` §3 (Bradley-Terry; difference features as default) and Invariant I5 (focal/opponent symmetry).
+- `planning/INDEX.md` archive rows for PR #262 (merge SHA `2c9080ae`) and PR #263 (merge SHA `05a36086`); new Active plan line for the Layer-2 execution branch.
+
+### Changed
+- `pyproject.toml` version bumped `3.82.1 → 3.83.0` (minor; feat-class per `.claude/rules/git-workflow.md` "minor for feat/refactor/docs"; mirrors PR #232 / PR #239 / PR #253 ROADMAP-only-stub precedent — all minor bumps on `feat/` branches opening or extending a step lineage).
+
+### Notes
+- **No feature materialization** in this PR: NO Parquet, NO CSV, NO MD or JSON artifact emitted under `reports/artifacts/02_02_01/` or `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`.
+- **No CROSS-02-01 audit artifact** produced (no `leakage_audit_sc2egset.{json,md}` pair created under any 02_02 path).
+- **No `02_02` row** added to `PIPELINE_SECTION_STATUS.yaml` — deferred to the first 02_02 transition PR per the verified PR #230 precedent (02_01 row landed at-step-closure of 02_01_01, not at-step-open). The Layer-1 plan's Outcome-E adjudication (`planning/current_plan.md` OQ3 / A10) binds this deferral.
+- **No `02_02_01` row** added to `STEP_STATUS.yaml` (ROADMAP-only stub; closure comes after future materialization PRs).
+- **No `PHASE_STATUS.yaml` mutation**: Phase 02 stays `in_progress`, Phase 03 stays `not_started`.
+- **No dataset or root `research_log.md` entry** per `.claude/rules/data-analysis-lineage.md` "Non-batching rule" sequence step 1 (ROADMAP stub PR produces no research_log entry; PR #232 / PR #239 / PR #253 precedents).
+- **No source `.py`, test `.py`, notebook `.py`/`.ipynb`, spec, schema YAML, AoE2, thesis, docs, `.claude`, or data path** modified.
+- **Step `02_01_02`, Step `02_01_03`, Step `02_01_99` ROADMAP blocks** byte-unchanged except for line shifts caused by the `02_02_01` insertion. The §02_01_03 `materialization_scope_amendment_post_pr_255` amendment block and the §02_01_99 amendment back-reference are byte-unchanged.
+- **Upstream byte-stability preserved**: PR #259 Parquet artifact `02_01_03_history_enriched_pre_game_features.parquet` (2,451,869 B), PR #236 Parquet artifact `02_01_02_pre_game_features.parquet` (719,068 B), and the 02_01_02 + 02_01_03 audit JSON/MD pairs are byte-unchanged.
+- **Cross-game terminology hygiene**: no AoE2 `civilization` term in the SC2EGSet stub — race-only vocabulary throughout per Invariant I8 (cross-game comparability). Race-pair encoded interactions are declared as a candidate family with explicit `may defer to 02_05 — Categorical Encoding & Interactions` annotation per the merged Layer-1 plan's Open Question OQ6 and Assumption A13.
+- **Row-count gate** is phrased as `row count equal to the measured row count of the 02_01_03 Parquet artifact`, re-measured by future Layer-2 execution rather than hard-coded as a Layer-1 binding (reviewer-adversarial nit N3 from PR #263 critique).
+- **02_03 temporal-feature audit spec** referenced under `external_references` with scoped-out annotation so the stub's halt-clauses do not silently encroach on Pipeline Section `02_03 — Temporal Features, Windows, Decay, Cold Starts` (reviewer-adversarial nit N4 from PR #263 critique).
+- **Phase 03 BARRED**: no split-derived features authorised; no baseline modeling started; no Phase 03 ROADMAP edit. Step `02_01_04` BARRED. Step `02_02_02+` BARRED.
+- **No reopen of Q5 / Q6 / Q6F / Q6G / Q6H or `reconstructed_rating` family**: PR #243 / PR #255 / PR #257 / PR #259 / PR #262 closures preserved verbatim.
+
 ## [3.82.1] — 2026-05-29 (PR #262: chore/sc2egset-02-01-03-formal-closure)
 
 ### Added
