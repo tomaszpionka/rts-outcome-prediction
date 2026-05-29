@@ -1,173 +1,568 @@
 ---
-title: "SC2EGSet Step 02_01_03 formal closure (Layer-1 planning PR)"
-category: C
-branch: chore/sc2egset-02-01-03-formal-closure
+title: "SC2EGSet Step 02_02_01 ROADMAP-only stub (Layer-1 planning PR)"
+category: A
+branch: feat/sc2egset-02-02-01-roadmap-stub
 base_ref: master
-base_sha: 5a62fc768a099eb73e449db081fdbac70a68a98e
+base_sha: 2c9080ae0d02e8733f60b974ef9f0c0ced36c849
+predecessor_pr: 262
+predecessor_pr_merge_sha: 2c9080ae0d02e8733f60b974ef9f0c0ced36c849
 draft_pr_files:
   - planning/current_plan.md
   - planning/current_plan.critique.md
 future_execution_files:
-  - src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml
-  - src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
-  - pyproject.toml
-  - CHANGELOG.md
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
   - planning/INDEX.md
-future_execution_file_count: 5
-reviewer_adversarial_verdict: APPROVE-WITH-NITS, 0 blockers, HIGH confidence (nits incorporated into this plan)
+  - CHANGELOG.md
+  - pyproject.toml
+future_execution_file_count: 4
+target_version_bump: "3.82.1 -> 3.83.0"
 date: "2026-05-29"
 ---
 
 ## Scope
 
-Author a Category C Layer-1 closure planning artifact for SC2EGSet Step 02_01_03 after PR #259 (merged at master `5a62fc76`) materialized the five-family Parquet (44,418 × 28; 22,209 distinct `focal_match_id`) and the first non-vacuous CROSS-02-01 audit pair (`verdict = PASS`, `features_audited_count = 24`) but deliberately left closure deferred.
+Author a Category A Layer-1 planning artifact for SC2EGSet Pipeline Section
+`02_02 — Symmetry & Difference Features`. PR #262 (merged 2026-05-29 at master
+`2c9080ae`) formally closed Step `02_01_03`; `02_01` is now complete in both
+STEP_STATUS (`02_01_03: complete`, `completed_at: "2026-05-28"`, L205-L209) and
+PIPELINE_SECTION_STATUS (`02_01: complete`, L51-L54). The next atomic unit per
+`docs/PHASES.md` Phase 02 table is `02_02`, whose first step we open with a
+ROADMAP-only stub.
 
-This planning PR writes only `planning/current_plan.md` + `planning/current_plan.critique.md`. A SEPARATE Layer-2 execution PR will perform:
-- a single `STEP_STATUS.yaml` row addition for `02_01_03`;
-- a dataset `research_log.md` closure entry **prepended** above the PR #259 `still_open` entry (preserving it byte-shifted only);
-- a patch version bump 3.82.0 → 3.82.1;
-- a `CHANGELOG.md [3.82.1]` block;
-- a `planning/INDEX.md` archive flip of PR #259.
+**Two-PR sequence.**
 
-Future Layer-2 execution file count: **5**.
+1. **THIS Layer-1 planning PR** writes only two files:
+   - `planning/current_plan.md` (this document);
+   - `planning/current_plan.critique.md` (reviewer-adversarial output).
+2. **FUTURE Layer-2 execution PR on the same branch** performs four file edits:
+   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (add one
+     `### Step 02_02_01 — ...` block between the existing `### Step 02_01_99`
+     block and the `## Phase 03 — Splitting & Baselines (placeholder)` heading);
+   - `planning/INDEX.md` (archive PR #262 row + this PR row + new active line);
+   - `CHANGELOG.md` (append `## [3.83.0]` block under `[Unreleased]`);
+   - `pyproject.toml` (bump `version = "3.82.1"` -> `version = "3.83.0"`).
 
-Step 02_01_04 and Phase 03 remain BARRED by this planning PR and by the future closure execution PR.
+**Explicitly out of scope** for both PRs:
+- feature value materialization (no Parquet, no CSV, no MD report under
+  `reports/artifacts/02_02_01/` or `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`);
+- notebook scaffold; one-validation-module pass; full validator suite;
+- STEP_STATUS.yaml additions for `02_02_01` (closure comes after future
+  materialization PRs per the `02_01` ladder);
+- PIPELINE_SECTION_STATUS.yaml `02_02` row addition (defer until first `02_02`
+  step transitions — see OQ3 / Outcome-E justification below);
+- PHASE_STATUS.yaml mutation (Phase 02 stays `in_progress`);
+- ROADMAP changes to any other Step or Pipeline Section (no edits to
+  Steps `02_01_01`, `02_01_02`, `02_01_03`, `02_01_99`, or the §02_01_03
+  amendment back-references);
+- root `reports/research_log.md` edit;
+- per-dataset `research_log.md` edit (`.claude/rules/data-analysis-lineage.md`
+  non-batching rule sequence step 1 — ROADMAP stub PR produces no
+  research_log entry; see PR #239 / PR #253 precedent);
+- thesis chapters, bib, appendix, `docs/**`, `.claude/**`, `data/**`;
+- any AoE2 path under `src/rts_predict/games/aoe2/**`;
+- Step `02_02_02+`; Step `02_01_04`; Phase 03; any baseline modeling.
 
 ## Problem Statement
 
-Three structural facts force formal closure:
+Three repo-evidence facts force opening `02_02`:
 
-1. **STEP_STATUS.yaml header rule violation.** STEP_STATUS.yaml lines 1–11 declare verbatim: "Derived from ROADMAP.md step definitions. If this file disagrees with the ROADMAP, this file is wrong." Repo state today:
-   - ROADMAP §"Step 02_01_03" (lines 2274–2618, with the `materialization_scope_amendment_post_pr_255` token) declares Step `02_01_03` with the five-family scope (`focal_player_history`, `opponent_player_history`, `matchup_history_aggregate`, `cross_region_fragmentation_handling`, `in_game_history_aggregate`; `reconstructed_rating` excluded).
-   - ROADMAP §"Step 02_01_99" (lines 2622–2849) declares the ROADMAP-only follow-up stub for the rating omit-closure lineage segment.
-   - STEP_STATUS.yaml stops at `02_01_02: complete` (lines 200–204). No `02_01_03` row; no `02_01_99` row.
-   - Per the YAML header rule, STEP_STATUS.yaml is currently wrong relative to ROADMAP for `02_01_03`.
+1. **Phase 02 work continues.** `docs/PHASES.md` Phase 02 lists eight pipeline
+   sections (`02_01` through `02_08`). After PR #262 closure, `02_01` is the
+   only one materialized in either STEP_STATUS / PIPELINE_SECTION_STATUS.
+   PHASE_STATUS Phase 02 = `in_progress`; Phase 03 = `not_started`. The next
+   sectional unit by `docs/PHASES.md` ordering is `02_02 — Symmetry &
+   Difference Features`.
 
-2. **PR #259 baseline carries `closure_status: still_open`** in dataset `research_log.md` (line 12, verified verbatim). That entry's own §"What this means" reads: "Status YAML flips … are deferred to a separate U2.B-style closure PR (per PR #237 precedent). The next 02_01 step … remains DEFERRED; Phase 03 is NOT started."
+2. **Methodological motivation.** SC2EGSet two-player matchups (1v1 random map)
+   produce feature rows with arbitrary slot ordering. The
+   `02_FEATURE_ENGINEERING_MANUAL.md` §3 ("Symmetry in Pairwise Prediction
+   Demands Difference Features") declares that a model treating
+   `[player1_features, player2_features]` as a standard concatenation will
+   learn different weights for each slot, violating the fundamental requirement
+   that `P(A wins vs B) = 1 - P(B wins vs A)`. Invariant I5
+   (`scientific-invariants.md` L156-L170) makes this binding for this thesis:
+   "Both players in every game must be treated identically by the feature
+   pipeline ... The model input is always structured as
+   `(focal_player_features, opponent_features, context_features)` and this
+   structure is identical regardless of which player is focal." The
+   `02_01_03_history_enriched_pre_game_features.parquet` artifact already
+   implements focal/opponent symmetric column generation; `02_02` operationalises
+   the next step — symmetric/difference representations layered on top of
+   focal/opponent pair columns.
 
-3. **CROSS-02-01 §5 gate is mechanically cleared** by PR #259 (`features_audited` length 24 + `verdict = PASS` + JSON/MD at spec-named paths under `reports/artifacts/02_01_03/`). The materialization evidence justifying closure exists on disk at master `5a62fc76`.
+3. **Non-batching discipline.** `.claude/rules/data-analysis-lineage.md`
+   "Non-batching rule for empirical work" sequence step 1 ("ROADMAP stub
+   only") and "Feature-engineering discipline" ("Feature-engineering contracts
+   and protocols may define planned feature families, grains, prediction
+   settings, and leakage checks. They must not silently execute feature
+   generation.") mandate that opening `02_02` start with a ROADMAP-only stub
+   that declares the planned families and gates — no scaffold, no validator,
+   no artifact. The precedent ladder is verified at PR #232 (Step 02_01_02
+   stub), PR #239 (Step 02_01_03 stub), and PR #253 (Step 02_01_99 stub) —
+   each was ROADMAP-only with no PIPELINE_SECTION_STATUS row addition.
 
 ## Assumptions & Unknowns
 
-- **A1 (Outcome A is justified).** PR #237 → PR #236 precedent (research_log.md L35–L114) shows separate U2.B closure PRs as standard for Phase-02 materialization-then-closure sequences. Direct execution (B), starting 02_01_04 (C), starting Phase 03 (D), additional fix PR (E), or hold (F) are all inappropriate: PR #259's audit was non-vacuous PASS; the 02_01_99 stub already merged at PR #253; the omit-closure decision artifact already merged at PR #255; no new evidence is required to flip status. **No methodology defect** in PR #259's artifact on master `5a62fc76` was identified by reviewer-adversarial.
-- **A2 (`02_01_99` DO_NOT_ADD a STEP_STATUS row).** See §Open Questions OQ1 for the binding rationale, reinforced by the reviewer-adversarial nit confirming PR #255 added no STEP_STATUS row.
-- **A3 (`completed_at = "2026-05-28"`).** Mirrors the PR #237 → PR #236 evidence-date convention (`git show a16d78c2` confirmed PR #237 used PR #236 evidence date `2026-05-23`). PR #259 audit JSON L5 records `"audit_date": "2026-05-28"`; PR #259 dataset research_log entry header (L5) is dated `2026-05-28`. The closure PR's CHANGELOG header will use closure-PR merge date `2026-05-29` (distinct from `completed_at`).
-- **A4 (patch bump 3.82.0 → 3.82.1).** Per `.claude/rules/git-workflow.md` L25 "patch for fix/test/chore"; closure adds no on-disk artifact (no Parquet, no audit, no notebook, no module, no test). Matches PR #237 `3.70.0 → 3.70.1` precedent.
-- **A5 (Branch name `chore/sc2egset-02-01-03-formal-closure`).** Mirrors PR #237's `chore/sc2egset-02-01-02-formal-closure` slug substitution.
-- **A6 (PIPELINE_SECTION_STATUS.yaml + PHASE_STATUS.yaml byte-unchanged).** Master state (verified): `02_01: complete` (PIPELINE_SECTION_STATUS.yaml line 54); Phase 02 `in_progress`, Phase 03 `not_started` (PHASE_STATUS.yaml lines 22–23). Adding the 02_01_03 row RESTORES (rather than disturbs) the STEP_STATUS-derives-from-ROADMAP invariant; PIPELINE_SECTION_STATUS / PHASE_STATUS already reflect the target end-state.
-- **A7 (No root `reports/research_log.md` edit).** Per CLAUDE.md "After Category A step: Update the active dataset's `research_log.md`" — root research_log is not updated for sub-phase step closures.
-- **A8 (Append-only-safe research_log prepend).** The `_check_dataset_research_log_evidence_present` function in `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py` (lines 1178–1212) performs presence-only substring search, NOT byte-position validation. Prepending the new closure entry above the PR #259 still_open entry is safe under this validator, provided every PR #245-era evidence token remains present somewhere in the file (the still_open entry retains them verbatim because it is line-offset-shifted, not edited).
+- **A1 (Outcome A justified).** Outcomes B-F rejected on repo evidence (see
+  reviewer-adversarial §1 in `current_plan.critique.md`). A is the only
+  sequence-step-1-compliant outcome.
+- **A2 (Position after 02_01_99 stub).** Insert the new
+  `### Step 02_02_01 — ...` block immediately after `### Step 02_01_99` (and
+  its amendment back-reference at L2837-L2849), before
+  `## Phase 03 — Splitting & Baselines (placeholder)` at L2853. Justification:
+  sectional ascending order; 02_01_99 is the existing terminal 02_01 block;
+  02_02_01 opens the next pipeline section.
+- **A3 (Predecessor token `"02_01_03"`).** Single-string scalar matching the
+  ROADMAP idiom (L2360, L2691). Inputs for any future 02_02 materialization
+  are the `02_01_03` Parquet + audit pair; those are 02_01_03 outputs.
+  02_01_99 is a sibling decision-lineage stub, not a feature input.
+- **A4 (minor version bump `3.82.1 -> 3.83.0`).** Per
+  `.claude/rules/git-workflow.md` ("minor for feat/refactor/docs, patch for
+  fix/test/chore"). This is a `feat/` branch opening a new pipeline section —
+  pattern-matches PR #232 (`3.66.0 -> 3.67.0`, Step 02_01_02 stub), PR #239
+  (`3.70.1 -> 3.71.0`, Step 02_01_03 stub), PR #253 (`3.78.0 -> 3.79.0`,
+  Step 02_01_99 stub). All three precedents bumped minor for a ROADMAP-only
+  stub. The version bump itself lands in the **Layer-2 execution PR**, not in
+  this Layer-1 planning PR.
+- **A5 (upstream evidence is byte-stable).**
+  `02_01_03_history_enriched_pre_game_features.parquet` (2,451,869 B),
+  `02_01_02_pre_game_features.parquet` (719,068 B), and
+  `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}`
+  (13,054 / 20,694 B) on master `2c9080ae`. The future Layer-2 stub does not
+  consume their values, only declares them as planned upstream inputs.
+- **A6 (Focal/opponent column convention already proven on disk).** PR #259
+  materialized the 02_01_03 Parquet covering five families with `focal_*` and
+  `opponent_*` symmetric pairs. The future 02_02 work declares planned
+  pair-difference / pair-product / symmetric-encoder operations on top of
+  those columns; column identity carries over. Specific row/column counts
+  are properties of the 02_01_03 artifact and are re-measured by Layer-2 at
+  execution time rather than hard-coded as Layer-1 gates.
+- **A7 (Slot bias avoidance).** Difference features must be computed as
+  `focal_value - opponent_value`, never `player_1_value - player_2_value`.
+  Player slot assignment in SC2EGSet is data-dependent (RISK-24 falsifier
+  enumerated in PR #259 notebook); encoding `player_1 - player_2` would
+  invent slot-skill correlation.
+- **A8 (Cross-region indicator handling carries lineage).** Any 02_02 family
+  that consumes `cross_region_fragmentation_handling` columns from the
+  02_01_03 Parquet must respect PR #243 Q5 cross-region adjudication and
+  PR #255 omit-closure scope (sensitivity-indicator co-registration arm
+  selected — preserved verbatim in PR #259 materialization). The 02_02 work
+  inherits this co-registration unchanged; it does not re-process the
+  cross-region indicator as a difference-feature input.
+- **A9 (`reconstructed_rating` family stays excluded).** PR #255 omit-closure
+  + PR #257 amendment + PR #259 materialization unanimously excluded the
+  `reconstructed_rating` family; 02_02 must not silently re-include
+  `reconstructed_rating_focal_pre`, `reconstructed_rating_opp_pre`, or
+  `reconstructed_rating_diff` under a difference-feature pretence.
+- **A10 (PIPELINE_SECTION_STATUS row deferred).** The `02_02` row addition
+  is deferred to a future PR (not this Layer-2 ROADMAP stub) per the verified
+  `02_01` precedent: section row first landed in PR #230 (closure of the
+  section's first step), not in the section's stub PR. See OQ3.
+- **A11 (Branch retained on Layer-2 same as Layer-1).** Both PRs ride
+  `feat/sc2egset-02-02-01-roadmap-stub`; mirrors PR #238 -> #239 ladder
+  (same branch hosting plan PR then stub PR).
+- **A12 (CHANGELOG PR-number placeholder).** Layer-2 CHANGELOG header uses
+  `PR #<TBD>`, swept to the real number by a follow-up housekeeping commit
+  pre-merge (mirrors `c4a3861b` "normalize PR #<TBD> placeholders to PR #262"
+  and `f0a3f551` for PR #260).
+- **A13 (02_02 vs 02_05 scope boundary).** Race-pair encoded interactions are
+  the canonical `02_05` (Categorical Encoding & Interactions) example per
+  manual §6. The future 02_02 ROADMAP block lists race-pair interactions as a
+  **candidate** family with explicit "may defer to 02_05" annotation; the
+  decision is taken in the Layer-2 source-anchor adjudication PR analogous to
+  PR #234, not in this stub.
 
 ## Literature Context
 
-Three repo precedents bind this plan:
+Two anchors from the methodology manuals:
 
-- **PR #237 (`a16d78c2`, merged 2026-05-24)** — direct precedent. U2.B closure PR for Step 02_01_02. 5-file diff: STEP_STATUS.yaml + dataset research_log.md (closure entry prepended above PR #236 still_open entry) + CHANGELOG.md [3.70.1] + pyproject.toml (3.70.0 → 3.70.1) + planning/INDEX.md. `completed_at = "2026-05-23"` (PR #236 audit-evidence date, NOT PR #237 merge date). NO ROADMAP / NO PIPELINE_SECTION_STATUS / NO PHASE_STATUS / NO root research_log / NO artifact / NO source / NO test / NO notebook. Branch `chore/sc2egset-02-01-02-formal-closure`. Research_log header: "Formal closure of Step 02_01_02 (U2.B; status YAML flip; no new artifact)".
-- **PR #230 → PR #229 (`0c45c490` ← `a14dc547`, merged 2026-05-21 / 2026-05-22)** — second-order vacuous-closure precedent. PR #229 persisted evidence with `closure_status: still_open`; PR #230 added STEP_STATUS row `02_01_01: complete` plus the PIPELINE_SECTION_STATUS `02_01: complete` flip and PHASE_STATUS Phase 02 `not_started → in_progress`. Distinguishes 02_01_03 closure from 02_01_01: section/phase rows already flipped during PR #230, so 02_01_03 closure leaves them byte-unchanged.
-- **PR #255 (`52f9c108`, merged 2026-05-28)** — omit-closure decision artifact PR for the rating reconstruction Q-chain. Critically, PR #255 produced `02_01_99_rating_omit_closure.{csv,md}` artifacts but did NOT add any STEP_STATUS row (planning/INDEX.md L14: "NO STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip"). The Q-chain decision-artifact PRs #242, #243, #245, #247, #249, #251 likewise produced no STEP_STATUS rows. This is the binding precedent for the OQ1 02_01_99 DO_NOT_ADD decision.
+`02_FEATURE_ENGINEERING_MANUAL.md` §3 ("Symmetry in Pairwise Prediction
+Demands Difference Features") establishes the Bradley-Terry connection:
+each player `i` has latent strength `beta_i`, and the logit of win
+probability equals the difference of latent strengths. For tabular logistic
+regression or gradient boosting, "difference features are the clear default"
+because they are antisymmetric under slot swap and reduce dimensionality by
+half while preserving information. The manual identifies four representations
+(difference, ratio, canonical ordering with concatenation, symmetric
+kernels) and recommends differences for thesis-grade tabular work. Section
+6 of the same manual catalogues categorical-pair interaction encoding
+(`race x opponent_race`) as the standard pre-game pair feature — and this
+interaction-encoding scope belongs to Pipeline Section `02_05`, not `02_02`;
+the 02_02 stub annotates race-pair candidates accordingly.
+
+`.claude/scientific-invariants.md` Invariant I5 (L156-L170) binds this
+thesis: "Both players in every game must be treated identically by the
+feature pipeline ... The model input is always structured as
+`(focal_player_features, opponent_features, context_features)` and this
+structure is identical regardless of which player is focal." Invariant I3
+(L130-L148) binds the temporal cutoff that any symmetric/difference feature
+inherits: `history_time < target_time` strict, normalization scoped to
+training folds. `.claude/ml-protocol.md` enumerates the three leakage
+failure modes that 02_02 design must not break (rolling aggregates that
+include game T, head-to-head that includes game T, co-occurring matches).
+`reports/specs/02_03_temporal_feature_audit_protocol.md` is the downstream
+temporal-window/decay/cold-start audit spec that 02_02 difference features
+will eventually feed into; it is read at Layer-1 so the stub's exclusion
+clauses do not silently encroach on `02_03` scope.
 
 ## Execution Steps
 
-The FUTURE Layer-2 closure execution PR (NOT this Layer-1 planning PR) will execute these steps:
+**Layer-1 (THIS PR — planning-only):**
 
-**T01 — Branch + version bump.** Create `chore/sc2egset-02-01-03-formal-closure` off master `5a62fc76`. Edit `pyproject.toml` line 3: `version = "3.82.0"` → `version = "3.82.1"`. Commit as a single chore commit.
+L1.1 Read `.claude/scientific-invariants.md`, `.claude/ml-protocol.md`,
+`.claude/rules/data-analysis-lineage.md`, `.claude/rules/git-workflow.md`,
+`docs/PHASES.md`, `docs/TAXONOMY.md`,
+`docs/ml_experiment_lifecycle/02_FEATURE_ENGINEERING_MANUAL.md`,
+`reports/specs/02_00_feature_input_contract.md`,
+`reports/specs/02_01_leakage_audit_protocol.md`,
+`reports/specs/02_02_feature_engineering_plan.md`,
+`reports/specs/02_03_temporal_feature_audit_protocol.md` (added per
+reviewer-adversarial nit N4), the dataset's PHASE_STATUS /
+PIPELINE_SECTION_STATUS / STEP_STATUS / ROADMAP / research_log, the master
+HEAD diff for PR #262, the `02_01_03` audit and Parquet metadata (no value
+reads). All read-only.
 
-**T02 — STEP_STATUS.yaml: append exactly ONE row.** Append below the existing `02_01_02` block (currently lines 200–204) the single block:
+L1.2 Confirm verified state matches the lookup-PASS section of the
+predecessor prompt: master HEAD `2c9080ae`, pyproject `3.82.1`,
+STEP_STATUS 02_01_03 complete `completed_at` 2026-05-28, no 02_01_99 or
+02_02_01 STEP_STATUS row, ROADMAP §02_01_99 still present (L2622-L2849),
+audit artifacts byte-stable.
 
-    "02_01_03":
-      name: "History-enriched pre_game feature-family materialization (sc2egset)"
-      pipeline_section: "02_01"
-      status: complete
-      completed_at: "2026-05-28"
+L1.3 Author `planning/current_plan.md` (this document). Pre-commit hook
+sanity (`feedback_plan_required_sections.md`): the document MUST have
+`## Scope`, `## Problem Statement`, `## Assumptions & Unknowns`,
+`## Literature Context`, `## Execution Steps`, `## File Manifest`,
+`## Gate Condition`, `## Open Questions`. Verified inline.
 
-Field shape mirrors lines 200–204 verbatim (the on-disk `02_01_02` block at master `5a62fc76` already contains `pipeline_section: "02_01"` at line 202, so the future closure PR matches that shape). NO `02_01_99` row is added (see OQ1).
+L1.4 Author `planning/current_plan.critique.md` (reviewer-adversarial
+verdict + the 6 strong endorsements and 4 nits applied during Layer-1
+materialization).
 
-**T03 — Dataset `research_log.md` closure entry prepended above PR #259 `still_open` entry.** Insert a new section between line 3 (`---`) and line 5 (`## 2026-05-28 — Materialize Step 02_01_03 …`). The PR #259 entry remains byte-identical content; only its line offsets shift. Required tokens (all to appear verbatim in the new entry header bullets):
+L1.5 Open draft PR with exactly those two files. Branch
+`feat/sc2egset-02-02-01-roadmap-stub` off master `2c9080ae`. PR body in
+`.github/tmp/pr.txt` per `feedback_pr_body_file.md`; delete after PR
+opens (`feedback_pr_body_cleanup.md`).
 
-- `closure_status:` `closed`
-- `materialization_state:` `materialized`
-- `leakage_audit_state:` `post_materialization_pass`
-- `status_yaml_state:` `complete`
-- `features_audited_count:` `24`
-- `row_count:` `44418`
-- `distinct_focal_match_count:` `22209`
-- `artifact:` `02_01_03_history_enriched_pre_game_features.parquet`
-- `leakage_audit:` `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}`
-- explicit safeguard sentences: "Excluded family `reconstructed_rating` per PR #255 omit-closure"; the five-family list; "Step 02_01_04 NOT started; Phase 03 NOT started."
+**Layer-2 (FUTURE execution PR — same branch — DO NOT execute now):**
 
-Header: `## 2026-05-29 — Formal closure of Step 02_01_03 (U2.B; status YAML flip; no new artifact)`. Sub-headings mirror PR #237's verbatim structure (research_log.md L51–L113): What / Why / How (reproducibility) / Findings / Decisions taken / Decisions deferred / Thesis mapping / Open questions / follow-ups / Scope notes. The §Why must cite the `completed_at = "2026-05-28"` convention text and the PR #237 precedent.
+L2.1 Insert exactly ONE new `### Step 02_02_01 — Symmetry & difference
+feature-family ROADMAP-only stub (sc2egset)` block in
+`src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` between
+the existing `### Step 02_01_99` block (which ends at L2835 closing
+backtick fence + L2837-L2849 amendment back-reference + L2851 `---`) and
+the `## Phase 03 — Splitting & Baselines (placeholder)` heading at L2853.
+The new block MUST contain the 12 required content items enumerated in
+the "Required content for the future ROADMAP `02_02_01` block" section
+of this plan (one fenced yaml block matching the schema used at L2624 for
+Step 02_01_99 and L2276 for Step 02_01_03). Forbidden actions: edit any
+other Step block, edit the amendment back-reference, change section
+ordering, add a `## Pipeline Section 02_02` heading (the ROADMAP keeps
+step blocks at H3 directly under the `## Phase 02` heading; verify
+against L2099 and L2274 — no intermediate section heading exists at H3
+or H4 in the current file).
 
-**T04 — `CHANGELOG.md [3.82.1]` block.** Insert below `[Unreleased]` (line 12) and above `[3.82.0]` (line 22): a new `## [3.82.1] — 2026-05-29 (PR #<TBD>: chore/sc2egset-02-01-03-formal-closure)` block. PR number placeholder `<TBD>` is filled by a follow-up housekeeping commit before merge (mirroring the `f0a3f551` chore commit "normalize PR #<TBD> placeholders to PR #260").
+L2.2 (CONDITIONAL — does NOT fire under Outcome-E adjudication.) NO
+`02_02` row addition to `PIPELINE_SECTION_STATUS.yaml` in this Layer-2
+PR. Justification: PIPELINE_SECTION_STATUS 02_01 first landed in PR #230
+(closure of 02_01_01), not in PR #232 (stub). The verified pattern is
+section-row-on-first-transition, not section-row-on-stub. The future
+02_02 section row will land when the future first 02_02 materialization
+step closes (analogous to PR #230 for 02_01).
 
-**T05 — `planning/INDEX.md` archive flip.** Archive PR #259 at merge SHA `5a62fc76` into the Archive table; promote the new chore branch to the Active plan line. Use the verbatim row format from planning/INDEX.md L10 (the PR #260 chore archive row) as template.
+L2.3 Update `planning/INDEX.md`:
+   - Move current Active plan line (PR #262 row) into the Archive table
+     above the existing PR #260 chore row.
+   - Add a new Archive row for THIS Layer-1 planning PR with its merge
+     SHA (filled at Layer-2 dispatch time).
+   - Set new Active plan line to
+     `feat/sc2egset-02-02-01-roadmap-stub (YYYY-MM-DD) — Category A:
+     Layer-2 ROADMAP-only execution PR for SC2EGSet Step 02_02_01 stub
+     ...`. Mirror PR #239's archive row format.
+
+L2.4 Bump `pyproject.toml` line 3: `version = "3.82.1"` ->
+`version = "3.83.0"`. Single edit.
+
+L2.5 Append `## [3.83.0]` block to `CHANGELOG.md` immediately under the
+`[Unreleased]` block (above the `[3.82.1]` block at L22). Header:
+`## [3.83.0] — YYYY-MM-DD (PR #<TBD>: feat/sc2egset-02-02-01-roadmap-stub)`.
+Required subsections: `### Added` (with bullet listing the 02_02_01
+ROADMAP stub and the new pipeline section opened), `### Changed` (empty
+or omitted), `### Notes` (with the explicit no-feature, no-status-flip,
+no-research-log, no-PIPELINE_SECTION_STATUS-02_02-row sentences, and
+the `02_01_03` upstream Parquet + audit byte-unchanged statements,
+mirroring PR #262 CHANGELOG L33-L40 format).
+
+L2.6 NO other file touched. NO STEP_STATUS.yaml row for `02_02_01`. NO
+PIPELINE_SECTION_STATUS row for `02_02`. NO PHASE_STATUS mutation. NO
+research_log.md (dataset OR root) entry. NO source `.py`, test `.py`,
+notebook `.py`/`.ipynb`, artifact (Parquet/CSV/MD/JSON), spec under
+`reports/specs/`, cleaning-layer YAML, AoE2 path, thesis chapter, bib,
+docs, `.claude`, data path.
+
+For each Layer-2 step, the executor must:
+- diff-cap the new ROADMAP block to a single fenced yaml block following
+  the schema at L2276 (02_01_03) and L2624 (02_01_99);
+- grep-discover the anchor strings before each edit (`### Step 02_01_99`,
+  `## Phase 03 — Splitting & Baselines (placeholder)`, `[Unreleased]`,
+  `[3.82.1]`, `version = "3.82.1"`, the planning/INDEX.md Active plan
+  line);
+- run pre-commit hooks once before commit; ruff / mypy run automatically
+  on `.py` touch and will not fire on this PR's no-`.py` diff.
 
 ## File Manifest
 
 ### THIS Layer-1 planning PR (exactly 2 files; ONLY after reviewer approval):
-- `planning/current_plan.md`
-- `planning/current_plan.critique.md`
 
-### Future Layer-2 execution PR (exactly 5 files):
+| Path | Action |
+|---|---|
+| `planning/current_plan.md` | create/overwrite |
+| `planning/current_plan.critique.md` | create/overwrite |
+
+### Future Layer-2 execution PR (exactly 4 files):
+
+| Path | Action | Notes |
+|---|---|---|
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` | add ONE `### Step 02_02_01` block | Between L2851 `---` (after 02_01_99 amendment back-reference) and L2853 `## Phase 03 — Splitting & Baselines (placeholder)` |
+| `planning/INDEX.md` | archive PR #262 + this Layer-1 PR; new Active line | Mirror PR #239 archive row format |
+| `CHANGELOG.md` | append `## [3.83.0]` block | Under `[Unreleased]`, above `[3.82.1]` |
+| `pyproject.toml` | bump version | `version = "3.82.1"` -> `version = "3.83.0"` |
+
+### Forbidden in future Layer-2 (must NOT appear in diff):
+
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml`
+  (no `02_02_01` row; closure follows future materialization)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml`
+  (no `02_02` row; deferred to first 02_02 transition PR; Outcome-E
+  adjudication)
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml`
+  (Phase 02 stays `in_progress`)
 - `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md`
-- `pyproject.toml`
-- `CHANGELOG.md`
-- `planning/INDEX.md`
-
-### Forbidden in future Layer-2 execution (must NOT appear in diff):
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (already records 02_01_03 + 02_01_99; PR #257 amendment is sufficient)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (02_01 already complete; derivation rule unchanged)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` (Phase 02 stays in_progress; Phase 03 stays not_started)
+  (per data-analysis-lineage sequence step 1 — ROADMAP stub PR produces
+  no research_log entry; PR #232, #239, #253 precedents)
 - `reports/research_log.md` (root)
-- any source `.py`, test `.py`, notebook `.py`/`.ipynb`, artifact (Parquet/CSV/MD/JSON), spec under `reports/specs/`, cleaning-layer YAML under `data/db/schemas/`
+- `src/rts_predict/games/sc2/datasets/sc2egset/reports/INVARIANTS.md`
+- any artifact under `reports/artifacts/02_02_01/` or
+  `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`
+- any byte change to
+  `reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}` or
+  `02_01_03_history_enriched_pre_game_features.parquet`
+- any source `.py`, test `.py`, notebook `.py`/`.ipynb`
+- any spec under `reports/specs/` or schema YAML under
+  `src/rts_predict/games/sc2/datasets/sc2egset/data/db/schemas/`
 - any AoE2 path under `src/rts_predict/games/aoe2/**`
 - any thesis chapter, bib, appendix under `thesis/**`
 - any `docs/**`, `.claude/**`, or `data/**` path
-- `INVARIANTS.md`
+- any Step block other than the new `02_02_01` block in ROADMAP.md
+- the §02_01_03 materialization-scope-amendment back-references at
+  L2837-L2849 (must remain byte-unchanged)
 
 ## Gate Condition
 
-The future Layer-2 closure PR's reviewer gate is satisfied iff ALL of:
+**Layer-1 gate (THIS PR):** satisfied iff ALL of:
+1. PR diff = exactly two files (`planning/current_plan.md` +
+   `planning/current_plan.critique.md`).
+2. PR is open as draft.
+3. `planning/current_plan.md` contains all eight required `##` sections
+   (Scope, Problem Statement, Assumptions & Unknowns, Literature Context,
+   Execution Steps, File Manifest, Gate Condition, Open Questions).
+4. Reviewer-adversarial returns APPROVE or APPROVE-WITH-NITS with zero
+   blockers; verdict recorded in `current_plan.critique.md`.
 
-1. `STEP_STATUS.yaml` contains exactly ONE new block keyed `"02_01_03"` with `status: complete`, `completed_at: "2026-05-28"`, `name: "History-enriched pre_game feature-family materialization (sc2egset)"`, `pipeline_section: "02_01"`. No `"02_01_99"` block is added.
-2. Dataset `research_log.md` lines 5–32 (the PR #259 `still_open` entry) preserved byte-for-byte (no content edit; only line-offset shift). A new `closure_status: closed` entry sits ABOVE it.
-3. `CHANGELOG.md [3.82.1]` block exists with header `## [3.82.1] — 2026-05-29 (PR #N: chore/sc2egset-02-01-03-formal-closure)` (where N is the assigned PR number, swept from `<TBD>`).
-4. `pyproject.toml` records `version = "3.82.1"`.
-5. `planning/INDEX.md` Archive table contains a PR #259 row at SHA `5a62fc76`; the new chore branch is on the Active plan line.
-6. Repo HEAD diff size = exactly 5 files (no more, no less).
-7. `PIPELINE_SECTION_STATUS.yaml` + `PHASE_STATUS.yaml` + `ROADMAP.md` + every audit artifact under `reports/artifacts/02_01_03/` + the Parquet at `reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet` are byte-identical to their master `5a62fc76` state.
-8. `git log master..HEAD --stat` shows exactly 2 commits (closure content commit + chore release-bump commit per `.claude/rules/git-workflow.md` L29).
-9. The PR #245 evidence tokens validated by `_check_dataset_research_log_evidence_present` (lines 1178–1212) remain present in the dataset research_log (the still_open entry retains them; the new closure entry need not duplicate them).
+**Layer-2 gate (FUTURE execution PR):** satisfied iff ALL of:
+1. PR diff = exactly four files (ROADMAP.md + planning/INDEX.md +
+   CHANGELOG.md + pyproject.toml).
+2. ROADMAP.md contains exactly ONE new `### Step 02_02_01 — ...` block
+   at the declared position, containing the 12 required content items
+   (enumerated below). All other Step blocks (02_01_01, 02_01_02,
+   02_01_03, 02_01_99) and the §02_01_03 amendment back-reference
+   (L2837-L2849) are byte-identical to master `2c9080ae`.
+3. `pyproject.toml` reads `version = "3.83.0"`.
+4. `CHANGELOG.md` has a new
+   `## [3.83.0] — YYYY-MM-DD (PR #N: feat/sc2egset-02-02-01-roadmap-stub)`
+   block under `[Unreleased]`, above `[3.82.1]`.
+5. `planning/INDEX.md` Archive table contains rows for PR #262 (chore
+   closure) and this Layer-1 PR; new Active line is the Layer-2 branch.
+6. NO Parquet, CSV, MD, JSON artifact change anywhere.
+7. NO `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`,
+   `PHASE_STATUS.yaml`, or `research_log.md` (dataset / root) byte change.
+8. NO source `.py`, test `.py`, notebook `.py`/`.ipynb`, spec, schema
+   YAML, AoE2, thesis, docs, .claude, data path byte change.
+9. Pre-commit hooks pass (ruff/mypy not triggered on no-`.py` diff;
+   plan-section hook not triggered on non-plan diff).
+10. `git log master..HEAD --stat` shows the standard two-commit pattern
+    (feature commit + chore release-bump commit) per
+    `.claude/rules/git-workflow.md`.
 
 ## Open Questions
 
-- **OQ1 — 02_01_99 STEP_STATUS row: DO_NOT_ADD.** Binding rationale: ROADMAP §"Step 02_01_99" L2627–L2650 declares it as ROADMAP-only stub. Its `outputs.data_artifacts` lists `02_01_99_omit_closure_decision.csv` and `.md` as "(planned, NOT created in this PR)" (L2721, L2723). Its `gate.artifact_check` (L2762–L2776): "NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires only after the future omit-closure artifact PR materializes the CSV + MD decision pair." That follow-up artifact PR was PR #255, which produced `02_01_99_rating_omit_closure.{csv,md}` and added NO STEP_STATUS row (planning/INDEX.md L14: "NO STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip"). The Q-chain decision-artifact PRs #242, #243, #245, #247, #249, #251 likewise add no STEP_STATUS rows. 02_01_99 is structurally identical: a decision-artifact sub-step of 02_01_03's adjudication chain, not an independent materialization step. Adding a `02_01_99` row would invent a closure semantics no precedent supports. The STEP_STATUS header rule "derived from ROADMAP" means rows track materialization-bearing steps, not lineage stubs. 02_01_99 continues to live in ROADMAP as a documented declaration; STEP_STATUS does not mirror every ROADMAP block. **Reviewer-adversarial concurred (HIGH confidence).**
+- **OQ1 — 02_01_99 fate.** Retained in place. Deletion would mutate
+  the 02_01_03 materialization-scope-amendment lineage (ROADMAP L2841-
+  L2849 explicitly cross-references it). Deferral is not a recognised
+  ROADMAP state — blocks are either present or absent. 02_01_99 already
+  exists as a documented ROADMAP-only stub with no STEP_STATUS row;
+  its continued presence has zero cost and preserves git-blame traceability
+  to PR #253 / PR #255.
 
-- **OQ2 — CHANGELOG.md [3.82.1] header date 2026-05-29.** Convention is closure-PR merge date (mirroring PR #237 L35 header date 2026-05-24 = PR #237 merge date), distinct from `completed_at = "2026-05-28"` (audit-evidence date). The plan resolves this in T03 + T04.
+- **OQ2 — Predecessor token.** `02_01_03` selected (single string scalar
+  matching ROADMAP L2360, L2691 convention). NOT `02_01` (no precedent
+  for sectional predecessor token), NOT `02_01_99` (02_01_99 is a
+  decision-lineage sibling, not a feature-input producer; its predecessor
+  field reads `"02_01_03"` itself — L2691).
 
-- **OQ3 — CHANGELOG PR number placeholder.** Per repo housekeeping convention, open PR, then sweep `PR #<TBD>` → `PR #N` in a follow-up housekeeping commit before merge (mirrors the `f0a3f551` chore commit "normalize PR #<TBD> placeholders to PR #260"). The placeholder sweep is part of the future closure execution PR's git history but does not change the 5-file diff envelope.
+- **OQ3 — PIPELINE_SECTION_STATUS `02_02` row timing.** Deferred to a
+  future PR, NOT this Layer-2 ROADMAP stub. Verified precedent: 02_01
+  row first landed in PR #230 (closure of 02_01_01), not in PR #232
+  (stub). The natural moment to add `02_02` is when the first 02_02
+  step closes (mirrors 02_01 ladder). The header derivation rule on
+  L11 — `in_progress` when ANY step is `in_progress` or `complete` —
+  does NOT trigger on a ROADMAP-only stub.
 
-- **OQ4 — Was PIPELINE_SECTION_STATUS `02_01: complete` strictly correct after PR #259?** Reviewer-adversarial nit. At master `5a62fc76`, PIPELINE_SECTION_STATUS `02_01: complete` exists despite STEP_STATUS having no `02_01_03` row. Either (a) PIPELINE_SECTION_STATUS pre-anticipated the 02_01_03 row addition (matching the PR #230 path where section-row flipped before 02_01_01 step-row had a `complete` row), or (b) the derivation invariant was effectively violated at master `5a62fc76`. This planning PR treats the future closure's 02_01_03 row addition as RESTORING the invariant; it does NOT propose to edit PIPELINE_SECTION_STATUS in the closure PR. A future maintainer may wish to revisit derivation semantics in a separate governance review; this plan does NOT pre-decide that question.
+- **OQ4 — Version bump policy.** Minor `3.82.1 -> 3.83.0` chosen against
+  three internal precedents: PR #232 (`3.66.0 -> 3.67.0`), PR #239
+  (`3.70.1 -> 3.71.0`), PR #253 (`3.78.0 -> 3.79.0`) — all minor for
+  ROADMAP-only stubs on `feat/` branches. Patch (`3.82.2`) would be a
+  policy break; chore-only is not appropriate (this is `feat/` opening
+  a new pipeline section, not maintenance).
 
-- **OQ5 — 02_01_99 future closure path.** If a future maintainer decides 02_01_99 should be closed independently (rather than living in 02_01_03's lineage), it would require its own separate Layer-1 + Layer-2 plan pair. This plan does NOT pre-decide that question.
+- **OQ5 — Pipeline-section heading inclusion in ROADMAP.** The repo
+  ROADMAP file uses H2 for Phase headings only; Step blocks are H3
+  directly. There is NO `## Pipeline Section 02_01` heading between
+  the Phase 02 heading and the first 02_01 Step block (verified by
+  inspecting L1905-L2099). The 02_02_01 block therefore appears as
+  H3 directly without a wrapping `## Pipeline Section 02_02` heading.
+  The `pipeline_section` field within the yaml block carries the
+  pipeline-section name (`"02_02 — Symmetry & Difference Features"`),
+  consistent with all prior 02_01 blocks (L2127, L2313, L2652).
+
+- **OQ6 — 02_02 vs 02_05 scope boundary.** Race-pair encoded interactions
+  are the canonical 02_05 (Categorical Encoding & Interactions) family
+  per manual §6. The 02_02 stub item 9 lists race-pair interactions as
+  a candidate with explicit "may defer to 02_05" annotation; the binding
+  decision is taken at the Layer-2 source-anchor adjudication step
+  analogous to PR #234, not in this stub. Reviewer-adversarial nit N2.
+
+## Required content for the future ROADMAP `02_02_01` block (12 items)
+
+The Layer-2 executor must produce a single fenced yaml block with these
+12 mandatory items (one sentence each; not aspirational, definite scope):
+
+1. `step_number: "02_02_01"` — grep-visible string.
+2. `pipeline_section: "02_02 — Symmetry & Difference Features"` — exact
+   string per `docs/PHASES.md` Phase 02 row 2.
+3. `predecessors: "02_01_03"` — single string scalar matching ROADMAP
+   idiom (Outcome-3 adjudication; see OQ2 above).
+4. Statement in `description`: "ROADMAP-only stub declaring Step
+   02_02_01 — the first step of Pipeline Section 02_02 (Symmetry &
+   Difference Features). NO ARTIFACT is emitted in this ROADMAP-stub
+   PR — this entry only declares the future step per
+   `.claude/rules/data-analysis-lineage.md` 'Non-batching rule for
+   empirical work' sequence step 1; the notebook scaffold + one
+   validation module + any adjudication artifacts + materialization
+   are produced by SEPARATE FUTURE PRs (sequence steps 2-9)."
+5. Statement in `description` halt-clause section: "Phase 03 is BARRED
+   by this stub; Step 02_02_02+ is BARRED; Step 02_01_04 is BARRED;
+   no baseline modeling."
+6. Methodological purpose (in `description` and `question`): "Transform
+   focal/opponent paired features from Step 02_01_03's materialized
+   Parquet into symmetric / difference representations that (a)
+   eliminate slot-assignment bias per Invariant I5 (focal/opponent
+   symmetry), (b) inherit Invariant I3 strict
+   `history_time < target_time` cutoff already enforced upstream,
+   (c) produce model-input columns suitable for downstream Phase 03
+   splitting / Phase 04 modeling, (d) avoid encoding
+   `player_1_value - player_2_value` (slot-dependent) in favour of
+   `focal_value - opponent_value` (slot-orthogonal), (e) preserve row
+   identity (`focal_match_id`, `focal_player_id`) and the `started_at`
+   temporal anchor verbatim."
+7. `manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 3"`
+   + `external_references` cite `docs/PHASES.md` Phase 02 row 2
+   (`02_02`), `02_FEATURE_ENGINEERING_MANUAL.md §3` (symmetric/
+   difference features), `reports/specs/02_02_feature_engineering_plan.md`
+   §5.1 (focal/opponent symmetry, Invariant I5) and §10 G-L-8 (no
+   row-order leakage from slot asymmetry), AND
+   `reports/specs/02_03_temporal_feature_audit_protocol.md` (downstream
+   temporal-window/decay/cold-start audit spec; explicitly scoped OUT
+   of this stub — referenced so the stub's halt-clauses do not silently
+   encroach on 02_03).
+8. `inputs.prior_artifacts` pointers:
+   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet`;
+   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet`;
+   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.{json,md}`;
+   - `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.{json,md}`;
+   - the §02_01_03 materialization-scope-amendment back-reference
+     at L2525-L2618 (PR #257) and the PR #255 omit-closure artifact.
+9. Candidate future feature families (declared as `planned, NOT created
+   in this PR`):
+   - **race-pair encoded interactions** (candidate; may defer to 02_05 —
+     Categorical Encoding & Interactions per manual §6; binding decision
+     to be taken in the Layer-2 source-anchor adjudication PR analogous
+     to PR #234, NOT in this stub);
+   - **focal/opponent numeric history difference features** (e.g.,
+     `prior_win_rate_diff = focal_prior_win_rate - opponent_prior_win_rate`)
+     over the 02_01_03 history-enriched columns;
+   - **symmetric pair features** under each family (mean, sum, product,
+     absolute-difference) for inspection purposes per
+     `02_FEATURE_ENGINEERING_MANUAL.md §3` representation options;
+   - **matchup-history interaction / difference features** combining
+     matchup-conditional and per-player history columns;
+   - **cross-region-fragmentation indicator handling per PR #243 /
+     PR #255 lineage** (sensitivity-indicator co-registered alongside
+     any difference feature; no strict-exclusion path; mirror PR #259
+     materialization choice exactly).
+10. Explicit exclusions (in `description` and `gate.halt_predicate`):
+    - `reconstructed_rating` family and any `reconstructed_rating_*`
+      column (per PR #255 omit-closure + PR #257 amendment + PR #259
+      materialization);
+    - target-match outcome (game T result) — Invariant I3 + G-L-3;
+    - future-match features (any match strictly after target T) —
+      Invariant I3 + G-L-7;
+    - Phase 03 split-derived features (no split exists yet);
+    - tracker-derived target-match features (Amendment 2 of PR #208
+      + `tracker_events_feature_eligibility.csv`);
+    - `player_1_value - player_2_value`-style slot-dependent differences
+      (Invariant I5 + G-L-8 + RISK-24);
+    - any new MMR scalar feature (PR #234 `is_mmr_missing` flag
+      precedent stands).
+11. `gate.continue_predicate` / future gates: input artifact SHA checks
+    (02_01_02 + 02_01_03 Parquet + both 02_01_x audit pairs); exact row
+    alignment with `02_01` artifacts (row count equal to the measured
+    row count of the `02_01_03` Parquet artifact, re-measured by Layer-2
+    execution rather than hard-coded — reviewer-adversarial nit N3);
+    `02_01_02_pre_game_features.parquet` and
+    `02_01_03_history_enriched_pre_game_features.parquet` byte-unchanged
+    in any future 02_02 PR; no materialization in this stub; no
+    status-YAML / research_log changes in this stub (beyond the Layer-2
+    4-file manifest); Phase 03 barred until 02_02 closes; cross-region
+    indicator handling must follow PR #243 / PR #255 lineage exactly;
+    per-dataset Invariants I3, I5, I6, I7, I8, I9, I10 declared upheld
+    with `how_upheld` bullets each.
+12. Statement: "Future `02_02` execution requires a separate scaffold +
+    one-validation-module + adjudication + materialization plan PR after
+    this ROADMAP stub merges. The non-batching rule sequence
+    (steps 2-9) is preserved exactly as it was for Step 02_01_02
+    (PRs #232 -> #233 -> #234 -> #235 -> #236 -> #237) and Step 02_01_03
+    (PRs #239 -> #241 -> #242 -> ... -> #259 -> #262). The stub does not
+    pre-commit a specific future-PR ladder count; that ladder is shaped
+    by the adjudication and review process."
 
 ---
 
-### Sources verified on master `5a62fc76`
+## Reviewer-adversarial nits applied (Layer-1 materialization)
 
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/STEP_STATUS.yaml` (header L1–L11; 02_01_02 block L200–L204)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PIPELINE_SECTION_STATUS.yaml` (`02_01: complete` L54)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml` (Phase 02 `in_progress` / Phase 03 `not_started` L22–L23)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` (§02_01_03 L2274–L2618; §02_01_99 L2622–L2849)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (PR #259 entry L5–L32; PR #237 closure header L35; PR #229/#230 closure pattern L171+)
-- `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.json` (`verdict=PASS`, `features_audited_count=24`, `row_count=44418`, `distinct_focal_match_count=22209`, `audit_date="2026-05-28"`)
-- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_history_rating_reconstruction.py` (`_check_dataset_research_log_evidence_present` L1178–L1212; presence-only validation)
-- `.claude/rules/git-workflow.md` (L25 "patch for fix/test/chore"; L29 two-commit pattern)
-- `.claude/scientific-invariants.md`
-- `.claude/ml-protocol.md`
-- `.claude/rules/data-analysis-lineage.md`
-- `docs/PHASES.md`
-- `docs/TAXONOMY.md`
-- `planning/INDEX.md` (PR #260 chore archive row L10; PR #255 archive L14)
-- `CHANGELOG.md` (top order [Unreleased] → [3.82.0] → [3.81.1] → [3.81.0])
-- PR #237 STEP_STATUS row via `git show a16d78c2` (`completed_at: "2026-05-23"` precedent — evidence-date, NOT merge-date)
+The four non-blocking nits from `current_plan.critique.md` are integrated
+into this plan as follows:
+
+- **N1 (drop AoE2 terminology):** item 9 first family reads
+  "race-pair encoded interactions" — no `civilization` token anywhere in
+  this plan body. SC2EGSet uses `race` exclusively.
+- **N2 (annotate 02_02 vs 02_05 scope):** item 9 first family carries the
+  explicit "candidate; may defer to 02_05 — Categorical Encoding &
+  Interactions" annotation; matched by OQ6 and A13.
+- **N3 (no hard-coded row count gate):** item 11 reads "row count equal
+  to the measured row count of the `02_01_03` Parquet artifact,
+  re-measured by Layer-2 execution rather than hard-coded." A6 updated
+  to remove binding row-count claim.
+- **N4 (read 02_03 temporal spec at Layer-1):** L1.1 explicitly lists
+  `reports/specs/02_03_temporal_feature_audit_protocol.md`; item 7
+  carries the spec into the future ROADMAP block's `external_references`
+  with the scoped-out annotation.
