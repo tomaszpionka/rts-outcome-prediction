@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.83.0] — 2026-05-29 (PR #<TBD>: feat/sc2egset-02-02-01-roadmap-stub)
+## [3.83.0] — 2026-05-29 (PR #264: feat/sc2egset-02-02-01-roadmap-stub)
 
 ### Added
 - SC2EGSet Step `02_02_01` ROADMAP-only stub inserted in `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` between the existing Step `02_01_99` block (and its `materialization_scope_amendment_post_pr_255` back-reference) and the `## Phase 03 — Splitting & Baselines (placeholder)` heading. The new block opens Pipeline Section `02_02 — Symmetry & Difference Features` per `docs/PHASES.md` Phase 02 row 2 and authorises future scaffold/validator/adjudication/materialization PRs that will transform Step `02_01_03`'s focal/opponent paired columns into symmetric/difference representations per `02_FEATURE_ENGINEERING_MANUAL.md` §3 (Bradley-Terry; difference features as default) and Invariant I5 (focal/opponent symmetry).
