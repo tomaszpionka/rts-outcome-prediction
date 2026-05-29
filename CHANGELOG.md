@@ -19,6 +19,26 @@ merged to `master`.
 
 ### Removed
 
+## [3.82.1] — 2026-05-29 (PR #<TBD>: chore/sc2egset-02-01-03-formal-closure)
+
+### Added
+- SC2EGSet Step `02_01_03` STEP_STATUS row (`02_01_03: complete`) with `completed_at: "2026-05-28"` (PR #259 audit-evidence date; CROSS-02-01-v1.0.1 §5 gate mechanically cleared).
+- Dataset `research_log.md` U2.B closure entry prepended above the PR #259 `closure_status: still_open` entry (preserved byte-shifted).
+- `planning/INDEX.md` archive rows for PR #259 (merge SHA `5a62fc76`) and PR #261 (merge SHA `bf19c675`); new active line for the closure execution branch.
+
+### Changed
+- `pyproject.toml` version bumped `3.82.0 → 3.82.1` (patch; chore-class per `.claude/rules/git-workflow.md` line 25 "patch for fix/test/chore"; mirrors PR #237 closure-PR precedent `3.70.0 → 3.70.1`).
+
+### Notes
+- 02_01_99 STEP_STATUS row **NOT** added (binding rationale: ROADMAP §02_01_99 declares a ROADMAP-only stub; Q-chain PRs #242, #243, #245, #247, #249, #251 and PR #253 + PR #255 added no STEP_STATUS rows; 02_01_99 lives inside 02_01_03's adjudication lineage, not as an independent materialization step).
+- `PIPELINE_SECTION_STATUS.yaml` byte-unchanged (`02_01: complete` already present).
+- `PHASE_STATUS.yaml` byte-unchanged (Phase 02 `in_progress`, Phase 03 `not_started`).
+- ROADMAP byte-unchanged.
+- Root `reports/research_log.md` byte-unchanged.
+- PR #259 Parquet artifact (44,418 × 28; 22,209 distinct `focal_match_id`), CROSS-02-01 audit JSON (`verdict=PASS`, `features_audited_count=24`), and audit MD: all byte-unchanged.
+- No source, test, notebook, sandbox, artifact, spec, cleaning-layer YAML, AoE2, thesis, docs, or `.claude` path modified.
+- Step `02_01_04` **NOT** started; Phase 03 **NOT** started; no baseline modeling started.
+
 ## [3.82.0] — 2026-05-28 (PR #259: feat/sc2egset-02-01-03-five-family-materialization)
 
 ### Added
