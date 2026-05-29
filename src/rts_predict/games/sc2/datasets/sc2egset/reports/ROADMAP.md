@@ -2850,6 +2850,288 @@ introduced by the amendment.
 
 ---
 
+### Step 02_02_01 — Symmetry & difference feature planning stub (sc2egset)
+
+```yaml
+step_number: "02_02_01"
+name: "Symmetry & difference feature planning stub (sc2egset)"
+description: >-
+  ROADMAP-only stub declaring Step 02_02_01 — the first step of
+  Pipeline Section 02_02 (Symmetry & Difference Features). Purpose:
+  open the section that will transform focal/opponent paired features
+  materialized by Step 02_01_03 into symmetric / difference
+  representations suitable for slot-orthogonal tabular modelling per
+  Invariant I5 (focal/opponent symmetry) and the
+  02_FEATURE_ENGINEERING_MANUAL.md §3 Bradley-Terry argument
+  ("Symmetry in Pairwise Prediction Demands Difference Features").
+  NO ARTIFACT is emitted in this ROADMAP-stub PR — this entry only
+  declares the future step per `.claude/rules/data-analysis-lineage.md`
+  "Non-batching rule for empirical work" sequence step 1; the notebook
+  scaffold + one validation module + any adjudication artifacts +
+  materialization are produced by SEPARATE FUTURE PRs (sequence steps
+  2-9), mirroring the PR #232 -> #233 -> #234 -> #235 -> #236 -> #237
+  ladder for Step 02_01_02 and the PR #239 -> #241 -> #242 -> ... ->
+  #259 -> #262 ladder for Step 02_01_03. Halt-clause section: Phase 03
+  is BARRED by this stub; Step 02_02_02+ is BARRED; Step 02_01_04 is
+  BARRED; no baseline modeling. Step 02_01_03's existing materialization
+  artifact + audit + 5-family permitted set declared by PR #257 +
+  PR #259 + PR #262 remain BINDING and byte-unchanged; this stub does
+  NOT reopen 02_01, Q5, Q6, Q6X, or the omit-closure adjudication.
+phase: "02 — Feature Engineering"
+pipeline_section: "02_02 — Symmetry & Difference Features"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 3"
+dataset: "sc2egset"
+question: >-
+  Per Invariant I5 (focal/opponent symmetry) and the
+  02_FEATURE_ENGINEERING_MANUAL.md §3 Bradley-Terry argument, how
+  should the focal/opponent paired columns materialized in Step
+  02_01_03 (5 history-enriched families x focal/opponent symmetric
+  pair columns) be transformed into symmetric / difference
+  representations that (a) eliminate slot-assignment bias per
+  Invariant I5, (b) inherit Invariant I3 strict
+  `history_time < target_time` cutoff enforced upstream, (c) produce
+  model-input columns suitable for downstream Phase 03 splitting and
+  Phase 04 modeling without starting Phase 03 now, (d) encode
+  differences as `focal_value - opponent_value` (slot-orthogonal) and
+  NOT `player_1_value - player_2_value` (slot-dependent), and (e)
+  preserve row identity (`focal_match_id`, `focal_player_id`) and the
+  `started_at` temporal anchor verbatim?
+method: >-
+  Step 02_02_01 itself does NOT execute any symmetry / difference
+  transformation. This is a ROADMAP-only stub. The future 02_02_01
+  scaffold + validator + adjudication + materialization PRs (analogous
+  to the PR #239 / #241 / #242 / ... / #259 ladder for Step 02_01_03)
+  will: (a) read the byte-unchanged 02_01_03 history-enriched
+  pre_game Parquet and the 02_01_02 pre_game Parquet from the
+  canonical paths declared under inputs.prior_artifacts; (b)
+  enumerate candidate symmetric / difference feature families per
+  manual §3 (focal/opponent numeric differences, absolute
+  differences, symmetric pair features such as mean / sum / product /
+  absolute-difference, matchup-history pair features); (c) bind a
+  source-anchor / column-naming decision PR analogous to PR #234;
+  (d) declare a scaffold + one validation module PR analogous to
+  PR #241; (e) produce a future materialization PR analogous to
+  PR #259 that emits ONE Parquet artifact + ONE CROSS-02-01 audit
+  pair (paths declared under outputs); (f) emit NO Parquet, NO
+  CROSS-02-01 audit, NO feature column, NO status YAML flip in this
+  stub PR. The race-pair encoded interactions family is declared as
+  a CANDIDATE only; the binding decision whether race-pair
+  interactions belong in 02_02 or in 02_05 (Categorical Encoding &
+  Interactions, manual §6) is taken in the future source-anchor
+  adjudication PR analogous to PR #234, NOT in this stub.
+stratification: >-
+  Per family: dataset_tag = sc2egset; prediction_setting =
+  history_enriched_pre_game (inherits from 02_01_03; 1v1 decisive
+  subset N11 preserved; FIVE_FAMILY_CANONICAL_ORDER tuple N1
+  preserved). Symmetry / difference operations are row-preserving
+  transforms applied to the 02_01_03 Parquet column space; row
+  identity (`focal_match_id`, `focal_player_id`) and the `started_at`
+  temporal anchor are carried verbatim from the upstream artifact.
+predecessors: "02_01_03"
+notebook_path: >-
+  (planned, NOT created in this PR) sandbox/sc2/sc2egset/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_planning.py
+inputs:
+  duckdb_tables: []
+  schema_yamls: []
+  prior_artifacts:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.json"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.json"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.md"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.csv"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.md"
+  external_references:
+    - "docs/PHASES.md Phase 02 row 2: 02_02 — Symmetry & Difference Features"
+    - "docs/ml_experiment_lifecycle/02_FEATURE_ENGINEERING_MANUAL.md, Section 3 (Symmetry in Pairwise Prediction Demands Difference Features; Bradley-Terry argument; four representations: difference / ratio / canonical-ordering-with-concatenation / symmetric-kernels; difference features recommended as default)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1; §5.1 focal/opponent symmetry; §10 G-L-8 no row-order leakage from slot asymmetry; §6.2 history families)"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (downstream temporal-window / decay / cold-start audit spec; explicitly scoped OUT of this stub — referenced so this stub's halt-clauses do not silently encroach on 02_03)"
+    - ".claude/scientific-invariants.md Invariant I3 (temporal cutoff history_time < target_time strict)"
+    - ".claude/scientific-invariants.md Invariant I5 (focal/opponent symmetry; both players treated identically by the feature pipeline; model input structured as (focal_player_features, opponent_features, context_features))"
+    - ".claude/scientific-invariants.md Invariants I6 / I7 / I9 / I10 (reproducibility / no magic numbers / research-pipeline discipline / relative-path provenance)"
+    - ".claude/ml-protocol.md (three leakage failure modes: rolling aggregates including game T, head-to-head including game T, co-occurring matches)"
+    - ".claude/rules/data-analysis-lineage.md (Non-batching rule for empirical work; sequence step 1 ROADMAP-only stub)"
+    - "PR #243 Q5 cross-region adjudication (sensitivity-indicator co-registration arm)"
+    - "PR #255 omit-closure (reconstructed_rating family + three reconstructed_rating_* columns excluded)"
+    - "PR #257 materialization-scope amendment (5-family permitted set; reconstructed_rating excluded)"
+    - "PR #259 five-family materialization (focal/opponent symmetric column pairs proven on disk)"
+    - "PR #262 Step 02_01_03 formal closure (STEP_STATUS 02_01_03: complete; completed_at 2026-05-28)"
+outputs:
+  data_artifacts:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_features.parquet"
+  report:
+    - "(planned, NOT created in this PR) src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}"
+reproducibility: >-
+  Every column in the future symmetry/difference Parquet must trace
+  to a focal/opponent paired column in 02_01_02 or 02_01_03 via a
+  named transform (difference, absolute difference, symmetric mean /
+  sum / product, matchup-pair operation). No transform may inject a
+  new MMR scalar, a `reconstructed_rating_*` column, a target-match
+  outcome, a future-match feature, a Phase-03 split-derived feature,
+  or a tracker-derived target-match feature. The future audit MD must
+  embed verbatim any count / distribution it reports with its
+  derivation. Seed 42 convention. Relative-path provenance
+  (Invariant I10).
+scientific_invariants_applied:
+  - number: "3"
+    how_upheld: >-
+      Strict `history_time < target_time` cutoff is enforced upstream
+      in Step 02_01_03's materialization query; every symmetric /
+      difference column in the future 02_02 Parquet is a row-preserving
+      transform of the 02_01_03 columns and inherits the cutoff
+      unchanged. No transform reads a record at `target_time` or
+      later.
+  - number: "5"
+    how_upheld: >-
+      All differences are computed as `focal_value - opponent_value`
+      (slot-orthogonal). No `player_1_value - player_2_value`
+      (slot-dependent) encoding is permitted. The focal/opponent pair
+      structure is identical regardless of which player is focal,
+      satisfying `P(A wins | A focal) = 1 - P(B wins | B focal)`.
+  - number: "6"
+    how_upheld: >-
+      The future symmetry/difference materialization PR must embed
+      verbatim the SQL or pandas/duckdb expression for each
+      transform in the audit MD. No value may be paraphrased.
+  - number: "7"
+    how_upheld: >-
+      Transform definitions are evidentiary, not boolean. Each
+      candidate family carries a named formula and a derivation
+      pointer to the upstream 02_01_03 column it operates on. No
+      magic numbers.
+  - number: "8"
+    how_upheld: >-
+      Cross-game comparability: 02_02 is a dataset-agnostic Pipeline
+      Section per docs/PHASES.md. The SC2EGSet stub uses race-only
+      terminology and does NOT use AoE2 `civilization` vocabulary;
+      the AoE2 placeholder dataset is barred from this stub's scope.
+  - number: "9"
+    how_upheld: >-
+      Step 02_02_01 conclusions derive only from its own future
+      artifacts and from completed predecessor steps' artifacts
+      (02_01_02 + 02_01_03 Parquet + audit pairs + 02_01_99
+      omit-closure decision artifact), all lower-numbered and on
+      disk.
+  - number: "10"
+    how_upheld: >-
+      The future symmetry/difference artifacts use relative paths
+      in all SHA pins; no absolute path written to any artifact.
+      This ROADMAP stub itself uses only relative artifact paths.
+gate:
+  artifact_check: >-
+    NOT APPLICABLE TO THIS ROADMAP-STUB PR. The artifact_check fires
+    only after the future symmetry/difference materialization PR
+    emits the Parquet + CROSS-02-01 audit pair. At that point the
+    predicate is: (a) the planned Parquet exists at the declared path
+    and is non-empty; (b) row count equals the measured row count of
+    the 02_01_03 Parquet artifact (re-measured at materialization
+    time; not hard-coded here); (c) row identity columns
+    (`focal_match_id`, `focal_player_id`) and the `started_at`
+    temporal anchor are byte-identical to the upstream 02_01_03
+    Parquet on those columns; (d) the CROSS-02-01 audit JSON declares
+    `verdict = PASS` with `features_audited` equal to exactly the
+    symmetric / difference columns produced; (e) no
+    `reconstructed_rating_*` column is present; (f) all difference
+    columns are computed as `focal_value - opponent_value` per
+    Invariant I5; (g) the 02_01_02 + 02_01_03 Parquet inputs and
+    audit pairs are byte-unchanged versus the SHAs declared in the
+    future audit's BINDING parent artifact list; (h) no AoE2
+    `civilization` term appears in any 02_02 SC2EGSet artifact;
+    (i) race-pair encoded interactions are either present in 02_02
+    with explicit `02_02-vs-02_05` boundary disclosure, or deferred
+    to 02_05; the binding decision is recorded in the source-anchor
+    adjudication PR analogous to PR #234.
+  continue_predicate: >-
+    A future PR may begin the 02_02_01 scaffold + one validation
+    module (analogous to PR #241 for 02_01_03) only after this
+    ROADMAP stub merges. A future PR may begin source-anchor /
+    column-naming adjudication for 02_02 (analogous to PR #234 for
+    02_01_02 or PR #242 for 02_01_03) only after the scaffold PR
+    merges with a passing one-validation-module result. A future PR
+    may begin 02_02 feature materialization only after the
+    adjudication PR(s) merge. Step 02_02_01 closure (STEP_STATUS row
+    addition `02_02_01: complete`) and PIPELINE_SECTION_STATUS row
+    `02_02: complete` happen only after the materialization +
+    CROSS-02-01 audit PR merges and a U2.B-style formal closure PR
+    (analogous to PR #237 / PR #262) merges. The `02_02`
+    PIPELINE_SECTION_STATUS row first lands when the first 02_02
+    step closes, mirroring PR #230 for 02_01 (verified precedent:
+    section row at-step-closure, not at-step-open). No direct skip
+    from this stub to feature materialization, CROSS-02-01 audit,
+    status YAML flip, dataset research_log entry, or Phase 03.
+  halt_predicate: >-
+    Halt before generating any 02_02 artifact if any of the following
+    hold:
+      - the 02_01_02 Parquet
+        (`02_01_02_pre_game_features.parquet`) SHA does not match
+        the PR #236 merge-SHA pin recorded in the future audit's
+        BINDING parent artifact list;
+      - the 02_01_03 Parquet
+        (`02_01_03_history_enriched_pre_game_features.parquet`) SHA
+        does not match the PR #259 merge-SHA pin;
+      - either 02_01_02 or 02_01_03 audit JSON / MD SHA does not
+        match the PR #236 or PR #259 merge-SHA pin;
+      - a future PR attempts to mutate any 02_01_02 or 02_01_03
+        artifact bytes (Q1 / Q2(a) / Q2(b) / Q3 / Q5 / Q6 / Q6F /
+        Q6G / Q6H re-adjudication ban; PR #243 / PR #255 / PR #257 /
+        PR #259 / PR #262 closure preservation ban);
+      - a future PR silently re-includes the `reconstructed_rating`
+        family or any `reconstructed_rating_focal_pre` /
+        `reconstructed_rating_opp_pre` / `reconstructed_rating_diff`
+        column;
+      - a future PR encodes `player_1_value - player_2_value`
+        (slot-dependent) instead of `focal_value - opponent_value`
+        (slot-orthogonal; Invariant I5 violation + G-L-8 + RISK-24);
+      - a future PR ingests a target-match outcome, a future-match
+        feature, a Phase-03 split-derived feature, or a
+        tracker-derived target-match feature
+        (Invariant I3 + G-L-3 + G-L-7 + Amendment 2 of PR #208);
+      - a future PR introduces a new MMR scalar feature
+        (PR #234 `is_mmr_missing` flag precedent stands);
+      - a future PR introduces the AoE2 `civilization` term into
+        any SC2EGSet artifact prose or column name (Invariant I8
+        cross-game comparability violation; SC2EGSet uses `race`
+        exclusively);
+      - the future scaffold attempts to batch ROADMAP + notebook +
+        artifact + next step in one execution
+        (non-batching rule violation);
+      - any feature artifact (.parquet, .csv, .md under
+        reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/
+        or reports/artifacts/02_02_01/) is produced by this
+        ROADMAP-stub PR;
+      - any CROSS-02-01 audit artifact
+        (reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md})
+        is produced by this PR;
+      - STEP_STATUS.yaml, PIPELINE_SECTION_STATUS.yaml, or
+        PHASE_STATUS.yaml is edited in this PR;
+      - dataset or root research_log.md is edited in this PR;
+      - Step 02_01_02, Step 02_01_03, or Step 02_01_99 ROADMAP
+        blocks are modified (the existing blocks remain
+        byte-identical except for line shifts caused by the
+        02_02_01 insertion);
+      - the §02_01_03 materialization-scope-amendment block (above
+        02_01_99 block) or the 02_01_99 amendment back-reference is
+        edited;
+      - the PIPELINE_SECTION_STATUS `02_02` row is added in this PR
+        (deferred to the first 02_02 transition PR per PR #230
+        precedent);
+      - Phase 03 or Step 02_01_04 or Step 02_02_02+ is started;
+      - any baseline modeling is started;
+      - Q5 / Q6 / Q6F / Q6G / Q6H is reopened.
+thesis_mapping:
+  - "Chapter 4 — Data and Methodology > §4.5 Feature engineering plan (sc2egset symmetry & difference feature planning stub)"
+research_log_entry: >-
+  NOT REQUIRED FOR THIS ROADMAP-STUB PR per
+  .claude/rules/data-analysis-lineage.md "Non-batching rule" sequence
+  (step 1 — ROADMAP stub only — produces no research_log entry).
+  Required on the future 02_02_01 materialization PR per the
+  standard step-completion protocol; entry goes into
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md.
+```
+
+---
+
 ## Phase 03 — Splitting & Baselines (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.
