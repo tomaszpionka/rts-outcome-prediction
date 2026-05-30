@@ -3132,6 +3132,297 @@ research_log_entry: >-
 
 ---
 
+### Step 02_03_01 — Temporal-window grid characterization (sc2egset)
+
+```yaml
+step_number: "02_03_01"
+name: "Temporal-window grid characterization (sc2egset)"
+description: >-
+  ROADMAP-only stub declaring Step 02_03_01 — the first step of
+  Pipeline Section 02_03 (Temporal Features, Windows, Decay, Cold
+  Starts). Purpose: open the section that will characterize candidate
+  temporal-window, decay, and cold-start options applicable to
+  history-enriched pre_game features materialized by Steps 02_01_02,
+  02_01_03, and 02_02_01. NO ARTIFACT is emitted in this ROADMAP-stub
+  PR — this entry only declares the future step per
+  `.claude/rules/data-analysis-lineage.md` "Non-batching rule for
+  empirical work" sequence step 1; the notebook scaffold + one
+  validation module + any adjudication artifacts + materialization
+  are produced by SEPARATE FUTURE PRs (sequence steps 2-9), mirroring
+  the PR #263 -> #264 -> ... -> #270 -> #272 ladder for Section 02_02
+  and the PR #238 -> #239 -> ... -> #259 -> #262 ladder for Section
+  02_01. The candidate-agnostic vocabulary used throughout this stub
+  (history windows, decay half-lives, cold-start k-thresholds, focal/
+  opponent symmetry) is intentionally cross-game portable per
+  Invariant I8 and H10 of the Layer-1 plan (PR #273): no concrete
+  grid values, no tracker_events family names, and no AoE2-specific
+  or SC2-specific vocabulary appear in this stub's outputs or gate
+  predicates. Halt-clause section: Phase 03 is BARRED by this stub;
+  Step 02_03_02+ is BARRED; Step 02_01_04 is BARRED; no baseline
+  modeling. The concrete window/decay/cold-start grid composition is
+  deferred to a successor adjudication PR per OQ-1 deferral enforced
+  by H9 of the Layer-1 plan. Tracker_events family inclusion is
+  deferred per OQ-2. In-game temporal scope vs 02_01_03 boundary is
+  deferred per OQ-3. CROSS-02-02 (feature engineering plan) and
+  CROSS-02-03 (design-time audit protocol) are cited with DISTINCT
+  roles per OQ-4: CROSS-02-02 provides the feature engineering plan
+  and feature-family definitions; CROSS-02-03 provides the design-
+  time audit protocol covering audit dimensions D1-D15.
+phase: "02 — Feature Engineering"
+pipeline_section: "02_03 — Temporal Features, Windows, Decay, Cold Starts"
+manual_reference: "02_FEATURE_ENGINEERING_MANUAL.md, Section 4"
+dataset: "sc2egset"
+question: >-
+  Across the four predecessor artifacts (02_01_02 pre_game Parquet,
+  02_01_03 history_enriched_pre_game Parquet, 02_01_99 rating omit-
+  closure CSV, 02_02_01 symmetry_difference_features Parquet), which
+  candidate temporal-window, decay, and cold-start options should be
+  characterized for downstream adjudication — and what cross-game-
+  portable vocabulary (history windows, decay half-lives, cold-start
+  k-thresholds, focal/opponent symmetry) best describes the option
+  space — without committing to any concrete grid values in this stub?
+  The question is deliberately candidate-agnostic: concrete window
+  sizes, decay half-lives, and cold-start k-thresholds are deferred to
+  a successor adjudication PR per OQ-1; tracker_events family
+  inclusion is deferred per OQ-2; in-game temporal scope boundary is
+  deferred per OQ-3.
+method: >-
+  Step 02_03_01 itself does NOT execute any temporal-window, decay, or
+  cold-start computation. This is a ROADMAP-only stub. The future
+  02_03_01 scaffold + validator + adjudication + materialization PRs
+  (analogous to the PR #239 / #241 / #242 / ... / #259 ladder for Step
+  02_01_03) will: (a) read the byte-unchanged predecessor Parquet
+  artifacts from the canonical paths declared under inputs.prior_artifacts;
+  (b) enumerate candidate temporal-window, decay half-life, and cold-
+  start k-threshold options per cross-game-portable vocabulary (no
+  concrete values in this stub; deferred to adjudication PR per OQ-1);
+  (c) bind a source-anchor / window-naming decision PR analogous to
+  PR #234 for 02_01_02 or PR #242 for 02_01_03; (d) declare a scaffold +
+  one validation module PR analogous to PR #241; (e) produce a future
+  materialization PR that emits one Parquet artifact + one design-time
+  audit pair per CROSS-02-03 protocol (D1-D15 audit dimensions); (f)
+  emit NO Parquet, NO audit, NO feature column, NO status YAML flip
+  in this stub PR. Cross-game portable vocabulary is used throughout;
+  no SC2-specific tracker_events family names and no AoE2 civilization
+  vocabulary appear in outputs.report or gate predicates (per H9 and
+  H10 of the Layer-1 plan; Invariant I8).
+stratification: "per-player temporal hold-out compatible (planned; see Phase 03)"
+predecessors:
+  - "02_01_02"
+  - "02_01_03"
+  - "02_01_99"
+  - "02_02_01"
+notebook_path: >-
+  (planned, NOT created in this PR)
+  sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features_windows_decay_cold_starts/02_03_01_temporal_window_grid_characterization.py
+inputs:
+  duckdb_tables:
+    - "matches_flat_clean (read-only; sc2egset DuckDB; previously used by predecessors 02_01_02, 02_01_03)"
+    - "player_history_long (read-only; sc2egset DuckDB; previously used by predecessors 02_01_02, 02_01_03)"
+  schema_yamls:
+    - "src/rts_predict/games/sc2/datasets/sc2egset/schema/matches_flat_clean.yaml (existing; no new yaml)"
+    - "src/rts_predict/games/sc2/datasets/sc2egset/schema/player_history_long.yaml (existing; no new yaml)"
+  prior_artifacts:
+    - "reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_02_pre_game_features.parquet (PR #236 @ 39298c0afd3a23bfbd4603415314af784a672952)"
+    - "reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_03_history_enriched_pre_game_features.parquet (PR #259 @ 5a62fc768a099eb73e449db081fdbac70a68a98e)"
+    - "reports/artifacts/02_feature_engineering/01_pre_game_vs_in_game_boundary/02_01_99_rating_omit_closure.csv (PR #255 @ 52f9c1082b200019d080cce74e60567452020e18)"
+    - "reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_features.parquet (PR #270 @ eddd048992ce9aa4f444299ea342d9fdf7e2392b)"
+  external_references:
+    - "docs/PHASES.md row 3: 02_03 — Temporal Features, Windows, Decay, Cold Starts"
+    - "docs/ml_experiment_lifecycle/02_FEATURE_ENGINEERING_MANUAL.md, Section 4 (temporal feature design; window, decay, cold-start methodology)"
+    - "reports/specs/02_02_feature_engineering_plan.md (CROSS-02-02-v1.0.1; feature engineering plan / feature-family definitions; §5.1 focal/opponent symmetry; §10 G-L-7 no closed-interval window including target match; §10 G-L-1 no <= history filter)"
+    - "reports/specs/02_03_temporal_feature_audit_protocol.md (CROSS-02-03-v1.0.1; design-time audit protocol covering audit dimensions D1-D15; explicitly DISTINCT role from CROSS-02-02 per OQ-4: CROSS-02-02 = feature engineering plan / feature-family definitions; CROSS-02-03 = design-time audit protocol)"
+    - ".claude/scientific-invariants.md Invariant I3 (temporal cutoff: strictly history_time < target_time; no <= filter)"
+    - ".claude/scientific-invariants.md Invariant I5 (focal/opponent symmetry; both players treated identically by the feature pipeline)"
+    - ".claude/scientific-invariants.md Invariant I6 (all analytical results reported alongside the query or code that produced them)"
+    - ".claude/scientific-invariants.md Invariant I7 (no magic numbers; every threshold justified by empirical evidence or cited precedent)"
+    - ".claude/scientific-invariants.md Invariant I8 (cross-game comparability; SC2 and AoE2 experiments share common evaluation protocol; cross-game portable vocabulary required)"
+    - ".claude/scientific-invariants.md Invariant I9 (research pipeline discipline; step conclusions derive only from its own artifacts and prior steps' artifacts)"
+    - ".claude/scientific-invariants.md Invariant I10 (relative-path provenance; no absolute paths in artifacts)"
+    - ".claude/ml-protocol.md (three leakage failure modes: rolling aggregates including game T, head-to-head including game T, co-occurring matches)"
+    - ".claude/rules/data-analysis-lineage.md (Non-batching rule for empirical work; sequence step 1 ROADMAP-only stub)"
+    - "PR #255 omit-closure (reconstructed_rating family + three reconstructed_rating_* columns excluded; no rating column resurfacing)"
+    - "PR #270 symmetry/difference materialization (33-column 44,418-row predecessor Parquet on disk; leakage audit PASS)"
+    - "PR #272 Step 02_02_01 formal closure (STEP_STATUS 02_02_01: complete; PIPELINE_SECTION_STATUS 02_02: complete)"
+    - "PR #273 Layer-1 planning PR for this stub (planning/current_plan.md + current_plan.critique.md; reviewer-adversarial APPROVE-WITH-NITS, 0 blockers, 3 nits applied)"
+outputs:
+  data_artifacts: "(planned, NOT created in this PR)"
+  report: >-
+    (planned, NOT created in this PR) candidate-agnostic audit report
+    listing candidate window-and-decay grid options for downstream
+    adjudication PR; uses cross-game portable vocabulary only (history
+    windows, decay half-lives, cold-start k-thresholds, focal/opponent
+    symmetry); no concrete window sizes, no concrete decay half-lives,
+    no concrete cold-start k-thresholds in this stub (OQ-1 deferral
+    enforced by H9 of the Layer-1 plan); no tracker_events family
+    names in outputs (OQ-2 deferral); no AoE2 civilization vocabulary,
+    no SC2-specific race or tracker_events columns (Invariant I8; H10
+    of the Layer-1 plan)
+reproducibility: "(planned)"
+scientific_invariants_applied:
+  - number: "3"
+    verbatim: >-
+      No feature for game T may use information from game T or later.
+      Strictly match_time < T. This applies to rolling averages, win
+      rates, head-to-head counts, Elo/Glicko ratings — everything.
+      The rating used as a feature is the rating before the game, not
+      after. Violations here are fatal to the thesis. Verify with
+      explicit temporal leakage checks.
+    how_upheld: >-
+      All future temporal-window computations in 02_03_01 must use
+      strictly match_time < T (not <=). The strict-< cutoff is
+      inherited from predecessor Steps 02_01_02 and 02_01_03 for
+      history-enriched features and is enforced as a hard halt
+      predicate in gate.halt_predicate below. No closed-interval
+      window including the target match is permitted (G-L-7 of
+      CROSS-02-02; G-L-1 of CROSS-02-02 bars the <= filter).
+  - number: "5"
+    verbatim: >-
+      Both players in every game must be treated identically by the
+      feature pipeline. The same function that computes features for
+      the focal player also computes features for the opponent. No
+      player slot receives privileged treatment. The model input is
+      always structured as (focal_player_features, opponent_features,
+      context_features) and this structure is identical regardless of
+      which player is focal.
+    how_upheld: >-
+      Temporal-window features must be computed symmetrically for
+      focal and opponent players. The focal/opponent pair structure
+      from predecessor 02_02_01 is preserved; no slot-dependent
+      aggregation is permitted.
+  - number: "6"
+    verbatim: >-
+      All analytical results must be reported alongside the query or
+      code that produced them. Any distribution, count, rate, or
+      validation result written to a report artifact must include the
+      exact SQL query or Python code used to compute it — not a
+      description of it, the literal code. A finding without its
+      derivation cannot be audited, reproduced, or cited in the thesis.
+    how_upheld: >-
+      The future outputs.report must embed verbatim any SQL or Python
+      expression used to compute candidate window/decay/cold-start
+      options. No value may be paraphrased.
+  - number: "7"
+    verbatim: >-
+      No magic numbers. Every threshold used in data cleaning, feature
+      engineering, or model configuration must be justified by either:
+      (a) empirical evidence from the dataset (e.g., a duration
+      threshold derived from the observed distribution during profiling),
+      or (b) a cited precedent from the literature. Unjustified
+      constants are not acceptable in a thesis-grade analysis. If a
+      constant is used, document its derivation inline.
+    how_upheld: >-
+      No concrete window sizes, decay half-lives, or cold-start
+      k-thresholds are encoded in this stub (OQ-1 deferral). All
+      concrete values are deferred to the future adjudication PR where
+      they must be justified by empirical evidence or cited precedent.
+      H9 of the Layer-1 plan (PR #273) explicitly enforces this.
+  - number: "8"
+    verbatim: >-
+      The SC2 and AoE2 experiments must share a common evaluation
+      protocol. Both games use the same ML methods (logistic regression,
+      random forest, gradient boosted trees), the same evaluation
+      metrics, and a common statistical comparison methodology.
+      Feature sets differ by necessity, but the common pre-game feature
+      categories (skill rating, win rate, activity, faction matchup,
+      map, head-to-head) must be defined at a level of abstraction that
+      applies to both games.
+    how_upheld: >-
+      Cross-game comparability: 02_03 is a dataset-agnostic Pipeline
+      Section per docs/PHASES.md. This stub uses cross-game portable
+      vocabulary throughout (history windows, decay half-lives, cold-
+      start k-thresholds, focal/opponent symmetry). No SC2-specific
+      tracker_events family names, no AoE2 civilization vocabulary,
+      no race or mineral/vespene column references appear in
+      outputs.report or gate predicates (per H10 of the Layer-1
+      plan, PR #273).
+  - number: "9"
+    verbatim: >-
+      A step's conclusions must derive only from its own artifacts and
+      all prior steps' artifacts. Step XX_YY_ZZ may reference: Artifacts
+      it produces during its own execution; Artifacts produced by any
+      completed predecessor step (any step with a lower number whose
+      artifacts exist on disk); External source documentation (paper
+      citations, acquisition provenance, Zenodo metadata).
+    how_upheld: >-
+      Step 02_03_01 conclusions derive only from its own future
+      artifacts and from completed predecessor steps' artifacts (the
+      four prior_artifacts paths listed above), all lower-numbered
+      and on disk.
+  - number: "10"
+    verbatim: >-
+      Every raw ingestion output must carry a filename column storing
+      the source file's path relative to that dataset's raw_dir root.
+      Absolute paths and bare basenames are both forbidden.
+    how_upheld: >-
+      The future artifacts for 02_03_01 use relative paths in all
+      SHA pins; no absolute path is written to any artifact. This
+      ROADMAP stub itself uses only relative artifact paths.
+gate:
+  artifact_check: >-
+    (planned) all four prior_artifacts paths exist and are byte-stable:
+    (a) 02_01_02_pre_game_features.parquet at the declared path;
+    (b) 02_01_03_history_enriched_pre_game_features.parquet at the
+    declared path; (c) 02_01_99_rating_omit_closure.csv at the declared
+    path; (d) 02_02_01_symmetry_difference_features.parquet at the
+    declared path. All four byte-stable versus their respective merge
+    SHAs (PR #236, PR #259, PR #255, PR #270) as declared in
+    inputs.prior_artifacts.
+  continue_predicate: >-
+    A future PR may begin the 02_03_01 scaffold + one validation module
+    (analogous to PR #241 for 02_01_03) only after this ROADMAP stub
+    merges. A future PR may begin window/decay/cold-start candidate
+    adjudication for 02_03 only after the scaffold PR merges with a
+    passing one-validation-module result. A future materialization PR
+    may proceed only after the adjudication PR(s) merge with concrete
+    grid values justified by empirical evidence or cited precedent (no
+    concrete grid values committed in this stub per OQ-1 deferral;
+    H9 of the Layer-1 plan). Step 02_03_01 closure (STEP_STATUS row
+    addition) and any PIPELINE_SECTION_STATUS row for 02_03 happen
+    only after a U2.B-style formal closure PR analogous to PR #272.
+    No direct skip from this stub to feature materialization, design-
+    time audit, status YAML flip, dataset research_log entry, or Phase 03.
+  halt_predicate: >-
+    Halt before generating any 02_03 artifact if any of the following
+    hold:
+      - No tracker-derived feature in pre_game or history_enriched_pre_game
+        prediction settings (Invariant I3 + Amendment 2 of PR #208)
+      - No magic numbers / no concrete window sizes / no concrete decay
+        half-lives / no concrete cold-start k-thresholds (Invariant I7 +
+        OQ-1 deferral; H9 of Layer-1 plan PR #273)
+      - No closed-interval window including target match (G-L-7 of
+        CROSS-02-02)
+      - No <= history filter (G-L-1 of CROSS-02-02)
+      - No rating reconstructed_rating_* column resurfacing (PR #255
+        omit-closure)
+      - No AoE2 civilization vocabulary; no SC2-specific tracker_events /
+        PlayerStats / race / mineral / vespene in outputs.report (Invariant
+        I8; H10 of Layer-1 plan PR #273)
+      - No scaffold-or-artifact emission in this PR (lineage rule sequence
+        step 1 = ROADMAP stub only)
+      - No STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip
+        (deferred to U2.B-style first-step closure PR per PR #230
+        precedent)
+      - No research_log entry (deferred)
+      - No reopen of PR #243 / #255 / #257 / #259 / #262 / #266 / #268 /
+        #270 / #272 / #273 decisions
+      - Phase 03 BARRED; baseline modeling BARRED
+      - Step 02_03_02+ BARRED until 02_03_01 closure PR merges
+      - any feature artifact (.parquet, .csv under
+        reports/artifacts/02_feature_engineering/03_temporal_features_windows_decay_cold_starts/
+        or reports/artifacts/02_03_01/) produced by this ROADMAP-stub PR
+      - any design-time audit artifact (per CROSS-02-03 D1-D15) produced
+        by this PR
+research_log_entry: >-
+  (deferred — no research_log entry generated by ROADMAP-stub per
+  lineage rule sequence step 1; entry deferred to the future 02_03_01
+  materialization PR per the standard step-completion protocol; entry
+  goes into
+  src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md)
+```
+
+---
+
 ## Phase 03 — Splitting & Baselines (placeholder)
 
 Pipeline Sections: see `docs/PHASES.md`.
