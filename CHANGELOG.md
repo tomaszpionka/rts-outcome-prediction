@@ -19,6 +19,18 @@ merged to `master`.
 
 ### Removed
 
+## [3.87.0] - 2026-05-30
+
+### Added
+- ROADMAP-only stub for SC2EGSet Step 02_03_01 opening Pipeline Section 02_03 (Temporal Features, Windows, Decay, Cold Starts) per docs/PHASES.md row 3 + 02_FEATURE_ENGINEERING_MANUAL.md §4. Candidate-agnostic stub: window/decay/cold-start grid composition deferred to successor adjudication PR per OQ-1; tracker_events family inclusion deferred per OQ-2; in-game temporal scope vs 02_01_03 deferred per OQ-3; CROSS-02-02 (feature engineering plan) and CROSS-02-03 (design-time audit protocol) cited with distinct roles per OQ-4.
+- planning/INDEX.md: PR #272 (chore closure of 02_02_01) and PR #273 (Layer-1 planning for 02_03_01 stub) archived; Active line flipped to this Layer-2 execution PR.
+
+### Changed
+- pyproject.toml version 3.86.1 → 3.87.0 (feat-class minor per .claude/rules/git-workflow.md; mirrors PR #264 precedent for the analogous Step 02_02_01 stub: 3.82.1 → 3.83.0).
+
+### Notes
+- No feature materialization. No notebook scaffold. No artifact emission. No leakage audit execution. No Phase 03 readiness claim. No baseline pre-authorization. No STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS row flips (deferred to U2.B-style first-step closure PR). No dataset research_log.md entry (deferred). No source / test / sandbox / artifact changes. No CROSS-02-02 / CROSS-02-03 conflation. No concrete window sizes / decay half-lives / cold-start k-thresholds in the ROADMAP stub (OQ-1 deferral enforced by H9). PR #270 + PR #272 + PR #273 lineage remains the authoritative materialization + closure + planning record for predecessors.
+
 ## [3.86.1] - 2026-05-30
 ### Changed
 - Status-chain closure for SC2EGSet Step 02_02_01: STEP_STATUS.yaml + PIPELINE_SECTION_STATUS.yaml updated to record formal completion based on PR #270 materialization + non-vacuous CROSS-02-01 leakage audit PASS.
