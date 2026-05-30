@@ -207,3 +207,8 @@ steps:
     pipeline_section: "02_01"
     status: complete
     completed_at: "2026-05-28"
+  "02_02_01":
+    name: "Symmetry & difference feature materialization (sc2egset)"
+    pipeline_section: "02_02"
+    status: complete
+    completed_at: "2026-05-30"

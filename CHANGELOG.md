@@ -19,6 +19,13 @@ merged to `master`.
 
 ### Removed
 
+## [3.86.1] - 2026-05-30
+### Changed
+- Status-chain closure for SC2EGSet Step 02_02_01: STEP_STATUS.yaml + PIPELINE_SECTION_STATUS.yaml updated to record formal completion based on PR #270 materialization + non-vacuous CROSS-02-01 leakage audit PASS.
+
+### Notes
+- Governance-only patch. No new artifacts, no source/test/notebook changes, no Phase 03 work, no baselines. PHASE_STATUS.yaml and ROADMAP.md byte-stable. PR #270's CHANGELOG block ([3.86.0]) remains the authoritative feature-materialization entry.
+
 ## [3.86.0] — 2026-05-30 (PR #270: feat/sc2egset-02-02-01-symmetry-difference-materialization)
 
 ### Added

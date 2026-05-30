@@ -2,6 +2,81 @@
 
 ---
 
+## 2026-05-30 — Formal closure of Step 02_02_01 (symmetry/difference materialization)
+
+- **Category:** C (governance / status closure)
+- **Dataset:** sc2egset
+- **Branch:** `chore/sc2egset-02-02-01-formal-closure`
+- **PR:** `PR #272`
+- **Step scope:** Step `02_02_01` — formal status closure; flips `STEP_STATUS.yaml` from no-row to `complete`; flips `PIPELINE_SECTION_STATUS.yaml` `02_02` section to `complete` (per PR #230 first-step-closure precedent — 02_02 currently has only step 02_02_01 in ROADMAP); does NOT touch ROADMAP / PHASE_STATUS / root research_log / artifacts / source / tests / notebooks / specs / data / AoE2 / thesis / docs / .claude.
+- **closure_status:** `closed`
+- **closure_pr:** `#272`
+- **closure_date:** `2026-05-30`
+- **evidence:** PR #270 (eddd0489) materialization + non-vacuous CROSS-02-01 leakage audit PASS
+- **materialization_state:** `materialized`
+- **leakage_audit_state:** `post_materialization_pass`
+- **status_yaml_state:** `complete`
+- **features_audited_count:** `33`
+- **row_count:** `44418`
+- **distinct_focal_match_count:** `22209`
+- **artifact:** `02_02_01_symmetry_difference_features.parquet`
+- **leakage_audit:** `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`
+- **no_phase_03:** Phase 03 is NOT started by this closure
+- **no_step_02_02_02:** Step 02_02_02 is NOT started by this closure
+
+### What
+
+Flipped `STEP_STATUS.yaml` to add `"02_02_01": { name: "Symmetry & difference feature materialization (sc2egset)", pipeline_section: "02_02", status: complete, completed_at: "2026-05-30" }`. Flipped `PIPELINE_SECTION_STATUS.yaml` to add `"02_02": { name: "Symmetry & Difference Features", phase: "02", status: complete }`. Prepended this closure entry to the dataset `research_log.md` (above the PR #270 `still_open` entry, preserved byte-shifted). Updated `planning/INDEX.md` (archive PR #270 at merge SHA `eddd048992ce9aa4f444299ea342d9fdf7e2392b`; correct PR #269 SHA; new active line for the closure execution branch). Added `CHANGELOG.md` `[3.86.1]` block. Bumped `pyproject.toml` 3.86.0 → 3.86.1. **This PR creates no new on-disk artifact** — no Parquet, no audit, no notebook, no module, no test, no spec, no cleaning-layer YAML, no ROADMAP, no root `reports/research_log.md` edit.
+
+### Why
+
+STEP_STATUS.yaml's header rule "derived from ROADMAP" required `02_02_01` row addition (ROADMAP §02_02_01 already declared the step; PR #270 materialization evidence cleared CROSS-02-01 §5 gate). PIPELINE_SECTION_STATUS.yaml required the `02_02` section row per the derivation chain (STEP_STATUS.yaml → PIPELINE_SECTION_STATUS.yaml → PHASE_STATUS.yaml). `completed_at = "2026-05-30"` uses PR #270 CHANGELOG-block date per plan A3/NIT-1 convention.
+
+Why `02_02` status = `complete`? Section 02_02 currently has only step 02_02_01 in ROADMAP; all steps complete → section complete, per PR #230 first-step-closure precedent. If a future ROADMAP amendment adds 02_02_02+, this row must flip back to `in_progress`.
+
+### Findings
+
+- STEP_STATUS now contains `02_02_01: complete`, `completed_at: "2026-05-30"` immediately after `02_01_03: complete`.
+- PIPELINE_SECTION_STATUS now contains `02_02: complete` immediately after `02_01: complete`.
+- PR #270 `still_open` entry preserved byte-shifted (new closure section prepended above it).
+- `pyproject.toml` 3.86.1.
+- `CHANGELOG.md` `[3.86.1]` dated 2026-05-30.
+- `planning/INDEX.md` archives PR #270 (merge SHA `eddd048992ce9aa4f444299ea342d9fdf7e2392b`) and corrects PR #269 SHA (`b84ed6d6` → `88c2b98f`); active line is `chore/sc2egset-02-02-01-formal-closure`.
+- `PHASE_STATUS.yaml`, `ROADMAP.md`, artifacts, source, tests, notebooks, specs, data, AoE2, thesis, docs, `.claude`: byte-unchanged.
+
+### Decisions taken
+
+- Add `02_02_01` row to STEP_STATUS with `completed_at: "2026-05-30"` (PR #270 CHANGELOG date, per plan A3/NIT-1 convention — NOT this closure PR's merge date).
+- Add `02_02` row to PIPELINE_SECTION_STATUS as `complete` (per PR #230 first-step-closure precedent — only step in section).
+- Patch version bump `3.86.0 → 3.86.1` per `.claude/rules/git-workflow.md` ("patch for fix/test/chore"; closure adds no new on-disk artifact).
+- Branch prefix `chore/` — governance-only, no new artifact / source / test.
+
+### Decisions deferred
+
+- Step `02_02_02+` design (separate planner-science session, separate PR).
+- Step `02_01_04` design.
+- Phase 03 splitting and baselines.
+- If a future ROADMAP amendment adds 02_02_02+, `PIPELINE_SECTION_STATUS.yaml` `02_02` row must flip back to `in_progress` at that time.
+
+### Thesis mapping
+
+Chapter 4 §4.5 — citable as the U2.B closure-row lineage entry for Step `02_02_01`; complements the PR #270 first-non-vacuous-audit entry. The PR #270 entry (`closure_status: still_open`) remains the canonical row indicating the moment materialization was complete but closure was not yet recorded; the present entry transitions `closure_status` to `closed`.
+
+### Open questions / follow-ups
+
+- Schedule the planner-science session for Step `02_02_02` or Phase 03 (separate PR).
+- If ROADMAP adds 02_02_02+, revisit `PIPELINE_SECTION_STATUS.yaml` `02_02` status.
+
+### Acknowledged trade-offs
+
+Closure adds no new on-disk artifact (no Parquet/audit/notebook/module/test). `PIPELINE_SECTION_STATUS.yaml` `02_02` flipped to `complete` per PR #230 precedent even though future 02_02_02+ steps might reopen it; this is documented here and in the CHANGELOG.
+
+### Scope notes
+
+Does NOT touch root `reports/research_log.md`. Does NOT touch ROADMAP. Does NOT touch `PHASE_STATUS.yaml`. Does NOT touch any `02_02_01` artifact. Does NOT touch any source / test / notebook / spec / data / AoE2 / thesis / docs / `.claude` path.
+
+---
+
 ## 2026-05-30 — Materialize Step 02_02_01 symmetry/difference 33-feature contract + first non-vacuous CROSS-02-01 audit for 02_02
 
 - **Category:** A (science / Phase 02 / materialization-execution)
