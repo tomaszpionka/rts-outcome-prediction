@@ -15,350 +15,235 @@
 # ---
 
 # %% [markdown]
-# # Step 02_02_01 — Symmetry & difference feature scaffold + one validation module: sc2egset
+# # Step 02_02_01 — Symmetry & difference feature materialization + non-vacuous CROSS-02-01 audit: sc2egset
 #
-# **SCAFFOLD + ONE VALIDATION MODULE (non-batching sequence steps 2-4 of 9).**
-# Per `.claude/rules/data-analysis-lineage.md` "Non-batching rule for
-# empirical work", this notebook executes sequence step 2 ("Notebook
-# scaffold + one validation module") and prepares for step 3 ("Execute and
-# report") and step 4 ("User review"). It performs NO feature
-# materialisation, NO artifact emission, NO status / ROADMAP /
-# `research_log` mutation.
+# **MATERIALIZATION + POST-MAT AUDIT (non-batching sequence steps 7-8 of 9).**
+# This notebook OVERWRITES the PR #266 scaffold (preserved at git SHA
+# `88c2b98f`) per `sandbox/README.md` single-notebook-per-Step contract.
+# It materialises the 33 symmetry/difference feature candidates authorised
+# by PR #268 binding adjudication into ONE Parquet artifact (44,418 rows × 37
+# projected columns = 3 identity + 1 context anchor + 33 audited features),
+# and runs the FIRST non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit for
+# Step `02_02_01`.
 #
-# The notebook filename uses the `_materialization` suffix because the
-# per-Step notebook is OVERWRITTEN at materialisation per
-# `sandbox/README.md` single-notebook-per-Step contract (mirrors PR #241
-# → PR #259 lineage for Step 02_01_03; the PR #241 scaffold notebook was
-# already named `..._materialization.{py,ipynb}` and was overwritten in
-# place at PR #259, not renamed).
+# **33 materialised feature columns (PR #268 binding adjudication):**
+# F1 = 10 signed differences `focal_minus_opponent_<stem>_diff`;
+# F2 = 10 symmetric pair means `<stem>_pair_mean`;
+# F3 = 10 symmetric pair absolute differences `<stem>_pair_abs_diff`;
+# F5 = 3 cross-region Boolean pair transforms
+# `cross_region_pair_{or,and,xor}`.
+#
+# **Dropped families:** F4 (`matchup_h2h_*_pair_*`) per B1 ban / PR #268
+# `MATCHUP_HISTORY_TRANSFORM_DECISION`. F6 (`race_pair_*`) DEFERRED to
+# Step `02_05` per PR #268 `RACE_PAIR_DECISION`. `sum` EXCLUDED redundant;
+# `product` DEFERRED; `ratio` EXCLUDED; `reconstructed_rating` EXCLUDED per
+# PR #255 omit-closure.
+#
+# **This PR does NOT:** flip STEP_STATUS / PIPELINE_SECTION_STATUS /
+# PHASE_STATUS · edit ROADMAP · append root research_log.md · start Phase
+# 03 · close Step 02_02_01. Closure is deferred to a separate U2.B-style
+# PR per PR #237 / PR #262 precedent.
 #
 # **Phase:** 02 · **Pipeline Section:** 02_02 · **Step:** 02_02_01 ·
-# **Dataset:** sc2egset · **Branch:**
-# `feat/sc2egset-02-02-01-symmetry-difference-scaffold` ·
-# **Predecessors:** PR #259 (five-family materialisation) → PR #262
-# (Step 02_01_03 closure) → PR #263 (Layer-1 ROADMAP plan) → PR #264
-# (Layer-2 ROADMAP-only stub) → PR #265 (Layer-1 scaffold plan) → THIS
-# Layer-2 execution PR.
+# **Dataset:** sc2egset · **Predecessors:** PR #268 (binding adjudication)
+# → PR #269 (Layer-1 planning) → THIS Layer-2 execution PR.
 
 # %% [markdown]
 # ## Hypothesis + falsifier + sanity-check declaration (data-analysis-lineage.md)
 #
-# - **Assumption being tested:** every candidate symmetry/difference
-#   feature family enumerated below traces to a focal/opponent paired
-#   column in the byte-stable `02_01_02` 7-tuple or `02_01_03` 24-tuple,
-#   every candidate carries an explicit `direction` annotation
-#   (`focal_minus_opponent` or `symmetric`), and slot-orthogonality
-#   (Invariant I5) holds at the design-contract layer.
-# - **Measurement claim:** the validator returns `passed = True` with
-#   `halting_falsifier = None`; `materialized_output_paths == ()`;
-#   `artifact_directory_absence_ok == True`; the two input artifact
-#   SHA256 values match the embedded constants (PR #259 Parquet
-#   `053900e7…`; PR #236 Parquet `24db73fb…`); the two parent audit JSONs
-#   align with the embedded `IDENTITY_COLUMNS` / `CONTEXT_ANCHOR_COLUMNS`
-#   / `UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_0{2,3}` tuples; every
-#   candidate's `direction` is in `VALID_DIRECTION_LITERAL_VALUES`; every
-#   candidate's `source_columns` trace to the audited union.
-# - **Falsifiers (14-step halting priority chain from T01):**
-#   `input_parquet_missing`, `input_parquet_sha_mismatch`,
-#   `parent_audit_json_missing`, `audit_json_misaligned`,
-#   `artifact_directory_present`, `direction_annotation_invalid`,
-#   `source_column_traceability_violation`,
-#   `reconstructed_rating_in_candidates`,
-#   `slot_dependent_token_present`, `target_leak_token_in_candidate`,
-#   `aoe2_vocabulary_in_candidate`, `tracker_sourced_candidate`,
-#   `direction_name_inconsistent`, `materialization_output_path_present`.
-# - **Sanity check:** module-load echo of every constant; `result.passed
-#   is True`; `len(DESIGNED_DIFFERENCE_SPECS) >= 1`; no path under
-#   `reports/artifacts/02_02_01/` or
-#   `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`
-#   exists at notebook entry AND at notebook exit (artifact-free promise).
-# - **Expected artifact:** NONE for this scaffold notebook. The expected
-#   user-facing output is a printed validation report from the T01
-#   validator. NO Parquet, NO CSV, NO MD, NO JSON.
-# - **Lineage source:** PR #264 ROADMAP stub authorises this scaffold;
-#   PR #265 Layer-1 plan binds the 7-file diff manifest, the
-#   14-falsifier chain, the 8 reviewer-adversarial nits N1-N8, and the
-#   SHA pins on the upstream Parquets.
-# - **Downstream decision:** the future source-anchor / column-naming
-#   adjudication PR (analogous to PR #234 for `02_01_02`) consumes this
-#   scaffold's candidate-family enumeration and binds the final
-#   transform set. The subsequent materialisation PR (analogous to
-#   PR #259) emits the Parquet + CROSS-02-01 audit pair.
-
-# %% [markdown]
-# ## Context — PR #265 plan binding-input snapshot
-#
-# - Input Parquet (02_01_02; PR #236):
-#   `02_01_02_pre_game_features.parquet` (719,068 B; SHA256
-#   `24db73fbb897f883f73891745bc5e98d3e6c9a33d961c9606f6e2c5dc224ff39`).
-# - Input Parquet (02_01_03; PR #259):
-#   `02_01_03_history_enriched_pre_game_features.parquet`
-#   (2,451,869 B; SHA256
-#   `053900e7712e992e2de12c1595935aa652f05e07d586998db2de0425505aa071`).
-# - Parent audit JSON (02_01_02; PR #236):
-#   `reports/artifacts/02_01_02/leakage_audit_sc2egset.json`
-#   — 7-tuple `features_audited`; identity = `(focal_match_id,
-#   focal_player, opponent_player)`; context = `(started_at,)`.
-# - Parent audit JSON (02_01_03; PR #259):
-#   `reports/artifacts/02_01_03/leakage_audit_sc2egset.json`
-#   — 24-tuple `features_audited`; same identity + context projection.
-#
-# Full canonical paths live in the validator module's
-# `INPUT_02_01_0{2,3}_PARQUET_RELPATH` and
-# `INPUT_02_01_0{2,3}_AUDIT_JSON_RELPATH` constants.
-
-# %% [markdown]
-# ## Candidate symmetry & difference feature families (manual §3)
-#
-# Per `02_FEATURE_ENGINEERING_MANUAL.md` §3 (Bradley-Terry; difference
-# features as default for pairwise prediction): for latent strengths
-# β_i, `P(i > j) = 1 / (1 + e^(β_j − β_i))`, so the logit of win
-# probability equals the **difference** of latent strengths.
-#
-# Six candidate families (CANDIDATE-only at scaffold stage; binding
-# decision deferred to future source-anchor adjudication PR analogous to
-# PR #234):
-#
-# - **Family 1 — Numeric difference** (`direction="focal_minus_opponent"`).
-#   Default per manual §3 line 51. `focal_<base> - opponent_<base>` for
-#   each numeric pair in the 02_01_03 24-tuple.
-# - **Family 2 — Absolute difference** (`direction="symmetric"`).
-#   `abs(focal_<base> - opponent_<base>)`. Sign-cancellation hedge for
-#   tree models without monotone constraints.
-# - **Family 3 — Symmetric pair mean/sum/product**
-#   (`direction="symmetric"`). Hue & Vert 2010 symmetric-kernel tabular
-#   approximation; invariant under focal/opponent swap.
-# - **Family 4 — Matchup-history pair operations**
-#   (`direction="focal_minus_opponent"`). Built from
-#   `*_prior_win_rate_matchup_conditional` and related conditional rates.
-# - **Family 5 — Cross-region BOOLEAN-pair** (`direction="symmetric"`).
-#   Built from the two `is_cross_region_fragmented_*_history_any` flags;
-#   XOR/OR/AND ops only — NEVER numeric subtraction.
-# - **Family 6 — Race-pair encoded interaction**
-#   (`direction="symmetric"`). CANDIDATE-only; `race_pair` is a 9-class
-#   categorical from 02_01_02. Binding 02_02-vs-02_05 boundary decision
-#   taken in future source-anchor adjudication PR. Marker name
-#   `race_pair__defer_to_02_05`.
+# - **Assumption being tested:** the 33 symmetry/difference feature columns
+#   derived by row-preserving algebraic transforms over the 02_01_03 Parquet
+#   carry no temporal leakage — because every source column in
+#   `BINDING_DIFFERENCE_FAMILY_NUMERIC_PAIRS` is itself leakage-free per the
+#   02_01_03 CROSS-02-01 audit, and the F1/F2/F3 transforms are pure
+#   row-wise arithmetic; the F5 Boolean transforms over
+#   `BINDING_CROSS_REGION_BOOLEAN_PAIR_SOURCES` are likewise non-leaking.
+# - **Measurement claim:** the materialised Parquet has exactly 44,418 rows
+#   × 37 projected columns (3 identity + 1 context + 33 audited features);
+#   the CROSS-02-01 audit returns `verdict = "PASS"`; the `features_audited`
+#   list equals the canonical 33-tuple in F1→F2→F3→F5 family order; the
+#   `validator_passed` field is `True`; SHA-256 of the output Parquet is
+#   stable across two consecutive runs (deterministic re-write check).
+# - **Falsifiers (24-step halting chain from materialization module):**
+#   `validator_module_sha_pin_mismatch`, `adjudicator_module_sha_pin_mismatch`,
+#   `adjudication_csv_sha_pin_mismatch`, `adjudication_md_sha_pin_mismatch`,
+#   `parent_parquet_02_01_02_sha_mismatch`, `parent_parquet_02_01_03_sha_mismatch`,
+#   `parent_audit_02_01_02_canonical_sha_mismatch`,
+#   `parent_audit_02_01_03_canonical_sha_mismatch`,
+#   `binding_difference_family_numeric_pair_count_drift`,
+#   `binding_symmetric_pair_aggregate_transforms_drift`,
+#   `binding_cross_region_pair_transforms_drift`,
+#   `source_column_missing_in_02_01_03_parquet`,
+#   `expected_output_row_count_module_constant_drift`,
+#   `audit_pinned_row_count_drift`, `output_row_count_drift`,
+#   `output_distinct_focal_match_count_drift`,
+#   `output_feature_column_count_drift`, `output_total_column_count_drift`,
+#   `identity_columns_not_byte_identical_to_02_01_03`,
+#   `forbidden_token_in_emitted_column_name`,
+#   `no_parent_mutation_check_failed`, `audit_verdict_not_pass`,
+#   `non_deterministic_re_write`, `per_feature_traceability_proof_failed`.
+# - **Sanity check:** `result.row_count == 44_418`;
+#   `result.distinct_focal_match_count == 22_209`;
+#   `result.validator_passed is True`;
+#   `result.leakage_audit_verdict == "PASS"`;
+#   `len(result.feature_column_names) == 33`; first/last identity rows of
+#   output Parquet byte-identical to 02_01_03 Parquet.
+# - **Expected artifact:**
+#   `02_02_01_symmetry_difference_features.parquet` + audit pair under
+#   `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`.
+# - **Lineage source:** PR #268 binding adjudication CSV+MD authorise this
+#   materialisation; PR #269 Layer-1 plan binds the 11-file diff manifest,
+#   the 24-falsifier chain, and the SHA pins on the upstream artifacts.
+# - **Downstream decision:** the future U2.B-style closure PR consumes
+#   these artifacts to flip `STEP_STATUS.yaml` to `02_02_01: complete`.
 
 # %%
 from pathlib import Path
 
-from rts_predict.games.sc2.datasets.sc2egset.validate_symmetry_difference_feature_materialization import (  # noqa: E501
-    BLOCKED_FAMILY_FRAGMENTS,
-    BLOCKED_SLOT_TOKEN_REGEX,
-    CONTEXT_ANCHOR_COLUMNS,
-    EXPECTED_NO_OUTPUT_ARTIFACT_DIRECTORIES,
-    FORBIDDEN_AOE2_VOCABULARY,
+from rts_predict.games.sc2.datasets.sc2egset.materialize_symmetry_difference_features import (
+    AUDIT_PR,
+    CONTEXT_COLUMNS,
+    EXECUTED_AT_UTC_DATE,
+    EXPECTED_DISTINCT_FOCAL_MATCH_COUNT,
+    EXPECTED_OUTPUT_ROW_COUNT,
     IDENTITY_COLUMNS,
-    INPUT_02_01_02_AUDIT_JSON_RELPATH,
-    INPUT_02_01_02_PARQUET_RELPATH,
-    INPUT_02_01_02_PARQUET_SHA256,
-    INPUT_02_01_03_AUDIT_JSON_RELPATH,
-    INPUT_02_01_03_PARQUET_RELPATH,
-    INPUT_02_01_03_PARQUET_SHA256,
-    POST_GAME_TOKENS,
-    TRACKER_SOURCE_PREFIX,
-    UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_02,
-    UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_03,
-    VALID_DIRECTION_LITERAL_VALUES,
-    CandidateFeatureSpec,
-    validate_symmetry_difference_feature_materialization,
+    SPEC_VERSION,
+    STEP,
+    SYMMETRY_DIFFERENCE_AUDIT_JSON_PATH,
+    SYMMETRY_DIFFERENCE_AUDIT_MD_PATH,
+    SYMMETRY_DIFFERENCE_OUTPUT_PATH,
+    _EXPECTED_FEATURE_COLUMN_COUNT,
+    _EXPECTED_TOTAL_COLUMN_COUNT,
+    _HALTING_FALSIFIERS,
+    _PARQUET_COMPRESSION,
+    _PARQUET_VERSION,
+    materialize_symmetry_difference_features,
 )
 
 # %% [markdown]
-# ## Repo-root + input path resolution
-
-# %%
-_CWD = Path.cwd().resolve()
-REPO_ROOT = next(
-    (parent for parent in (_CWD, *_CWD.parents) if (parent / "pyproject.toml").exists()),
-    _CWD,
-)
-INPUT_02_01_02_PARQUET = REPO_ROOT / INPUT_02_01_02_PARQUET_RELPATH
-INPUT_02_01_03_PARQUET = REPO_ROOT / INPUT_02_01_03_PARQUET_RELPATH
-INPUT_02_01_02_AUDIT_JSON = REPO_ROOT / INPUT_02_01_02_AUDIT_JSON_RELPATH
-INPUT_02_01_03_AUDIT_JSON = REPO_ROOT / INPUT_02_01_03_AUDIT_JSON_RELPATH
+# ## Context — PR #269 plan frozen-input snapshot
+#
+# - **Step:** `02_02_01`
+# - **Spec version:** `CROSS-02-01-v1`
+# - **Executed at UTC date:** `2026-05-30`
+# - **Input Parquet (02_01_02; PR #236):**
+#   `02_01_02_pre_game_features.parquet`
+#   (SHA256 `24db73fbb897f883f73891745bc5e98d3e6c9a33d961c9606f6e2c5dc224ff39`).
+# - **Input Parquet (02_01_03; PR #259):**
+#   `02_01_03_history_enriched_pre_game_features.parquet`
+#   (SHA256 `053900e7712e992e2de12c1595935aa652f05e07d586998db2de0425505aa071`).
+# - **PR #266 validator module SHA256:**
+#   `d8f34760db2e216cd8b838ab510bd252e7474e0324e4df1bec5d609a293b1753`.
+# - **PR #268 adjudicator module SHA256 (computed at run time).**
+# - **PR #268 adjudication CSV SHA256 (computed at run time).**
 
 # %% [markdown]
-# ## Verify constants (module-load self-assertion echo)
+# ## Verify module-level constants (self-assertion echo)
 
 # %%
+print("STEP:", STEP)
+print("SPEC_VERSION:", SPEC_VERSION)
+print("EXECUTED_AT_UTC_DATE:", EXECUTED_AT_UTC_DATE)
+print("AUDIT_PR:", AUDIT_PR)
 print("IDENTITY_COLUMNS:", IDENTITY_COLUMNS)
-print("CONTEXT_ANCHOR_COLUMNS:", CONTEXT_ANCHOR_COLUMNS)
-print(
-    "UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_02 count:",
-    len(UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_02),
-)
-print(
-    "UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_03 count:",
-    len(UPSTREAM_AUDITED_FEATURE_COLUMNS_02_01_03),
-)
-print("VALID_DIRECTION_LITERAL_VALUES:", VALID_DIRECTION_LITERAL_VALUES)
-print("INPUT_02_01_02_PARQUET_SHA256:", INPUT_02_01_02_PARQUET_SHA256)
-print("INPUT_02_01_03_PARQUET_SHA256:", INPUT_02_01_03_PARQUET_SHA256)
-print("BLOCKED_SLOT_TOKEN_REGEX count:", len(BLOCKED_SLOT_TOKEN_REGEX))
-print("POST_GAME_TOKENS count:", len(POST_GAME_TOKENS))
-print("BLOCKED_FAMILY_FRAGMENTS:", BLOCKED_FAMILY_FRAGMENTS)
-print("FORBIDDEN_AOE2_VOCABULARY:", FORBIDDEN_AOE2_VOCABULARY)
-print("TRACKER_SOURCE_PREFIX:", TRACKER_SOURCE_PREFIX)
-print(
-    "EXPECTED_NO_OUTPUT_ARTIFACT_DIRECTORIES:",
-    EXPECTED_NO_OUTPUT_ARTIFACT_DIRECTORIES,
-)
+print("CONTEXT_COLUMNS:", CONTEXT_COLUMNS)
+print("EXPECTED_OUTPUT_ROW_COUNT:", EXPECTED_OUTPUT_ROW_COUNT)
+print("EXPECTED_DISTINCT_FOCAL_MATCH_COUNT:", EXPECTED_DISTINCT_FOCAL_MATCH_COUNT)
+print("_EXPECTED_FEATURE_COLUMN_COUNT:", _EXPECTED_FEATURE_COLUMN_COUNT)
+print("_EXPECTED_TOTAL_COLUMN_COUNT:", _EXPECTED_TOTAL_COLUMN_COUNT)
+print("_PARQUET_COMPRESSION:", _PARQUET_COMPRESSION)
+print("_PARQUET_VERSION:", _PARQUET_VERSION)
+print("len(_HALTING_FALSIFIERS):", len(_HALTING_FALSIFIERS))
+print("SYMMETRY_DIFFERENCE_OUTPUT_PATH:", SYMMETRY_DIFFERENCE_OUTPUT_PATH)
+print("SYMMETRY_DIFFERENCE_AUDIT_JSON_PATH:", SYMMETRY_DIFFERENCE_AUDIT_JSON_PATH)
+print("SYMMETRY_DIFFERENCE_AUDIT_MD_PATH:", SYMMETRY_DIFFERENCE_AUDIT_MD_PATH)
 
 # %% [markdown]
-# ## Designed CANDIDATE specs (Families 1, 3, and 6)
-#
-# Family 1 (numeric difference, `focal_minus_opponent`): three
-# representative candidates from the 02_01_03 24-tuple. Family 3
-# (symmetric pair mean, `symmetric`): three representative candidates.
-# Family 6 (race-pair, `symmetric`): the explicit
-# `race_pair__defer_to_02_05` deferral marker from 02_01_02.
+# ## Materialise 33-feature symmetry/difference Parquet + CROSS-02-01 audit
 
 # %%
-DESIGNED_DIFFERENCE_SPECS: tuple[CandidateFeatureSpec, ...] = (
-    CandidateFeatureSpec(
-        column_name="focal_minus_opponent_prior_match_count_diff",
-        direction="focal_minus_opponent",
-        source_columns=(
-            "focal_prior_match_count",
-            "opponent_prior_match_count",
-        ),
-    ),
-    CandidateFeatureSpec(
-        column_name="focal_minus_opponent_apm_prior_mean_diff",
-        direction="focal_minus_opponent",
-        source_columns=(
-            "focal_apm_prior_mean",
-            "opponent_apm_prior_mean",
-        ),
-    ),
-    CandidateFeatureSpec(
-        column_name="focal_minus_opponent_days_since_prior_match_diff",
-        direction="focal_minus_opponent",
-        source_columns=(
-            "focal_days_since_prior_match",
-            "opponent_days_since_prior_match",
-        ),
-    ),
-)
+result = materialize_symmetry_difference_features()
 
 # %%
-DESIGNED_SYMMETRIC_PAIR_SPECS: tuple[CandidateFeatureSpec, ...] = (
-    CandidateFeatureSpec(
-        column_name="prior_match_count_pair_mean",
-        direction="symmetric",
-        source_columns=(
-            "focal_prior_match_count",
-            "opponent_prior_match_count",
-        ),
-    ),
-    CandidateFeatureSpec(
-        column_name="apm_prior_mean_pair_mean",
-        direction="symmetric",
-        source_columns=(
-            "focal_apm_prior_mean",
-            "opponent_apm_prior_mean",
-        ),
-    ),
-    CandidateFeatureSpec(
-        column_name="is_cross_region_fragmented_pair_or",
-        direction="symmetric",
-        source_columns=(
-            "is_cross_region_fragmented_focal_history_any",
-            "is_cross_region_fragmented_opponent_history_any",
-        ),
-    ),
-)
+print("result.step:", result.step)
+print("result.row_count:", result.row_count)
+print("result.distinct_focal_match_count:", result.distinct_focal_match_count)
+print("result.validator_passed:", result.validator_passed)
+print("result.leakage_audit_verdict:", result.leakage_audit_verdict)
+print("len(result.feature_column_names):", len(result.feature_column_names))
+print("result.output_parquet_path:", result.output_parquet_path)
+print("result.output_audit_json_path:", result.output_audit_json_path)
+print("result.output_audit_md_path:", result.output_audit_md_path)
 
 # %%
-DESIGNED_RACE_PAIR_CANDIDATE_SPECS: tuple[CandidateFeatureSpec, ...] = (
-    CandidateFeatureSpec(
-        column_name="race_pair__defer_to_02_05",
-        direction="symmetric",
-        source_columns=("race_pair",),
-    ),
-)
+assert result.step == "02_02_01"
+assert result.row_count == EXPECTED_OUTPUT_ROW_COUNT
+assert result.distinct_focal_match_count == EXPECTED_DISTINCT_FOCAL_MATCH_COUNT
+assert result.validator_passed is True
+assert result.leakage_audit_verdict == "PASS"
+assert len(result.feature_column_names) == _EXPECTED_FEATURE_COLUMN_COUNT
 
 # %% [markdown]
-# ## Invoke the T01 validator
+# ## Feature column names — 33-column F1→F2→F3→F5 family order
 
 # %%
-result = validate_symmetry_difference_feature_materialization(
-    INPUT_02_01_02_PARQUET,
-    INPUT_02_01_03_PARQUET,
-    (INPUT_02_01_02_AUDIT_JSON, INPUT_02_01_03_AUDIT_JSON),
-    DESIGNED_DIFFERENCE_SPECS,
-    DESIGNED_SYMMETRIC_PAIR_SPECS,
-    DESIGNED_RACE_PAIR_CANDIDATE_SPECS,
-    repo_root=REPO_ROOT,
-)
-
-# %%
-print("passed:", result.passed)
-print("halting_falsifier:", result.halting_falsifier)
-print("materialized_output_paths:", result.materialized_output_paths)
-print("artifact_directory_absence_ok:", result.artifact_directory_absence_ok)
-print("input_parquet_paths_present_ok:", result.input_parquet_paths_present_ok)
-print("input_parquet_sha256_ok:", result.input_parquet_sha256_ok)
-print("parent_audit_json_paths_present_ok:", result.parent_audit_json_paths_present_ok)
-print("audit_json_alignment_ok:", result.audit_json_alignment_ok)
-print("direction_annotation_valid:", result.direction_annotation_valid)
-print("source_column_traceability_ok:", result.source_column_traceability_ok)
-print("direction_name_consistency_ok:", result.direction_name_consistency_ok)
-print("slot_token_violations:", result.slot_token_violations)
-print("target_leak_token_violations:", result.target_leak_token_violations)
-print("reconstructed_rating_violations:", result.reconstructed_rating_violations)
-print("aoe2_vocabulary_violations:", result.aoe2_vocabulary_violations)
-print("tracker_sourced_violations:", result.tracker_sourced_violations)
-
-# %%
-assert result.passed is True
-assert result.halting_falsifier is None
-assert result.materialized_output_paths == ()
-assert result.artifact_directory_absence_ok is True
+print("33 emitted feature column names (F1→F2→F3→F5 family order):")
+for i, name in enumerate(result.feature_column_names, start=1):
+    family = (
+        "F1" if "_minus_opponent_" in name and name.endswith("_diff") else
+        "F2" if name.endswith("_pair_mean") else
+        "F3" if name.endswith("_pair_abs_diff") else
+        "F5"
+    )
+    print(f"  {i:2d}. [{family}] {name}")
 
 # %% [markdown]
-# ## Closing — scaffold + one validation module persisted; no artifact emitted
+# ## Visual sanity — first 5 rows of output Parquet
+
+# %%
+import pyarrow.parquet as pq  # noqa: E402
+
+parquet_path = Path(SYMMETRY_DIFFERENCE_OUTPUT_PATH)
+table = pq.read_table(parquet_path)
+df = table.to_pandas()
+print(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")
+print("\nFirst 5 rows (identity + context + first 3 feature columns):")
+preview_cols = list(IDENTITY_COLUMNS) + list(CONTEXT_COLUMNS) + list(result.feature_column_names[:3])
+print(df[preview_cols].head(5).to_string(index=False))
+
+# %% [markdown]
+# ## Parent artifact SHA-256 provenance bonds
+
+# %%
+print("Parent artifact SHA-256 bonds (start-of-run):")
+for artifact_key, sha in result.parent_artifact_sha256s.items():
+    print(f"  {artifact_key}: {sha}")
+
+# %% [markdown]
+# ## Closing — 33-feature Parquet + non-vacuous CROSS-02-01 audit persisted
 #
-# **What this notebook DID:**
+# **What was done (non-batching steps 7-8 of 9):**
+# - Materialised symmetry/difference Parquet at the canonical path
+#   (`SYMMETRY_DIFFERENCE_OUTPUT_PATH` constant; 44,418 rows × 37 cols =
+#   3 identity + 1 context anchor + 33 audited features over the four
+#   permitted families F1/F2/F3/F5).
+# - Persisted the FIRST non-vacuous CROSS-02-01-v1.0.1 §3 audit pair at
+#   `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`
+#   (`features_audited` = exactly the 33 symmetry/difference feature column
+#   names; `verdict = PASS`; 24-step halting falsifier chain; per-feature
+#   traceability table; parent SHA-256 provenance bonds for all 6 parent
+#   artifacts; deterministic re-write check passed).
+# - Appended a non-closure entry to the dataset `research_log.md` mirroring
+#   PR #259's precedent (`closure_status: still_open`,
+#   `materialization_state: materialized`,
+#   `leakage_audit_state: post_materialization_pass`,
+#   `features_audited_count: 33`, `row_count: 44418`, etc).
 #
-# - Imported the T01 validator
-#   (`validate_symmetry_difference_feature_materialization`) and the
-#   `CandidateFeatureSpec` dataclass.
-# - Echoed every module-level constant for at-a-glance audit.
-# - Enumerated 6 candidate symmetric/difference feature families per
-#   `02_FEATURE_ENGINEERING_MANUAL.md` §3, materialised three example
-#   specs for Family 1 (numeric difference), three example specs for
-#   Family 3 (symmetric pair mean / OR), and the
-#   `race_pair__defer_to_02_05` deferral marker for Family 6.
-# - Invoked the validator and asserted `passed is True`,
-#   `halting_falsifier is None`, `materialized_output_paths == ()`,
-#   `artifact_directory_absence_ok is True`.
-#
-# **What this notebook did NOT do (per PR #265 plan hard-stops):**
-#
-# - **No feature materialisation.** No Parquet, no CSV, no MD, no JSON
-#   under `reports/artifacts/02_02_01/` or
-#   `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`.
-# - **No leakage audit artifact** (no `leakage_audit_sc2egset.{json,md}`
-#   pair).
-# - **No status YAML edit.** STEP_STATUS / PIPELINE_SECTION_STATUS /
-#   PHASE_STATUS byte-unchanged. `02_02_01` not added to STEP_STATUS;
-#   `02_02` not added to PIPELINE_SECTION_STATUS.
-# - **No ROADMAP edit.** The 02_02_01 block at ROADMAP lines 2853-3131
-#   remains byte-unchanged.
-# - **No `research_log.md` append** (dataset or root). Per the
-#   non-batching rule, research_log is appended only at step closure
-#   (sequence step 8), not at scaffold (sequence step 2).
-# - **No source-anchor / column-naming binding adjudication.** Candidate
-#   enumeration is CANDIDATE-only; binding decision deferred to a future
-#   PR analogous to PR #234 for 02_01_02.
-# - **No upstream artifact mutation.** Both 02_01_02 and 02_01_03
-#   Parquets byte-stable at the embedded SHA256 pins; both audit JSONs
-#   byte-unchanged.
-# - **No `reconstructed_rating` re-introduction.** PR #255 / PR #257
-#   binding exclusion stands.
-# - **No AoE2 `civilization` vocabulary** (Invariant I8 cross-game
-#   hygiene).
-# - **No Phase 03 / Step 02_01_04 / Step 02_02_02+ / baseline modelling.**
+# **What was NOT done (deferred to the U2.B-style closure PR):**
+# - `STEP_STATUS.yaml`, `PIPELINE_SECTION_STATUS.yaml`, `PHASE_STATUS.yaml`
+#   are byte-unchanged.
+# - `02_02_01: complete` is NOT added to `STEP_STATUS.yaml`.
+# - ROADMAP body, specs, and cleaning-layer YAMLs are byte-unchanged.
+# - Root `reports/research_log.md` is NOT appended (per per-dataset-only
+#   research_log scoping; PR #259 precedent).
+# - No Phase 03 work. No baseline modeling. No Step 02_02_02+.

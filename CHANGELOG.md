@@ -19,6 +19,42 @@ merged to `master`.
 
 ### Removed
 
+## [3.86.0] — 2026-05-30 (PR #270: feat/sc2egset-02-02-01-symmetry-difference-materialization)
+
+### Added
+
+- `materialize_symmetry_difference_features.py`: materialisation module
+  emitting 33 feature columns (F1=10, F2=10, F3=10, F5=3) per the PR #268
+  binding adjudication contract. 24-step halting falsifier chain; 6 parent
+  artifact SHA pins; per-feature traceability proof in audit JSON.
+- `02_02_01_symmetry_difference_features.parquet`: 44,418 rows × 37
+  cols (3 identity + 1 context + 33 features). ZSTD compression; byte-
+  deterministic re-write verified.
+- `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`: first
+  non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit for Step 02_02_01
+  with 33-entry per-feature traceability proof and all-null leakage_checks.
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_materialize_symmetry_difference_features.py`:
+  148 tests, 98.75% branch coverage on the materialisation module.
+- Non-closure `research_log.md` entry recording materialisation state
+  per PR #259 precedent (`closure_status: still_open`,
+  `materialization_state: materialized`,
+  `leakage_audit_state: post_materialization_pass`).
+
+### Changed
+
+- Sandbox notebook `02_02_01_symmetry_difference_feature_materialization.{py,ipynb}`
+  overwritten in place (PR #266 scaffold replaced by execution notebook).
+
+### Notes
+
+- Step 02_02_01 NOT closed by this PR (closure deferred to a separate
+  U2.B-style PR per PR #237 / PR #262 precedent).
+- No STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip.
+- No Phase 03 work. No baseline modeling. No reopen of Q5 / Q6 / Q6F /
+  Q6G / Q6H / `reconstructed_rating` closure.
+- No AoE2 `civilization` vocabulary introduced. No new MMR scalar. No
+  new tracker-derived target-match feature. No root research_log.md edit.
+
 ## [3.85.0] — 2026-05-29 (PR #268: feat/sc2egset-02-02-01-symmetry-difference-adjudication)
 
 ### Added
