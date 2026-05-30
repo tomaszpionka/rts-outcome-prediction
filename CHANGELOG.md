@@ -19,6 +19,30 @@ merged to `master`.
 
 ### Removed
 
+## [3.88.0] - 2026-05-30
+
+### Added
+- SC2EGSet Step 02_03_01 SCAFFOLD + V1 predecessor artifact provenance validator (Layer-2 scaffold execution; opens empirical lineage for Pipeline Section 02_03 per merged ROADMAP `continue_predicate` at PR #274). Implements V1 only (SHA-pin determinism + Invariant I10 relative-path discipline + identity-column + row-count + forbidden-emission guard). V3 (strict-`<` temporal-discipline) deferred to the IMMEDIATELY-NEXT scaffold rung per NIT-2 of PR #275 plan.
+- Mirrored test suite under `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_temporal_feature_grid.py` with ≥35 tests + ≥95% branch coverage.
+- Jupytext-paired sandbox scaffold notebook under `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_scaffold.{py,ipynb}` invoking the V1 validator with hypothesis + falsifier + sanity-check cells.
+- planning/INDEX.md: PR #274 (Layer-2 ROADMAP stub, merge SHA `6716aa17`) and PR #275 (Layer-1 scaffold-plan, merge SHA `e1701709`) archived; Active line flipped to this Layer-2 scaffold execution PR.
+
+### Changed
+- pyproject.toml version 3.87.0 → 3.88.0 (feat-class minor per `.claude/rules/git-workflow.md`; mirrors PR #266 precedent 3.83.0 → 3.84.0 for the analogous Step 02_02_01 scaffold execution).
+
+### Notes
+- **No adjudication.** No concrete temporal window grid, decay half-life grid, or cold-start k-threshold values committed (OQ-1 deferred to a successor adjudication PR per ROADMAP halt_predicate and PR #275 plan A-5).
+- **No tracker family inclusion decision.** OQ-2 deferred.
+- **No in-game temporal scope decision.** OQ-3 deferred.
+- **No CROSS-spec edits.** CROSS-02-02 and CROSS-02-03 cited with distinct roles per OQ-4; both remain LOCKED.
+- **No feature materialization.** V1 validator is pure-function over schema metadata + file SHAs; no Parquet/CSV emission to `reports/artifacts/**`.
+- **No leakage audit execution.** CROSS-02-01 / CROSS-02-03 audits will run at downstream materialization + design-time-adjudication rungs.
+- **No status-chain flip.** STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS rows for 02_03_01 / 02_03 deferred to a future U2.B-style closure PR.
+- **No research_log entry.** Dataset + root research_log unchanged.
+- **No ROADMAP edits.** PR #274 stub merged; no successor edits in this scaffold rung.
+- **No Phase 03.** No baseline modeling.
+- **Cross-game-portable vocabulary preserved.** No SC2-specific terms (`race`, `mineral`, `vespene`, `PlayerStats`, `tracker_events`) in validator function signatures or output dataclass fields. F-Q8-syntactic + F-candidate-agnostic grep falsifiers pass on the new validator + test + notebook files (Invariant I8; H8/H10 of PR #275 plan).
+
 ## [3.87.0] - 2026-05-30
 
 ### Added
