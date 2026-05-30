@@ -7,10 +7,10 @@
 - **Category:** C (governance / status closure)
 - **Dataset:** sc2egset
 - **Branch:** `chore/sc2egset-02-02-01-formal-closure`
-- **PR:** `PR #<TBD>`
+- **PR:** `PR #272`
 - **Step scope:** Step `02_02_01` — formal status closure; flips `STEP_STATUS.yaml` from no-row to `complete`; flips `PIPELINE_SECTION_STATUS.yaml` `02_02` section to `complete` (per PR #230 first-step-closure precedent — 02_02 currently has only step 02_02_01 in ROADMAP); does NOT touch ROADMAP / PHASE_STATUS / root research_log / artifacts / source / tests / notebooks / specs / data / AoE2 / thesis / docs / .claude.
 - **closure_status:** `closed`
-- **closure_pr:** `#<TBD>`
+- **closure_pr:** `#272`
 - **closure_date:** `2026-05-30`
 - **evidence:** PR #270 (eddd0489) materialization + non-vacuous CROSS-02-01 leakage audit PASS
 - **materialization_state:** `materialized`
