@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- **Active** — `feat/sc2egset-02-03-01-roadmap-stub` — Layer-2 ROADMAP-only stub execution PR for Step 02_03_01 (opens Pipeline Section 02_03 — Temporal Features, Windows, Decay, Cold Starts). Awaiting draft-PR creation. Will be normalized to `PR #<TBD>` after open.
+- **Active** — `feat/sc2egset-02-03-01-roadmap-stub` — Layer-2 ROADMAP-only stub execution PR for Step 02_03_01 (opens Pipeline Section 02_03 — Temporal Features, Windows, Decay, Cold Starts). PR #274 (draft).
 
 ## Archive
 
