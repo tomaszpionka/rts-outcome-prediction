@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- **Active** — `feat/sc2egset-02-02-01-symmetry-difference-materialization` — Layer-2 execution PR for SC2EGSet Step 02_02_01 symmetry/difference feature materialisation + non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit. Materialises 33 feature columns (F1=10, F2=10, F3=10, F5=3) per the PR #268 binding adjudication; emits Parquet (44,418 rows × 37 cols) + audit JSON+MD (`reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`); appends non-closure research_log entry; overwrites PR #266 scaffold notebook in place. No STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip; no root research_log edit; no ROADMAP edit; no Phase 03 work; no baseline modeling. Version bump `3.85.0 → 3.86.0`. PR #<TBD>.
+- **Active** — `feat/sc2egset-02-02-01-symmetry-difference-materialization` — Layer-2 execution PR for SC2EGSet Step 02_02_01 symmetry/difference feature materialisation + non-vacuous CROSS-02-01-v1.0.1 §3 leakage audit. Materialises 33 feature columns (F1=10, F2=10, F3=10, F5=3) per the PR #268 binding adjudication; emits Parquet (44,418 rows × 37 cols) + audit JSON+MD (`reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`); appends non-closure research_log entry; overwrites PR #266 scaffold notebook in place. No STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS flip; no root research_log edit; no ROADMAP edit; no Phase 03 work; no baseline modeling. Version bump `3.85.0 → 3.86.0`. PR #270.
 
 ## Archive
 

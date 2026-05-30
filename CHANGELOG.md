@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.86.0] — 2026-05-30 (PR #<TBD>: feat/sc2egset-02-02-01-symmetry-difference-materialization)
+## [3.86.0] — 2026-05-30 (PR #270: feat/sc2egset-02-02-01-symmetry-difference-materialization)
 
 ### Added
 

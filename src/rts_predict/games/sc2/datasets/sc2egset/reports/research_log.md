@@ -7,7 +7,7 @@
 - **Category:** A (science / Phase 02 / materialization-execution)
 - **Dataset:** sc2egset
 - **Branch:** `feat/sc2egset-02-02-01-symmetry-difference-materialization`
-- **PR:** `PR #<TBD>`
+- **PR:** `PR #270`
 - **Step scope:** Step `02_02_01` — symmetry/difference feature materialisation for the 33 binding candidates authorised by PR #268 adjudication: F1 (10 numeric differences `focal_minus_opponent_<stem>_diff`) + F2 (10 symmetric pair means `<stem>_pair_mean`) + F3 (10 symmetric pair absolute differences `<stem>_pair_abs_diff`) + F5 (3 cross-region Boolean pair transforms `cross_region_pair_{or,and,xor}`). F4 (matchup history pair operations) DROPPED per B1 / PR #268 A20. F6 (race-pair categorical interactions) DEFERRED to 02_05 per PR #268 A12. `sum` EXCLUDED redundant; `product` DEFERRED to 02_05; `ratio` EXCLUDED; `reconstructed_rating` EXCLUDED per PR #255 omit-closure. Step closure is NOT claimed.
 - **closure_status:** `still_open`
 - **materialization_state:** `materialized`

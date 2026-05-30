@@ -59,7 +59,7 @@ LOGGER = logging.getLogger(__name__)
 # Provenance / identity constants (Invariant I7 — UPPER_SNAKE; no magic numbers)
 # ---------------------------------------------------------------------------
 
-AUDIT_PR: str = "PR #<TBD>"
+AUDIT_PR: str = "PR #270"
 EXECUTED_AT_UTC_DATE: str = "2026-05-30"
 STEP: str = "02_02_01"
 SPEC_VERSION: str = "CROSS-02-01-v1"
