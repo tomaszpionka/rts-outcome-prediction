@@ -1,110 +1,85 @@
 ---
-title: "Reviewer-adversarial critique — SC2EGSet Step 02_02_01 source-anchor / column-naming / direction-policy adjudication planning PR"
+title: "Reviewer-adversarial critique — SC2EGSet Step 02_02_01 symmetry/difference feature materialization + non-vacuous leakage audit (Layer-1 planning PR)"
 plan_ref: planning/current_plan.md
 category: A
-branch: feat/sc2egset-02-02-01-symmetry-difference-adjudication
+branch: feat/sc2egset-02-02-01-symmetry-difference-materialization
 base_ref: master
-base_sha: 9abcd6bc62e1de21172970baf84aa863c4423a1b
+base_sha: b84ed6d6bf89414d33b7a1b9ee05f34e82d00457
+predecessor_pr: 268
 dataset: sc2egset
 phase: "02"
+pipeline_section: "02_02 — Symmetry & Difference Features"
 adversarial_cap: 3
-rounds_run: 2
+rounds_run: 1
 final_verdict: APPROVE-WITH-NITS
 blockers: 0
 nits: 6
-date: 2026-05-29
+date: 2026-05-30
 ---
 
 ## Adjudication outcomes (cross-reference)
 
-The planner selected **Outcome A** — `02_02_01` feature-scope / source-anchor / transform-policy adjudication planning PR — and rejected B–G with repo-evidence justification (`planning/current_plan.md` §"Problem Statement" + Round 1 chat-side rejection of B–G). The reviewer ratified Outcome A in both rounds.
+The planner selected **Outcome A** — `02_02_01` symmetry/difference feature materialization + non-vacuous leakage audit planning PR — and rejected B–G with repo-evidence justification. The reviewer ratified Outcome A.
 
-## Round 1 — verdict: HOLD (3 blockers)
+- **B — Direct execution without planning** — Rejected: `.claude/rules/data-analysis-lineage.md` §"Non-batching rule" bans `notebook + artifact + next step` in one execution; PR #258 → PR #259 precedent ladder requires Layer-1 plan first.
+- **C — Additional adjudication / source-anchor PR** — Rejected: PR #268 closed all 8 open questions from PR #265 with `validator_passed=True`; binding adjudicator constants leave zero unresolved scope; no concrete defect surfaced in lookup.
+- **D — Status-chain update PR** — Rejected: STEP_STATUS has no `02_02_01` row, no on-disk Parquet, no audit; closure requires those artifacts to exist first per PR #237 / PR #262 precedent.
+- **E — Phase 03 planning** — Rejected: Phase 02 in_progress; ROADMAP line 3119 halts on Phase 03 start; CLAUDE.md "NEVER begin a new phase until all prior phase artifacts exist on disk."
+- **F — Reopen 02_01 / Q6 / reconstructed_rating** — Rejected: ROADMAP lines 3076–3082 + PR #255 / PR #257 / PR #259 / PR #262 chain establish binding `reconstructed_rating` exclusion; no defect.
+- **G — Hold** — Rejected: all 20 precondition predicates PASS (item 13 audit-JSON-missing was a lookup-agent path-confusion that direct verification corrected; item 19 dirty `02_01_03_q6h_rating_path_decision.ipynb` is unrelated stale notebook output from Step 02_01_03 work and does not affect this planning workflow).
 
-Round 1 plan was the initial Round-1 draft (recorded at `.github/tmp/planner_output.md`). Reviewer passed 8 of 11 hard checks and identified three methodology BLOCKERs:
+## Round 1 — verdict: APPROVE-WITH-NITS (0 blockers, 6 nits)
 
 ### Round 1 BLOCKERs
 
-- **B1 — F4 "Matchup history pair operations" methodologically vacuous.** `matchup_h2h_focal_win_rate` is the only matchup-rate column in the audited 24-tuple; there is no `matchup_h2h_opponent_win_rate` audited counterpart. Treating it as a paired focal/opponent operation with "implicit complement `1 - matchup_h2h_focal_win_rate`" yields `2*focal - 1`, an affine transform of the same column — zero linear-model information gain, zero tree-splitting effect.
-- **B2 — A14 algebra error.** Round 1 stated "drop `product` because mean * 2 = sum." Correct algebra: `sum = 2*mean`, so `sum` (not `product`) is redundant with `mean`. `product = focal * opponent` is a genuine multiplicative interaction.
-- **B3 — `abs_diff` exclusion incompatible with LogReg under Invariant I8.** I8's cross-game protocol requires LogReg. For LogReg, `|focal - opponent|` is NOT a linear function of `(focal - opponent)` and CANNOT be recovered from the signed term. Round 1's "tree models can route the sign" rationale leaves LogReg without a symmetric-magnitude basis vector.
+**None.** The plan's methodology is sound; the 33-feature contract is mathematically correct; the two-PR Layer-1/Layer-2 sequence respects `.claude/rules/data-analysis-lineage.md`; the LogReg basis argument is valid; identity alignment / byte-determinism / parent non-mutation falsifiers are well-specified; temporal discipline is inherited unchanged.
 
-### Round 1 NITs
+### Round 1 NITs (6 — all wording / format fixes; applied inline in Layer-1 plan body)
 
-- **N1** — Validator name-direction ambiguity in F4 templates; mooted if F4 is dropped.
-- **N2** — MD §3 row-count language should distinguish documentary future-materialisation gate from runtime promise.
-
-### Round 1 item-by-item passes (8 of 11)
-
-`Q1 PASS` adjudication-vs-validator boundary · `Q2 PASS` direct-materialization premature · `Q3 PASS` filename / path conventions match PR #234 / PR #242 precedent · `Q4 PASS` source-column traceability enforceable via validator's frozen 7-tuple / 24-tuple constants · `Q5 PASS` slot-bias regex coverage sufficient · `Q6 PASS` race-pair deferral to 02_05 correct per manual §6 · `Q7 PASS` `reconstructed_rating` exclusion airtight via validator's `BLOCKED_FAMILY_FRAGMENTS` · `Q8 PASS` no status / research_log / ROADMAP / Phase-03 work planned · `Q9 PASS` no feature artifact / audit artifact planned · `Q10 FAIL` CSV/MD content unsound (encodes B1/B2) · `Q11 FAIL` blockers present.
-
-Round 1 final stamp: **HOLD — REDESIGN BEFORE EXECUTION.**
-
-## Round 2 — verdict: APPROVE-WITH-NITS (0 blockers, 6 nits)
-
-Round 2 plan revised per user-bound resolutions (drop F4 as pair operation; fix A14 algebra; include `abs_diff` for numeric pairs). Reviewer confirmed all three Round 1 BLOCKERs resolved, validated four Round-2 collateral changes, audited methodology defensibility, and engaged with all eight planner-self-flagged Round 2 risks.
-
-### Round 2 BLOCKERs
-
-**None.**
-
-### Round 2 resolution-of-Round-1 checks (5 of 5 PASS)
-
-- **R-B1 PASS** — F4 dropped in §Scope, Candidate feature families table, A20 binding, T01 instructions remove `BINDING_MATCHUP_HISTORY_PAIR_OPERATIONS`, halting falsifier `binding_matchup_history_pair_operations_symbol_present` added, gate clauses #2 + #18 added, tests `test_binding_matchup_history_pair_operations_symbol_absent` + `test_no_matchup_h2h_pair_candidate_in_difference_family`. No surviving reference treats F4 as a binding family.
-- **R-B2 PASS** — A14 algebra is correct (`sum = 2*mean` cited; per-transform decisions independent: `mean` BIND / `abs_diff` BIND / `sum` EXCLUDE / `product` DEFER-TO-02_05 / `ratio` EXCLUDE); CSV column `symmetric_pair_aggregate_scope_decision` carries Round 2 string; MD §9.1–§9.4 each carry their own subsection; OQ7 + OQ11 record decision and re-open trigger; gate clauses #1, #20, #21 enforce.
-- **R-B3 PASS** — `BINDING_SYMMETRIC_PAIR_AGGREGATE_TRANSFORMS = ("mean", "abs_diff")`; F3 family table row renamed to "Symmetric pair absolute difference" with name template `<stem>_pair_abs_diff`; T01 spec construction emits one `_pair_abs_diff` candidate per numeric pair; Literature Context Invariant I8 anchor justifies inclusion; tests + gate clause #19 enforce count.
-- **R-N1 PASS** — A21 excludes the unary `2x-1` rescaling from the binding 02_02 set; informational only; test asserts no `matchup_h2h_focal_advantage` candidate constructed.
-- **R-N2 PASS** — MD §3 head sentence carries the exact wording "documentary future-materialisation gate, not a runtime promise for the adjudication PR"; gate clause #8 greps for it; test `test_row_count_44418_is_documentary_not_runtime_promise` asserts presence.
-
-### Round 2 collateral changes (4 of 4 PASS)
-
-- **C1 PASS** — F5 BOOLEAN-pair naming rename to `cross_region_pair_{or,and,xor}` is substantive: the validator's `symmetric_tokens` list (`validate_symmetry_difference_feature_materialization.py:504-512`) explicitly contains `_pair_or`, `_pair_and`, `_pair_xor`. Round 2 naming aligns with these tokens exactly.
-- **C2 PASS** — CSV 23-column choice (added `matchup_history_transform_decision`) makes the dropped-F4 decision machine-checkable via gate clause #18; without the column, gate clause #18 would require parsing MD §9.7 body.
-- **C3 PASS** — Halting falsifier priority chain orders correctly: validator + parent SHA pins fire first; validator result-level falsifiers second; Round-2-anchored binding-constant falsifiers third; rendering / persistence falsifiers last.
-- **C4 PASS** — 21 gate clauses enumerated; six Round-2-anchored clauses (#2, #8, #18, #19, #20, #21) are each machine-verifiable; all clauses independent and orthogonal.
-
-### Round 2 methodology defensibility
-
-- **D1 LogReg basis completeness — NIT (N6).** Argument that LogReg requires `abs_diff` is correct and examiner-defensible. Argument is incomplete only insofar as the joint `(focal_minus_opponent, pair_mean, pair_abs_diff)` basis does NOT cover quadratic / product effects — but those are explicitly deferred to 02_05 with re-open trigger.
-- **D2 `product` deferral to 02_05 — NIT (N1, N2).** Decision defensible: Pipeline-Section discipline argues 02_05 placement; re-open trigger documented. Supporting algebra claim is loose (N1) and manual §6 citation overstates its authority for numeric cross-products (N2 — manual §6 line 135 explicitly notes trees capture interactions naturally).
-- **D3 F5 either/both/xor independence — NIT (N3).** Independence claim holds for tree models but fails for LogReg with regularization: `A OR B = (A AND B) OR (A XOR B)` makes the design matrix rank-2 over the 2-dim Boolean source. Decision to keep all three still defensible (trees benefit), but rationale must not claim non-redundancy for all model classes.
-- **D4 Validator `_abs_diff` symmetric override — PASS.** Verified in validator source: line 517 explicit comment ("`_abs_diff` ends with `_diff` but is symmetric — symmetric wins"); lines 518-520 code branch `if has_sym: if spec.direction != "symmetric": return False; continue` ensures symmetric tokens override the diff-suffix rule. F3 family naming WILL pass `direction_name_consistency_ok` at adjudication runtime.
-
-### Planner-self-flagged Round 2 risks (8 of 8 PASS / NIT)
-
-`P1 NIT (N3)` F5 transform retention · `P2 NIT (N2)` `product` 02_05 deferral · `P3 PASS` abs_diff per-pair sweep default-include with re-open in §9.3 + OQ13 · `P4 PASS` CSV 23-column choice machine-checkable · `P5 PASS` MD §3 N2 wording placement at row-policy head · `P6 PASS` F5 rename substantive · `P7 PASS` halting falsifier additions appropriate · `P8 PASS` Round 2 new open questions (OQ7 / OQ11 / OQ12 / OQ13) correctly framed as re-open anchors.
-
-## Round 2 NITs (6 — non-blocking; applied at Layer-2 execution)
-
-| # | Maps to | Concern | Applied at Layer-2 by |
+| # | Maps to | Concern | Fix applied in plan body |
 |---|---|---|---|
-| **N1** | A14 / OQ7 / Literature Context [OPINION on B2] | "`product` is not expressible from `(mean, abs_diff)` alone" should read "not LINEARLY expressible". Identity `focal * opponent = mean^2 - (abs_diff/2)^2` makes product a quadratic polynomial in `(mean, abs_diff)`. Decision unchanged. | Wording fix in `[OPINION on B2]` (Literature Context) and MD §9.2. |
-| **N2** | A14 / D2 / manual §6 lines 133-135 | Manual §6 line 135 notes trees capture interactions naturally; the `product -> 02_05` deferral rationale should acknowledge the Pipeline-Section placement is a convention choice, not a methodological necessity. | Tighten last sentence of `[OPINION on B2]`. |
-| **N3** | A13 / D3 / OQ4 | F5 independence argument holds for trees; under LogReg with regularization the design matrix is rank-2 over the 2-dim Boolean source. Decision to retain all three transforms stands; rationale must not claim non-redundancy for all model classes. | Add LogReg-redundancy footnote to A13 and to MD §4 caption. |
-| **N4** | A21 / N1 (R1) / OQ8 | A21's prescriptive "tag unary as `symmetric` by convention" pre-empts a future design choice; reframe as open design question (a unary feature is, strictly, neither `focal_minus_opponent` nor `symmetric` under the binary Literal). | Soften A21 last paragraph; promote to OQ8 explicit re-open. |
-| **N5** | U2 / Gate clause #19 / OQ13 | Gate clause #19 wording "(or whatever the exact pair count is at execution time)" softens a deterministic gate. Replace with internal-consistency assertion: `count(_pair_abs_diff specs) == len(BINDING_DIFFERENCE_FAMILY_NUMERIC_PAIRS) == binding_difference_family_numeric_pair_count CSV column`. | Strengthen gate condition #19 and add corresponding consistency test. |
-| **N6** | A14 / B3 anchor / D1 | LogReg / abs_diff argument is complete on the signed-vs-magnitude axis but does not cross-link to the `mean`-inclusion rationale. Recommend MD §9.3 explicitly note that the joint basis `(focal_minus_opponent, pair_mean, pair_abs_diff)` spans linear-in-signed-difference, linear-in-mean-level, and linear-in-symmetric-magnitude; quadratic effects (`focal^2`, `opponent^2`, `product`) remain unrecoverable without polynomial terms — these are the 02_05 deferral surface. | Add §9.3 cross-link paragraph in MD. |
+| **N1** | OQ1 / audit JSON spec | `cutoff_time_filter_structural_check` value must be spec-literal `"pass"` per CROSS-02-01-v1.0.1 §3. The qualified value `"pass_inherited_from_02_01_03"` is not spec-allowed; PR #236 + PR #259 audits both use the bare `"pass"` literal. Inheritance prose belongs in `notes`. | Audit JSON spec template now uses `"pass"`; OQ1 rewritten as RESOLVED with the binding decision recorded. |
+| **N2** | A9 / R6 / Falsifier 12 | Row count assertion needs defence-in-depth: both module-level constant (precedent: PR #259's `EXPECTED_OUTPUT_ROW_COUNT: int = 44_418`) AND runtime equality against 02_01_03 audit JSON's `row_count` field. Hard-coded constant alone is brittle vs upstream drift. | A9 declares `EXPECTED_OUTPUT_ROW_COUNT = 44_418` AND adds runtime equality vs audit JSON `row_count`; falsifier 12 splits into two checks (`output_row_count_drift` + `audit_pinned_row_count_drift`). |
+| **N3** | "Future audit MD requirements" | 7-section MD structure is NOT a PR #259 precedent claim (PR #259's audit MD has 4 sections; PR #236's has 8). The structure itself is fine but "per PR #259 precedent" is factually wrong. | "Future audit MD requirements" reworded: "this PR introduces a new 7-section structure tailored to the 33-feature symmetry/difference family". |
+| **N4** | A14 / R2 / OQ2 | Parquet writer `compression='snappy'` diverges from PR #259's `COMPRESSION 'ZSTD'`. PyArrow analog should be `compression='zstd'` for dataset-wide encoding consistency. | A14 uses `compression='zstd'`; precedent citation added (`materialize_history_enriched_pre_game_features.py:1041–1052`). |
+| **N5** | T04 | Proposed YAML-block research_log template does not match PR #259's actual Markdown bold-label entry shape (`## YYYY-MM-DD — <title>` then `- **<Label>:** <value>`). | T04 template replaced with full Markdown bold-label form mirroring PR #259's research_log lines 79–103, including `### Category`, `### Step scope`, `### What`, `### Why`, `### How`, `### Findings`, `### What this means`, `### Decisions taken`, `### Decisions deferred`, `### Thesis mapping`, `### Open questions`, `### Acknowledged trade-offs`. |
+| **N6** | OQ3 / audit JSON per_feature_traceability | `computation` field as Python-expression string (`df[focal_col] - df[opponent_col]`) is brittle (pandas-API-coupled) and not examiner-friendly. Symbolic formula with literal source-column names is reproducible across pandas/PyArrow drift and machine-checkable against `source_columns`. | Audit JSON per-feature `computation` field uses symbolic formula (e.g., `"focal_prior_match_count - opponent_prior_match_count"`); OQ3 rewritten as RESOLVED. |
 
-All six nits are wording / cross-link refinements applied during Layer-2 adjudication execution. No Round 2 binding decision changes; no Round 3 adversarial pass needed.
+### Round 1 item-by-item results (20 of 20 substantive PASS or PASS-WITH-NIT)
+
+`Q1 PASS` Outcome A correct · `Q2 PASS` Direct execution barred · `Q3 PASS` Filename/path conventions repo-conventional · `Q4 PASS` Feature count exactly 33 (10×3 + 3) · `Q5 PASS` Output schema 37 columns · `Q6 PASS` Row count 44418 / distinct 22209 source-of-truth verified · `Q7 PASS-WITH-N6` Computation rules correct · `Q8 PASS` Audit JSON non-vacuous · `Q9 FAIL→N3` MD §-structure precedent misrepresented (structure itself fine) · `Q10 FAIL→N6` Per-feature traceability format · `Q11 PASS` No status YAML / closure work · `Q12 PASS` No Phase 03 / baseline · `Q13 FAIL→N5` Research_log shape · `Q14 PASS-WITH-N4` Determinism guarantees · `Q15 PASS` Dtype heterogeneity acceptable · `Q16 PASS` Halting falsifier chain sufficient · `Q17 FAIL→N1` `cutoff_time_filter_structural_check` value · `Q18 PASS-WITH-N2` Row count assertion brittleness · `Q19 STRONG` Examiner-survivable (with N6) · `Q20 STRONG` Cross-game comparability.
+
+### Planner self-flagged Round 1 risks (10 of 10 PASS or NIT)
+
+`R1 PASS` validator-vs-runtime gap → 22-step falsifier chain · `R2 NIT (N4)` Boolean determinism → defer-and-measure acceptable but writer config corrected · `R3 PASS` notebook overwrite collision · `R4 PASS` audit verbosity intrinsic · `R5 PASS` per-feature traceability falsifiability · `R6 NIT (N2)` row count hard-coding → defence-in-depth · `R7 PASS` coverage target ≥95% is real target, ≥40 floor is sanity check · `R8 NIT` T03 Opus budget can be Sonnet with detailed plan · `R9 PASS` audit JSON `notes` length acceptable · `R10 PASS` module location at flat dataset level.
+
+### Methodology defensibility
+
+- **M1 (LogReg basis spans) — PASS.** The joint `(F1, F2, F3) = (focal−opp, (focal+opp)/2, |focal−opp|)` covers linear-in-{level, signed-gap, magnitude-gap} space; F3 is non-linear in (F1, F2) over the reals (rectified-linear coordinate); LogReg cannot reconstruct `|x|` from `(x, level)` alone, so F3 is genuinely additive to the basis.
+- **M2 (F4 drop rationale) — PASS.** `matchup_h2h_focal_win_rate` has no audited opponent counterpart in the 24-tuple; pairing it would yield `(x, 1−x)` → affine `2x − 1` (zero linear-model information, zero tree-split effect). PR #268 `MATCHUP_HISTORY_TRANSFORM_DECISION` binds; A18 enforces via regex.
+- **M3 (F5 N3 retention) — PASS.** PR #268 adjudication MD §4 retains the LogReg rank-2 redundancy note for `(either, both, xor)` since `either = both ∨ xor`. Plan suggests mirroring this note into the new 02_02_01 audit MD §3 caption for examiners reading only the new audit; non-blocking improvement.
 
 ## Adversarial cap status
 
-- Round 1: HOLD — 3 BLOCKERs.
-- Round 2: APPROVE-WITH-NITS — 0 BLOCKERs, 6 NITs.
-- Round 3: **not required** (the 3-round symmetric cap permits Round 3 only if Round 2 returns HOLD).
+- Round 1: APPROVE-WITH-NITS — 0 BLOCKERs, 6 NITs (all applied inline).
+- Round 2: **not required** (the 3-round symmetric cap permits Round 2 only if Round 1 returns HOLD).
 
 ## Files inspected by reviewer
 
-- `.claude/scientific-invariants.md` (I3, I5, I8 anchors)
-- `.claude/rules/data-analysis-lineage.md`
-- `docs/ml_experiment_lifecycle/02_FEATURE_ENGINEERING_MANUAL.md` (§3 Bradley-Terry; §6 categorical interactions)
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_symmetry_difference_feature_materialization.py` (validator: 7-tuple at 105-113, 24-tuple at 116-141, symmetric tokens at 504-512, `_abs_diff` override at 517-520)
-- `.github/tmp/planner_output.md` (Round 1 plan baseline)
-- `.github/tmp/planner_output_r2.md` (Round 2 plan — full read)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/.github/tmp/planner_output_mat.md` (Round 1 plan body)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_symmetry_difference_feature_scope.py` (binding constants, lines 135–167)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/validate_symmetry_difference_feature_materialization.py` (PR #266 validator)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.json` (row_count=44418, distinct=22209)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_03/leakage_audit_sc2egset.md` (4-section structure; N3 counterevidence)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_02/leakage_audit_sc2egset.md` (8-section structure; N3 counterevidence)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/materialize_history_enriched_pre_game_features.py` (lines 115, 1041–1052; N2 + N4 precedent)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` (lines 79–103; N5 precedent)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_01_01/leakage_audit_sc2egset.md` (line 39; N1 spec-literal `"pass"` evidence)
+- `/Users/tomaszpionka/Projects/rts-outcome-prediction/src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_adjudication.md` (PR #268 binding contract; line 47 N3 LogReg redundancy retention; M3 evidence)
 
 ## Sources cited
 
-- Bradley & Terry 1952, *Biometrika*: "Rank Analysis of Incomplete Block Designs" — Bradley-Terry difference-feature argument grounding F1 / F2 / F3 binding direction policy.
-- Hue & Vert ICML 2010: "On Learning with Kernels for Unordered Pairs" — symmetric kernel theory grounding F2 / F3 / F5 symmetric direction.
-- Zaheer et al. 2017: "Deep Sets" — permutation-invariant set functions for symmetric features (referenced in `02_FEATURE_ENGINEERING_MANUAL.md` §3 line 56).
-- Kuhn & Johnson 2019, *Feature Engineering and Selection*: Lasso-screening for polynomial / interaction features (referenced in `02_FEATURE_ENGINEERING_MANUAL.md` §6 line 135).
+- Bradley & Terry 1952, *Biometrika*: "Rank Analysis of Incomplete Block Designs" — Bradley-Terry difference-feature argument grounding F1.
+- Hue & Vert ICML 2010: "On Learning with Kernels for Unordered Pairs" — symmetric kernel theory grounding F2 / F3 / F5.
+- Zaheer et al. 2017: "Deep Sets" — permutation-invariant set functions (referenced in `02_FEATURE_ENGINEERING_MANUAL.md` §3 line 56).
+- Kuhn & Johnson 2019, *Feature Engineering and Selection* — Lasso-screening for polynomial / interaction features (referenced in `02_FEATURE_ENGINEERING_MANUAL.md` §6 line 135; cited in `product` deferral rationale).
