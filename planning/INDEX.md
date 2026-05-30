@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- **Active** — `feat/sc2egset-02-03-01-scaffold-plan` — Layer-2 SCAFFOLD execution PR for Step 02_03_01 (V1 predecessor artifact provenance validator + tests + sandbox notebook + governance). PR #<TBD> (draft). Mirrors PR #266 7-file template.
+- **Active** — `feat/sc2egset-02-03-01-scaffold-plan` — Layer-2 SCAFFOLD execution PR for Step 02_03_01 (V1 predecessor artifact provenance validator + tests + sandbox notebook + governance). PR #276 (draft). Mirrors PR #266 7-file template.
 
 ## Archive
 
