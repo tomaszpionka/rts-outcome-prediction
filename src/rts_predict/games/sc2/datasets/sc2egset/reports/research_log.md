@@ -2,6 +2,38 @@
 
 ---
 
+## 2026-05-30 — Materialize Step 02_02_01 symmetry/difference 33-feature contract + first non-vacuous CROSS-02-01 audit for 02_02
+
+- **Category:** A (science / Phase 02 / materialization-execution)
+- **Dataset:** sc2egset
+- **Branch:** `feat/sc2egset-02-02-01-symmetry-difference-materialization`
+- **PR:** `PR #<TBD>`
+- **Step scope:** Step `02_02_01` — symmetry/difference feature materialisation for the 33 binding candidates authorised by PR #268 adjudication: F1 (10 numeric differences `focal_minus_opponent_<stem>_diff`) + F2 (10 symmetric pair means `<stem>_pair_mean`) + F3 (10 symmetric pair absolute differences `<stem>_pair_abs_diff`) + F5 (3 cross-region Boolean pair transforms `cross_region_pair_{or,and,xor}`). F4 (matchup history pair operations) DROPPED per B1 / PR #268 A20. F6 (race-pair categorical interactions) DEFERRED to 02_05 per PR #268 A12. `sum` EXCLUDED redundant; `product` DEFERRED to 02_05; `ratio` EXCLUDED; `reconstructed_rating` EXCLUDED per PR #255 omit-closure. Step closure is NOT claimed.
+- **closure_status:** `still_open`
+- **materialization_state:** `materialized`
+- **leakage_audit_state:** `post_materialization_pass`
+- **features_audited_count:** `33`
+- **row_count:** `44418`
+- **distinct_focal_match_count:** `22209`
+- **artifact:** `02_02_01_symmetry_difference_features.parquet`
+- **leakage_audit:** `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}`
+- **What:** Persisted the Layer-2 deliverable authorised by merged PR #268 adjudication contract:
+  (i) one Parquet feature table at `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_features.parquet` carrying 44418 rows × 37 projected columns — partitioned as 3 IDENTITY (`focal_match_id`, `focal_player`, `opponent_player`), 1 CONTEXT row-identity anchor (`started_at`), and 33 symmetry/difference features spanning four families (F1: 10 signed numeric differences, F2: 10 symmetric pair means, F3: 10 symmetric pair absolute differences, F5: 3 cross-region Boolean pair transforms);
+  (ii) the FIRST non-vacuous CROSS-02-01-v1.0.1 post-materialization audit pair for Step 02_02_01 at `reports/artifacts/02_02_01/leakage_audit_sc2egset.{json,md}` with `features_audited` = exactly the 33 symmetry/difference feature columns, `verdict = PASS`, `future_leak_count = 0`, `post_game_token_violations = 0`, full SHA-256 provenance bonds for 6 parent artifacts, per-feature traceability table with symbolic computation formulas for all 33 features, and 10-entry leakage_checks sweep (all null). Per Round 1 / N1 the `cutoff_time_filter_structural_check` value is spec-literal `"pass"`. Per Round 1 / N2, row count asserted from both module constant `EXPECTED_OUTPUT_ROW_COUNT = 44_418` AND runtime equality vs 02_01_03 audit JSON `row_count` field. Per Round 1 / N6, per-feature `computation` fields use symbolic formulas with literal source-column names.
+- **Why:** Discharges PR #268 adjudication's "decision-only" annotation by proving the contract on disk. The CROSS-02-01 §5 gate condition is now mechanically satisfied for Step 02_02_01 (non-empty `features_audited` + `verdict = PASS` + JSON/MD at spec-named paths). Evidence-distinctness from PR #268 adjudication artifacts is preserved by routing the new Parquet + audit pair to the `02_02_01/` and `02_symmetry_and_difference_features/` subdirectories and leaving every upstream artifact byte-unchanged.
+- **How (reproducibility):** notebook at `sandbox/sc2/sc2egset/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_materialization.{py,ipynb}` (jupytext py:percent canonical; existing PR #266 scaffold overwritten in place per `sandbox/README.md` single-notebook-per-Step contract); materialisation module at `src/rts_predict/games/sc2/datasets/sc2egset/materialize_symmetry_difference_features.py` carrying `materialize_symmetry_difference_features(...)` entrypoint; frozen `SymmetryDifferenceMaterializationResult` dataclass; module-level UPPER_SNAKE constants (Invariant I7); 24-step halting falsifier chain; deterministic Parquet writer (`compression='zstd'`, `version='2.6'`, `data_page_version='2.0'`; matches PR #259 ZSTD precedent); 5 binding constants imported from `adjudicate_symmetry_difference_feature_scope.py` (not re-declared); tests at `tests/rts_predict/games/sc2/datasets/sc2egset/test_materialize_symmetry_difference_features.py` (136 tests; ≥95% branch coverage on the materialisation module); SHA-256 bonds recorded in audit JSON for 6 parent artifacts + validator module + adjudicator module + this module.
+- **Findings:** `COUNT(*) = 44418`; `COUNT(DISTINCT focal_match_id) = 22209`; per-feature traceability proof — all 33 features trace to audited 24-tuple or Boolean pair sources; all leakage_checks null; parent SHA invariance (start-of-run == end-of-run for all 6 parent artifacts); second-run byte-equal Parquet (deterministic_re_write_check = true); validator `passed=True`, `halting_falsifier=None`; identity columns byte-identical to 02_01_03 upstream.
+- **What this means:** Step 02_02_01 has produced its first materialised feature artifact and its first non-vacuous leakage audit; the CROSS-02-01 §5 gate is mechanically cleared. Step 02_02_01 is NOT closed by this PR. Status YAML flips deferred to U2.B-style closure PR.
+- **Decisions taken:** import the 5 binding constants from adjudicator (not re-declared); preserve row identity (one-to-one row alignment with 02_01_03); ZSTD compression matching PR #259; 24-step halting falsifier chain; both module-constant AND runtime audit-JSON equality check per Round 1 / N2; symbolic-formula `computation` per Round 1 / N6; spec-literal `"pass"` per Round 1 / N1; validator called via temp-mirror repo_root to bypass scaffold-stage artifact-directory-absence check.
+- **Decisions deferred:** Step 02_02_01 closure (separate U2.B-style PR); Step 02_02_02+; Step 02_01_04+; Phase 03 splitting and baseline modeling; AoE2 work; thesis chapter prose; F6 race-pair categorical interactions (02_05); product interaction (02_05); unary 2x-1 matchup rescaling (open design question).
+- **Thesis mapping:** Chapter 4 §4.5 — citable as the FIRST non-vacuous CROSS-02-01 post-materialization audit for Step 02_02_01.
+- **Open questions / follow-ups:** schedule the U2.B closure planner-science round for Step 02_02_01.
+- **Acknowledged trade-offs:** F1+F2+F3 joint basis covers linear-in-{signed-difference, level, symmetric-magnitude} for LogReg per Invariant I8; quadratic effects remain 02_05 deferral surface. F5 (`either, both, xor`) is rank-2 over the 2-dimensional Boolean source for LogReg with regularisation, retained for tree models per PR #267 Round 2 N3.
+
+Does NOT touch root `reports/research_log.md`. Does NOT touch ROADMAP. Does NOT touch `STEP_STATUS.yaml` / `PIPELINE_SECTION_STATUS.yaml` / `PHASE_STATUS.yaml`. Does NOT touch any `02_01_02` / `02_01_03` / PR #268 adjudication artifact. Does NOT touch any source / test / notebook / spec / data / AoE2 / thesis / docs / `.claude` path outside the 11-file manifest.
+
+---
+
 ## 2026-05-29 — Formal closure of Step 02_01_03 (U2.B; status YAML flip; no new artifact)
 
 - **Category:** C (governance / status closure)
