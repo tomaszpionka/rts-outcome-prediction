@@ -17,8 +17,10 @@ Validates:
   - V1.2: artifact byte-stability via SHA256 against pinned values.
   - V1.3: identity column presence (focal_match_id, focal_player,
           opponent_player) in Parquet artifacts.
-  - V1.4: row-count equality (44418 rows expected) across all 4
-          artifacts (cross-artifact row-count invariant).
+  - V1.4: row-count equality (44418 rows expected) across the three
+          Parquet predecessor artifacts; the 02_01_99 CSV decision
+          artifact is SHA-checked and row-count-recorded but not
+          row-count-gated.
   - V1.5: forbidden-emission guard: the future 02_03_01 outputs
           directory must NOT yet exist (this scaffold emits no
           temporal artifact).
@@ -30,8 +32,9 @@ Halt-priority order (first-failure-wins):
 Pure-function discipline: this module does NOT read column values from
 any predecessor artifact; it reads only Parquet schema metadata and
 file SHA256. No temporal feature computation, no window evaluation,
-no decay logic, no cold-start threshold. All deferred per OQ-1/OQ-2/
-OQ-3/OQ-4 of the PR #274 ROADMAP stub.
+no decay logic, no cold-start threshold. OQ-1/OQ-2/OQ-3 remain deferred
+per the PR #274 ROADMAP stub; OQ-4 boundary is preserved by citing
+CROSS-02-02 and CROSS-02-03 with distinct roles and no conflation.
 
 Lineage:
   - Layer-1 plan: PR #275 (merged at master e1701709).
