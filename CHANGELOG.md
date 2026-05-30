@@ -19,6 +19,39 @@ merged to `master`.
 
 ### Removed
 
+## [3.85.0] — 2026-05-29 (PR #268: feat/sc2egset-02-02-01-symmetry-difference-adjudication)
+
+### Added
+
+- **SC2EGSet Step 02_02_01 symmetry/difference feature-scope adjudication artifact.** Layer-2 execution of the binding source-anchor / column-naming / direction-policy / transform-scope decision for the symmetry & difference feature family. Emits one CSV (23 columns) + one MD (13 sections) adjudication pair under `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/`. Binds 33 candidate feature specs across families F1 (numeric difference), F2 (symmetric pair_mean), F3 (symmetric pair_abs_diff), F5 (cross-region BOOLEAN pair). F4 (matchup history pair operations) dropped per B1 / A20. F6 (race-pair categorical interactions) deferred to 02_05. All candidate specs gated by the PR #266 validator.
+- New adjudicator module `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_symmetry_difference_feature_scope.py` with deterministic CSV+MD rendering, parent-artifact SHA pinning, and the binding decision constants (`BINDING_DIFFERENCE_FAMILY_NUMERIC_PAIRS`, `BINDING_SYMMETRIC_PAIR_AGGREGATE_TRANSFORMS = ("mean", "abs_diff")`, `BINDING_CROSS_REGION_BOOLEAN_PAIR_TRANSFORMS = ("either", "both", "xor")`).
+- Mirrored test module `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_symmetry_difference_feature_scope.py` (92 tests; 95.88% coverage on adjudicator module).
+- Sandbox notebook pair `sandbox/sc2/sc2egset/02_feature_engineering/02_symmetry_and_difference_features/02_02_01_symmetry_difference_feature_adjudication.{py,ipynb}` for human exploration.
+
+### Changed
+
+- `pyproject.toml` version `3.84.0` → `3.85.0`.
+- `planning/INDEX.md`: archived PR #266 (merge SHA `9abcd6bc`) and PR #267 (merge SHA `af8c3d98`); set Active line for `feat/sc2egset-02-02-01-symmetry-difference-adjudication`.
+
+### Notes
+
+- **No feature value materialised.** No Parquet under `reports/artifacts/02_feature_engineering/02_symmetry_and_difference_features/` matching `*_features.parquet`.
+- **No CROSS-02-01 audit artifact.** No `leakage_audit_sc2egset.{json,md}` under `reports/artifacts/02_02_01/`.
+- **No STEP_STATUS row added for 02_02_01.** Step closure deferred to a future materialisation+closure PR (analogue of PR #237 / PR #262).
+- **No PIPELINE_SECTION_STATUS row added for 02_02.** Section row lands at first step closure, not at adjudication.
+- **No PHASE_STATUS mutation.** Phase 02 stays `in_progress`; Phase 03 stays `not_started`.
+- **No ROADMAP edit.** The `02_02_01` block (PR #264) remains byte-identical.
+- **No research_log append.** Per non-batching sequence step 8, research_log appended only at step closure.
+- **No upstream artifact mutation.** 02_01_02 and 02_01_03 Parquets + audit JSONs byte-stable at their PR-#266-pinned SHAs.
+- **No reconstructed_rating re-introduction.** PR #255 omit-closure stands.
+- **No new MMR scalar.** PR #234 `is_mmr_missing` flag remains the only MMR-related signal.
+- **No AoE2 civilization vocabulary.** SC2EGSet uses `race` exclusively per Invariant I8.
+- **No matchup-history pair operations (B1 / Round 2 / A20).** `matchup_h2h_focal_win_rate` has no audited opponent counterpart; pair framing dropped entirely. Unary `2x−1` rescaling treated as open design question (N4) — no candidate emitted.
+- **No `sum` or `product` transforms (B2 / Round 2 / A14).** `sum` excluded (redundant with `mean`; `sum = 2·mean`). `product` deferred to 02_05 (`product = focal × opponent` is a genuine multiplicative interaction not LINEARLY expressible from `(mean, abs_diff)`; per `02_FEATURE_ENGINEERING_MANUAL.md` §6 line 135 the Pipeline-Section convention places interaction features at 02_05).
+- **`abs_diff` included as symmetric magnitude transform (B3 / Round 2 / A14).** Invariant I8 requires LogReg in the cross-game protocol; LogReg cannot express `|focal − opponent|` linearly from the signed difference, so `abs_diff` is the canonical symmetric-magnitude basis vector.
+- **Round 2 nits N1–N6 applied** in adjudicator + CSV + MD + tests (see `planning/current_plan.critique.md`).
+- **No Phase 03 / Step 02_01_04 / Step 02_02_02+ / baseline modelling.**
+
 ## [3.84.0] — 2026-05-29 (PR #266: feat/sc2egset-02-02-01-symmetry-difference-scaffold)
 
 ### Added
