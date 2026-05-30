@@ -52,5 +52,9 @@ pipeline_sections:
     name: "Pre-Game vs In-Game Boundary"
     phase: "02"
     status: complete
+  "02_02":
+    name: "Symmetry & Difference Features"
+    phase: "02"
+    status: complete
   # Pipeline sections for Phases 02-06 added when those Phases become active.
   # Phase 07 has no pipeline sections.
