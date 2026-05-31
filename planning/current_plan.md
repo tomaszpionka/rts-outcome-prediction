@@ -19,10 +19,12 @@ future_execution_files:
   - tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py
   - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py
   - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.csv
+  - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.md
   - pyproject.toml
   - CHANGELOG.md
   - planning/INDEX.md
-future_execution_file_count: 7
+future_execution_file_count: 9
 future_execution_pyproject_bump: "3.89.0 -> 3.90.0"
 critique_required: true
 research_log_ref: null
@@ -111,7 +113,7 @@ The three LOCKED cross-dataset specs governing Pipeline Section `02_03` are:
 
 ## Assumptions & Unknowns
 
-**A-1. Both scaffold rung SHAs confirmed.** V1 (PR #276) merged at master `37c3a8855af038dd1bd4eefbdbd03497da323d47`. V3 (PR #278) merged at master `846a8ece127dd9b4c119f226008969019d7ddd8e`. Layer-2 T01 must verify both SHAs before construction.
+**A-1. Both scaffold rung SHAs confirmed.** V1 (PR #276) merged at master `37c3a8855af038bd1bd4eefbdbd03497da323d47`. V3 (PR #278) merged at master `846a8ece127dd9b4c119f226008969019d7ddd8e`. Layer-2 T01 must verify both SHAs before construction.
 
 **A-2. V1 and V3 module byte-stability.** Both `validate_temporal_feature_grid.py` (V1) and `validate_temporal_discipline.py` (V3) are byte-stable between Layer-1 merge and Layer-2 merge. The adjudicator must NOT modify either module (per V1 docstring separation clause and V3 design contract). Layer-2 T01 must verify both module SHAs are unchanged before constructing the adjudicator.
 
@@ -326,7 +328,7 @@ This Layer-1 planning PR diff = exactly 2 files:
 
 **Branch model for Layer-2 adjudication execution PR (binding):**
 
-Layer-2 adjudication execution PR will land on a NEW branch (NOT the same branch as this Layer-1 planning PR), mirroring the V3 scaffold branch-model precedent from PR #275 → PR #276 and PR #277 → PR #278. Under this NEW-branch model, the 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`) are NOT re-included in the Layer-2 diff because they will already have merged to master when this Layer-1 PR merges. Therefore Layer-2 diff = exactly 9 files (9-file diff: the 7 execution-class files + pyproject + CHANGELOG + INDEX). This differs from PR #234/#242's 11-file same-branch-reuse model where planning files are re-committed in the Layer-2 diff.
+Layer-2 adjudication execution PR will land on a NEW branch (NOT the same branch as this Layer-1 planning PR), mirroring the V3 scaffold branch-model precedent from PR #275 → PR #276 and PR #277 → PR #278. Under this NEW-branch model, the 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`) are NOT re-included in the Layer-2 diff because they will already have merged to master when this Layer-1 PR merges. Therefore Layer-2 diff = exactly 9 files (9-file diff: the 6 execution-class files + pyproject + CHANGELOG + INDEX). This differs from PR #234/#242's 11-file same-branch-reuse model where planning files are re-committed in the Layer-2 diff.
 
 Layer-2 branch name (proposed): `feat/sc2egset-02-03-01-temporal-adjudication-execution` (sibling to this Layer-1 branch; distinct from V3 scaffold branches).
 
