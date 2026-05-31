@@ -1,11 +1,12 @@
 ---
-title: "SC2EGSet Step 02_03_01 V3 scaffold (Layer-1 planning PR; strict-< temporal-discipline validator; immediately-next scaffold rung after PR #276 V1)"
+title: "SC2EGSet Step 02_03_01 ADJUDICATION (Layer-1 planning PR; Q1-Q8 binding decisions for temporal-window/decay/cold-start grid)"
 category: A
-branch: feat/sc2egset-02-03-01-v3-temporal-discipline-plan
+branch: feat/sc2egset-02-03-01-temporal-adjudication-plan
 base_ref: master
-base_sha: 37c3a8855af038bd1bd4eefbdbd03497da323d47
-predecessor_pr: 276
-predecessor_pr_merge_sha: 37c3a8855af038bd1bd4eefbdbd03497da323d47
+base_sha: 846a8ece127dd9b4c119f226008969019d7ddd8e
+predecessor_pr: 278
+predecessor_pr_merge_sha: 846a8ece127dd9b4c119f226008969019d7ddd8e
+predecessor_pr_layer: V3-scaffold
 dataset: sc2egset
 phase: "02"
 pipeline_section: "02_03 — Temporal Features, Windows, Decay, Cold Starts"
@@ -14,241 +15,233 @@ draft_pr_files:
   - planning/current_plan.md
   - planning/current_plan.critique.md
 future_execution_files:
-  - src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py
-  - tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_temporal_discipline.py
-  - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.py
-  - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.ipynb
+  - src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py
+  - tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py
+  - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py
+  - sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb
   - pyproject.toml
   - CHANGELOG.md
   - planning/INDEX.md
 future_execution_file_count: 7
-target_version_bump: "3.88.0 -> 3.89.0"
+future_execution_pyproject_bump: "3.89.0 -> 3.90.0"
 critique_required: true
 research_log_ref: null
 date: 2026-05-31
 v1_predecessor_pr: 276
 v1_predecessor_sha: 37c3a8855af038bd1bd4eefbdbd03497da323d47
-v3_immediately_next_committed_by:
-  - "validate_temporal_feature_grid.py docstring lines 3-4 (V3 separation clause)"
-  - "CHANGELOG [3.88.0] Notes entry (V3 deferred to IMMEDIATELY-NEXT scaffold rung per NIT-2 of PR #275 plan)"
-  - "PR #275 plan NIT-2 commitment"
-reviewer_adversarial_round1: APPROVE-WITH-NITS
+v3_predecessor_pr: 278
+v3_predecessor_sha: 846a8ece127dd9b4c119f226008969019d7ddd8e
+scaffold_rungs_satisfied: [V1, V3]
+adjudication_direct_rejected: true
+reviewer_adversarial_round1: PROCEDURAL-HOLD
 reviewer_adversarial_blockers: 0
-reviewer_adversarial_nits: 5
-nits_applied: [N-A, N-B, N-C, N-D, N-E]
+reviewer_adversarial_nits: 4
+nits_applied: [N-1, N-2, N-3, N-4]
+carry_forwards_from_pr277: [A-15, H6, H7]
+branch_model_clarification: "Layer-2 lands on NEW branch feat/sc2egset-02-03-01-temporal-adjudication-execution"
 ---
 
 ## Scope
 
-Author the Layer-1 planning artefact for the future Layer-2 **V3 scaffold PR** for Step `02_03_01` — strict-`<` temporal-discipline validator. This is the IMMEDIATELY-NEXT scaffold rung after V1 (PR #276, merged at master `37c3a8855af038bd1bd4eefbdbd03497da323d47`). The V3 rung was committed by:
+Author the Layer-1 planning artefact for the future Layer-2 **ADJUDICATION execution PR** for Step `02_03_01` — temporal-window / decay / cold-start grid adjudication. Both scaffold rungs have merged:
 
-1. The V1 module docstring in `validate_temporal_feature_grid.py` lines 3-4: "Future temporal-discipline checks (V3) must land in a separate validator module under a separate scaffold rung."
-2. The CHANGELOG `[3.88.0]` Notes entry: "V3 (strict-`<` temporal-discipline) deferred to the IMMEDIATELY-NEXT scaffold rung per NIT-2 of PR #275 plan."
-3. PR #275 plan NIT-2 commitment.
+- **V1 scaffold** (PR #276, merged at master `37c3a8855af038bd1bd4eefbdbd03497da323d47`): SHA-pin predecessor artifact provenance validator.
+- **V3 scaffold** (PR #278, merged at master `846a8ece127dd9b4c119f226008969019d7ddd8e`): strict-`<` temporal-discipline validator (`validate_temporal_discipline.py`).
 
-V3 scope: **DESIGN-TIME ONLY** (schema metadata + Parquet footer + file SHA + provenance docstring text). NO data-value reads. NO re-computation. NO source DuckDB queries. Separate from V1; V3 must NOT modify V1 or import V1 constants (per V1 docstring constraint).
+The ROADMAP `continue_predicate` cascade now permits adjudication: both scaffold rungs are complete, and no further scaffold rung is required before adjudication.
 
-This plan mirrors the PR #273 → PR #274 → PR #275 → PR #276 four-PR precedent for the V1 scaffold. The V3 Layer-1 (this PR) + V3 Layer-2 (future PR) pair is the strict analogue: Layer-1 writes only two files; Layer-2 performs the 7-file manifest declared in §File Manifest below.
+**This Layer-1 planning PR** writes exactly two files:
+1. `planning/current_plan.md` (this document).
+2. `planning/current_plan.critique.md` (reviewer-adversarial Round 1 output — scaffold for Round 2).
 
-**Two-PR sequence on this branch.**
+**Adjudication-direct REJECTED.** The adjudication PR must NOT bypass V1 + V3 preflight gates at Layer-2 execution time. Even though both scaffold modules exist in the codebase, the Layer-2 adjudication execution PR must invoke V1 (`validate_temporal_feature_grid.py`) and V3 (`validate_temporal_discipline.py`) as preflight gates before the adjudicator logic executes. Both must return `PASS` before the grid adjudication proceeds.
 
-1. **THIS Layer-1 planning PR** writes only two files:
-   - `planning/current_plan.md` (this document);
-   - `planning/current_plan.critique.md` (reviewer-adversarial Round 1 output).
-2. **FUTURE Layer-2 V3 scaffold execution PR** performs the 7-file manifest declared in §File Manifest below (V3 validator module + mirrored test + jupytext-paired notebook pair + pyproject 3.88.0 → 3.89.0 minor bump + CHANGELOG block + planning/INDEX.md update). This mirrors the PR #275 → PR #276 7-file Layer-2 template.
+**Out of scope (adjudication design surface — declared here, enforced by Layer-2 falsifiers):**
 
-**Out of scope (V3 design surface — declared here, enforced by Layer-2 falsifiers):**
-
-- concrete temporal window sizes
-- decay half-lives
-- cold-start k-thresholds
-- tracker_events family inclusion decision
-- in-game temporal scope decision
-- any feature materialization
-- any artifact emission to `reports/artifacts/02_feature_engineering/03_temporal_features/**`
-- any ROADMAP / STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS / dataset research_log / root research_log edits
-- Phase 03 activation or baseline modeling
-- any empirical AoE2 transferability claim
+- Pinning concrete numerical winners for Q1 (temporal window sizes), Q2 (decay half-life values), or Q3 (cold-start k-thresholds) — Layer-1 describes family KINDS; Layer-2 (materialization PR) pins numerical WINNERS per Invariant I7.
+- Any feature materialization (no Parquet outputs, no DuckDB writes).
+- Any artifact emission to `reports/artifacts/02_feature_engineering/03_temporal_features/**`.
+- Any ROADMAP / STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS / dataset research_log / root research_log edits.
+- Phase 03 activation or baseline modeling.
+- Any empirical AoE2 transferability claim.
+- Any tracker_events family activation beyond what is already declared eligible in `tracker_events_feature_eligibility.csv`.
+- Any in-game snapshot feature engineering (deferred past `02_03_01` adjudication scope boundary; see Q5).
 
 ## Problem Statement
 
-PR #276 (merged at master `37c3a8855af038bd1bd4eefbdbd03497da323d47`) shipped V1: the SHA-pin predecessor artifact provenance validator. V1 audits that the four predecessor Parquet/CSV artifacts exist at expected paths, have expected SHA256 hashes, carry expected identity columns, and have expected row counts. V1 does NOT validate any temporal feature grid.
+Step `02_03_01` is the first temporal-features step in Pipeline Section `02_03`. The V1 and V3 scaffold rungs established:
 
-The V1 module docstring explicitly commits: "Future temporal-discipline checks (V3) must land in a separate validator module under a separate scaffold rung." This commitment was mandated by PR #275 plan NIT-2 and is recorded in CHANGELOG `[3.88.0]` Notes.
+- V1 (`validate_temporal_feature_grid.py`): the predecessor artifact provenance validator that audits SHA-pin existence, identity columns, and row counts of the four predecessor Parquet/CSV artifacts.
+- V3 (`validate_temporal_discipline.py`): the strict-`<` temporal-discipline validator that audits schema-level naming convention, temporal-anchor presence (`started_at: timestamp[us]`), and cite-string provenance (6 verbatim cite-strings from CROSS-02-03-v1.0.1 §1.2 D1-D6).
 
-Without V3, the adjudication PR will pin concrete window/decay/cold-start values without any tested temporal-discipline gate in the codebase. This creates a structural gap: Invariant I7 (no feature uses data with `history_time >= T` for target game T) would never be directly exercised at design time before concrete grid values are pinned. The temporal-discipline invariant is the core leakage guard for the entire Phase 02 feature engineering ladder.
+With both scaffold rungs in place, the adjudication step selects the candidate temporal window families, decay families, and cold-start families for the `02_03_01` feature grid. The adjudication module (`adjudicate_temporal_feature_grid.py`) is a decision-record module: it does not compute feature values. It records:
 
-V3 closes this gap by implementing a strict-`<` temporal-discipline validator at DESIGN TIME: given a Parquet feature grid and a sample of target game timestamps, V3 asserts that for every target game T, no feature column uses data from a record where `history_time >= T`. V3 is schema-level + provenance-level: it validates naming conventions, column presence (temporal anchor `started_at`), and cite-string provenance — NOT data values. Value-level leakage detection (post-materialization) is handled separately by CROSS-02-01 audits.
+1. Which temporal window types (family kinds) are included, excluded, or deferred.
+2. Which decay types (family kinds) are included, excluded, or deferred.
+3. Which cold-start types (family kinds) are included, excluded, or deferred.
+4. Which tracker_events families are in-scope for `02_03_01` (constrained by `tracker_events_feature_eligibility.csv`).
+5. Whether in-game snapshot features are within `02_03_01` scope or deferred to a later step.
+6. That CROSS-02-02 and CROSS-02-03 roles are non-conflated (family inventory vs post-selection audit predicate).
+7. That V1 + V3 preflight gates passed before adjudication proceeded.
+8. That cross-game portability is syntactic-only (no empirical AoE2 transferability claim).
 
-V3 is structurally and semantically distinct from V1:
-
-- V1 audits predecessor artifact provenance (SHA-pin, identity columns, row counts).
-- V3 audits temporal-discipline compliance (history-column naming convention, temporal-anchor presence, cite-string provenance).
-- V3 must NOT import from V1 (per V1 docstring separation clause).
-- V3 lives in a separate module: `validate_temporal_discipline.py`.
+The adjudication module emits a structured decision CSV (`02_03_01_temporal_feature_grid_adjudication.csv`) and a decision Markdown report (`02_03_01_temporal_feature_grid_adjudication.md`) to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/`. These are the first materialised artifacts for Pipeline Section `02_03`.
 
 ## Literature Context
 
-Per `.claude/rules/data-analysis-lineage.md` §"Non-batching rule for empirical work" step 2 ("Notebook scaffold + one validation module"), the scaffold declares scope and delivers exactly one validator; no feature materialisation, no artifact generation.
+The three LOCKED cross-dataset specs governing Pipeline Section `02_03` are:
 
-**Binding commitment from V1 docstring.** The V3 scaffold is not optional — it is the binding obligation declared by the V1 module docstring at `validate_temporal_feature_grid.py` lines 3-4:
+- **CROSS-02-00-v3.0.1** (LOCKED 2026-04-26; `reports/specs/02_00_feature_input_contract.md`): feature input contract; per-dataset I3 anchors; column-level classification.
+- **CROSS-02-02-v1.0.1** (LOCKED 2026-05-06; `reports/specs/02_02_feature_engineering_plan.md`): cross-dataset feature engineering plan; lists candidate temporal window / decay / cold-start family kinds (§6, §9); leakage check table G-L-1 through G-L-7 (§10).
+- **CROSS-02-03-v1.0.1** (LOCKED 2026-05-06; `reports/specs/02_03_temporal_feature_audit_protocol.md`): design-time temporal feature audit protocol; audit dimensions D1–D15 (§4); per-dataset temporal anchor table (§5); prediction-setting rules (§6); SC2 tracker constraints (§7).
 
-> "Future temporal-discipline checks (V3) must land in a separate validator module under a separate scaffold rung."
+**CROSS-02-02 §10 (G-L-1 through G-L-7) supplies the candidate family inventory.** G-L-1 through G-L-7 are the seven leakage-check rows that enumerate the leakage-relevant family dimensions. The adjudicator cites these rows verbatim as its inventory source. CROSS-02-02 is the source of candidate family KINDS; it is not the post-selection audit predicate.
 
-This is the authoritative V3-next commitment. The CHANGELOG `[3.88.0]` Notes entry reinforces it: "V3 (strict-`<` temporal-discipline) deferred to the IMMEDIATELY-NEXT scaffold rung per NIT-2 of PR #275 plan."
+**CROSS-02-03 §4 (D5, D6, D7) supplies the post-selection audit predicate.** Dimensions D5 (cutoff operator correctness), D6 (target-game exclusion), and D7 (post-game token exclusion) are the three design-time audit dimensions that the adjudicator must cite when recording its selection rationale. CROSS-02-03 is the source of audit predicates; it is not the family inventory.
 
-**V3 is the IMMEDIATELY-NEXT rung; no adjudication before V3.** Without V3 landing before the adjudication PR, concrete window/decay/k-threshold values would be committed without a tested temporal-discipline gate. The ROADMAP `continue_predicate` at `src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md` lines 3372-3384 mandates that each scaffold rung precede adjudication. V3 is a scaffold rung; it must land before the adjudication PR.
+**CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles.**
 
-**V3 scope: DESIGN-TIME ONLY.** V3 validates:
+**Invariant I3 (Invariant I3: strict history cutoff).** The project-wide temporal discipline invariant mandates `history_time < T` strictly (not `<=`) for all history features targeting game T. The V3 scaffold (`validate_temporal_discipline.py`) enforces this at schema level. The adjudicator must cite Invariant I3 in its decision record for every family kind that has a history cutoff.
 
-- History-column naming convention: columns named with the `*_prior_*` pattern are assumed history-window features; columns NOT following this convention in the feature grid are flagged.
-- Temporal-anchor presence: the `started_at: timestamp[us]` column must be present in the feature grid schema.
-- Cite-string provenance: the V3 module docstring must include 6 verbatim cite-strings from CROSS-02-03-v1.0.1 §1.2 audit dimensions D1/D2/D3/D4/D5/D6 (schema-level).
+**Q8 cross-game portability.** The adjudicator module is scoped to SC2EGSet decision records only. Cross-game portability of the adjudicator design pattern is restricted to a syntactic-only observation: where the adjudicator uses candidate-agnostic vocabulary (focal/opponent, history, prior, target-exclusion, candidate, winner, window-type, decay-type, cold-start-type) rather than game-specific names, the design pattern is portable. No empirical AoE2 transferability claim is made; that determination is deferred to a future AoE2-specific Phase 02 step. This is verifiable by grep falsifiers H6 (cross-game-portable vocabulary) and H7 (Q8 syntactic-only guard) at Layer-2 execution.
 
-V3 does NOT open Parquet data rows for value inspection. It reads Parquet schema footer (column names + dtypes) and module docstring text only. This is the strict DESIGN-TIME scope.
+**Version bump precedent.** PR #278 (`3.88.0 → 3.89.0`, minor feat-class scaffold) and PR #276 (`3.87.0 → 3.88.0`, minor feat-class scaffold) confirm the feat-class minor-bump rule for scaffold rungs. The adjudication execution PR is also feat-class (first artifact-producing step in `02_03`); target bump: `3.89.0 → 3.90.0` (minor per `.claude/rules/git-workflow.md` feat-class rule).
 
-**V3 is a schema-level complement to CROSS-02-01 value-level.** V3 is a schema-level design-time gate enforcing strict-`<` temporal discipline via history-naming convention, temporal-anchor presence, and cite-string provenance. Value-level leakage (sophisticated semantic leaks not detectable from schema metadata alone) is gated separately by post-materialization audits per CROSS-02-01-v1.0.1. V3 and CROSS-02-01 are complementary, not redundant. V3 catches the common contributor failure modes (forbidden column naming, missing temporal anchor, missing cite-strings); CROSS-02-01 catches sophisticated semantic leaks at the value layer.
-
-**PR #276 version bump precedent.** PR #276 (`feat/sc2egset-02-03-01-scaffold-plan`) bumped `pyproject.toml` version `3.87.0 → 3.88.0` (minor; feat-class scaffold precedent), confirmed via `gh pr view 276 --json files --jq '.files[] | select(.path=="pyproject.toml")'`. The current version is `3.88.0` (post-PR #276 V1 scaffold). The Layer-2 V3 scaffold PR target bump is `3.88.0 → 3.89.0` (minor; same feat-class rule). PR #266 (`3.83.0 → 3.84.0`) and PR #276 (`3.87.0 → 3.88.0`) are both confirmed precedents.
-
-**Per `.claude/rules/git-workflow.md`** "minor for feat/refactor/docs", a scaffold PR that opens a new validation rung is a feat-class minor bump. PR #266 (`3.83.0 → 3.84.0`), PR #241 (`3.71.0 → 3.72.0`), and PR #276 (`3.87.0 → 3.88.0`) confirmed this rule. Same rule applies to V3.
-
-The three LOCKED cross-dataset specs relevant to Pipeline Section `02_03` are:
-
-- **CROSS-02-00-v3.0.1** (LOCKED 2026-04-26; `reports/specs/02_00_feature_input_contract.md`): the cross-dataset feature input contract governing all Phase 02 steps.
-- **CROSS-02-02-v1.0.1** (LOCKED 2026-05-06; `reports/specs/02_02_feature_engineering_plan.md`): the cross-dataset feature engineering plan listing temporal / window / decay / cold-start families.
-- **CROSS-02-03-v1.0.1** (LOCKED 2026-05-06; `reports/specs/02_03_temporal_feature_audit_protocol.md`): the cross-dataset design-time temporal feature audit protocol; binds `[sc2egset, aoestats, aoe2companion]` for audit dimensions D1–D15. V3 validator cite-strings reference this spec.
-
-**Q8 cross-game portability.** V3 is scoped to design-time schema validation only. Cross-game portability of the V3 design pattern is restricted to a syntactic-only observation: where the validator uses candidate-agnostic vocabulary (focal/opponent, history window, started_at, prior, target-game exclusion) rather than game-specific names, the design pattern is portable. No empirical AoE2 transferability claim is made; that determination is deferred to a future AoE2-specific Phase 02 step. This is verifiable by grep falsifiers H6 (cross-game-portable vocabulary) and H7 (Q8 syntactic-only guard) at Layer-2 execution.
+**Per `.claude/rules/data-analysis-lineage.md` §"Non-batching rule for empirical work"**: scaffold declares scope and delivers one validation module per pass. The adjudication PR delivers the adjudicator module (one module) + decision artifacts; it does NOT deliver feature materialisation or model training.
 
 ## Assumptions & Unknowns
 
-**A-1. V1 predecessor merge SHA.** PR #276 (V1 predecessor artifact provenance validator scaffold) merged at master `37c3a8855af038bd1bd4eefbdbd03497da323d47`. Layer-2 T01 must verify `git rev-parse master` matches this SHA before construction. If it differs, halt and report.
+**A-1. Both scaffold rung SHAs confirmed.** V1 (PR #276) merged at master `37c3a8855af038dd1bd4eefbdbd03497da323d47`. V3 (PR #278) merged at master `846a8ece127dd9b4c119f226008969019d7ddd8e`. Layer-2 T01 must verify both SHAs before construction.
 
-**A-2. V1 module byte-stability.** The `validate_temporal_feature_grid.py` file is byte-stable between Layer-1 merge and Layer-2 merge. V3 must NOT modify V1 (per V1 docstring separation clause). Layer-2 T01 must verify the V1 module SHA is unchanged before constructing V3.
+**A-2. V1 and V3 module byte-stability.** Both `validate_temporal_feature_grid.py` (V1) and `validate_temporal_discipline.py` (V3) are byte-stable between Layer-1 merge and Layer-2 merge. The adjudicator must NOT modify either module (per V1 docstring separation clause and V3 design contract). Layer-2 T01 must verify both module SHAs are unchanged before constructing the adjudicator.
 
-**A-3. pyproject version baseline.** `pyproject.toml` declares `version = "3.88.0"` (post-PR #276). Layer-2 target bump: `3.88.0 → 3.89.0` (minor per `.claude/rules/git-workflow.md` feat-class rule; mirrors PR #276 `3.87.0 → 3.88.0` and PR #266 `3.83.0 → 3.84.0`).
+**A-3. pyproject version baseline.** `pyproject.toml` declares `version = "3.89.0"` (post-PR #278). Layer-2 target bump: `3.89.0 → 3.90.0` (minor per `.claude/rules/git-workflow.md` feat-class rule; mirrors PR #278 `3.88.0 → 3.89.0` and PR #276 `3.87.0 → 3.88.0`).
 
-**A-4. V3 validator module scope (strict-< temporal-discipline; DESIGN-TIME ONLY).** The V3 validator module shipped in the Layer-2 scaffold PR:
+**A-4. Adjudicator module scope (decision record; no feature computation).** The adjudicator module shipped in the Layer-2 execution PR:
 
-- Accepts a Parquet feature grid path and reads schema footer (column names + dtypes) only — NO data row reads.
-- Validates history-column naming convention: `*_prior_*` pattern must be present for any column intended as a history feature; forbidden patterns (e.g., `*_current_*`, `*_target_*`) must be absent.
-- Validates temporal-anchor presence: `started_at: timestamp[us]` must be in the schema.
-- Validates cite-string provenance: module docstring must include verbatim cite-strings from CROSS-02-03-v1.0.1 §1.2 D1-D6.
+- Invokes V1 preflight (`validate_temporal_feature_grid.py`) and V3 preflight (`validate_temporal_discipline.py`) before any adjudication logic. Both must return `PASS`; on failure, the adjudicator halts with a structured error.
+- Records family-kind decisions (window-type, decay-type, cold-start-type) for the SC2EGSet `02_03_01` feature grid.
+- Emits a structured decision CSV and a decision Markdown report to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/`.
 - Does NOT compute any feature values. Does NOT query DuckDB. Does NOT read from `data/**`.
-- Returns a typed result object (dataclass or NamedTuple) with `passed`, `halting_falsifier`, `schema_checked`, `temporal_anchor_present`, `history_naming_valid`, `cite_strings_present` fields.
-- Must NOT import from `validate_temporal_feature_grid.py` (V1 separation clause).
+- Does NOT pin concrete numerical winners (no integer literals for game counts, day counts, half-life values, or k-thresholds in module logic per Invariant I7).
+- Returns a typed result object (dataclass or NamedTuple) with `v1_preflight`, `v3_preflight`, `window_families`, `decay_families`, `cold_start_families`, `tracker_families_included`, `in_game_deferred`, `cross_spec_citations` fields.
+- Uses cross-game-portable vocabulary only in public function signatures and return-type fields.
 
-**A-5. V3 uses cross-game-portable vocabulary only.** V3 validator function signatures, docstrings, and test module use cross-game-portable vocabulary only: `focal`/`opponent`, `history window`, `started_at`, `prior`, `target-game exclusion`. SC2-specific terms (`race`, `mineral`, `vespene`, `PlayerStats`, `tracker_events`, `toon_id`, `apm`, `sq`) and AoE2-specific terms (`civilization`, `civ`, `profile_id`, `leaderboard`) must not appear in public interfaces where avoidable. This is verifiable by grep falsifiers H6 and H7.
+**A-5. V1 and V3 preflight gates are REQUIRED at execution.** The adjudicator must run V1 (`validate_temporal_feature_grid.py`) and V3 (`validate_temporal_discipline.py`) as preflight checks before adjudication logic begins. A V1 PASS + V3 PASS result is required. If either fails, the adjudicator returns a halting result without emitting artifacts. This is the structural operationalisation of Q7 binding.
 
-**A-6. PR #276 version bump verified.** `gh pr view 276 --json files --jq '.files[] | select(.path=="pyproject.toml")'` confirms PR #276 modified `pyproject.toml` with +1/-1 (version bump). The PR #276 CHANGELOG entry confirms version `3.87.0 → 3.88.0` minor. The current version `3.88.0` (post-PR #276) makes the Layer-2 target `3.88.0 → 3.89.0` minor. This precedent is confirmed and locked.
+**A-6. tracker_events_feature_eligibility.csv constrains Q4 scope.** The file at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv` is the authoritative constraint on which tracker_events families may be included in `02_03_01`. The adjudicator reads this CSV to enumerate eligible families; it does not override or extend eligibility decisions.
 
-**A-7. PIPELINE_SECTION_STATUS NOT touched.** No `02_03` row added or modified by the V3 scaffold PR. The first-step-closure rule applies.
+**A-7. PIPELINE_SECTION_STATUS NOT touched.** No `02_03` row added or modified by the adjudication PR. The first-step-closure rule applies; `02_03` row is added only when the full section closes.
 
-**A-8. STEP_STATUS NOT touched.** No `02_03_01` row added by the V3 scaffold PR. The `02_03_01` row is added only when the step closes (after materialization + leakage audit + U2.B closure PR).
+**A-8. STEP_STATUS NOT touched.** No `02_03_01` row added by the adjudication PR. The `02_03_01` row is added only when the step closes (after materialization + leakage audit + U2.B closure PR).
 
-**A-9. PHASE_STATUS.yaml NOT touched.** Phase 02 stays `in_progress`; Phase 03 stays `not_started`. No PHASE_STATUS row added or modified by the Layer-2 V3 scaffold execution PR. Phase 02 closure (and Phase 03 readiness) require future U2.B-style closure PR(s) downstream of adjudication + materialization rungs.
+**A-9. PHASE_STATUS.yaml NOT touched.** Phase 02 stays `in_progress`; Phase 03 stays `not_started`. No PHASE_STATUS row added or modified by the Layer-2 adjudication execution PR. Phase 02 closure (and Phase 03 readiness) require future U2.B-style closure PR(s) downstream of adjudication + materialization rungs.
 
-**A-10. planning/INDEX.md edits.** Two coupled edits:
+**A-10. planning/INDEX.md edits.** Three coupled edits at Layer-2:
 
-1. **Active line rewrite.** Replace the current Active line (describing the now-merged Layer-2 V1 scaffold PR #276) with the new Active line for the Layer-2 V3 scaffold PR on `feat/sc2egset-02-03-01-v3-temporal-discipline-plan`. Required content: V3 scaffold scope; "no ROADMAP / status YAML / research_log / artifact / Phase 03"; version bump `3.88.0 → 3.89.0`; future PR number placeholder `PR #<TBD>`.
-2. **Archive PR #276.** Insert a new row in the archive table for PR #276 (Layer-2 V1 scaffold for `02_03_01`; merge SHA `37c3a885`; date 2026-05-30; Category A).
+1. **Active line rewrite.** Replace the current Active line (describing the V3 scaffold Layer-2 PR #278) with the new Active line for the adjudication execution PR on `feat/sc2egset-02-03-01-temporal-adjudication-execution`. Required content: adjudication scope; "no ROADMAP / status YAML / research_log / Phase 03"; version bump `3.89.0 → 3.90.0`; future PR number placeholder `PR #<TBD>`.
+2. **Archive PR #278.** Insert a new row in the archive table for PR #278 (Layer-2 V3 scaffold for `02_03_01`; merge SHA `846a8ece`; date 2026-05-31; Category A).
+3. **Archive this Layer-1 planning PR.** Insert a new row for this Layer-1 adjudication planning PR at its own merge SHA (set after this PR merges). Per A-16, the Layer-2 PR itself MUST NOT be archived by its own planning/INDEX.md edit (honest-lineage rule).
 
-**A-11. CHANGELOG block.** New `## [3.89.0] — <date> (PR #<TBD>: feat/sc2egset-02-03-01-v3-temporal-discipline-plan)` block inserted above the existing `## [3.88.0]` block. Block must contain `### Added` bullet for the V3 scaffold + one validation module and `### Notes` bullets (`**No feature materialization.**`, `**No STEP_STATUS row.**`, `**No PIPELINE_SECTION_STATUS row.**`, `**No PHASE_STATUS mutation.**`, `**No research_log entry.**`, `**No ROADMAP edit.**`, `**No Phase 03.**`, `**No baseline modeling.**`, `**No concrete window sizes, decay half-lives, or cold-start k-thresholds.**`).
+**A-11. CHANGELOG block.** New `## [3.90.0] — <date> (PR #<TBD>: feat/sc2egset-02-03-01-temporal-adjudication-execution)` block inserted above the existing `## [3.89.0]` block. Block must contain `### Added` bullet for the adjudicator module + decision artifacts and `### Notes` bullets (`**No feature materialization.**`, `**No STEP_STATUS row.**`, `**No PIPELINE_SECTION_STATUS row.**`, `**No PHASE_STATUS mutation.**`, `**No research_log entry.**`, `**No ROADMAP edit.**`, `**No Phase 03.**`, `**No baseline modeling.**`, `**No concrete numerical window sizes, decay half-lives, or cold-start k-thresholds pinned.**`).
 
-**A-12. Branch slug.** `feat/sc2egset-02-03-01-v3-temporal-discipline-plan` (this Layer-1 planning PR branch). The future Layer-2 V3 scaffold PR may land on the same branch or a new branch — to be determined at Layer-2 planning time, mirroring the PR #275 → PR #276 precedent.
+**A-12. Decision artifacts grain and path.** The adjudicator emits exactly two artifacts to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/`:
 
-**A-13. No coverage gate impact for Layer-1.** Pre-commit hooks (`ruff` + `mypy`) run on `.py` file changes. The Layer-2 scaffold PR adds `.py` files; pytest coverage must be ≥ 35 tests and ≥ 95% branch coverage on the V3 validator module (per PR #276 precedent: ≥35 tests, ≥95% branch coverage). The Layer-1 planning PR (this PR) touches zero `.py` files; no pytest run required.
+- `02_03_01_temporal_feature_grid_adjudication.csv` — structured decision table; columns: `family_kind`, `decision` (included/excluded/deferred), `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`.
+- `02_03_01_temporal_feature_grid_adjudication.md` — decision Markdown report; includes verbatim citations of CROSS-02-02 §10 G-L-1 through G-L-7, CROSS-02-03 §4 D5/D6/D7, and Invariant I3.
+
+**A-13. No coverage gate impact for Layer-1.** Pre-commit hooks (`ruff` + `mypy`) run on `.py` file changes. The Layer-2 adjudication PR adds `.py` files; pytest coverage must be ≥ 35 tests and ≥ 95% branch coverage on the adjudicator module. The Layer-1 planning PR (this PR) touches zero `.py` files; no pytest run required.
 
 **A-14. tracker_events_feature_eligibility.csv byte-stability.** The file at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv` is byte-stable between Layer-1 merge and Layer-2 merge. If the file mutates, the Layer-2 PR halts before push.
 
-**A-15. Cross-game-portable vocabulary.** The V3 validator module, mirrored test, and notebook scaffold use cross-game-portable vocabulary only (focal/opponent, history window, started_at, prior, target-game exclusion) and do NOT name SC2-specific terms (race, mineral, vespene, PlayerStats, tracker_events, toon_id, apm, sq) or AoE2-specific terms (civilization, civ, profile_id, leaderboard) where avoidable. No empirical AoE2 transferability claim is made; that determination is deferred to a future AoE2-specific Phase 02 step. This is verifiable by grep falsifiers H6 (cross-game-portable vocabulary) and H7 (Q8 syntactic-only guard) at Layer-2 execution.
+**A-15 (cross-game-portable vocabulary; carried verbatim from PR #277 plan).** The Layer-2 adjudicator module's PUBLIC function signatures + return-type dataclass field names + CSV column names use cross-game-portable vocabulary ONLY (focal/opponent, history, prior, target-exclusion, candidate, winner, window-type, decay-type, cold-start-type). SC2-specific tokens (race, tracker_events, PlayerStats, mineral, vespene, toon_id, apm, sq) and AoE2-specific tokens (civilization, civ, profile_id, leaderboard) MUST NOT appear in public API. SC2-specific tokens MAY appear in MD prose as instance-specific references with verbatim "SC2-specific:" prefix per PR #275 N4 convention. No empirical AoE2 transferability claim is made; deferred to future AoE2-specific Phase 02 step.
+
+**A-16 (PR-self-archive forbidden; PR #278 Round 2 carry-forward).** The Layer-2 adjudication execution PR's `planning/INDEX.md` edit must NOT include an archive row for itself. The Layer-2 PR archives ONLY: (a) PR #278 (V3 scaffold) at merge SHA `846a8ece127dd9b4c119f226008969019d7ddd8e`, AND (b) this Layer-1 adjudication planning PR at its own merge SHA (set after THIS PR merges). The Layer-2 PR's OWN archive row is added by a SUBSEQUENT PR per honest-lineage rule from PR #278 Round 2 BLOCKER remediation. No future-PR-self-archive row permitted in any `planning/INDEX.md` edit; this is a project-wide invariant established by PR #278 force-rewrite.
 
 **Unknowns** (resolved at Layer-2 T01, not at Layer-1):
 
-- **U-1.** The exact date of the Layer-2 V3 scaffold PR merge (enters CHANGELOG date header and planning/INDEX archive row).
-- **U-2.** Whether the Layer-2 PR lands on the same branch as Layer-1 or a new branch. To be determined at Layer-2 planning time.
-- **U-3.** Exact prose for the notebook scaffold's hypothesis + falsifier declaration cells. Bound by CROSS-02-03-v1.0.1 §1.2 "out of scope" list; exact prose drafted at Layer-2 T01.
+- **U-1.** The exact date of the Layer-2 adjudication execution PR merge (enters CHANGELOG date header and planning/INDEX archive row).
+- **U-2.** Exact prose for the decision CSV rationale cells (bound by CROSS-02-02 §10 G-L-* and CROSS-02-03 §4 D5/D6/D7; exact prose drafted at Layer-2 T01).
+- **U-3.** Exact tracker_events family inclusion list (read from `tracker_events_feature_eligibility.csv` at Layer-2 T01; not to be pre-resolved here).
+- **U-4.** Whether in-game snapshot features are deferred entirely past `02_03_01` or deferred to a sub-step within `02_03_01`. Boundary resolved at Layer-2 T01 per Q5 direction (default: deferred past `02_03_01`).
 
 ## Execution Steps
 
-The future Layer-2 V3 scaffold PR executes the following tasks based off `master@37c3a8855af038bd1bd4eefbdbd03497da323d47`. Each task is a delegated executor step.
+The future Layer-2 adjudication execution PR executes the following tasks based off `master@846a8ece127dd9b4c119f226008969019d7ddd8e`. Each task is a delegated executor step.
 
 **T01 — Verify base state (Sonnet executor).**
 
-- Verify `git rev-parse master == 37c3a8855af038bd1bd4eefbdbd03497da323d47`.
-- Verify `pyproject.toml` `version = "3.88.0"`.
+- Verify `git rev-parse master == 846a8ece127dd9b4c119f226008969019d7ddd8e`.
+- Verify `pyproject.toml` `version = "3.89.0"`.
 - Verify STEP_STATUS has `02_02_01: complete` row; `02_03_01` row is absent (not yet closed).
 - Verify PIPELINE_SECTION_STATUS has `02_02: complete` row; `02_03` row is absent.
 - Verify PHASE_STATUS Phase 02 `in_progress` / Phase 03 `not_started`.
-- Verify ROADMAP.md has `02_03_01` block (inserted by PR #274).
-- Verify `reports/artifacts/02_02_01/leakage_audit_sc2egset.json` exists with `verdict=PASS`.
-- Verify `validate_temporal_feature_grid.py` (V1) exists at canonical path and contains the V3-separation clause in its docstring.
-- Verify `validate_temporal_discipline.py` does NOT yet exist (V3 creates it fresh).
+- Verify ROADMAP.md has `02_03_01` block.
+- Verify `validate_temporal_feature_grid.py` (V1) exists at canonical path.
+- Verify `validate_temporal_discipline.py` (V3) exists at canonical path.
+- Verify `adjudicate_temporal_feature_grid.py` does NOT yet exist (adjudicator creates it fresh).
 - Verify `tracker_events_feature_eligibility.csv` exists at canonical path.
-- Verify the V1 module SHA (record for byte-stability check in T02).
+- Record V1 module SHA and V3 module SHA (for byte-stability check in T02).
 
 Stop condition: any precondition fails → HALT, escalate to user.
 
 Allowed files: NONE for write — Read-only verification only.
 
-Forbidden files: ALL.
+Required validation report: short summary echoing the 11 verifications including V1 SHA and V3 SHA recorded.
 
-Required validation report: short summary echoing the 11 verifications.
-
-**T02 — Create V3 validator module (Sonnet executor; module docstring per NIT-E framing).**
+**T02 — Create adjudicator module (Opus executor; V1+V3 preflight integration + decision record).**
 
 Allowed files:
-- `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py`.
 
-Forbidden files: ALL others. Explicitly forbidden: `validate_temporal_feature_grid.py` (V1; must remain byte-stable).
+Forbidden files: ALL others. Explicitly forbidden: `validate_temporal_feature_grid.py` (V1; must remain byte-stable) and `validate_temporal_discipline.py` (V3; must remain byte-stable).
 
-Create the V3 strict-`<` temporal-discipline validator. Module docstring must include VERBATIM the following framing statement (NIT-E):
+**Note: T02 requires Opus execution.** The adjudicator integrates V1 and V3 preflight gate semantics, binds CROSS-02-02 §10 G-L-1 through G-L-7 verbatim, and cites CROSS-02-03 §4 D5/D6/D7 as post-selection audit predicates. This integration requires subtle reasoning about spec roles (CROSS-02-02 = inventory; CROSS-02-03 = audit predicate) and cross-game vocabulary discipline. Sonnet executor is insufficient for T02; Opus execution is required.
 
-"V3 is a schema-level design-time gate enforcing strict-`<` temporal discipline via history-naming convention, temporal-anchor presence, and cite-string provenance. Value-level leakage (sophisticated semantic leaks not detectable from schema metadata alone) is gated separately by post-materialization audits per CROSS-02-01-v1.0.1. V3 and CROSS-02-01 are complementary, not redundant. V3 catches the common contributor failure modes (forbidden column naming, missing temporal anchor, missing cite-strings); CROSS-02-01 catches sophisticated semantic leaks at the value layer."
+Create the adjudicator decision-record module. Module must:
 
-Module must additionally:
+- Invoke V1 preflight (`validate_temporal_feature_grid.validate()`) and V3 preflight (`validate_temporal_discipline.validate()`) as first operations.
+- Halt (structured error result) if either preflight returns non-PASS.
+- Record family-kind decisions for window-type, decay-type, and cold-start-type families; no concrete numerical winners.
+- Cite CROSS-02-02 §10 G-L-1 through G-L-7 verbatim in module docstring as the family-inventory source.
+- Cite CROSS-02-03 §4 D5, D6, D7 verbatim in module docstring as the post-selection audit predicates.
+- Cite Invariant I3 verbatim in module docstring.
+- Use cross-game-portable vocabulary only in public function signatures, return-type dataclass fields, and CSV column names (per A-15).
+- Emit decision CSV and decision MD to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/` (create directory if absent).
+- Return a typed result object with `v1_preflight`, `v3_preflight`, `window_families`, `decay_families`, `cold_start_families`, `tracker_families_included`, `in_game_deferred`, `cross_spec_citations` fields.
 
-- Include 6 verbatim cite-strings from CROSS-02-03-v1.0.1 §1.2 audit dimensions D1-D6.
-- Validate history-column naming convention (`*_prior_*` pattern present; forbidden patterns absent).
-- Validate temporal-anchor `started_at: timestamp[us]` presence in schema.
-- Read Parquet schema footer only — NO data row reads, NO DuckDB queries.
-- Use cross-game-portable vocabulary in all function signatures and docstrings (focal/opponent, history window, started_at, prior — not SC2-specific names where avoidable).
-- Accept no concrete window sizes, decay half-lives, or cold-start k-thresholds as parameters.
-- Return a typed result object (dataclass or NamedTuple) with `passed`, `halting_falsifier`, `schema_checked`, `temporal_anchor_present`, `history_naming_valid`, `cite_strings_present` fields.
-- NOT import from `validate_temporal_feature_grid.py`.
+Stop condition: module modifies V1 or V3 → HALT; module pins concrete numerical grid values → HALT; module uses forbidden vocabulary in public API → HALT.
 
-Stop condition: any file outside allowed list touched; module imports from V1; module defines concrete grid values; module reads Parquet data rows; module uses forbidden vocabulary → HALT.
-
-Required validation report: `git diff --stat` shows only the new V3 validator file; `grep -n 'V3 is a schema-level design-time gate' src/.../validate_temporal_discipline.py` returns the module docstring framing statement.
+Required validation report: `grep -n 'V1 PASS' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'V3 PASS' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'G-L-1' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'D5' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'Invariant I3' src/.../adjudicate_temporal_feature_grid.py` returns ≥1.
 
 **T03 — Create mirrored test module (Sonnet executor).**
 
 Allowed files:
-- `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_temporal_discipline.py`.
+- `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py`.
 
-Forbidden files: ALL others. Explicitly forbidden: `test_validate_temporal_feature_grid.py` (V1 tests; must remain byte-stable).
+Forbidden files: ALL others. Explicitly forbidden: V1 and V3 test modules (must remain byte-stable).
 
 Create the mirrored test module. Tests must:
 
-- Cover ≥ 35 tests with ≥ 95% branch coverage on `validate_temporal_discipline.py`.
-- Include schema-valid and schema-invalid positive and negative controls.
-- Include temporal-anchor presence/absence tests.
-- Include history-column naming convention valid/invalid tests.
-- Include cite-string presence/absence tests.
-- Include a halt-priority test verifying first-failure-wins ordering.
-- Include a test asserting V3 does NOT import from V1 (`validate_temporal_feature_grid`).
+- Cover ≥ 35 tests with ≥ 95% branch coverage on `adjudicate_temporal_feature_grid.py`.
+- Include V1 preflight PASS / FAIL controls.
+- Include V3 preflight PASS / FAIL controls.
+- Include a test asserting that halting on V1 failure returns no emitted artifacts.
+- Include a test asserting that halting on V3 failure returns no emitted artifacts.
+- Include a test asserting the decision CSV column names use cross-game-portable vocabulary only (H6 structural enforcement at test layer).
+- Include a test asserting no concrete numerical grid values appear in decision CSV rows.
+- Include tests for each declared family-kind decision (window-type, decay-type, cold-start-type included/excluded/deferred variants).
 - Use `pytest.mark.parametrize` for boundary sweep tests.
 
 Stop condition: any file outside allowed list touched; coverage below 95% → HALT.
 
-Required validation report: `poetry run pytest tests/...test_validate_temporal_discipline.py -v --cov=rts_predict --cov-report=term-missing` passes with ≥ 35 tests, ≥ 95% branch coverage.
+Required validation report: `poetry run pytest tests/.../test_adjudicate_temporal_feature_grid.py -v --cov=rts_predict --cov-report=term-missing` passes with ≥ 35 tests, ≥ 95% branch coverage.
 
 **T04 — Create jupytext-paired notebook scaffold (Sonnet executor).**
 
 Allowed files:
-- `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.py`
-- `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.ipynb`
+- `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py`
+- `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb`
 
 Forbidden files: ALL others.
 
@@ -256,12 +249,12 @@ Create the jupytext `py:percent` scaffold notebook. Notebook must:
 
 - Follow sandbox/README.md hard rules: no inline definitions, 50-line cell cap, read-only DuckDB, jupytext percent-format.
 - Declare hypothesis + falsifier + sanity-check up front in Markdown cells.
-- Invoke the V3 validator (T02) with a sample Parquet schema and assert `passed=True` / `halting_falsifier=None` / `temporal_anchor_present=True` / `history_naming_valid=True` / `cite_strings_present=True`.
+- Invoke the adjudicator (T02) and assert the result is a PASS result with `v1_preflight='PASS'` and `v3_preflight='PASS'`.
+- Confirm the decision CSV and decision MD are emitted to the correct path.
 - Use `print()` for exploration output (not `logger`).
 - NOT contain any `def`, `class`, or `lambda` in cells.
-- NOT generate any artifact; no writes to `reports/artifacts/`.
 
-Stop condition: notebook generates any artifact; notebook defines functions in cells; notebook uses forbidden vocabulary → HALT.
+Stop condition: notebook defines functions in cells; notebook claims empirical AoE2 transferability → HALT.
 
 Required validation report: `jupytext --to notebook` produces a valid `.ipynb`; `nbconvert --execute` passes with no errors.
 
@@ -270,57 +263,56 @@ Required validation report: `jupytext --to notebook` produces a valid `.ipynb`; 
 Allowed files:
 - `pyproject.toml`.
 
-Forbidden files: ALL others.
-
-Edit: `version = "3.88.0"` → `version = "3.89.0"` (line 3; minor per feat-class rule).
+Edit: `version = "3.89.0"` → `version = "3.90.0"` (line 3; minor per feat-class rule).
 
 Stop condition: any unintended file change → HALT.
 
-Required validation report: `git diff pyproject.toml` shows only the version line change; `grep -RIn '__version__' src/` returns no matches.
+Required validation report: `git diff pyproject.toml` shows only the version line change.
 
-**T06 — Add CHANGELOG.md [3.89.0] block (Sonnet executor).**
+**T06 — Add CHANGELOG.md [3.90.0] block (Sonnet executor).**
 
 Allowed files:
 - `CHANGELOG.md`.
 
-Forbidden files: ALL others.
-
-Insert `## [3.89.0] — <date> (PR #<TBD>: feat/sc2egset-02-03-01-v3-temporal-discipline-plan)` block between the existing `[Unreleased]` section and the existing `## [3.88.0]` block. Block content per A-11.
+Insert `## [3.90.0] — <date> (PR #<TBD>: feat/sc2egset-02-03-01-temporal-adjudication-execution)` block between the existing `[Unreleased]` section and the existing `## [3.89.0]` block. Block content per A-11.
 
 Stop condition: any unintended file change → HALT.
 
-Required validation report: `git diff CHANGELOG.md` shows the new `[3.89.0]` block inserted above `[3.88.0]`; the `[Unreleased]` section and `[3.88.0]` block are byte-unchanged.
+Required validation report: `git diff CHANGELOG.md` shows the new `[3.90.0]` block inserted above `[3.89.0]`; the `[Unreleased]` section and `[3.89.0]` block are byte-unchanged.
 
 **T07 — Update planning/INDEX.md (Sonnet executor).**
 
 Allowed files:
 - `planning/INDEX.md`.
 
-Forbidden files: ALL others.
+Three coupled edits per A-10:
 
-Two coupled edits per A-10:
+1. Replace the current Active line with the new Active line for the Layer-2 adjudication execution PR.
+2. Insert a new archive row for PR #278 (V3 scaffold; merge SHA `846a8ece`).
+3. Insert a new archive row for this Layer-1 adjudication planning PR (merge SHA set after this PR merges; to be resolved at Layer-2 T07 from `gh pr view <N> --json mergeCommit`).
 
-1. Replace the current Active line (describing PR #276) with the new Active line for the Layer-2 V3 scaffold PR.
-2. Insert a new archive row immediately under the table header for PR #276.
+Per A-16: do NOT insert an archive row for the Layer-2 execution PR itself.
 
-Stop condition: any unintended file change → HALT.
+Stop condition: any unintended file change → HALT; archive row for Layer-2 PR itself present → HALT.
 
-Required validation report: `git diff planning/INDEX.md` shows the two intended edits and nothing else; `grep -n "37c3a885" planning/INDEX.md` returns the new PR #276 archive row.
+Required validation report: `git diff planning/INDEX.md` shows the three intended edits and nothing else; `grep -n '846a8ece' planning/INDEX.md` returns the PR #278 archive row.
 
 **T08 — Local checks and wrap-up (Sonnet executor).**
 
-Allowed: read-only verification, `git status`, `git log --stat`, `git diff --stat master..HEAD`.
-
 Required checks:
-- `git diff --stat master..HEAD` shows exactly 7 files in the manifest.
+
+- `git diff --stat master..HEAD` shows exactly 9 files in the manifest (see §File Manifest).
 - `grep -nE '^## ' planning/current_plan.md | wc -l` returns 8.
-- No forbidden vocabulary in V3 validator or test: grep falsifiers H6 and H7 from §Gate Condition both return zero matches in validator-design and test-scaffolding sections.
-- Coverage: `poetry run pytest tests/.../test_validate_temporal_discipline.py --cov=rts_predict --cov-report=term-missing` → ≥ 35 tests, ≥ 95% branch coverage.
+- No forbidden vocabulary in adjudicator or test: H6 falsifier returns zero matches in public function signatures and return-type fields.
+- H7 falsifier returns zero matches in adjudicator source, test, notebook, and decision MD.
+- Coverage: `poetry run pytest tests/.../test_adjudicate_temporal_feature_grid.py --cov=rts_predict --cov-report=term-missing` → ≥ 35 tests, ≥ 95% branch coverage.
 - No status YAML diff: `git diff --stat master..HEAD -- '**/STEP_STATUS.yaml' '**/PIPELINE_SECTION_STATUS.yaml' '**/PHASE_STATUS.yaml'` returns empty.
 - No research_log diff: `git diff --stat master..HEAD -- '**/research_log.md'` returns empty.
 - No ROADMAP diff: `git diff --stat master..HEAD -- 'src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md'` returns empty.
 - V1 byte-stability: `git diff --stat master..HEAD -- 'src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py'` returns empty.
-- No V3 import of V1: `grep -n 'validate_temporal_feature_grid' src/.../validate_temporal_discipline.py` returns zero matches.
+- V3 byte-stability: `git diff --stat master..HEAD -- 'src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py'` returns empty.
+- No A-16 violation: `grep -n 'feat/sc2egset-02-03-01-temporal-adjudication-execution' planning/INDEX.md | grep -v 'Active'` — the only match for the Layer-2 execution branch name should be in the Active line, not in an archive row for itself.
+- V1 PASS + V3 PASS grep: `grep -cF 'V1 PASS' src/.../adjudicate_temporal_feature_grid.py` ≥ 1 AND `grep -cF 'V3 PASS' src/.../adjudicate_temporal_feature_grid.py` ≥ 1.
 
 Stop condition: any check fails → HALT.
 
@@ -330,19 +322,27 @@ Required validation report: short summary echoing all checks; ready for commit/P
 
 This Layer-1 planning PR diff = exactly 2 files:
 - `planning/current_plan.md` (this file)
-- `planning/current_plan.critique.md` (reviewer-adversarial Round 1 output)
+- `planning/current_plan.critique.md` (reviewer-adversarial Round 1 scaffold)
 
-The future Layer-2 V3 scaffold PR diff = exactly 7 files (mirrors PR #276 7-file Layer-2 template):
+**Branch model for Layer-2 adjudication execution PR (binding):**
+
+Layer-2 adjudication execution PR will land on a NEW branch (NOT the same branch as this Layer-1 planning PR), mirroring the V3 scaffold branch-model precedent from PR #275 → PR #276 and PR #277 → PR #278. Under this NEW-branch model, the 2 planning files (`planning/current_plan.md` + `planning/current_plan.critique.md`) are NOT re-included in the Layer-2 diff because they will already have merged to master when this Layer-1 PR merges. Therefore Layer-2 diff = exactly 9 files (9-file diff: the 7 execution-class files + pyproject + CHANGELOG + INDEX). This differs from PR #234/#242's 11-file same-branch-reuse model where planning files are re-committed in the Layer-2 diff.
+
+Layer-2 branch name (proposed): `feat/sc2egset-02-03-01-temporal-adjudication-execution` (sibling to this Layer-1 branch; distinct from V3 scaffold branches).
+
+The future Layer-2 adjudication execution PR diff = exactly 9 files:
 
 | File | Action | Notes |
 |---|---|---|
-| `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py` | Create | V3 strict-`<` temporal-discipline validator. Module docstring per NIT-E framing: "V3 is a schema-level design-time gate enforcing strict-`<` temporal discipline via history-naming convention, temporal-anchor presence, and cite-string provenance. Value-level leakage (sophisticated semantic leaks not detectable from schema metadata alone) is gated separately by post-materialization audits per CROSS-02-01-v1.0.1. V3 and CROSS-02-01 are complementary, not redundant. V3 catches the common contributor failure modes (forbidden column naming, missing temporal anchor, missing cite-strings); CROSS-02-01 catches sophisticated semantic leaks at the value layer." Must NOT import from V1. Schema footer reads only. Cross-game-portable vocabulary. |
-| `tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_temporal_discipline.py` | Create | Mirrored test module. ≥ 35 tests, ≥ 95% branch coverage. Schema-valid/invalid controls. Temporal-anchor tests. History-naming convention tests. Cite-string presence tests. Halt-priority test. V1-import-absence test. |
-| `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.py` | Create | Jupytext `py:percent` scaffold. Hypothesis + falsifier declaration cells. V3 validator invocation. No artifact generation. No function/class/lambda definitions in cells. |
-| `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_v3_scaffold.ipynb` | Create | Paired `.ipynb`. Outputs cleared before commit. Executes end-to-end via nbconvert with no errors. |
-| `pyproject.toml` | Update | Version `3.88.0 → 3.89.0` (minor; feat-class scaffold precedent; PR #276 `3.87.0 → 3.88.0` and PR #266 `3.83.0 → 3.84.0` confirmed). |
-| `CHANGELOG.md` | Update | Insert `## [3.89.0]` block between `[Unreleased]` and `[3.88.0]`. |
-| `planning/INDEX.md` | Update | Active line rewrite + archive PR #276 row (merge SHA `37c3a885`). |
+| `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py` | Create | Adjudicator decision-record module. V1 + V3 preflight integration. Family-kind decisions (window-type, decay-type, cold-start-type). CROSS-02-02 §10 G-L-1 through G-L-7 verbatim cited. CROSS-02-03 §4 D5/D6/D7 verbatim cited. Invariant I3 verbatim cited. Cross-game-portable vocabulary only in public API. No concrete numerical winners. |
+| `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py` | Create | Mirrored test module. ≥ 35 tests, ≥ 95% branch coverage. V1/V3 preflight PASS/FAIL controls. Vocabulary guard test (H6 structural). No-numerical-winners test. |
+| `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py` | Create | Jupytext `py:percent` scaffold. Hypothesis + falsifier declaration cells. Adjudicator invocation. Preflight PASS assertion. Decision CSV path confirmation. |
+| `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb` | Create | Paired `.ipynb`. Outputs cleared before commit. Executes end-to-end via nbconvert with no errors. |
+| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.csv` | Create | Decision CSV. Grain: one row per family-kind decision. Columns: `family_kind`, `decision`, `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`. No concrete numerical winners in rows. |
+| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.md` | Create | Decision Markdown report. Verbatim CROSS-02-02 §10 G-L-1 through G-L-7 citations. Verbatim CROSS-02-03 §4 D5/D6/D7 citations. Invariant I3 citation. V1 + V3 preflight PASS records. |
+| `pyproject.toml` | Update | Version `3.89.0 → 3.90.0` (minor; feat-class adjudication precedent). |
+| `CHANGELOG.md` | Update | Insert `## [3.90.0]` block between `[Unreleased]` and `[3.89.0]`. |
+| `planning/INDEX.md` | Update | Active line rewrite + archive PR #278 row + archive this Layer-1 PR row. Per A-16: NO self-archive row for the Layer-2 execution PR. |
 
 **Files that MUST remain byte-unchanged in Layer-2 (binding negative-space contract):**
 - src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md
@@ -351,8 +351,8 @@ The future Layer-2 V3 scaffold PR diff = exactly 7 files (mirrors PR #276 7-file
 - src/rts_predict/games/sc2/datasets/sc2egset/reports/PHASE_STATUS.yaml
 - src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md
 - reports/research_log.md
-- src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py (V1; H1 falsifier's no-V1-import rule implies V1 cannot be edited as a side effect)
-- src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/** (all subdirectories byte-stable)
+- src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py (V1; byte-stable per A-2)
+- src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py (V3; byte-stable per A-2)
 - src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv
 - reports/specs/02_00_feature_input_contract.md
 - reports/specs/02_01_leakage_audit_protocol.md
@@ -374,83 +374,100 @@ The Layer-1 planning PR (this PR) is acceptable for merge when all of the follow
 
 **G2.** 8 required H2 headings literal match: `grep -cE '^## (Scope|Execution Steps|File Manifest|Problem Statement|Assumptions & Unknowns|Literature Context|Gate Condition|Open Questions)$' planning/current_plan.md` must equal 8.
 
-**G3.** V3-next commitment cited: `grep -F 'IMMEDIATELY-NEXT scaffold rung' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'V3 is committed as the IMMEDIATELY-NEXT scaffold rung' planning/current_plan.md` returns ≥ 1 match (or equivalent wording confirming V3 is the immediately-next rung).
+**G3.** Both scaffold rungs cited: `grep -F '846a8ece' planning/current_plan.md` returns ≥ 1 match (V3 SHA) AND `grep -F '37c3a8855' planning/current_plan.md` returns ≥ 1 match (V1 SHA).
 
-**G4.** NIT-E V3 docstring framing: `grep -F 'V3 is a schema-level design-time gate' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'CROSS-02-01 are complementary, not redundant' planning/current_plan.md` returns ≥ 1 match.
+**G4.** Q7 V1 + V3 preflight binding: `grep -F 'V1 PASS' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'V3 PASS' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'preflight' planning/current_plan.md` returns ≥ 1 match.
 
-**G5.** V3 module separation clause documented: `grep -F 'validate_temporal_discipline.py' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'NOT import from' planning/current_plan.md` returns ≥ 1 match.
+**G5.** Adjudication-direct rejected: `grep -F 'Adjudication-direct REJECTED' planning/current_plan.md` returns ≥ 1 match.
 
-**G6.** Falsifiers documented: `grep -F 'H6' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'H7' planning/current_plan.md` returns ≥ 1 match.
+**G6.** CROSS-02-02 vs CROSS-02-03 non-conflation: `grep -F 'CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles.' planning/current_plan.md` returns ≥ 1 match.
 
-**G7.** NIT-B byte-unchanged list: `grep -F 'Files that MUST remain byte-unchanged' planning/current_plan.md` returns ≥ 1 match.
+**G7.** Invariant I3 cited: `grep -F 'Invariant I3' planning/current_plan.md` returns ≥ 1 match.
 
-**G8.** NIT-A out-of-scope list: `grep -F 'concrete temporal window sizes' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'empirical AoE2 transferability claim' planning/current_plan.md` returns ≥ 1 match.
+**G8.** I7 no-magic-numbers (Layer-1 plan-layer): `grep -nE '\b(7|10|14|20|30|60|90|180)\s*(games?|days?|d|matches?)\b|half[_-]life\s*=|k\s*=\s*[0-9]+' planning/current_plan.md` returns zero matches OUTSIDE §Open Questions and §Out-of-scope.
 
-**G9.** NIT-C A-15 vocabulary assumption: `grep -nF 'A-15' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'cross-game-portable vocabulary' planning/current_plan.md` returns ≥ 1 match.
+**G9.** A-15 vocabulary: `grep -F 'A-15' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'cross-game-portable vocabulary' planning/current_plan.md` returns ≥ 1 match.
 
-**G10.** NIT-D A-9 PHASE_STATUS assumption: `grep -nF 'A-9' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'PHASE_STATUS.yaml NOT touched' planning/current_plan.md` returns ≥ 1 match.
+**G10.** A-16 PR-self-archive forbidden: `grep -F 'A-16' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'PR-self-archive forbidden' planning/current_plan.md` returns ≥ 1 match AND `grep -F '846a8ece127dd9b4c119f226008969019d7ddd8e' planning/current_plan.md` returns ≥ 1 match.
 
-**G11.** Round 2 re-gate trigger: if the materialized `planning/current_plan.md` fails any of the H6-H7 grep falsifiers or the 8-section literal-match check, the Layer-1 PR must escalate to reviewer-adversarial Round 2 on the materialized text. 3-round cap per `feedback_adversarial_cap_execution.md`. `grep -F 'Round 2' planning/current_plan.md` must return ≥ 1 match.
+**G11.** Round 2 re-gate trigger: `grep -F 'Round 2' planning/current_plan.md` returns ≥ 1 match.
 
-**Falsifier H6 (cross-game-portable vocabulary; NIT-C / A-15):** `grep -niE 'aoe2|civilization|aoestats|aoe2companion' planning/current_plan.md` — every match MUST be bounded as a forbidden-term constraint, a deferred-to-future-AoE2-specific context, a locked-spec citation, or a grep-falsifier definition; no unbounded transferability claim.
+**Layer-2 plan-text grep falsifier predicates (binding):**
 
-**Falsifier H7 (Q8 syntactic-only guard):** `grep -niE '\b(7|14|30|90|180)d\b|\b(7|10|14|30)_games?\b|half_life|k_threshold' planning/current_plan.md` — zero matches in validator-design or test-scaffolding sections. Matches permitted only in: (a) §Scope out-of-scope list, (b) §Gate Condition halt-clause, (c) grep-falsifier definitions.
+The future Layer-2 adjudication execution PR's `planning/current_plan.md` (Layer-2 plan) MUST satisfy the following grep predicates as a structural requirement of Q7 binding:
 
-**Layer-2 gate predicates (V3 falsifier chain H1-H7)** (applied by reviewer-adversarial before Layer-2 merge):
+- `grep -F 'V1 PASS' planning/current_plan.md` — must return ≥1 match (Q7 preflight requirement).
+- `grep -F 'V3 PASS' planning/current_plan.md` — must return ≥1 match (Q7 preflight requirement).
+- `grep -F 'G-L-1' planning/current_plan.md` AND `grep -F 'G-L-2' planning/current_plan.md` AND `grep -F 'G-L-3' planning/current_plan.md` AND `grep -F 'G-L-4' planning/current_plan.md` AND `grep -F 'G-L-5' planning/current_plan.md` AND `grep -F 'G-L-6' planning/current_plan.md` AND `grep -F 'G-L-7' planning/current_plan.md` — each must return ≥1 match (CROSS-02-02 §10 verbatim cited).
+- `grep -F 'D5' planning/current_plan.md` AND `grep -F 'D6' planning/current_plan.md` AND `grep -F 'D7' planning/current_plan.md` — each must return ≥1 match (CROSS-02-03 §4 verbatim cited).
+- `grep -F 'Invariant I3' planning/current_plan.md` — must return ≥1 match.
+- `grep -F 'preflight' planning/current_plan.md` — must return ≥1 match (V1+V3 as preflight gates).
 
-**H1. Predecessor existence + SHA byte-stability (V3 re-pins; no V1 import).** `git rev-parse master` must equal `37c3a8855af038bd1bd4eefbdbd03497da323d47`; V1 module (`validate_temporal_feature_grid.py`) SHA unchanged from Layer-1 merge; `grep -n 'validate_temporal_feature_grid' src/.../validate_temporal_discipline.py` returns zero matches (V3 does not import V1).
+Failure of any predicate = Q7 binding is paper-only (narrative-only); halt Layer-2 dispatch and re-author Q7.
 
-**H2. Temporal-anchor column `started_at: timestamp[us]` present.** `validate_temporal_discipline.py` validates `started_at` column presence and dtype in the feature grid schema footer. Test suite includes `started_at`-absent negative control.
+**Layer-1 plan-layer I7 enforcement (no concrete numerical winners):**
 
-**H3. History-column naming convention (`*_prior_*` present; forbidden patterns absent).** `validate_temporal_discipline.py` validates that any history-window column follows the `*_prior_*` naming convention and that forbidden patterns (e.g., `*_current_*`, `*_target_*` used as history columns) are absent.
+The Layer-1 plan MUST NOT pin concrete numerical winners. Per Invariant I7 (no magic numbers without empirical-derivation or cited literature precedent), Q1-Q3 enumerate family kinds (window-type, decay-type, cold-start-type); winner selection (concrete N games, M days, τ half-life, K threshold, m pseudocount) is DEFERRED to the future materialization PR.
 
-**H4. Cross-spec citation provenance (6 verbatim cite-strings).** Module docstring includes 6 verbatim cite-strings from CROSS-02-03-v1.0.1 §1.2 audit dimensions D1-D6.
+Grep falsifier predicate (Layer-1 plan-layer):
 
-**H5. Forbidden-emission guard (V3 outputs dir must not exist).** `validate_temporal_discipline.py` asserts that the `reports/artifacts/02_feature_engineering/03_temporal_features/` directory does NOT exist at execution time (design-time gate; no materialization allowed). Test includes directory-absence assertion.
+`grep -nE '\b(7|10|14|20|30|60|90|180)\s*(games?|days?|d|matches?)\b|half[_-]life\s*=|k\s*=\s*[0-9]+' planning/current_plan.md`
 
-**H6. Cross-game-portable vocabulary.** `grep -niE 'race|mineral|vespene|PlayerStats|tracker_events|toon_id|apm_focal|apm_opp|sq_focal|sq_opp|civilization|civ\b|profile_id|leaderboard' src/.../validate_temporal_discipline.py` — zero matches in public function signatures and return-type fields. Permitted only in comments that name these as forbidden vocabulary examples.
+— must return zero matches OUTSIDE the §Open Questions section and §Out-of-scope subsection. Matches inside these sections (as illustrative examples of what NOT to commit) are permitted.
 
-**H7. Q8 syntactic-only guard.** `grep -niE 'aoe2|aoestats|aoe2companion|aoe2_.*transferab|transferab.*aoe2' src/.../validate_temporal_discipline.py tests/.../test_validate_temporal_discipline.py` — zero matches. No empirical AoE2 transferability claim in V3 source or test code.
+Layer-1 describes family KINDS. Layer-2 (materialization PR) pins numerical WINNERS.
 
-**Halt conditions (Layer-2):**
+**Layer-2 falsifier predicates carried from PR #277 plan (binding):**
 
-**LG1.** `git diff --stat master..HEAD` shows exactly 7 files matching the §File Manifest.
+- **H6 (cross-game-portable vocabulary; from V3 plan):** `grep -niE 'race|tracker_events|PlayerStats|mineral|vespene|toon_id|apm_focal|apm_opp|sq_focal|sq_opp|civilization|civ_|profile_id|leaderboard' src/.../adjudicate_temporal_feature_grid.py tests/.../test_adjudicate_temporal_feature_grid.py` — every match (if any) must be in forbidden-list constants (analogous to V3's `FORBIDDEN_SC2_TERMS` / `FORBIDDEN_AOE2_TERMS`) or in MD prose with verbatim "SC2-specific:" prefix. Public function signatures + return-type dataclass field names + CSV column names MUST return zero matches.
 
-**LG2.** `poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_validate_temporal_discipline.py --cov=rts_predict --cov-report=term-missing` passes with ≥ 35 tests, ≥ 95% branch coverage.
+- **H7 (Q8 syntactic-only guard; from V3 plan):** `grep -niE 'aoe2.*transferab|transferab.*aoe2|validated on aoe2|aoe2.*verified|cross-game validated' src/.../adjudicate_temporal_feature_grid.py tests/.../test_adjudicate_temporal_feature_grid.py sandbox/.../02_03_01_adjudication.py reports/artifacts/.../02_03_01_temporal_feature_grid_adjudication.md` — must return ZERO matches. No empirical AoE2 transferability claim permitted in adjudicator source, test, notebook, or decision MD. AoE2 transferability deferred to future AoE2-specific Phase 02 step (syntactic-only structural reusability is acceptable but cannot be empirically claimed).
 
-**LG3.** `grep -nE 'V3 is a schema-level design-time gate' src/.../validate_temporal_discipline.py` returns the module docstring framing statement (NIT-E).
+**Additional Layer-2 halt conditions:**
 
-**LG4.** `grep -cE '^## \[3\.89\.0\]' CHANGELOG.md` returns 1.
+**LG1.** `git diff --stat master..HEAD` shows exactly 9 files matching the §File Manifest.
 
-**LG5.** `grep 'version' pyproject.toml | head -1` returns `version = "3.89.0"`.
+**LG2.** `poetry run pytest tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py --cov=rts_predict --cov-report=term-missing` passes with ≥ 35 tests, ≥ 95% branch coverage.
 
-**LG6.** `git diff --stat master..HEAD -- '**/STEP_STATUS.yaml' '**/PIPELINE_SECTION_STATUS.yaml' '**/PHASE_STATUS.yaml' '**/research_log.md' 'src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md' 'reports/research_log.md' 'src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/**' 'src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py'` returns empty.
+**LG3.** `grep -cF 'V1 PASS' src/.../adjudicate_temporal_feature_grid.py` ≥ 1 AND `grep -cF 'V3 PASS' src/.../adjudicate_temporal_feature_grid.py` ≥ 1.
 
-**LG7.** H6 + H7 falsifiers pass on V3 validator and test files (cross-game-portable vocabulary; no AoE2 empirical claim).
+**LG4.** `grep -cE '^## \[3\.90\.0\]' CHANGELOG.md` returns 1.
 
-**Round 2 trigger:** If the materialized Layer-1 plan fails any of the H6/H7 grep falsifiers or the 8-section literal-match check (`grep -cE '^## (Scope|Execution Steps|File Manifest|Problem Statement|Assumptions & Unknowns|Literature Context|Gate Condition|Open Questions)$' planning/current_plan.md` must = 8), escalate to reviewer-adversarial Round 2. 3-round cap per `feedback_adversarial_cap_execution.md`.
+**LG5.** `grep 'version' pyproject.toml | head -1` returns `version = "3.90.0"`.
+
+**LG6.** `git diff --stat master..HEAD -- '**/STEP_STATUS.yaml' '**/PIPELINE_SECTION_STATUS.yaml' '**/PHASE_STATUS.yaml' '**/research_log.md' 'src/rts_predict/games/sc2/datasets/sc2egset/reports/ROADMAP.md' 'reports/research_log.md' 'src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/**' 'src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py' 'src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py'` returns empty.
+
+**LG7.** H6 + H7 falsifiers pass on adjudicator and test files (cross-game-portable vocabulary; no AoE2 empirical claim).
+
+**LG8.** A-16 check: `grep -n 'feat/sc2egset-02-03-01-temporal-adjudication-execution' planning/INDEX.md | grep -v 'Active'` — zero archive rows match the Layer-2 execution branch name (no self-archive).
+
+**Round 2 trigger:** If the materialized Layer-1 plan fails any of G1-G11 or the H6/H7 grep falsifiers, escalate to reviewer-adversarial Round 2. 3-round cap per `feedback_adversarial_cap_execution.md`.
 
 ## Open Questions
 
-**Q1 — Adjudication sequencing.** V3 is committed as the IMMEDIATELY-NEXT scaffold rung before any adjudication PR. The adjudication PR (concrete window/decay/cold-start candidate selection) proceeds only after this V3 scaffold PR merges with a passing result. Plan default: V3 lands next; adjudication follows.
+**Q1 — Temporal window type selection (family kinds; DEFERRED — Layer-1 enumerates kinds, not winners).** CROSS-02-02 §6 lists temporal window candidate families for SC2EGSet: fixed-game-count windows, fixed-calendar-duration windows, and exponential-decay windows. The adjudication step enumerates which kinds are included in the `02_03_01` feature grid candidate set. Concrete winner selection (specific game counts, specific day counts, specific half-life values) is DEFERRED to the future materialization PR per Invariant I7. Plan default: enumerate window-type KINDS in decision CSV; mark concrete values as DEFERRED.
 
-**Q2 — tracker_events families in 02_03.** V3 is agnostic to specific tracker families. The `tracker_events_feature_eligibility.csv` constrains which tracker families are eligible. V3 validates schema-level naming convention only; per-family eligibility is resolved at adjudication. Plan default: V3 scope references CROSS-02-03 and tracker eligibility CSV as gating artifacts; no tracker family included or excluded in V3.
+**Q2 — Decay type selection (family kinds; DEFERRED — Layer-1 enumerates kinds, not winners).** CROSS-02-02 §6 lists exponential decay and step-function decay as candidate families. The adjudicator records which decay kinds are in scope. Concrete τ half-life values or step sizes are NOT pinned at adjudication; they are DEFERRED to materialization per Invariant I7. Plan default: enumerate decay-type KINDS; mark numerical values as DEFERRED.
 
-**Q3 — Cold-start threshold selection.** Concrete cold-start k-thresholds are NOT pinned by V3. V3 accepts no k-threshold parameters. Threshold selection is deferred to the adjudication PR. Plan default: V3 comments note cold-start as a deferred parameter; no integer literals representing thresholds appear in module logic.
+**Q3 — Cold-start k-threshold selection (family kinds; DEFERRED — Layer-1 enumerates kinds, not winners).** CROSS-02-02 §9 defines cold-start handling gates. The adjudicator records which cold-start kind is selected (minimum-prior gate vs pseudocount smoothing vs both). Concrete k-threshold values and pseudocount magnitudes are NOT pinned at adjudication; DEFERRED to materialization per Invariant I7. Plan default: enumerate cold-start-type KIND; mark numerical values as DEFERRED.
 
-**Q4 — Window/decay parameter selection.** Concrete window sizes and decay half-lives are NOT pinned by V3. V3 is DESIGN-TIME ONLY; no concrete grid values in V3. Adjudication PR resolves these. Plan default: same as Q3 — deferred, zero concrete values in V3 scaffold.
+**Q4 — tracker_events family scope.** `tracker_events_feature_eligibility.csv` constrains which tracker families are eligible for `02_03_01`. The adjudicator reads this CSV and includes only rows marked `eligible_for_phase02_now` or `eligible_with_caveat` (with caveat honoured). Blocked families remain excluded. Plan default: adjudicator enumerates eligible tracker families from the CSV; no manual override of eligibility decisions.
 
-**Q5 — AoE2 portability.** Cross-game portability of the V3 design pattern is restricted to a syntactic-only observation: where V3 uses candidate-agnostic vocabulary (focal/opponent, history window, started_at), the pattern is portable. No empirical AoE2 transferability claim. AoE2-specific transferability is deferred to a future AoE2-specific Phase 02 step. The CROSS-02-03 spec binds `[sc2egset, aoestats, aoe2companion]` for audit dimensions D1-D15; V3 cites CROSS-02-03 but makes no claim that V3's SC2EGSet execution validates AoE2 compliance. This is not a claim this plan makes — it is a deferral this plan records.
+**Q5 — In-game snapshot scope.** CROSS-02-03 §6.3 defines the `in_game_snapshot` prediction setting. Whether `02_03_01` includes in-game snapshot families or defers them entirely to a later step is a boundary question. Plan default: in-game snapshot families are DEFERRED past `02_03_01` (the `02_03_01` adjudication step covers `pre_game` and `history_enriched_pre_game` prediction settings only). In-game snapshot adjudication proceeds in a later step. This boundary is recorded in the decision CSV with `decision=deferred` and `rationale_d_ref=D5/D6/D7 (deferred pending in-game loop cutoff architecture)`.
 
-## Reviewer-adversarial Round 1 NITs applied (Layer-1 materialisation)
+**Q6 — CROSS-02-02 vs CROSS-02-03 non-conflation (binding resolved at Layer-1).** The adjudicator cites CROSS-02-02 §10 G-L-1 through G-L-7 as the candidate FAMILY INVENTORY source and CROSS-02-03 §4 D5/D6/D7 as the POST-SELECTION AUDIT PREDICATE source. These roles MUST NOT be conflated. The adjudicator module docstring must include the verbatim clause: "CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles."
 
-Round 1 verdict: **APPROVE-WITH-NITS**; 0 unresolved blockers; 5 NITs applied inline.
-Full critique at `planning/current_plan.critique.md`.
+**Q7 — V1 + V3 preflight as gate (binding resolved at Layer-1).** The adjudicator module MUST invoke V1 preflight (`validate_temporal_feature_grid.validate()`) and V3 preflight (`validate_temporal_discipline.validate()`) as the FIRST two operations before any adjudication logic. Both must return PASS. On failure, the adjudicator returns a halting result with the failing preflight identifier. This is the structural operationalisation of the ROADMAP `continue_predicate` cascade at execution time. The Layer-2 plan body must contain `V1 PASS` and `V3 PASS` grep anchors per the binding Layer-2 plan-text grep falsifier predicates in §Gate Condition.
+
+**Q8 — Cross-game portability (syntactic-only; binding resolved at Layer-1).** The adjudicator design pattern is syntactically portable (uses cross-game-portable vocabulary in public API). No empirical AoE2 transferability claim is made or permitted. The adjudicator module, test, notebook, and decision MD must not contain any string matching `aoe2.*transferab`, `transferab.*aoe2`, `validated on aoe2`, `aoe2.*verified`, or `cross-game validated` (H7 falsifier). AoE2 transferability is deferred to a future AoE2-specific Phase 02 step.
+
+## Reviewer-adversarial Round 1 verdict (Layer-1 materialisation)
+
+Round 1 verdict: **PROCEDURAL HOLD — substantive 0 blockers, 4 NITs applied.** All 4 NITs (N-1 through N-4) applied inline. Carry-forwards from PR #277 plan (A-15, H6, H7) applied verbatim. Branch-model clarification applied inline. Plan is ready for reviewer-adversarial Round 2 gate against materialized text.
 
 | # | Severity | Concern | Fix applied in plan body |
 |---|---|---|---|
-| **N-A** | NIT | Explicit out-of-scope list absent from §Scope | §Scope now includes "Out of scope (V3 design surface — declared here, enforced by Layer-2 falsifiers):" bulleted list with 10 explicit exclusions: concrete temporal window sizes, decay half-lives, cold-start k-thresholds, tracker_events family inclusion, in-game temporal scope, any feature materialization, any artifact emission to `reports/artifacts/02_feature_engineering/03_temporal_features/**`, any status-chain YAML / research_log / ROADMAP edits, Phase 03 activation or baseline modeling, any empirical AoE2 transferability claim. |
-| **N-B** | NIT | Layer-2 byte-unchanged negative-space contract absent from §File Manifest | §File Manifest adds "Files that MUST remain byte-unchanged in Layer-2 (binding negative-space contract):" list with 19 entries including V1 module, all status YAMLs, research_logs, artifacts, locked specs, docs/**, .claude/**, data/**, aoe2/**, thesis/**. |
-| **N-C** | NIT | A-15 cross-game-portable vocabulary assumption needed explicit binding | §Assumptions & Unknowns A-15 adds verbatim binding: "The V3 validator module, mirrored test, and notebook scaffold use cross-game-portable vocabulary only (focal/opponent, history window, started_at, prior, target-game exclusion) and do NOT name SC2-specific terms (race, mineral, vespene, PlayerStats, tracker_events, toon_id, apm, sq) or AoE2-specific terms (civilization, civ, profile_id, leaderboard) where avoidable. No empirical AoE2 transferability claim is made; that determination is deferred to a future AoE2-specific Phase 02 step. This is verifiable by grep falsifiers H6 (cross-game-portable vocabulary) and H7 (Q8 syntactic-only guard) at Layer-2 execution." |
-| **N-D** | NIT | A-9 PHASE_STATUS assumption needed explicit scope (not just mention) | §Assumptions & Unknowns A-9 now reads: "Phase 02 stays `in_progress`; Phase 03 stays `not_started`. No PHASE_STATUS row added or modified by the Layer-2 V3 scaffold execution PR. Phase 02 closure (and Phase 03 readiness) require future U2.B-style closure PR(s) downstream of adjudication + materialization rungs." |
-| **N-E** | NIT | V3 module docstring framing (schema-level complement to CROSS-02-01 value-level) absent | §Execution Steps T02 now requires V3 module docstring to include VERBATIM: "V3 is a schema-level design-time gate enforcing strict-`<` temporal discipline via history-naming convention, temporal-anchor presence, and cite-string provenance. Value-level leakage (sophisticated semantic leaks not detectable from schema metadata alone) is gated separately by post-materialization audits per CROSS-02-01-v1.0.1. V3 and CROSS-02-01 are complementary, not redundant. V3 catches the common contributor failure modes (forbidden column naming, missing temporal anchor, missing cite-strings); CROSS-02-01 catches sophisticated semantic leaks at the value layer." §Literature Context also includes this framing. |
+| **N-1** | NIT | Q7 verbatim grep predicates absent from §Gate Condition | §Gate Condition now includes "Layer-2 plan-text grep falsifier predicates (binding)" subsection with concrete grep predicates for V1 PASS, V3 PASS, G-L-1 through G-L-7, D5/D6/D7, Invariant I3, and preflight. Failure of any predicate = Q7 binding is paper-only; halt Layer-2 dispatch. |
+| **N-2** | NIT | Q6 CROSS-02-02 vs CROSS-02-03 non-conflation clause absent | §Open Questions Q6, §Literature Context, and §Problem Statement all include verbatim clause: "CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles." §Gate Condition G6 binds this as a grep predicate. |
+| **N-3** | NIT | I7 plan-layer enforcement (no magic numbers) absent from §Gate Condition | §Gate Condition now includes "Layer-1 plan-layer I7 enforcement (no concrete numerical winners)" subsection with grep falsifier predicate. Q1-Q3 explicitly enumerate family kinds, not winners. The grep falsifier is also applied as G8. |
+| **N-4** | NIT | PR-self-archive forbidden (A-16; PR #278 Round 2 carry-forward) absent | §Assumptions & Unknowns now includes A-16 verbatim binding. §File Manifest T07 annotation forbids Layer-2 self-archive. §Gate Condition G10 binds A-16 presence as a grep predicate. |
