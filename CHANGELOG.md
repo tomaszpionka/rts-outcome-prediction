@@ -19,6 +19,34 @@ merged to `master`.
 
 ### Removed
 
+## [3.89.0] - 2026-05-31
+
+### Added
+- SC2EGSet Step 02_03_01 V3 SCAFFOLD + strict-< temporal-discipline validator (Layer-2 V3 scaffold execution; second scaffold rung after V1 PR #276 per V1 module docstring + PR #275 NIT-2 + CHANGELOG [3.88.0] commitment). V3 is DESIGN-TIME ONLY: reads Parquet schema metadata + file SHA256 + provenance docstring text; does NOT read Parquet data rows, does NOT query DuckDB, does NOT recompute feature values. V3 implements 7-falsifier chain H1-H7 (artifact provenance + temporal anchor + history-column naming + cross-spec citation + forbidden-emission + cross-game vocabulary + Q8 syntactic-only).
+- Mirrored test suite under `tests/.../test_validate_temporal_discipline.py` with ≥35 tests + ≥95% branch coverage. Includes mock-based assertion that V3 NEVER calls `pyarrow.parquet.read_table` or `pandas.read_parquet`; includes no-V1-import structural test; includes anchored-regex false-positive control for H3 history-naming check.
+- Jupytext-paired sandbox V3 scaffold notebook under `sandbox/.../02_03_01_v3_scaffold.{py,ipynb}` invoking V3 validator with hypothesis + falsifier + sanity-check cells.
+- planning/INDEX.md: PR #276 (V1 scaffold execution, merge SHA `37c3a885`) and PR #277 (V3 Layer-1 planning, merge SHA `73fa5a5c`) archived; Active line flipped to this Layer-2 V3 scaffold execution PR.
+
+### Changed
+- pyproject.toml version 3.88.0 → 3.89.0 (feat-class minor per `.claude/rules/git-workflow.md`; mirrors PR #266 + PR #276 scaffold precedent).
+
+### Notes
+- **V3 and CROSS-02-01 are complementary, not redundant.** V3 is the schema-level design-time gate (catches forbidden column naming, missing temporal anchor, missing cite-strings); CROSS-02-01-v1.0.1 post-materialization audits catch sophisticated semantic leaks at the value layer.
+- **No adjudication.** No concrete temporal window grid, decay half-life grid, or cold-start k-threshold values committed (OQ-1 deferred to a successor adjudication PR per ROADMAP halt_predicate and PR #275/#277 plan).
+- **No tracker family inclusion decision.** OQ-2 deferred.
+- **No in-game temporal scope decision.** OQ-3 deferred.
+- **No CROSS-spec edits.** CROSS-02-02 and CROSS-02-03 cited with distinct roles per OQ-4; both remain LOCKED.
+- **No feature materialization.** V3 validator is pure-function over schema metadata + file SHAs + module docstring text; no Parquet/CSV emission to `reports/artifacts/**`.
+- **No leakage audit execution.** CROSS-02-01 / CROSS-02-03 audits will run at downstream materialization + design-time-adjudication rungs.
+- **No status-chain flip.** STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS rows for 02_03_01 / 02_03 deferred to a future U2.B-style closure PR.
+- **No research_log entry.** Dataset + root research_log unchanged.
+- **No ROADMAP edits.** PR #274 stub merged; no successor edits in this V3 scaffold rung.
+- **No Phase 03.** No baseline modeling.
+- **Cross-game-portable vocabulary preserved.** No SC2-specific terms (race, mineral, vespene, PlayerStats, tracker_events) or AoE2-specific terms (civilization, civ) in V3 validator public signatures. F-Q8-syntactic + F-candidate-agnostic grep falsifiers pass on the new V3 validator + test + notebook files (Invariant I8; H6/H7 of V3 module).
+- **Q8 syntactic-only.** No empirical AoE2 transferability claim. AoE2-specific transferability is deferred to a future AoE2-specific Phase 02 step.
+- **V1 byte-stable.** `validate_temporal_feature_grid.py` blob SHA `8814ea7d` unchanged; V3 does NOT import V1.
+- **No Phase 03.** No baseline modeling.
+
 ## [3.88.0] - 2026-05-30
 
 ### Added
