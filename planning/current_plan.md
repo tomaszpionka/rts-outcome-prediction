@@ -41,6 +41,10 @@ reviewer_adversarial_nits: 4
 nits_applied: [N-1, N-2, N-3, N-4]
 carry_forwards_from_pr277: [A-15, H6, H7]
 branch_model_clarification: "Layer-2 lands on NEW branch feat/sc2egset-02-03-01-temporal-adjudication-execution"
+amendment_pr: "chore/sc2egset-02-03-01-adjudication-plan-provenance-amendment"
+amendment_base_sha: "5764d524a5aa02a3e242485cd949873725b806c5"
+amendment_fixes_applied: [Fix-1, Fix-2, Fix-3, Fix-4, Fix-5, Fix-6, NIT-A1, NIT-A2, NIT-A3, NIT-A4, NIT-A5, NIT-A6]
+amendment_round1_verdict: "HOLD-PROCEDURAL; 0 substantive BLOCKERs; 6 NIT-A fixes applied inline"
 ---
 
 ## Scope
@@ -121,7 +125,7 @@ The three LOCKED cross-dataset specs governing Pipeline Section `02_03` are:
 
 **A-4. Adjudicator module scope (decision record; no feature computation).** The adjudicator module shipped in the Layer-2 execution PR:
 
-- Invokes V1 preflight (`validate_temporal_feature_grid.py`) and V3 preflight (`validate_temporal_discipline.py`) before any adjudication logic. Both must return `PASS`; on failure, the adjudicator halts with a structured error.
+- Invokes V1 preflight via `validate_predecessor_artifact_provenance(repo_root)` (from `rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid`, returning `ProvenanceCheckResult`) and V3 preflight via `validate_temporal_discipline(repo_root)` (from `rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline`, returning `TemporalDisciplineCheckResult`) before any adjudication logic. Both must return `PASS`; on failure, the adjudicator halts with a structured error.
 - Records family-kind decisions (window-type, decay-type, cold-start-type) for the SC2EGSet `02_03_01` feature grid.
 - Emits a structured decision CSV and a decision Markdown report to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/`.
 - Does NOT compute any feature values. Does NOT query DuckDB. Does NOT read from `data/**`.
@@ -129,7 +133,7 @@ The three LOCKED cross-dataset specs governing Pipeline Section `02_03` are:
 - Returns a typed result object (dataclass or NamedTuple) with `v1_preflight`, `v3_preflight`, `window_families`, `decay_families`, `cold_start_families`, `tracker_families_included`, `in_game_deferred`, `cross_spec_citations` fields.
 - Uses cross-game-portable vocabulary only in public function signatures and return-type fields.
 
-**A-5. V1 and V3 preflight gates are REQUIRED at execution.** The adjudicator must run V1 (`validate_temporal_feature_grid.py`) and V3 (`validate_temporal_discipline.py`) as preflight checks before adjudication logic begins. A V1 PASS + V3 PASS result is required. If either fails, the adjudicator returns a halting result without emitting artifacts. This is the structural operationalisation of Q7 binding.
+**A-5. V1 and V3 preflight gates are REQUIRED at execution.** The adjudicator must run V1 (`validate_predecessor_artifact_provenance(repo_root)`) and V3 (`validate_temporal_discipline(repo_root)`) as preflight checks before adjudication logic begins. A V1 PASS + V3 PASS result is required. If either fails, the adjudicator returns a halting result without emitting artifacts. This is the structural operationalisation of Q7 binding.
 
 **A-6. tracker_events_feature_eligibility.csv constrains Q4 scope.** The file at `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/01_exploration/03_profiling/tracker_events_feature_eligibility.csv` is the authoritative constraint on which tracker_events families may be included in `02_03_01`. The adjudicator reads this CSV to enumerate eligible families; it does not override or extend eligibility decisions.
 
@@ -149,8 +153,22 @@ The three LOCKED cross-dataset specs governing Pipeline Section `02_03` are:
 
 **A-12. Decision artifacts grain and path.** The adjudicator emits exactly two artifacts to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/`:
 
-- `02_03_01_temporal_feature_grid_adjudication.csv` — structured decision table; columns: `family_kind`, `decision` (included/excluded/deferred), `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`.
-- `02_03_01_temporal_feature_grid_adjudication.md` — decision Markdown report; includes verbatim citations of CROSS-02-02 §10 G-L-1 through G-L-7, CROSS-02-03 §4 D5/D6/D7, and Invariant I3.
+- `02_03_01_temporal_feature_grid_adjudication.csv` — structured decision table; minimum 16 columns. Required base columns (7, unchanged): `family_kind`, `decision` (included/excluded/deferred), `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`. Required provenance/SHA columns (9, NEW): `parent_02_01_02_parquet_sha256`, `parent_02_01_03_parquet_sha256`, `parent_02_01_99_csv_sha256`, `parent_02_02_01_parquet_sha256`, `v1_validator_module_sha256`, `v3_validator_module_sha256`, `cross_02_02_spec_sha256`, `cross_02_03_spec_sha256`, `tracker_eligibility_csv_sha256`.
+
+  SHA-pin column values (hex literals embedded in EVERY row by the adjudicator):
+  - `parent_02_01_02_parquet_sha256` = `24db73fbb897f883f73891745bc5e98d3e6c9a33d961c9606f6e2c5dc224ff39`
+  - `parent_02_01_03_parquet_sha256` = `053900e7712e992e2de12c1595935aa652f05e07d586998db2de0425505aa071`
+  - `parent_02_01_99_csv_sha256` = `831a622c6e0a98c9642e466d5c9dced0fb6b621a6d58e3008a1b0218dd03c370`
+  - `parent_02_02_01_parquet_sha256` = `c4b48601ee0ff800f4b823af270faf03571a637ce07c51a0ef6d072691896ff3`
+  - `v1_validator_module_sha256` = computed by adjudicator at execution time via `hashlib.sha256` on `validate_temporal_feature_grid.py` bytes; embedded in every row (NIT-A1: precise label `v1_validator_module_sha256`)
+  - `v3_validator_module_sha256` = computed by adjudicator at execution time via `hashlib.sha256` on `validate_temporal_discipline.py` bytes; embedded in every row (NIT-A1: precise label `v3_validator_module_sha256`)
+  - `cross_02_02_spec_sha256` = `86af792370272e611f048aae0c48c9cc595eb4b44c1db38c0bb4ecea0ff1b289`
+  - `cross_02_03_spec_sha256` = `59e3227307c51ad09fb12b485caec36aa54413d175cb46acc382c06fbb8ac546`
+  - `tracker_eligibility_csv_sha256` = `11bd4b9ef7c80657a027db3831313c1d74c39b85834c25ecdfa78506e8ad8d22`
+
+  The adjudicator computes the V1 and V3 module SHA256 values at execution time via `hashlib.sha256` and embeds them in EVERY row of the decision CSV, providing byte-stable, auditable evidence of the exact validator module versions used during adjudication.
+
+- `02_03_01_temporal_feature_grid_adjudication.md` — decision Markdown report; 14 sections including §6 (15-family cross-reference table: one row per row in `tracker_events_feature_eligibility.csv`); includes verbatim citations of CROSS-02-02 §10 G-L-1 through G-L-7, CROSS-02-03 §4 D5/D6/D7, and Invariant I3.
 
 **A-13. No coverage gate impact for Layer-1.** Pre-commit hooks (`ruff` + `mypy`) run on `.py` file changes. The Layer-2 adjudication PR adds `.py` files; pytest coverage must be ≥ 35 tests and ≥ 95% branch coverage on the adjudicator module. The Layer-1 planning PR (this PR) touches zero `.py` files; no pytest run required.
 
@@ -202,7 +220,7 @@ Forbidden files: ALL others. Explicitly forbidden: `validate_temporal_feature_gr
 
 Create the adjudicator decision-record module. Module must:
 
-- Invoke V1 preflight (`validate_temporal_feature_grid.validate()`) and V3 preflight (`validate_temporal_discipline.validate()`) as first operations.
+- Invoke V1 preflight (`from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import validate_predecessor_artifact_provenance, ProvenanceCheckResult` → call `validate_predecessor_artifact_provenance(repo_root)`) and V3 preflight (`from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline import validate_temporal_discipline, TemporalDisciplineCheckResult` → call `validate_temporal_discipline(repo_root)`) as first operations.
 - Halt (structured error result) if either preflight returns non-PASS.
 - Record family-kind decisions for window-type, decay-type, and cold-start-type families; no concrete numerical winners.
 - Cite CROSS-02-02 §10 G-L-1 through G-L-7 verbatim in module docstring as the family-inventory source.
@@ -212,7 +230,22 @@ Create the adjudicator decision-record module. Module must:
 - Emit decision CSV and decision MD to `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/` (create directory if absent).
 - Return a typed result object with `v1_preflight`, `v3_preflight`, `window_families`, `decay_families`, `cold_start_families`, `tracker_families_included`, `in_game_deferred`, `cross_spec_citations` fields.
 
-Stop condition: module modifies V1 or V3 → HALT; module pins concrete numerical grid values → HALT; module uses forbidden vocabulary in public API → HALT.
+**Adjudication sequence (binding, first-failure-halt):**
+
+```
+1. invoke V1 preflight (validate_predecessor_artifact_provenance(repo_root))
+2. invoke V3 preflight (validate_temporal_discipline(repo_root))
+3. check both v1.passed AND v3.passed; if either False, halt with AdjudicationResult(passed=False, halt_at=H1_or_H2)
+4. capture all 9 SHA-pin values (4 parent artifacts + V1 module + V3 module + 2 CROSS specs + tracker CSV)
+5. create outputs directory (.../03_temporal_features/02_03_01/) ONLY after preflight PASS
+6. emit decision CSV (16-column schema, 9 rows for Q4 source_event_family categories + Q1-Q3+Q5-Q8 rows)
+7. emit decision MD (14 sections including §6 15-family tracker cross-reference)
+8. return AdjudicationResult; no further writes (no research_log, no status YAML, no spec edits)
+```
+
+The outputs directory (step 5) MUST NOT be created if either preflight fails (ordering hazard guard). Post-emission closure (step 8): after returning `AdjudicationResult`, the adjudicator performs no further writes. No research_log entry, no STEP_STATUS row, no spec edits.
+
+Stop condition: module modifies V1 or V3 → HALT; module pins concrete numerical grid values → HALT; module uses forbidden vocabulary in public API → HALT; outputs directory created before preflight PASS → HALT.
 
 Required validation report: `grep -n 'V1 PASS' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'V3 PASS' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'G-L-1' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'D5' src/.../adjudicate_temporal_feature_grid.py` returns ≥1; `grep -n 'Invariant I3' src/.../adjudicate_temporal_feature_grid.py` returns ≥1.
 
@@ -340,8 +373,8 @@ The future Layer-2 adjudication execution PR diff = exactly 9 files:
 | `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py` | Create | Mirrored test module. ≥ 35 tests, ≥ 95% branch coverage. V1/V3 preflight PASS/FAIL controls. Vocabulary guard test (H6 structural). No-numerical-winners test. |
 | `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py` | Create | Jupytext `py:percent` scaffold. Hypothesis + falsifier declaration cells. Adjudicator invocation. Preflight PASS assertion. Decision CSV path confirmation. |
 | `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb` | Create | Paired `.ipynb`. Outputs cleared before commit. Executes end-to-end via nbconvert with no errors. |
-| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.csv` | Create | Decision CSV. Grain: one row per family-kind decision. Columns: `family_kind`, `decision`, `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`. No concrete numerical winners in rows. |
-| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.md` | Create | Decision Markdown report. Verbatim CROSS-02-02 §10 G-L-1 through G-L-7 citations. Verbatim CROSS-02-03 §4 D5/D6/D7 citations. Invariant I3 citation. V1 + V3 preflight PASS records. |
+| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.csv` | Create | Decision CSV. Grain: one row per family-kind decision (9 rows for Q4 source_event_family categories: PlayerSetup, PlayerStats, UnitBorn, UnitDied, UnitInit/UnitDone, UnitOwnerChange, UnitPositions, UnitTypeChange, Upgrade; plus Q1-Q3 + Q5-Q8 rows). Minimum 16 columns: 7 base (`family_kind`, `decision`, `rationale_g_l_ref`, `rationale_d_ref`, `invariant_i3_cited`, `v1_preflight`, `v3_preflight`) + 9 SHA-pin provenance columns (`parent_02_01_02_parquet_sha256`, `parent_02_01_03_parquet_sha256`, `parent_02_01_99_csv_sha256`, `parent_02_02_01_parquet_sha256`, `v1_validator_module_sha256`, `v3_validator_module_sha256`, `cross_02_02_spec_sha256`, `cross_02_03_spec_sha256`, `tracker_eligibility_csv_sha256`). No concrete numerical winners in rows. |
+| `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.md` | Create | Decision Markdown report. 14 sections including §6 (15-family tracker cross-reference table, one row per tracker_events_feature_eligibility.csv row). Verbatim CROSS-02-02 §10 G-L-1 through G-L-7 citations. Verbatim CROSS-02-03 §4 D5/D6/D7 citations. Invariant I3 citation. V1 + V3 preflight PASS records. |
 | `pyproject.toml` | Update | Version `3.89.0 → 3.90.0` (minor; feat-class adjudication precedent). |
 | `CHANGELOG.md` | Update | Insert `## [3.90.0]` block between `[Unreleased]` and `[3.89.0]`. |
 | `planning/INDEX.md` | Update | Active line rewrite + archive PR #278 row + archive this Layer-1 PR row. Per A-16: NO self-archive row for the Layer-2 execution PR. |
@@ -394,6 +427,18 @@ The Layer-1 planning PR (this PR) is acceptable for merge when all of the follow
 
 **G11.** Round 2 re-gate trigger: `grep -F 'Round 2' planning/current_plan.md` returns ≥ 1 match.
 
+**G12 (Fix 5 + NIT-A5 — sequence + closure):** `grep -F 'invoke V1 preflight' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'invoke V3 preflight' planning/current_plan.md` returns ≥ 1 match AND `grep -F 'return AdjudicationResult; no further writes' planning/current_plan.md` returns ≥ 1 match.
+
+**G13 (Fix 1 + NIT-A1 — 16-column CSV schema):** `grep -F 'parent_02_01_02_parquet_sha256' planning/current_plan.md` returns ≥ 1 AND `grep -F 'v1_validator_module_sha256' planning/current_plan.md` returns ≥ 1 AND `grep -F 'v3_validator_module_sha256' planning/current_plan.md` returns ≥ 1 AND `grep -F 'cross_02_02_spec_sha256' planning/current_plan.md` returns ≥ 1 AND `grep -F 'tracker_eligibility_csv_sha256' planning/current_plan.md` returns ≥ 1.
+
+**G14 (Fix 2 + NIT-A2 — 9-category Q4 grain):** `grep -F '9 distinct source_event_family categories per direct enumeration' planning/current_plan.md` returns ≥ 1 AND each of the 9 categories (PlayerSetup, PlayerStats, UnitBorn, UnitDied, UnitInit/UnitDone, UnitOwnerChange, UnitPositions, UnitTypeChange, Upgrade) returns ≥ 1 match.
+
+**G15 (Fix 3 + NIT-A3 — actual repo symbols):** All shorthand module-level invocations replaced with actual repo symbols (`validate_predecessor_artifact_provenance(repo_root)` for V1 and `validate_temporal_discipline(repo_root)` for V3). `grep -F 'validate_predecessor_artifact_provenance(repo_root' planning/current_plan.md` returns ≥ 1 AND `grep -F 'validate_temporal_discipline(repo_root' planning/current_plan.md` returns ≥ 1.
+
+**G16 (Fix 4 + NIT-A4 — 9-step halt chain):** `grep -F 'H7a' planning/current_plan.md` returns ≥ 1 AND `grep -F 'H7b' planning/current_plan.md` returns ≥ 1 AND each of H0, H1, H2, H3, H4, H5, H6 present.
+
+**G17 (Fix 6 + NIT-A6 — .ipynb in H7 grep):** `grep -F '02_03_01_adjudication.ipynb' planning/current_plan.md` returns ≥ 1.
+
 **Layer-2 plan-text grep falsifier predicates (binding):**
 
 The future Layer-2 adjudication execution PR's `planning/current_plan.md` (Layer-2 plan) MUST satisfy the following grep predicates as a structural requirement of Q7 binding:
@@ -423,7 +468,32 @@ Layer-1 describes family KINDS. Layer-2 (materialization PR) pins numerical WINN
 
 - **H6 (cross-game-portable vocabulary; from V3 plan):** `grep -niE 'race|tracker_events|PlayerStats|mineral|vespene|toon_id|apm_focal|apm_opp|sq_focal|sq_opp|civilization|civ_|profile_id|leaderboard' src/.../adjudicate_temporal_feature_grid.py tests/.../test_adjudicate_temporal_feature_grid.py` — every match (if any) must be in forbidden-list constants (analogous to V3's `FORBIDDEN_SC2_TERMS` / `FORBIDDEN_AOE2_TERMS`) or in MD prose with verbatim "SC2-specific:" prefix. Public function signatures + return-type dataclass field names + CSV column names MUST return zero matches.
 
-- **H7 (Q8 syntactic-only guard; from V3 plan):** `grep -niE 'aoe2.*transferab|transferab.*aoe2|validated on aoe2|aoe2.*verified|cross-game validated' src/.../adjudicate_temporal_feature_grid.py tests/.../test_adjudicate_temporal_feature_grid.py sandbox/.../02_03_01_adjudication.py reports/artifacts/.../02_03_01_temporal_feature_grid_adjudication.md` — must return ZERO matches. No empirical AoE2 transferability claim permitted in adjudicator source, test, notebook, or decision MD. AoE2 transferability deferred to future AoE2-specific Phase 02 step (syntactic-only structural reusability is acceptable but cannot be empirically claimed).
+- **H7 (Q8 syntactic-only guard; from V3 plan; NIT-A6: extended to include .ipynb):**
+
+  H7 grep target list (extended to include paired notebook):
+  - `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py`
+  - `tests/rts_predict/games/sc2/datasets/sc2egset/test_adjudicate_temporal_feature_grid.py`
+  - `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.py`
+  - `sandbox/sc2/sc2egset/02_feature_engineering/03_temporal_features/02_03_01_adjudication.ipynb`   (NIT-A6: NEW)
+  - `reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_feature_grid_adjudication.md`
+
+  `grep -niE 'aoe2.*transferab|transferab.*aoe2|validated on aoe2|aoe2.*verified|cross-game validated'` across all 5 targets — must return ZERO matches. No empirical AoE2 transferability claim permitted in adjudicator source, test, notebook (.py and .ipynb), or decision MD. AoE2 transferability deferred to future AoE2-specific Phase 02 step (syntactic-only structural reusability is acceptable but cannot be empirically claimed).
+
+**Adjudicator halt-priority chain (9 steps, first-failure-wins; binding for Layer-2 T02):**
+
+The adjudicator module must check the following conditions in strict order, halting at the first failure and returning an `AdjudicationResult` with `passed=False` and the failing halt identifier:
+
+```
+H0 base/path preconditions (repo_root valid; relative paths per Invariant I10)
+H1 V1 preflight failure (validate_predecessor_artifact_provenance returns passed=False)
+H2 V3 preflight failure (validate_temporal_discipline returns passed=False)
+H3 parent/spec/tracker SHA capture failure (file unreadable for hashlib.sha256)
+H4 tracker eligibility CSV read failure
+H5 forbidden concrete numeric winners / I7 violation in decision CSV
+H6 Q8 syntactic-only / vocabulary failure (H6 grep + H7 grep)
+H7a forbidden output dir present (paradox guard; V1.H6 + V3.H5 binding)
+H7b PR-self-archive forbidden (A-16 binding; no self-row in planning/INDEX.md)
+```
 
 **Additional Layer-2 halt conditions:**
 
@@ -455,17 +525,25 @@ Layer-1 describes family KINDS. Layer-2 (materialization PR) pins numerical WINN
 
 **Q4 — tracker_events family scope.** `tracker_events_feature_eligibility.csv` constrains which tracker families are eligible for `02_03_01`. The adjudicator reads this CSV and includes only rows marked `eligible_for_phase02_now` or `eligible_with_caveat` (with caveat honoured). Blocked families remain excluded. Plan default: adjudicator enumerates eligible tracker families from the CSV; no manual override of eligibility decisions.
 
+9 distinct source_event_family categories per direct enumeration of tracker_events_feature_eligibility.csv column 2: PlayerSetup, PlayerStats, UnitBorn, UnitDied, UnitInit/UnitDone, UnitOwnerChange, UnitPositions, UnitTypeChange, Upgrade.
+
+The decision CSV body contains 9 rows for the Q4 source_event_family categories (one row per category), plus rows for Q1-Q3 and Q5-Q8 decisions. The decision Markdown report §6 contains a 15-family cross-reference table (one row per row in `tracker_events_feature_eligibility.csv`, cross-referencing each eligibility CSV row to the adjudicator's decision). No manual override of eligibility decisions.
+
 **Q5 — In-game snapshot scope.** CROSS-02-03 §6.3 defines the `in_game_snapshot` prediction setting. Whether `02_03_01` includes in-game snapshot families or defers them entirely to a later step is a boundary question. Plan default: in-game snapshot families are DEFERRED past `02_03_01` (the `02_03_01` adjudication step covers `pre_game` and `history_enriched_pre_game` prediction settings only). In-game snapshot adjudication proceeds in a later step. This boundary is recorded in the decision CSV with `decision=deferred` and `rationale_d_ref=D5/D6/D7 (deferred pending in-game loop cutoff architecture)`.
 
 **Q6 — CROSS-02-02 vs CROSS-02-03 non-conflation (binding resolved at Layer-1).** The adjudicator cites CROSS-02-02 §10 G-L-1 through G-L-7 as the candidate FAMILY INVENTORY source and CROSS-02-03 §4 D5/D6/D7 as the POST-SELECTION AUDIT PREDICATE source. These roles MUST NOT be conflated. The adjudicator module docstring must include the verbatim clause: "CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles."
 
-**Q7 — V1 + V3 preflight as gate (binding resolved at Layer-1).** The adjudicator module MUST invoke V1 preflight (`validate_temporal_feature_grid.validate()`) and V3 preflight (`validate_temporal_discipline.validate()`) as the FIRST two operations before any adjudication logic. Both must return PASS. On failure, the adjudicator returns a halting result with the failing preflight identifier. This is the structural operationalisation of the ROADMAP `continue_predicate` cascade at execution time. The Layer-2 plan body must contain `V1 PASS` and `V3 PASS` grep anchors per the binding Layer-2 plan-text grep falsifier predicates in §Gate Condition.
+**Q7 — V1 + V3 preflight as gate (binding resolved at Layer-1).** The adjudicator module MUST invoke V1 preflight (`validate_predecessor_artifact_provenance(repo_root)`, imported from `rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid`) and V3 preflight (`validate_temporal_discipline(repo_root)`, imported from `rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline`) as the FIRST two operations before any adjudication logic. Both must return PASS (`ProvenanceCheckResult.passed == True` and `TemporalDisciplineCheckResult.passed == True`). On failure, the adjudicator returns a halting result with the failing preflight identifier. This is the structural operationalisation of the ROADMAP `continue_predicate` cascade at execution time. The Layer-2 plan body must contain `V1 PASS` and `V3 PASS` grep anchors per the binding Layer-2 plan-text grep falsifier predicates in §Gate Condition.
+
+Adjudicator main entrypoint: `validate_temporal_feature_grid_adjudication(repo_root: Path) -> AdjudicationResult`
 
 **Q8 — Cross-game portability (syntactic-only; binding resolved at Layer-1).** The adjudicator design pattern is syntactically portable (uses cross-game-portable vocabulary in public API). No empirical AoE2 transferability claim is made or permitted. The adjudicator module, test, notebook, and decision MD must not contain any string matching `aoe2.*transferab`, `transferab.*aoe2`, `validated on aoe2`, `aoe2.*verified`, or `cross-game validated` (H7 falsifier). AoE2 transferability is deferred to a future AoE2-specific Phase 02 step.
 
 ## Reviewer-adversarial Round 1 verdict (Layer-1 materialisation)
 
-Round 1 verdict: **PROCEDURAL HOLD — substantive 0 blockers, 4 NITs applied.** All 4 NITs (N-1 through N-4) applied inline. Carry-forwards from PR #277 plan (A-15, H6, H7) applied verbatim. Branch-model clarification applied inline. Plan is ready for reviewer-adversarial Round 2 gate against materialized text.
+Round 1 verdict: **PROCEDURAL HOLD — substantive 0 blockers, 4 NITs applied inline (PR #279 merge).** All 4 NITs (N-1 through N-4) applied inline. Carry-forwards from PR #277 plan (A-15, H6, H7) applied verbatim. Branch-model clarification applied inline.
+
+**Amendment (this PR — chore/sc2egset-02-03-01-adjudication-plan-provenance-amendment):** Round 1 reviewer-adversarial returned HOLD-PROCEDURAL with 0 substantive BLOCKERs + 6 NIT-A1..A6 fixes (CSV provenance BLOCKER + 3 NITs + 2 NOTEs). All 12 fixes (6 planner + 6 NIT-A) applied inline in this amendment. Round 2 will run against materialized text.
 
 | # | Severity | Concern | Fix applied in plan body |
 |---|---|---|---|
@@ -473,3 +551,9 @@ Round 1 verdict: **PROCEDURAL HOLD — substantive 0 blockers, 4 NITs applied.**
 | **N-2** | NIT | Q6 CROSS-02-02 vs CROSS-02-03 non-conflation clause absent | §Open Questions Q6, §Literature Context, and §Problem Statement all include verbatim clause: "CROSS-02-02 = source of candidate family inventory; CROSS-02-03 = source of post-selection audit predicate. These are distinct roles." §Gate Condition G6 binds this as a grep predicate. |
 | **N-3** | NIT | I7 plan-layer enforcement (no magic numbers) absent from §Gate Condition | §Gate Condition now includes "Layer-1 plan-layer I7 enforcement (no concrete numerical winners)" subsection with grep falsifier predicate. Q1-Q3 explicitly enumerate family kinds, not winners. The grep falsifier is also applied as G8. |
 | **N-4** | NIT | PR-self-archive forbidden (A-16; PR #278 Round 2 carry-forward) absent | §Assumptions & Unknowns now includes A-16 verbatim binding. §File Manifest T07 annotation forbids Layer-2 self-archive. §Gate Condition G10 binds A-16 presence as a grep predicate. |
+| **NIT-A1** | NIT | CSV columns 8-16 (SHA-pin provenance) absent from A-12; labels `v1_validator_module_sha256` / `v3_validator_module_sha256` unspecified | A-12 expanded from 7 to 16+ columns. 9 SHA-pin columns added with precise labels (`v1_validator_module_sha256`, `v3_validator_module_sha256`) and hex-literal values for the 7 fixed-artifact SHAs. V1/V3 module SHAs computed at execution time via `hashlib.sha256`. File Manifest CSV row updated. G13 gate predicate added. |
+| **NIT-A2** | NIT | Q4 grain unspecified: "9 categories" asserted but no literal list | Q4 Open Question now contains literal sorted list of 9 source_event_family categories per direct enumeration of tracker_events_feature_eligibility.csv column 2. MD §6 cross-reference now stated as 15-family (one row per CSV row). G14 gate predicate added. |
+| **NIT-A3** | NIT | Shorthand invocations used in T02, Q7, A-4, A-5 — actual repo symbols absent | ALL shorthand invocations replaced with actual repo symbols: `validate_predecessor_artifact_provenance(repo_root)` (V1) and `validate_temporal_discipline(repo_root)` (V3). Adjudicator main entrypoint declared: `validate_temporal_feature_grid_adjudication(repo_root: Path) -> AdjudicationResult`. G15 gate predicate added. |
+| **NIT-A4** | NIT | Halt-priority chain unenumerated; H7a/H7b split absent | 9-step halt-priority chain (H0-H7b) added to §Gate Condition with first-failure-wins semantics. H7a (paradox guard) and H7b (PR-self-archive) split explicitly. G16 gate predicate added. |
+| **NIT-A5** | NIT | Ordering hazard unguarded (outputs dir before preflight) + post-emission closure absent | Adjudication sequence (8 steps) added to T02 Execution Steps. Outputs directory creation (step 5) explicitly gated on preflight PASS. Post-emission closure: "return AdjudicationResult; no further writes". G12 gate predicate added. |
+| **NIT-A6** | NIT | H7 grep target list omits `.ipynb` paired notebook | H7 target list extended to 5 files, explicitly including `02_03_01_adjudication.ipynb`. G17 gate predicate added. |
