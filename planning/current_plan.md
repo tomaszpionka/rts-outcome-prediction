@@ -29,8 +29,8 @@ predecessor_parent_sha_02_01_02_parquet: 24db73fbb897f883f73891745bc5e98d3e6c9a3
 predecessor_parent_sha_02_01_03_parquet: 053900e7712e992e2de12c1595935aa652f05e07d586998db2de0425505aa071
 predecessor_parent_sha_02_01_99_csv: 831a622c6e0a98c9642e466d5c9dced0fb6b621a6d58e3008a1b0218dd03c370
 predecessor_parent_sha_02_02_01_parquet: c4b48601ee0ff800f4b823af270faf03571a637ce07c51a0ef6d072691896ff3
-predecessor_v1_validator_module_sha: 7945fc7fc7cf3500390c647c977702a14c3d5ab03c4ee7bbaf04d6bbe1033545
-predecessor_v3_validator_module_sha: 8e33b7ae0968cbaafa08c33b51e62196e7d4f19cadcd48b3b8d03b6aa2ae2a87
+predecessor_v1_validator_module_sha: af37ec5c16046fb3b920cec95942358dc90dbcef15699010fced5b5711c68ff1
+predecessor_v3_validator_module_sha: 3f49742b3d6f8ff0b8a2574634f64b5855ffeeae2c4ba0c5595294b71baafca3
 predecessor_cross_02_02_spec_sha: 86af792370272e611f048aae0c48c9cc595eb4b44c1db38c0bb4ecea0ff1b289
 predecessor_cross_02_03_spec_sha: 59e3227307c51ad09fb12b485caec36aa54413d175cb46acc382c06fbb8ac546
 predecessor_tracker_eligibility_csv_sha: 11bd4b9ef7c80657a027db3831313c1d74c39b85834c25ecdfa78506e8ad8d22
@@ -90,9 +90,9 @@ The materialization PR does NOT execute the non-vacuous CROSS-02-03 §1.2 D1-D6 
 **A1.** PR #281 decision CSV/MD remain byte-stable at master `51a0caf3` until the Layer-2 materialization PR opens. Falsified by any commit to either file between this Layer-1 merge and Layer-2 open → halt and re-run the SHA-pin block.
 
 **A2.** V1 (`validate_temporal_feature_grid.py`) and V3 (`validate_temporal_discipline.py`) remain byte-stable. SHA pins:
-- V1 module: `7945fc7fc7cf3500390c647c977702a14c3d5ab03c4ee7bbaf04d6bbe1033545`
-- V3 module: `8e33b7ae0968cbaafa08c33b51e62196e7d4f19cadcd48b3b8d03b6aa2ae2a87`
-- last-touching commits: V1 at `b0c90f47` (pre-PR #281), V3 at `5fa90159` (pre-PR #281).
+- V1 module: `af37ec5c16046fb3b920cec95942358dc90dbcef15699010fced5b5711c68ff1`
+- V3 module: `3f49742b3d6f8ff0b8a2574634f64b5855ffeeae2c4ba0c5595294b71baafca3`
+- last-touching PR: PR #285 (merged 2026-06-02 at master `415fe47aa44f5a753b28d0f866934c264e6929e0`), which added the additive `post_adjudication_mode: bool = False` parameter to V1 `validate_predecessor_artifact_provenance` and V3 `validate_temporal_discipline` for Layer-2 materialization preflight compatibility after PR #281 legitimately emitted the adjudication CSV + MD pair into `02_03_01/`. Default strict mode is unchanged; the new kwarg is additive.
 
 **A3.** The four predecessor data artifacts remain byte-stable (PR #281 row 1 SHA-pin block):
 - `02_01_02_pre_game_features.parquet`: `24db73fb…ff39`
@@ -183,12 +183,24 @@ The Layer-2 PR's `## Numerical Winners` section must enumerate, per chosen winne
 
 Execution order at Layer-2 startup:
 
-1. V1 preflight: invoke `validate_predecessor_artifact_provenance(repo_root)` from `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py`. Falsifier F2 halts on failure.
-2. V3 preflight: invoke `validate_temporal_discipline(repo_root)` from `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py`. Falsifier F1 halts on failure.
+1. V1 preflight: invoke `validate_predecessor_artifact_provenance(repo_root, post_adjudication_mode=True)` from `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py`. Falsifier F2 halts on failure. See §M3.A "Post-adjudication preflight semantics" for the kwarg rationale.
+2. V3 preflight: invoke `validate_temporal_discipline(repo_root, post_adjudication_mode=True)` from `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py`. Falsifier F1 halts on failure. See §M3.A "Post-adjudication preflight semantics" for the kwarg rationale.
 3. SHA-pin verification: hash each of the 9 predecessor artifacts and compare to the YAML front-matter values declared in this plan. Falsifier F6 halts on mismatch.
 4. Read PR #281 decision CSV: parse the 16-row × 16-column body; extract `decision`, `rationale_g_l_ref`, `rationale_d_ref` per family_kind. Verify Q1/Q2/Q3 rows are exactly `DEFER_TO_MATERIALIZATION`.
 5. Read predecessor Parquets: `02_01_02`, `02_01_03`, `02_02_01`. Verify row counts match prior research_log entries (44,418 rows for cleaned tables).
 6. Read `02_01_99_rating_omit_closure.csv`: verify reconstructed_rating exclusion is still binding.
+
+#### M3.A — Post-adjudication preflight semantics
+
+V1 and V3 default behaviour is `post_adjudication_mode=False` (strict mode); strict mode is NOT used for Layer-2 materialization preflight. Layer-2 invokes both validators with `post_adjudication_mode=True` because PR #281 legitimately emitted the adjudication CSV + MD pair (`02_03_01_temporal_feature_grid_adjudication.csv` and `02_03_01_temporal_feature_grid_adjudication.md`) into the `02_03_01/` directory.
+
+`post_adjudication_mode=True` is a preflight-only relaxation that:
+
+- PERMITS only the PR #281 adjudication CSV + MD pair as pre-existing files in `02_03_01/`.
+- STILL REJECTS future materialization artifacts, audit artifacts, extra files, extra directories, and tampered files.
+- Is an INPUT preflight for the materialization run only. It is NOT an approval to re-run V1/V3 after materialization outputs land — successor validators scoped to post-materialization state will be authored at the separate Layer-3 audit PR if needed.
+
+Strict-mode V1/V3 remain the authoritative invariant gate at all non-materialization sites (Phase 02 audits, Phase 03 baseline preflights, etc.). The kwarg is additive and backward-compatible; default behaviour at every other call site is unchanged.
 
 ### M4 — Emit the temporal feature Parquet (game-id grain; focal/opponent; history-only; target-game excluded)
 
@@ -230,8 +242,13 @@ The materialization PR must preserve:
 
 planning/INDEX.md is updated by the Layer-2 materialization PR (NOT by this Layer-1 PR), folding two archive rows into a single 10-file diff:
 
-- PR #281 (Layer-2 adjudication execution; merged 2026-06-01 at `51a0caf3e561da43be8e5119dad036a3dd768abe`).
-- This Layer-1 planning PR (to be merged as PR #<TBD> upon approval).
+- PR #281 at `51a0caf3e561da43be8e5119dad036a3dd768abe` (Layer-2 adjudication execution).
+- PR #283 at `0528c1112509ce67fc7edf05da8998f1db4ed807`.
+- PR #284 at `8fdcdf9ef63766e5fc41671ddd3d6992d8acabb9`.
+- PR #285 at `415fe47aa44f5a753b28d0f866934c264e6929e0` (V1/V3 `post_adjudication_mode` additive parameter).
+- This Layer-1 plan-amendment PR: PR #286 (SHA TBD; merge SHA recorded by reviewer after merge).
+
+The Layer-2 materialization PR MUST NOT self-archive itself in `planning/INDEX.md`; INDEX archiving of the Layer-2 PR happens at the subsequent Layer-3 audit PR per the PR #270 → PR #272 ladder.
 
 The Layer-2 PR's INDEX entry follows the PR #270 / PR #272 pattern: Active row moves to "Layer-2 MATERIALIZATION execution PR for Step 02_03_01"; the two predecessor rows are appended chronologically to the Archive table.
 
@@ -295,16 +312,16 @@ Per `.claude/rules/data-analysis-lineage.md` "Required structure for every empir
 - **Measurement.** V3 (`validate_temporal_discipline.py`) invoked as a preflight gate before the materialization SQL executes.
 - **Falsifier.** V3 returns any FAIL on schema-naming convention, temporal-anchor presence, or cite-string provenance → HALT.
 - **Expected artifact.** V3 preflight result dict embedded in the materialization MD §"Preflight Gates".
-- **Lineage.** V3 module at SHA `8e33b7ae0968cbaafa08c33b51e62196e7d4f19cadcd48b3b8d03b6aa2ae2a87`.
+- **Lineage.** V3 module at SHA `3f49742b3d6f8ff0b8a2574634f64b5855ffeeae2c4ba0c5595294b71baafca3` (post-PR #285; `post_adjudication_mode=True` invocation per M3.A).
 - **Downstream decision.** If F1 fires, no Parquet is written.
 
 ### F2 — V1 predecessor-provenance falsifier
 
 - **Assumption.** All 4 parent data artifacts + 2 cross-spec MDs + 1 tracker CSV remain byte-stable at the PR #281 SHA pins.
-- **Measurement.** V1 (`validate_temporal_feature_grid.py` via `validate_predecessor_artifact_provenance(repo_root)`) invoked as the second preflight gate after V3.
+- **Measurement.** V1 (`validate_temporal_feature_grid.py` via `validate_predecessor_artifact_provenance(repo_root, post_adjudication_mode=True)`) invoked as the second preflight gate after V3.
 - **Falsifier.** V1 returns any FAIL on SHA-pin / row-count / column-presence → HALT.
 - **Expected artifact.** V1 preflight result dict embedded in MD §"Preflight Gates".
-- **Lineage.** V1 module at SHA `7945fc7fc7cf3500390c647c977702a14c3d5ab03c4ee7bbaf04d6bbe1033545`.
+- **Lineage.** V1 module at SHA `af37ec5c16046fb3b920cec95942358dc90dbcef15699010fced5b5711c68ff1` (post-PR #285; `post_adjudication_mode=True` invocation per M3.A).
 - **Downstream decision.** If F2 fires, no Parquet is written.
 
 ### F3 — No-target-game-leakage falsifier (Invariant I4)
@@ -354,6 +371,23 @@ Per `.claude/rules/data-analysis-lineage.md` "Required structure for every empir
 - **Lineage.** Invariant I8 (cross-game comparability) + scientific-invariants.md + PR #281 row 17.
 - **Downstream decision.** If F7 fires, offending text is excised and the materialization is re-run.
 
+## Preserved Constraints (re-listed after V1/V3 SHA refresh amendment)
+
+The following constraints from the original plan are PRESERVED VERBATIM by this amendment (re-listed so reviewer-adversarial can audit non-regression at a glance):
+
+- Future Layer-2 materialization PR manifest remains exactly 10 files (per OUTCOME A amendment).
+- Dataset `research_log.md` non-closure materialization entry remains included in the Layer-2 diff per M5.
+- Root `research_log.md` remains unchanged in the Layer-2 PR.
+- STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS YAMLs remain unchanged in the Layer-2 PR (closure deferred to U2.B).
+- CROSS-02-03 §1.2 D1-D6 leakage audit remains deferred to a separate Layer-3 audit-execution PR per the PR #259 → PR #262 ladder.
+- No Phase 03 / baseline modelling work in Layer-2.
+- Q1 / Q2 / Q3 numerical winners require at least one citation path from §Literature Context — no magic numbers (Invariant I7).
+- Q5 in-game snapshot families remain `DEFER_PAST_02_03_01` per PR #281 row 14.
+- Q8 cross-game stance remains `SYNTACTIC_ONLY` per PR #281 row 17.
+- No empirical AoE2 transferability claim anywhere in the plan body (F7).
+
+This amendment alters ONLY: V1/V3 module SHA pins (front-matter + A2 + F1/F2 lineage), V1/V3 invocation mode at M3 steps 1-2 + F2 measurement (`post_adjudication_mode=True`), the new M3.A subsection, the M7 archive list expansion, the new "Amendment Round (Layer-1 R3)" trailer paragraph, and this Preserved Constraints section.
+
 ## Open Questions
 
 **OQ-1.** Should the materialization PR materialise both G-L-3 (exponential) and G-L-4 (step-function) decay families, or only one? Layer-1 defers; Layer-2 sandbox notebook evaluates candidate count empirically (block-bootstrap on log-loss / Brier proxies) before pinning winners.
@@ -369,3 +403,12 @@ Per `.claude/rules/data-analysis-lineage.md` "Required structure for every empir
 **OQ-6.** Does the materialization PR's pyproject bump go to `3.91.0` or to a later version? Layer-1 cannot fix the version number here — Layer-2 reads the live `pyproject.toml` at open time and applies a minor bump per `.claude/rules/git-workflow.md`.
 
 **OQ-7.** Materialization artifact directory: confirm the on-disk-true `03_temporal_features/02_03_01/` path (used by PR #281 adjudication artifacts) over the ROADMAP halt_predicate's longer form `03_temporal_features_windows_decay_cold_starts/`; the longer form appears to be a pre-existing ROADMAP halt_predicate inconsistency from PR #274 and may require a chore-class amendment in a separate PR. Materialization PR uses the shorter form for output consistency with PR #281.
+
+## Amendment Round (Layer-1 R3)
+
+Post-merge of PR #285 (master `415fe47aa44f5a753b28d0f866934c264e6929e0`), V1 and V3 acquired a `post_adjudication_mode: bool = False` parameter so the Layer-2 materialization preflight can tolerate the PR #281 adjudication CSV + MD pair already present in `02_03_01/`. SHA-256 digests of both validator modules changed:
+
+- V1 `7945fc7f…1033545` → `af37ec5c…1c68ff1`
+- V3 `8e33b7ae…2ae2a87` → `3f49742b…1baafca3`
+
+OUTCOME A (refresh) applied: YAML front-matter SHA pins refreshed; A2 SHAs + last-touching narrative refreshed; M3 steps 1-2 now invoke V1/V3 with `post_adjudication_mode=True`; F1/F2 lineage SHAs refreshed; F2 measurement string updated; new M3.A subsection added; M7 archive list expanded to enumerate predecessor PRs #281, #283, #284, #285; new Preserved Constraints section added. No other plan body change. Scope discipline preserved: planning-only, exactly 2 changed files (`current_plan.md`, `current_plan.critique.md`).
