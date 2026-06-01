@@ -118,3 +118,18 @@ ROUND 1 APPROVE-WITH-NITS. Zero substantive BLOCKERs. Seven NITs (N1-N7) and fou
 If a second adversarial round is requested, the gate predicate is: all 7 NITs visible verbatim in `planning/current_plan.md`, INDEX line 4 unchanged, two-file diff preserved, master `base_sha` re-resolved to current HEAD at PR open.
 
 Per reviewer-adversarial Phase 03+ guidance, a Pass-2 review in Claude Chat is recommended for the future Layer-2 materialization PR (not for this Layer-1 plan PR) before merge, given the subtle temporal-leakage surface across G-L-1..G-L-7 family compositions.
+
+## Amendment Round (Layer-1 R2)
+
+Post-merge of PR #283, a contradiction was detected in `planning/current_plan.md`:
+
+- §Scope/Hard-scope (prior L56) and §File Manifest (prior L245–261) forbade any research_log change in the future Layer-2 materialization PR.
+- M5 (L213) required a non-closure dataset research_log entry (`closure_status: still_open`, `leakage_audit_state: deferred_to_layer_3_audit_pr`).
+
+**Precedent evidence:** `gh pr view 270 --repo tomaszpionka/rts-outcome-prediction --json files` and `gh pr view 259 ...` both show 10-file diffs that include `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` with a non-closure append. PR #281 was a 9-file adjudication-class PR with no research_log append — a different pattern.
+
+**Binding rule:** `.claude/rules/git-workflow.md` L4 mandates "active dataset's research_log.md updated (mandatory for Category A)."
+
+**Decision:** OUTCOME A — amend §Scope, §File Manifest, and 9→10 file count to align with M5. M5 preserved verbatim.
+
+**Scope discipline:** The amendment PR is planning-only — exactly 2 files (`current_plan.md`, `current_plan.critique.md`). No source, test, notebook, artifact, status YAML, root research_log, pyproject, CHANGELOG, or planning/INDEX touched. No materialization, no audit, no closure, no Phase 03, no baselines.
