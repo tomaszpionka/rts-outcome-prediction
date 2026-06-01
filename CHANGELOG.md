@@ -19,6 +19,71 @@ merged to `master`.
 
 ### Removed
 
+## [3.90.1] — 2026-06-01
+
+### Changed
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_feature_grid.py`
+  Added keyword-only parameter `post_adjudication_mode: bool = False` to
+  `validate_predecessor_artifact_provenance`. When `True`, the H6
+  forbidden-emission guard PASSES iff
+  `src/.../reports/artifacts/02_feature_engineering/03_temporal_features/`
+  is either absent OR contains exactly the PR #281 adjudication artifact
+  pair under `02_03_01/`
+  (`02_03_01_temporal_feature_grid_adjudication.{csv,md}`) at the pinned
+  SHA-256 values
+  `f6cabd5f4f9532aa9bc5727c8c2da5e0f07aa9e55659830d14b698aca1f82674` (CSV)
+  and `127a40f929b9818b3cb4740c984c1f80040efde71c08f72b489993bd930ce4a0` (MD).
+  Default `False` preserves byte-equivalent behavior at every existing call
+  site. New halt labels: `post_adjudication_unexpected_sibling_dir`,
+  `post_adjudication_unexpected_artifact`,
+  `post_adjudication_csv_sha_mismatch`,
+  `post_adjudication_md_sha_mismatch`.
+- `src/rts_predict/games/sc2/datasets/sc2egset/validate_temporal_discipline.py`
+  Added analogous `post_adjudication_mode: bool = False` parameter to
+  `validate_temporal_discipline` with the same H5 dispatch logic. V3
+  intentionally duplicates the new constants — V3 does NOT import V1.
+  New halt labels: `h5_post_adjudication_unexpected_sibling_dir`,
+  `h5_post_adjudication_unexpected_artifact`,
+  `h5_post_adjudication_csv_sha_mismatch`,
+  `h5_post_adjudication_md_sha_mismatch`.
+
+### Tests
+- 11 new V1 tests + 7 new V3 tests + 2 cross-validator invariant tests
+  (V3 does not import V1; V3 path performs no Parquet row reads / no DuckDB).
+- Default-mode regression tests confirm legacy `forbidden_outputs_dir_present`
+  / `h5_forbidden_outputs_dir_present` behavior is byte-equivalent.
+- Updates two V1 pre-existing tests (`test_group_g_outputs_dir_absent_passes`,
+  `test_smoke_real_repo_passes_end_to_end`) and three V3 pre-existing smoke
+  tests in `TestGroupMSmokeTests` rendered stale by PR #281's emission of
+  the adjudication pair into the live repo: V1's absence-test runs against
+  a tmp_path fixture (preserving original semantic); V1's smoke test and
+  V3's three smoke tests now call with `post_adjudication_mode=True` (the
+  new "passes on real repo" path).
+
+### Scope notes
+- Chore-class validator-softening to unblock Layer-2 materialization
+  (planned by PR #283, amended by PR #284). No methodology change. No
+  adjudication re-execution. No adjudicator-module touch. No materialization
+  module emission. No notebook touch. No ROADMAP / STEP_STATUS /
+  PIPELINE_SECTION_STATUS / PHASE_STATUS / research_log / spec / artifact
+  mutation. No Phase 03. No baseline modeling.
+- **V1/V3 end-of-life policy after the materialization PR**: V1.H6 / V3.H5
+  in `post_adjudication_mode=True` will NOT pass after the materialization
+  PR emits the future Parquet + MD into the same directory (the
+  enumerable file set will exceed the pinned pair). V1/V3 are NOT intended
+  to be re-invoked after Layer-2 materialization. The downstream Layer-3
+  audit PR is expected to use successor validators scoped to the
+  post-materialization state.
+- **Prerequisite-update chain**: After this PR merges, V1/V3 module
+  SHA-256 values change. The merged `planning/current_plan.md`
+  (PR #283 + #284) front-matter pins the OLD V1/V3 SHA-256 values. A
+  separate small plan-amendment chore PR must update those pins to the
+  new SHA-256 values BEFORE the Layer-2 materialization execution PR opens.
+
+### Version
+- `pyproject.toml` 3.90.0 → 3.90.1 (patch; chore-class validator-softening;
+  precedent: PR #260 `chore/sc2egset-research-log-append-only-sha-fix`).
+
 ## [3.90.0] — 2026-06-01 (PR #281: feat(sc2egset): execute Step 02_03_01 Layer-2 temporal feature grid adjudication)
 
 ### Added
