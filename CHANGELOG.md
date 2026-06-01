@@ -19,7 +19,7 @@ merged to `master`.
 
 ### Removed
 
-## [3.90.0] — 2026-06-01 (PR #<NUM>: feat(sc2egset): execute Step 02_03_01 Layer-2 temporal feature grid adjudication)
+## [3.90.0] — 2026-06-01 (PR #281: feat(sc2egset): execute Step 02_03_01 Layer-2 temporal feature grid adjudication)
 
 ### Added
 - `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py`

@@ -1,7 +1,7 @@
 # Planning Index
 
 ## Active plan
-- **Active** — `feat/sc2egset-02-03-01-temporal-adjudication-execution` — Layer-2 ADJUDICATION execution PR for Step 02_03_01 (temporal feature grid decision-record adjudicator + tests + sandbox notebook + decision CSV/MD + governance). PR #<TBD> (draft). Third Layer-2 rung after V1 PR #276 and V3 PR #278; V1+V3 preflight gates at runtime; DECISION-RECORD ONLY (no feature materialization); 9-file diff; version bump 3.89.0 → 3.90.0. Q1/Q2/Q3 concrete numerical winners deferred to a future materialization PR per Invariant I7.
+- **Active** — `feat/sc2egset-02-03-01-temporal-adjudication-execution` — Layer-2 ADJUDICATION execution PR for Step 02_03_01 (temporal feature grid decision-record adjudicator + tests + sandbox notebook + decision CSV/MD + governance). PR #281 (draft). Third Layer-2 rung after V1 PR #276 and V3 PR #278; V1+V3 preflight gates at runtime; DECISION-RECORD ONLY (no feature materialization); 9-file diff; version bump 3.89.0 → 3.90.0. Q1/Q2/Q3 concrete numerical winners deferred to a future materialization PR per Invariant I7.
 
 ## Archive
 
