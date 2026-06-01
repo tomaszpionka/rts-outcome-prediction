@@ -133,3 +133,26 @@ Post-merge of PR #283, a contradiction was detected in `planning/current_plan.md
 **Decision:** OUTCOME A — amend §Scope, §File Manifest, and 9→10 file count to align with M5. M5 preserved verbatim.
 
 **Scope discipline:** The amendment PR is planning-only — exactly 2 files (`current_plan.md`, `current_plan.critique.md`). No source, test, notebook, artifact, status YAML, root research_log, pyproject, CHANGELOG, or planning/INDEX touched. No materialization, no audit, no closure, no Phase 03, no baselines.
+
+## Amendment Round (Layer-1 R3)
+
+Post-merge of PR #285 (master `415fe47aa44f5a753b28d0f866934c264e6929e0`):
+
+- V1 (`validate_predecessor_artifact_provenance`) and V3 (`validate_temporal_discipline`) acquired an additive `post_adjudication_mode: bool = False` parameter so the future Layer-2 materialization preflight can tolerate the PR #281 adjudication CSV + MD pair already present in `02_03_01/`. Default behaviour is unchanged; strict mode remains the authoritative gate at all non-materialization sites.
+- V1 module SHA-256: `7945fc7f…1033545` → `af37ec5c…1c68ff1`.
+- V3 module SHA-256: `8e33b7ae…2ae2a87` → `3f49742b…1baafca3`.
+- `planning/current_plan.md` amended per OUTCOME A: front-matter SHA pins, A2, M3 steps 1-2 (`post_adjudication_mode=True` invocation), F1/F2 lineage + F2 measurement, new M3.A subsection, M7 archive list expansion, Preserved Constraints re-listing, Amendment Round R3 trailer.
+
+**Findings preserved.** All prior R1 NITs (NIT-1..NIT-7) and NOTES (NOTE-1..NOTE-4), and the R2 OUTCOME A research_log decision, remain in force. Prior verdict (APPROVE-WITH-NITS) is not relitigated; this amendment is mechanical SHA-pin and invocation-mode refresh, not a methodology re-evaluation.
+
+**Supersession check.** Scanned R1 NITs and R2 amendment text for claims grounded in V1/V3 strict-mode behaviour:
+
+- NIT-2 (non-batching exception) cites V1/V3 already passed at PR #276/#278; does not depend on strict-mode semantics. PRESERVED.
+- NIT-3 (SHA digest function for F6) names the 9 predecessor-artifact SHAs (PR #281 schema), not the V1/V3 module SHAs. PRESERVED.
+- NOTE-4 (F3 SQL fingerprint) is about target-game-row exclusion, orthogonal to V1/V3 preflight mode. PRESERVED.
+
+No prior R1/R2 finding requires supersession. The amendment is additive and non-regressive.
+
+**Scope discipline.** Exactly 2 files touched (`planning/current_plan.md`, `planning/current_plan.critique.md`). No source, test, notebook, artifact, status YAML, root research_log, dataset research_log, pyproject, CHANGELOG, planning/INDEX, ROADMAP, INVARIANTS, specs, or `.claude/` modified. No materialization execution, no audit, no closure, no Phase 03, no baselines.
+
+**Critique-round counter.** This is the R3 plan-amendment trailer (no formal adversarial Round 3 occurred; SHA refresh is mechanical). Reviewer-adversarial Round 2 (if invoked at PR time) reviews the diff at base..HEAD complete and verifies SHA pin alignment with live disk + invocation-mode switch + preserved constraints.
