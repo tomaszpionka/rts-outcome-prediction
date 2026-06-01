@@ -38,6 +38,8 @@ q8_stance: SYNTACTIC_ONLY
 non_batching_rule: enforced
 ---
 
+> **Amended (Layer-1 R2):** Resolved research_log contradiction between §Scope/Hard-scope (prior L56), §File Manifest (prior L261), and M5 (L213). OUTCOME A applied per precedent PR #270 / PR #259 (materialization-class PRs, 10 files each, including a non-closure dataset research_log entry) and binding rule `.claude/rules/git-workflow.md` L4 ("active dataset's research_log.md updated (mandatory for Category A)"). The PR #281 9-file pattern was an adjudication-class PR (no research_log); the future Layer-2 PR is materialization-class, hence the 10-file manifest. Future Layer-2 manifest expanded from 9 → 10 files.
+
 ## Scope
 
 This Layer-1 planning PR authors the plan + critique skeleton for the future Layer-2 **MATERIALIZATION-EXECUTION PR** of Step `02_03_01` — the first temporal-feature materialization step in Pipeline Section `02_03` (Temporal Features, Windows, Decay, Cold Starts) of the sc2egset dataset.
@@ -53,14 +55,16 @@ The future Layer-2 PR will consume the byte-stable predecessor artifacts pinned 
 
 - NO ROADMAP edit (the 02_03_01 stub at master line 3135-3422 is byte-unchanged).
 - NO STEP_STATUS / PIPELINE_SECTION_STATUS / PHASE_STATUS YAML edit.
-- NO research_log entry (dataset-level or root CROSS-level).
+- Dataset research_log.md receives a non-closure materialization entry per M5; root research_log.md remains unchanged in this materialization PR.
 - NO pyproject version bump; NO CHANGELOG entry.
 - NO source module / test / notebook / artifact / spec edit.
 - NO Phase 03 or baseline modeling work.
 - NO concrete numerical winner (window size, decay half-life, cold-start k) pinned by this Layer-1 PR — Invariant I7 forbids magic numbers; candidate ranges named here MUST each cite an evidence-or-precedent path.
 - NO empirical AoE2 transferability claim — Q8 remains SYNTACTIC_ONLY per PR #281 row 17 of the decision CSV.
 - NO new validator module; V1 + V3 are inherited.
-- NO INDEX archive flip for PR #281 in this Layer-1 PR — INDEX hygiene is folded into the future Layer-2 materialization PR's 9-file diff per the PR #270 → PR #272 precedent.
+- NO INDEX archive flip for PR #281 in this Layer-1 PR — INDEX hygiene is folded into the future Layer-2 materialization PR's 10-file diff per the PR #270 → PR #272 precedent.
+- NO leakage / temporal audit in the materialization PR — CROSS-02-03 §1.2 D1-D6 audit is deferred to a separate Layer-3 audit PR (M5).
+- NO status-chain closure in the materialization PR — STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS closure deferred to the U2.B formal closure PR.
 
 ## Problem Statement
 
@@ -112,7 +116,7 @@ The materialization PR does NOT execute the non-vacuous CROSS-02-03 §1.2 D1-D6 
 
 **A10 (Unknown).** The audit Layer-3 PR's exact file count is open (likely 6-8 files following PR #236 precedent), but the audit is OUT OF SCOPE for this Layer-1 plan.
 
-**A11 (Non-batching exception).** Per `.claude/rules/data-analysis-lineage.md` "Non-batching rule for empirical work," the Layer-2 materialization PR collapses preflight + materialization + audit-deferral into one 9-file diff matching PR #270 / PR #259 precedent because V1 + V3 scaffold validation passed at PR #276 / PR #278 (separate prior PRs), and the CROSS-02-03 §1.2 D1-D6 audit is explicitly deferred to a separate Layer-3 PR (M5). This is not a batch of unreviewed validation modules; the materialization run is the artifact-generation step in the sequence.
+**A11 (Non-batching exception).** Per `.claude/rules/data-analysis-lineage.md` "Non-batching rule for empirical work," the Layer-2 materialization PR collapses preflight + materialization + audit-deferral into one 10-file diff matching PR #270 / PR #259 precedent because V1 + V3 scaffold validation passed at PR #276 / PR #278 (separate prior PRs), and the CROSS-02-03 §1.2 D1-D6 audit is explicitly deferred to a separate Layer-3 PR (M5). This is not a batch of unreviewed validation modules; the materialization run is the artifact-generation step in the sequence.
 
 ## Literature Context
 
@@ -224,7 +228,7 @@ The materialization PR must preserve:
 
 ### M7 — INDEX archive folding into the Layer-2 PR
 
-planning/INDEX.md is updated by the Layer-2 materialization PR (NOT by this Layer-1 PR), folding two archive rows into a single 9-file diff:
+planning/INDEX.md is updated by the Layer-2 materialization PR (NOT by this Layer-1 PR), folding two archive rows into a single 10-file diff:
 
 - PR #281 (Layer-2 adjudication execution; merged 2026-06-01 at `51a0caf3e561da43be8e5119dad036a3dd768abe`).
 - This Layer-1 planning PR (to be merged as PR #<TBD> upon approval).
@@ -252,13 +256,14 @@ The following file list is a PROPOSAL based on the PR #270 / PR #259 precedent. 
 | `tests/rts_predict/games/sc2/datasets/sc2egset/test_materialize_temporal_features.py` | new | mirrored test suite (target: ≥35 tests, ≥95% branch coverage) |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_features.parquet` | new | the materialised feature Parquet |
 | `src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/02_feature_engineering/03_temporal_features/02_03_01/02_03_01_temporal_features.md` | new | materialization MD report |
+| `src/rts_predict/games/sc2/datasets/sc2egset/reports/research_log.md` | edit | non-closure materialization entry per M5 (closure_status: still_open, leakage_audit_state: deferred_to_layer_3_audit_pr) |
 | `planning/INDEX.md` | edit | archive PR #281 + this Layer-1 PR; flip Active row |
 | `CHANGELOG.md` | edit | new `[X.Y.Z]` section |
 | `pyproject.toml` | edit | version bump |
 
-**Layer-2 file count proposal: 9** (matches PR #270, PR #259, PR #281 precedent).
+**Layer-2 file count proposal: 10** (matches PR #270, PR #259 materialization-class precedent).
 
-The materialization PR does NOT touch ROADMAP, STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS, research_log, specs, or `.claude/`. Those flips happen at the separate Layer-3 audit PR and the subsequent U2.B-style formal closure PR.
+The materialization PR does NOT touch the root research_log.md, ROADMAP, STEP_STATUS, PIPELINE_SECTION_STATUS, PHASE_STATUS, INVARIANTS.md, specs, or `.claude/`. Those flips happen at the separate Layer-3 audit PR and the subsequent U2.B-style formal closure PR.
 
 ## Gate Condition
 
@@ -353,7 +358,7 @@ Per `.claude/rules/data-analysis-lineage.md` "Required structure for every empir
 
 **OQ-1.** Should the materialization PR materialise both G-L-3 (exponential) and G-L-4 (step-function) decay families, or only one? Layer-1 defers; Layer-2 sandbox notebook evaluates candidate count empirically (block-bootstrap on log-loss / Brier proxies) before pinning winners.
 
-**OQ-2.** Tracker-derived eligible families (PR #281 MD §6 rows 5, 6, 7, 8, 9, 10, 13, 14 = 8 `ELIGIBLE` or `ELIGIBLE_WITH_CAVEAT` aggregated decisions over `pre_game / history_enriched_pre_game`) at this step or follow-up? Layer-1 recommends DEFER to a follow-up materialization PR to keep this PR's diff scope ≤ 9 files matching PR #270 precedent; the deferral preserves PR #281 §6 aggregated decisions byte-stable.
+**OQ-2.** Tracker-derived eligible families (PR #281 MD §6 rows 5, 6, 7, 8, 9, 10, 13, 14 = 8 `ELIGIBLE` or `ELIGIBLE_WITH_CAVEAT` aggregated decisions over `pre_game / history_enriched_pre_game`) at this step or follow-up? Layer-1 recommends DEFER to a follow-up materialization PR to keep this PR's diff scope ≤ 10 files matching PR #270 precedent; the deferral preserves PR #281 §6 aggregated decisions byte-stable.
 
 **OQ-3.** What is the exact grain of the output Parquet — per `(match_id, focal_player_id_worldwide)` pair (mirroring 02_02_01) or per `match_id`? See assumption A8; Layer-2 confirms.
 
