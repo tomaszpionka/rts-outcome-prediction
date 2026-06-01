@@ -246,7 +246,7 @@ planning/INDEX.md is updated by the Layer-2 materialization PR (NOT by this Laye
 - PR #283 at `0528c1112509ce67fc7edf05da8998f1db4ed807`.
 - PR #284 at `8fdcdf9ef63766e5fc41671ddd3d6992d8acabb9`.
 - PR #285 at `415fe47aa44f5a753b28d0f866934c264e6929e0` (V1/V3 `post_adjudication_mode` additive parameter).
-- This Layer-1 plan-amendment PR (number/SHA TBD; executor injects after `gh pr create` returns the PR number and the merge SHA is recorded by reviewer).
+- This Layer-1 plan-amendment PR: PR #286 (SHA TBD; merge SHA recorded by reviewer after merge).
 
 The Layer-2 materialization PR MUST NOT self-archive itself in `planning/INDEX.md`; INDEX archiving of the Layer-2 PR happens at the subsequent Layer-3 audit PR per the PR #270 → PR #272 ladder.
 
