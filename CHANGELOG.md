@@ -19,6 +19,26 @@ merged to `master`.
 
 ### Removed
 
+## [3.90.0] — 2026-06-01 (PR #281: feat(sc2egset): execute Step 02_03_01 Layer-2 temporal feature grid adjudication)
+
+### Added
+- `src/rts_predict/games/sc2/datasets/sc2egset/adjudicate_temporal_feature_grid.py`
+  Decision-record adjudicator for Step 02_03_01 temporal feature grid.
+  Invokes V1 preflight (`validate_predecessor_artifact_provenance`) and V3
+  preflight (`validate_temporal_discipline`) before any output emission.
+  Emits 16-row × 16-column decision CSV with all 9 SHA-pin values per row.
+  Emits 14-section decision MD with 15-family tracker_events cross-reference.
+  Q1 (window size), Q2 (decay half-life), Q3 (cold-start k-threshold) decisions
+  deferred to future materialization PR — no concrete numerical winners pinned.
+- Mirrored test module with ≥35 tests at ≥95% branch coverage.
+- Jupytext-paired sandbox notebook executing the adjudicator end-to-end.
+
+### Scope notes
+- This PR delivers adjudication artifacts only. Temporal feature materialization,
+  Step 02_03_01 status closure, Phase 03 splitting/baselines work, and AoE2
+  transferability are NOT in scope.
+- Q8 (AoE2 transferability) is treated as syntactic-only; no empirical claim.
+
 ## [3.89.0] - 2026-05-31
 
 ### Added
