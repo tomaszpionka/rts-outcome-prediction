@@ -424,14 +424,21 @@ def test_group_f_row_count_zero_fails() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_group_g_outputs_dir_absent_passes() -> None:
-    """Real repo: forbidden 02_03_01 outputs directory does not exist → passes H6."""
-    result = validate_predecessor_artifact_provenance(_REPO_ROOT)
-    # If all other checks pass, outputs_dir_absent must be True
-    forbidden_path = _REPO_ROOT / FORBIDDEN_02_03_01_OUTPUTS_DIR
-    assert not forbidden_path.exists(), (
-        f"Forbidden outputs dir exists at {forbidden_path} — scaffold must not emit artifacts"
-    )
+def test_group_g_outputs_dir_absent_passes(tmp_path: Path) -> None:
+    """Outputs directory absent (tmp fixture) → passes H6 in default mode.
+
+    Uses a tmp_path fixture (not the real repo) because PR #281 has since
+    emitted the adjudication artifact pair under the canonical
+    ``02_03_01/`` subdir on master; the absence assertion can no longer be
+    made against the live repo. The chore PR ("post_adjudication_mode")
+    adds a separate path for the post-PR-#281 state; this test continues
+    to assert the pre-emission absence semantics by running against a
+    fresh tmp_path repo that carries no forbidden dir.
+    """
+    _build_valid_repo(tmp_path)
+    forbidden_path = tmp_path / FORBIDDEN_02_03_01_OUTPUTS_DIR
+    assert not forbidden_path.exists()
+    result = validate_predecessor_artifact_provenance(tmp_path)
     if result.passed:
         assert result.outputs_dir_absent is True
 
@@ -594,8 +601,17 @@ def test_group_i_result_serializable_to_dict() -> None:
 
 
 def test_smoke_real_repo_passes_end_to_end() -> None:
-    """End-to-end smoke: real repo root → passed=True, no halting falsifier."""
-    result = validate_predecessor_artifact_provenance(_REPO_ROOT)
+    """End-to-end smoke: real repo root + post_adjudication_mode → passed=True.
+
+    After PR #281 emitted the canonical adjudication CSV+MD pair, the only
+    way V1 can pass against the live repo is via the chore-PR-introduced
+    ``post_adjudication_mode=True`` keyword. Default mode (which would have
+    passed pre-PR-#281) is exercised separately in
+    ``TestPostAdjudicationMode.test_default_mode_fails_when_outputs_dir_exists``.
+    """
+    result = validate_predecessor_artifact_provenance(
+        _REPO_ROOT, post_adjudication_mode=True
+    )
     assert result.passed is True, (
         f"Validator failed on real repo: halting_falsifier={result.halting_falsifier}"
     )
@@ -775,3 +791,243 @@ def test_h5_row_count_mismatch_direct(tmp_path: Path, monkeypatch: pytest.Monkey
     assert result.passed is False
     assert result.halting_falsifier is not None
     assert "row_count_mismatch" in result.halting_falsifier
+
+
+# ---------------------------------------------------------------------------
+# TestPostAdjudicationMode — chore PR validator-softening unblock for the
+# Layer-2 materialization PR. Tests the V1 ``post_adjudication_mode=True``
+# kwarg, which permits the forbidden ``03_temporal_features`` dir iff it
+# contains exactly the PR #281 adjudication artifact pair under
+# ``02_03_01/`` at the pinned SHA-256 values. Default-mode regression tests
+# (test #1 below) confirm legacy behavior is byte-equivalent at every
+# existing call site.
+# ---------------------------------------------------------------------------
+
+
+def _seed_pr281_adjudication_pair(tmp_path: Path) -> None:
+    """Copy the byte-exact PR #281 adjudication CSV + MD into tmp_path.
+
+    Copies from the live repo so SHA-256 pins match. The destination
+    directory layout mirrors the canonical ``02_03_01/`` subdir under the
+    forbidden ``03_temporal_features`` root.
+    """
+    from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+        PR281_ADJUDICATION_CSV_RELPATH,
+        PR281_ADJUDICATION_MD_RELPATH,
+    )
+
+    for rp in (PR281_ADJUDICATION_CSV_RELPATH, PR281_ADJUDICATION_MD_RELPATH):
+        dest = tmp_path / rp
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(_REPO_ROOT / rp, dest)
+
+
+class TestPostAdjudicationMode:
+    """V1 H6 post_adjudication_mode dispatch tests (11 cases)."""
+
+    def test_default_mode_fails_when_outputs_dir_exists(self, tmp_path: Path) -> None:
+        """Regression: default mode (no kwarg) MUST still fail with the
+        legacy ``forbidden_outputs_dir_present`` falsifier when the
+        forbidden dir contains the PR #281 adjudication pair. This locks
+        in byte-equivalent legacy behavior at every existing call site.
+        """
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        result = validate_predecessor_artifact_provenance(tmp_path)
+        assert result.passed is False
+        assert result.halting_falsifier == "forbidden_outputs_dir_present"
+        assert result.outputs_dir_absent is False
+
+    def test_post_adjudication_passes_when_dir_absent(self, tmp_path: Path) -> None:
+        """``post_adjudication_mode=True`` with no forbidden dir → H6 PASS.
+
+        Upstream H1-H5 still gate; we assert specifically that the H6 guard
+        does not fire ``forbidden_outputs_dir_present`` and that the dataclass
+        field reports the broadened "absent OR pinned-pair" state as True.
+        """
+        _build_valid_repo(tmp_path)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.outputs_dir_absent is True
+        assert result.halting_falsifier != "forbidden_outputs_dir_present"
+
+    def test_post_adjudication_passes_with_exact_adjudication_pair(
+        self, tmp_path: Path
+    ) -> None:
+        """``post_adjudication_mode=True`` with exact PR #281 pair → PASS overall."""
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is True
+        assert result.halting_falsifier is None
+        assert result.outputs_dir_absent is True
+
+    def test_post_adjudication_fails_when_only_csv_present(
+        self, tmp_path: Path
+    ) -> None:
+        """Only the CSV present → ``post_adjudication_unexpected_artifact``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_CSV_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        dest = tmp_path / PR281_ADJUDICATION_CSV_RELPATH
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(_REPO_ROOT / PR281_ADJUDICATION_CSV_RELPATH, dest)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_artifact"
+
+    def test_post_adjudication_fails_when_only_md_present(
+        self, tmp_path: Path
+    ) -> None:
+        """Only the MD present → ``post_adjudication_unexpected_artifact``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_MD_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        dest = tmp_path / PR281_ADJUDICATION_MD_RELPATH
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(_REPO_ROOT / PR281_ADJUDICATION_MD_RELPATH, dest)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_artifact"
+
+    def test_post_adjudication_fails_with_extra_file(self, tmp_path: Path) -> None:
+        """Pair + extra file alongside → ``post_adjudication_unexpected_artifact``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_SUBDIR_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        extra = tmp_path / PR281_ADJUDICATION_SUBDIR_RELPATH / "extra.txt"
+        extra.write_text("unexpected", encoding="utf-8")
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_artifact"
+
+    def test_post_adjudication_fails_with_extra_subdirectory(
+        self, tmp_path: Path
+    ) -> None:
+        """Pair + sibling subdir under ``03_temporal_features`` →
+        ``post_adjudication_unexpected_sibling_dir``.
+        """
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        sibling = (
+            tmp_path / FORBIDDEN_02_03_01_OUTPUTS_DIR / "02_03_02"
+        )
+        sibling.mkdir(parents=True)
+        # Add a file inside so the dir is enumerated by rglob.
+        (sibling / "placeholder.md").write_text("sibling", encoding="utf-8")
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_sibling_dir"
+
+    def test_post_adjudication_fails_when_future_temporal_features_parquet_exists(
+        self, tmp_path: Path
+    ) -> None:
+        """Future Parquet inside ``02_03_01/`` →
+        ``post_adjudication_unexpected_artifact``. Locks in the EOL policy
+        documented in the chore PR / CHANGELOG: V1 H6 in
+        post_adjudication_mode does NOT pass after Layer-2 materialization
+        emits the future Parquet into the same directory.
+        """
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_SUBDIR_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        future_parquet = (
+            tmp_path
+            / PR281_ADJUDICATION_SUBDIR_RELPATH
+            / "02_03_01_temporal_features.parquet"
+        )
+        future_parquet.write_bytes(b"future parquet placeholder")
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_artifact"
+
+    def test_post_adjudication_fails_when_future_materialization_md_exists(
+        self, tmp_path: Path
+    ) -> None:
+        """Future materialization MD inside ``02_03_01/`` →
+        ``post_adjudication_unexpected_artifact``.
+        """
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_SUBDIR_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        future_md = (
+            tmp_path
+            / PR281_ADJUDICATION_SUBDIR_RELPATH
+            / "02_03_01_temporal_features.md"
+        )
+        future_md.write_text("# future materialization", encoding="utf-8")
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_unexpected_artifact"
+
+    def test_post_adjudication_fails_on_csv_byte_tamper(
+        self, tmp_path: Path
+    ) -> None:
+        """Byte-tampered CSV (correct relpath/extension) →
+        ``post_adjudication_csv_sha_mismatch``.
+        """
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_CSV_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        target = tmp_path / PR281_ADJUDICATION_CSV_RELPATH
+        content = target.read_bytes()
+        mutated = content[:-1] + bytes([(content[-1] ^ 0x01) & 0xFF])
+        target.write_bytes(mutated)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_csv_sha_mismatch"
+
+    def test_post_adjudication_fails_on_md_byte_tamper(
+        self, tmp_path: Path
+    ) -> None:
+        """Byte-tampered MD (correct relpath/extension) →
+        ``post_adjudication_md_sha_mismatch``.
+        """
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_feature_grid import (
+            PR281_ADJUDICATION_MD_RELPATH,
+        )
+
+        _build_valid_repo(tmp_path)
+        _seed_pr281_adjudication_pair(tmp_path)
+        target = tmp_path / PR281_ADJUDICATION_MD_RELPATH
+        content = target.read_bytes()
+        mutated = content[:-1] + bytes([(content[-1] ^ 0x01) & 0xFF])
+        target.write_bytes(mutated)
+        result = validate_predecessor_artifact_provenance(
+            tmp_path, post_adjudication_mode=True
+        )
+        assert result.passed is False
+        assert result.halting_falsifier == "post_adjudication_md_sha_mismatch"
