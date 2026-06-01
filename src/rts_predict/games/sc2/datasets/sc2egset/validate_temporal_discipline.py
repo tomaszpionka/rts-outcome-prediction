@@ -193,6 +193,42 @@ FORBIDDEN_V3_OUTPUTS_DIR = (
     "02_feature_engineering/03_temporal_features"
 )
 
+# ---------------------------------------------------------------------------
+# PR #281 adjudication artifact pinning (post_adjudication_mode).
+# Duplicated intentionally from V1; V3 does NOT import V1 (Group L
+# non-import invariant). When ``post_adjudication_mode=True`` is passed to
+# ``validate_temporal_discipline``, the H5 forbidden-emission guard PASSES
+# iff the otherwise-forbidden ``03_temporal_features`` dir is either absent
+# OR contains exactly the PR #281 adjudication artifact pair under the
+# canonical ``02_03_01/`` subdir at the pinned SHA-256 values. V3
+# falsifier labels carry the ``h5_post_adjudication_*`` prefix.
+# ---------------------------------------------------------------------------
+
+PR281_ADJUDICATION_SUBDIR_RELPATH = (
+    "src/rts_predict/games/sc2/datasets/sc2egset/reports/artifacts/"
+    "02_feature_engineering/03_temporal_features/02_03_01"
+)
+PR281_ADJUDICATION_CSV_RELPATH = (
+    PR281_ADJUDICATION_SUBDIR_RELPATH
+    + "/02_03_01_temporal_feature_grid_adjudication.csv"
+)
+PR281_ADJUDICATION_MD_RELPATH = (
+    PR281_ADJUDICATION_SUBDIR_RELPATH
+    + "/02_03_01_temporal_feature_grid_adjudication.md"
+)
+PR281_ADJUDICATION_CSV_SHA256 = (
+    "f6cabd5f4f9532aa9bc5727c8c2da5e0f07aa9e55659830d14b698aca1f82674"
+)
+PR281_ADJUDICATION_MD_SHA256 = (
+    "127a40f929b9818b3cb4740c984c1f80040efde71c08f72b489993bd930ce4a0"
+)
+PR281_ADJUDICATION_EXPECTED_RELPATHS: frozenset[str] = frozenset(
+    {
+        PR281_ADJUDICATION_CSV_RELPATH,
+        PR281_ADJUDICATION_MD_RELPATH,
+    }
+)
+
 # H6 forbidden vocabulary (cross-game-portable enforcement)
 FORBIDDEN_SC2_TERMS = (
     "race",
@@ -448,6 +484,50 @@ def _check_h5_outputs_dir_absent(
     return True, None
 
 
+def _check_h5_outputs_dir_allowed_under_post_adjudication(
+    repo_root: Path,
+) -> tuple[bool, Optional[str]]:
+    """V3 H5 mode-aware helper.
+
+    In ``post_adjudication_mode=True``, the forbidden
+    ``03_temporal_features`` directory is allowed iff it is absent OR
+    contains EXACTLY the PR #281 adjudication artifact pair under the
+    canonical ``02_03_01/`` subdir at the pinned SHA-256 values. Body
+    parallels V1's helper; V3 does NOT import V1 (Group L invariant).
+    Falsifier labels carry the ``h5_post_adjudication_*`` prefix.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+
+    Returns:
+        Tuple of (ok: bool, falsifier_label: Optional[str]).
+    """
+    forbidden_root = repo_root / FORBIDDEN_V3_OUTPUTS_DIR
+    if not forbidden_root.exists():
+        return True, None
+    found_files: list[Path] = []
+    found_dirs: list[Path] = []
+    for p in forbidden_root.rglob("*"):
+        if p.is_file():
+            found_files.append(p)
+        elif p.is_dir():
+            found_dirs.append(p)
+    allowed_subdir = repo_root / PR281_ADJUDICATION_SUBDIR_RELPATH
+    found_dir_resolved = {d.resolve() for d in found_dirs}
+    if found_dir_resolved != {allowed_subdir.resolve()}:
+        return False, "h5_post_adjudication_unexpected_sibling_dir"
+    found_relpaths = {str(p.relative_to(repo_root)) for p in found_files}
+    if found_relpaths != PR281_ADJUDICATION_EXPECTED_RELPATHS:
+        return False, "h5_post_adjudication_unexpected_artifact"
+    csv_path = repo_root / PR281_ADJUDICATION_CSV_RELPATH
+    md_path = repo_root / PR281_ADJUDICATION_MD_RELPATH
+    if _compute_sha256(csv_path) != PR281_ADJUDICATION_CSV_SHA256:
+        return False, "h5_post_adjudication_csv_sha_mismatch"
+    if _compute_sha256(md_path) != PR281_ADJUDICATION_MD_SHA256:
+        return False, "h5_post_adjudication_md_sha_mismatch"
+    return True, None
+
+
 def _check_h6_vocabulary(
     module_text: str,
 ) -> tuple[bool, Optional[str]]:
@@ -548,7 +628,11 @@ def _check_h7_no_aoe2_claim(
 # ---------------------------------------------------------------------------
 
 
-def validate_temporal_discipline(repo_root: Path) -> TemporalDisciplineCheckResult:
+def validate_temporal_discipline(
+    repo_root: Path,
+    *,
+    post_adjudication_mode: bool = False,
+) -> TemporalDisciplineCheckResult:
     """Validate strict-< temporal-discipline at design time (V3 scaffold).
 
     Halt-priority: H1 → H2 → H3 → H4 → H5 → H6 → H7. First failure wins.
@@ -559,6 +643,14 @@ def validate_temporal_discipline(repo_root: Path) -> TemporalDisciplineCheckResu
 
     Args:
         repo_root: Absolute Path to the repository root.
+        post_adjudication_mode: When True, the H5 forbidden-emission guard
+            PASSES iff ``FORBIDDEN_V3_OUTPUTS_DIR`` is either absent OR
+            contains exactly the PR #281 adjudication artifact pair under
+            the canonical ``02_03_01/`` subdir at the pinned SHA-256
+            values. Default False preserves byte-equivalent legacy
+            behavior — H5 then requires the directory to be strictly
+            absent and fires ``h5_forbidden_outputs_dir_present`` when
+            present.
 
     Returns:
         TemporalDisciplineCheckResult with all check outputs populated.
@@ -612,19 +704,35 @@ def validate_temporal_discipline(repo_root: Path) -> TemporalDisciplineCheckResu
             cite_strings_present=h4_results,
         )
 
-    # --- H5: Forbidden-emission guard ---
-    h5_absent, h5_falsifier = _check_h5_outputs_dir_absent(repo_root)
-    if not h5_absent:
-        return TemporalDisciplineCheckResult(
-            passed=False,
-            halting_falsifier=h5_falsifier,
-            artifact_provenance_ok=True,
-            temporal_anchor_present=h2_results,
-            history_naming_valid=h3_naming,
-            forbidden_columns_absent=h3_forbidden,
-            cite_strings_present=h4_results,
-            outputs_dir_absent=False,
+    # --- H5: Forbidden-emission guard (mode-aware) ---
+    if post_adjudication_mode:
+        h5_ok, h5_falsifier = (
+            _check_h5_outputs_dir_allowed_under_post_adjudication(repo_root)
         )
+        if not h5_ok:
+            return TemporalDisciplineCheckResult(
+                passed=False,
+                halting_falsifier=h5_falsifier,
+                artifact_provenance_ok=True,
+                temporal_anchor_present=h2_results,
+                history_naming_valid=h3_naming,
+                forbidden_columns_absent=h3_forbidden,
+                cite_strings_present=h4_results,
+                outputs_dir_absent=False,
+            )
+    else:
+        h5_absent, h5_falsifier = _check_h5_outputs_dir_absent(repo_root)
+        if not h5_absent:
+            return TemporalDisciplineCheckResult(
+                passed=False,
+                halting_falsifier=h5_falsifier,
+                artifact_provenance_ok=True,
+                temporal_anchor_present=h2_results,
+                history_naming_valid=h3_naming,
+                forbidden_columns_absent=h3_forbidden,
+                cite_strings_present=h4_results,
+                outputs_dir_absent=False,
+            )
 
     # --- H6: Cross-game-portable vocabulary ---
     h6_ok, h6_falsifier = _check_h6_vocabulary(module_text)

@@ -19,9 +19,11 @@ Test groups:
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import inspect
 import re
+import shutil
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -727,21 +729,34 @@ class TestGroupLV1NonImport:
 
 
 class TestGroupMSmokeTests:
-    """Real repo_root smoke tests — confirm V3 passes all 7 checks."""
+    """Real repo_root smoke tests — confirm V3 passes all 7 checks.
+
+    All three tests now pass ``post_adjudication_mode=True`` because the
+    live repo state at master carries the PR #281 adjudication artifact
+    pair under the canonical ``02_03_01/`` subdir; the only way V3 can
+    pass on real repo after PR #281 is via the chore-PR-introduced
+    ``post_adjudication_mode`` kwarg.
+    """
 
     def test_smoke_validate_passes_real_repo(self) -> None:
-        result = validate_temporal_discipline(repo_root=REPO_ROOT)
+        result = validate_temporal_discipline(
+            repo_root=REPO_ROOT, post_adjudication_mode=True
+        )
         assert result.passed is True, (
             f"V3 should pass on real repo but got "
             f"halting_falsifier={result.halting_falsifier}"
         )
 
     def test_smoke_halting_falsifier_none(self) -> None:
-        result = validate_temporal_discipline(repo_root=REPO_ROOT)
+        result = validate_temporal_discipline(
+            repo_root=REPO_ROOT, post_adjudication_mode=True
+        )
         assert result.halting_falsifier is None
 
     def test_smoke_all_checks_positive(self) -> None:
-        result = validate_temporal_discipline(repo_root=REPO_ROOT)
+        result = validate_temporal_discipline(
+            repo_root=REPO_ROOT, post_adjudication_mode=True
+        )
         assert result.artifact_provenance_ok is True
         assert result.outputs_dir_absent is True
         assert result.cross_game_vocabulary_ok is True
@@ -750,3 +765,229 @@ class TestGroupMSmokeTests:
         assert all(result.history_naming_valid.values())
         assert all(len(v) == 0 for v in result.forbidden_columns_absent.values())
         assert all(result.cite_strings_present.values())
+
+
+# ===========================================================================
+# TestPostAdjudicationMode — chore PR validator-softening unblock for the
+# Layer-2 materialization PR. V3 mirror of V1's class. V3 H5 mode-aware
+# guard permits the forbidden ``03_temporal_features`` dir iff it
+# contains exactly the PR #281 adjudication artifact pair under
+# ``02_03_01/`` at the pinned SHA-256 values. V3 falsifier labels carry
+# the ``h5_post_adjudication_*`` prefix.
+# ===========================================================================
+
+
+def _v3_seed_pr281_adjudication_pair(tmp_path: Path) -> None:
+    """Copy the byte-exact PR #281 adjudication CSV + MD into tmp_path."""
+    from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline import (
+        PR281_ADJUDICATION_CSV_RELPATH,
+        PR281_ADJUDICATION_MD_RELPATH,
+    )
+
+    for rp in (PR281_ADJUDICATION_CSV_RELPATH, PR281_ADJUDICATION_MD_RELPATH):
+        dest = tmp_path / rp
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO_ROOT / rp, dest)
+
+
+class TestPostAdjudicationMode:
+    """V3 H5 post_adjudication_mode dispatch tests (7 cases)."""
+
+    def test_v3_default_mode_fails_when_outputs_dir_exists(
+        self, tmp_path: Path
+    ) -> None:
+        """Regression: default mode (no kwarg) MUST still fail with the
+        legacy ``h5_forbidden_outputs_dir_present`` falsifier when the
+        forbidden dir contains the PR #281 adjudication pair. Locks in
+        byte-equivalent legacy behavior at every existing call site.
+        """
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        try:
+            result = validate_temporal_discipline(tmp_path)
+        finally:
+            _restore_sha_pins()
+        assert result.passed is False
+        assert result.halting_falsifier == "h5_forbidden_outputs_dir_present"
+        assert result.outputs_dir_absent is False
+
+    def test_v3_post_adjudication_passes_when_dir_absent(
+        self, tmp_path: Path
+    ) -> None:
+        """``post_adjudication_mode=True`` with no forbidden dir → PASS."""
+        _make_valid_tmp_repo(tmp_path)
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is True
+        assert result.halting_falsifier is None
+
+    def test_v3_post_adjudication_passes_with_exact_pair(
+        self, tmp_path: Path
+    ) -> None:
+        """``post_adjudication_mode=True`` with exact pair → PASS overall."""
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is True
+        assert result.halting_falsifier is None
+
+    def test_v3_post_adjudication_fails_with_extra_file(
+        self, tmp_path: Path
+    ) -> None:
+        """Pair + extra file → ``h5_post_adjudication_unexpected_artifact``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline import (
+            PR281_ADJUDICATION_SUBDIR_RELPATH,
+        )
+
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        extra = tmp_path / PR281_ADJUDICATION_SUBDIR_RELPATH / "extra.txt"
+        extra.write_text("unexpected", encoding="utf-8")
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is False
+        assert result.halting_falsifier == "h5_post_adjudication_unexpected_artifact"
+
+    def test_v3_post_adjudication_fails_with_extra_subdir(
+        self, tmp_path: Path
+    ) -> None:
+        """Pair + sibling subdir → ``h5_post_adjudication_unexpected_sibling_dir``."""
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        sibling = tmp_path / FORBIDDEN_V3_OUTPUTS_DIR / "02_03_02"
+        sibling.mkdir(parents=True)
+        (sibling / "placeholder.md").write_text("sibling", encoding="utf-8")
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is False
+        assert (
+            result.halting_falsifier
+            == "h5_post_adjudication_unexpected_sibling_dir"
+        )
+
+    def test_v3_post_adjudication_fails_on_csv_byte_tamper(
+        self, tmp_path: Path
+    ) -> None:
+        """Byte-tampered CSV → ``h5_post_adjudication_csv_sha_mismatch``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline import (
+            PR281_ADJUDICATION_CSV_RELPATH,
+        )
+
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        target = tmp_path / PR281_ADJUDICATION_CSV_RELPATH
+        content = target.read_bytes()
+        mutated = content[:-1] + bytes([(content[-1] ^ 0x01) & 0xFF])
+        target.write_bytes(mutated)
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is False
+        assert result.halting_falsifier == "h5_post_adjudication_csv_sha_mismatch"
+
+    def test_v3_post_adjudication_fails_on_md_byte_tamper(
+        self, tmp_path: Path
+    ) -> None:
+        """Byte-tampered MD → ``h5_post_adjudication_md_sha_mismatch``."""
+        from rts_predict.games.sc2.datasets.sc2egset.validate_temporal_discipline import (
+            PR281_ADJUDICATION_MD_RELPATH,
+        )
+
+        _make_valid_tmp_repo(tmp_path)
+        _v3_seed_pr281_adjudication_pair(tmp_path)
+        target = tmp_path / PR281_ADJUDICATION_MD_RELPATH
+        content = target.read_bytes()
+        mutated = content[:-1] + bytes([(content[-1] ^ 0x01) & 0xFF])
+        target.write_bytes(mutated)
+        try:
+            result = validate_temporal_discipline(
+                tmp_path, post_adjudication_mode=True
+            )
+        finally:
+            _restore_sha_pins()
+        assert result.passed is False
+        assert result.halting_falsifier == "h5_post_adjudication_md_sha_mismatch"
+
+
+# ===========================================================================
+# Cross-validator invariant tests (V3 must NOT import V1; V3 must NOT
+# perform Parquet row reads or DuckDB queries). Strengthens the existing
+# substring-based ``test_v3_source_does_not_reference_v1_module`` with
+# AST-based detection of import statements + Call-node detection of
+# forbidden row-read APIs.
+# ===========================================================================
+
+
+class TestCrossValidatorInvariants:
+    """AST-based non-import + no-row-read invariants for V3."""
+
+    def test_v3_module_does_not_import_v1(self) -> None:
+        """AST walk over V3 source: no Import/ImportFrom node references
+        the V1 module ``validate_temporal_feature_grid``. Stronger than
+        substring grep — survives comment text mentioning ``V1``.
+        """
+        v3_path = Path(vtd.__file__)
+        tree = ast.parse(v3_path.read_text())
+        v1_module_name = "validate_temporal_feature_grid"
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    assert v1_module_name not in alias.name, (
+                        f"V3 ast.Import references V1 module: {alias.name}"
+                    )
+            elif isinstance(node, ast.ImportFrom):
+                module = node.module or ""
+                assert v1_module_name not in module, (
+                    f"V3 ast.ImportFrom references V1 module: {module}"
+                )
+
+    def test_v3_module_text_contains_no_row_read_apis(self) -> None:
+        """V3 source MUST NOT contain Parquet row-read or DuckDB calls.
+
+        Combines static substring scan (catches calls, imports, attribute
+        references uniformly) with an AST Call-node walk that catches
+        attribute-style calls like ``pq.read_table()`` and
+        ``duckdb.connect()``.
+        """
+        v3_path = Path(vtd.__file__)
+        source = v3_path.read_text()
+        forbidden_substrings = (
+            "pq.read_table",
+            "pd.read_parquet",
+            "duckdb.",
+            "duckdb_connect",
+        )
+        for sub in forbidden_substrings:
+            assert sub not in source, (
+                f"V3 source contains forbidden row-read substring: {sub!r}"
+            )
+        # AST Call-node check: any attribute-call whose attribute name is in
+        # the forbidden set is also rejected, in case formatting hides the
+        # raw substring (e.g. ``pq .  read_table`` after a reformat).
+        forbidden_attrs = {"read_table", "read_parquet"}
+        tree = ast.parse(source)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                assert node.func.attr not in forbidden_attrs, (
+                    f"V3 ast.Call invokes forbidden row-read attr: {node.func.attr}"
+                )
